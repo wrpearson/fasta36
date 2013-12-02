@@ -1,0 +1,43 @@
+#
+# makefile for fasta35
+#
+# for more information on FASTA on CRAY's, see:
+#
+#       http://home.cray.com/~cpsosa/ChemApps/BioInf/fasta/fasta.html
+#	provided by: Carlos P. Sosa, cpsosa@cray.com
+#
+
+CC= cc -h inline1,scalar3,task0,vector2
+
+HFLAGS= -o
+NFLAGS= -o
+
+LIB_M=
+#
+
+CFLAGS= -DUNIX -DTIMES -DSFCHAR="':'" -DMAX_WORKERS=4
+-DTHR_EXIT=pthread_exit -DPROGRESS
+-DFASTA_HOST='"crick.med.virginia.edu/fasta/cgi"' -DIS_BIG_ENDIAN
+
+THR_SUBS = pthr_subs
+THR_LIBS = -lpthread
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/slib/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_SSE2_O)
+DROPLAL_O = $(DROPLAL_SSE2_O)
+DROPGNW_O = $(DROPGNW_SSE2_O)
+DROPLNW_O = $(DROPLNW_SSE2_O)
+
+# renamed (fasta35)  programs
+include ../make/Makefile33.nommap
+# conventional (fasta3) names
+# include ../make/Makefile.common

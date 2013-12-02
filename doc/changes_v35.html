@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<title>ChangeLog - FASTA v35</title>
+<style type="text/css">
+body {  margin-left: 6px; }
+.sidebar { 
+font-size: 12px; font-family: sans-serif; text-decoration:none; background-color: #FFFFCC; }
+.fasta { font-family: sans-serif; }
+.fasta h2 { font-size: 16px; color: #000000 }
+.fasta h3 { font-size: 14px; color: #000000 }
+.fasta td {background-color: #FFFFCC }
+.fasta a { text-decoration: none; }
+.fasta li { margin-left:-1em }
+</style>
+<head>
+<body>
+<div class=fasta>
+<h2>ChangeLog - FASTA v35</h2>
+<pre><small>
+ $Id: changes_v35.html 120 2010-01-31 19:42:09Z wrp $
+ $Revision: 210 $
+</small>
+</pre>
+<hr>
+<h2>Summary - Major Changes in FASTA version 35 (August, 2007)</h2>
+<ol>
+<li>Accurate shuffle based statistics for searches of small libraries (or pairwise comparisons).
+<p/>
+<li>
+Inclusion of <b>lalign35</b> (SIM) into FASTA3.  Accurate statistics for
+<b>lalign35</b> alignments.  <b>plalign</b> has been replaced by
+<b>lalign35</b> and <b>lav2ps</b>.
+</li>
+<p/>
+<li>
+Two new global alignment programs: <b>ggsearch35</b> and <b>glsearch35</b>.
+</li>
+</ol>
+<hr>
+<h3>February 7, 2008</h3>Allow annotations in library, as well as
+query sequences.  Currently, annotations are only available within
+sequences (i.e., they are not read from the feature table), but they
+should be available in FASTA format, or any of the other ascii text
+formats (EMBL/Swissprot, Genbank, PIR/GCG).  If annotations are
+present in a library and the annotation characters includes '*', then
+the -V '*' option MUST be used.  However, special characters other
+than '*' are ignored, so annotations of '@', '%', or '@' should be
+transparent.
+<p>
+In translated sequence comparisons, annotations are only available for
+the protein sequence.
+<p>
+<h3>January 25, 2007</h3> Support protein queries and sequence
+libraries that contain 'O' (pyrrolysine) and 'U' (selenocysteine).
+('J' was supported already). Currently, 'O' is mapped automatically to
+'K' and 'U' to 'C'.
+<p />
+<h3>Dec. 13, 2007 CVS fa35_03_02m</h3>
+<p>
+Add ability to search a subset of a library using a file name and a
+list of accession/gi numbers. This version introduces a new filetype,
+10, which consists of a first line with a target filename, format, and
+accession number format-type, and optionally the accession number
+format in the database, followed by a list of accession numbers.  For
+example:
+<pre>
+	  &lt;/slib2/blast/swissprot.lseg 0:2 4|
+	  3121763
+	  51701705
+	  7404340
+	  74735515
+	  ...
+</pre>
+Tells the program that the target database is swissprot.lseg, which is
+in FASTA (library type 0) format.
+<p>
+The accession format comes after the ":".  Currently, there are four
+accession formats, two that require ordered accessions (:1, :2), and
+two that hash the accessions (:3, :4) so they do not need to be
+ordered.  The number and character after the accession format
+(e.g. "4|") indicate the offset of the beginning of the accession and
+the character that terminates the accession.  Thus, in the typical
+NCBI Fasta definition line:
+<pre>
+ &gt;gi|1170095|sp|P46419|GSTM1_DERPT Glutathione S-transferase (GST class-mu)
+</pre>
+The offset is 4 and the termination character is '|'.  For databases
+distributed in FASTA format from the European Bioinformatics
+Institute, the offset depends on the name of the database, e.g.
+<pre>
+ &gt;SW:104K_THEAN Q4U9M9 104 kDa microneme/rhoptry antigen precursor (p104).
+</pre>
+and the delimiter is '&nbsp;' (space, the default).
+<p>
+Accession formats 1 and 3 expect strings; accession formats 2 and 4
+work with integers (e.g. gi numbers).
+<p />
+<h3>December 10, 2007</h3>
+Provide encoded annotation information with
+-m 9c alignment summaries.  The encoded alignment information makes it
+much simpler to highlight changes in critical residues.
+<p />
+<h3>August 22, 2007</h3> <a name="lav2svg" /> A new program is
+available, <tt>lav2svg</tt>, which creates SVG (Scalable Vector
+Graphics) output.  In addition, <a href="#ps_lav"><tt>ps_lav</tt></a>,
+which was introduced May 30, 2007, has been replaced
+by <tt>lav2ps</tt>.  SVG files are more easily edited with Adobe
+Illustrator than postscript (<tt>lav2ps</tt>) files.
+<p>
+<h3>July 25, 2007  CVS fa35_02_02</h3>
+Change default gap penalties for OPTIMA5 matrix to -20/-2 from -24/-4.
+<p>
+<h3>July 23, 2007</h3>
+Add code to support to support sub-sequence ranges for "library"
+sequences - necessary for fully functional prss (ssearch35) and
+lalign35.  For all programs, it is now possible to specify a subset of
+both the query and the library, e.g.
+<pre>
+lalign35 -q mchu.aa:1-74 mchu.aa:75-148
+</pre>
+Note, however, that the subset range applied to the library will be
+applied to every sequence in the library - not just the first - and
+that the same subset range is applied to each sequence.  This probably
+makes sense only if the library contains a single sequence (this is
+also true for the query sequence file).
+<p>
+<h3>July 3, 2007  CVS fa35_02_01</h3>
+
+Merge of previous <tt><b>fasta34</tt></b> with development version <tt><b>fasta35</tt></b>.
+
+<h3>June 26, 2007</h3>
+
+Add amino-acid 'J' for 'I' or 'L'.
+<p>
+Add Mueller and Vingron (2000) J. Comp. Biol. 7:761-776 VT160 matrix,
+"-s VT160", and OPTIMA_5 (Kann et al. (2000) Proteins 41:498-503).
+<h3>June 7, 2007</h3>
+
+<tt><b>ggssearch35(_t)</b></tt>, <tt><b>glsearch35(_t)</b></tt> can now use PSSMs.
+
+<h3>May 30, 2007  CVS fa35_01_04</h3>
+
+<a name="ps_lav" /> Addition of <tt><b>ps_lav</b></tt>
+(now <a href="#lav2svf">lav2ps</a> or <a href="#lav2svg">lav2svg</a>) -- which can be used to plot the lav
+output of
+<tt><b>lalign35 -m 11</b></tt>.
+<pre>lalign35 -m 11 | lav2ps</pre> replaces <tt><b>plalign</b></tt>
+(from <tt><b>FASTA2</b></tt>).
+
+<h3>May 2, 2007</h3>
+
+The labels on the alignment scores are much more informative (and more
+diverse).   In the past, alignment scores looked like:
+<pre>
+>>gi|121716|sp|P10649|GSTM1_MOUSE Glutathione S-transfer  (218 aa)
+ s-w opt: 1497  Z-score: 1857.5  bits: 350.8 E(): 8.3e-97
+Smith-Waterman score: 1497; 100.0% identity (100.0% similar) in 218 aa overlap (1-218:1-218)
+^^^^^^^^^^^^^^
+</pre>
+where the highlighted text was either: "Smith-Waterman" or "banded
+Smith-Waterman". In fact, scores were calculated in other ways,
+including global/local for <tt><b>fasts</b></tt> and <tt><b>fastf</b></tt>.  With the addition of
+<tt><b>ggsearch35,</b></tt> <tt><b>glsearch35,</b></tt> and <tt><b>lalign35,</b></tt> there are many more ways to
+calculate alignments: "Smith-Waterman" (ssearch and protein fasta),
+"banded Smith-Waterman" (DNA fasta), "Waterman-Eggert",
+"trans. Smith-Waterman", "global/local", "trans. global/local",
+"global/global (N-W)".  The last option is a global global alignment,
+but with the affine gap penalties used in the Smith-Waterman
+algorithm.
+
+<h3>April 19, 2007	CVS fa34t27br_lal_3</h3>
+
+Two new programs, <tt><b>ggsearch35(_t)</b></tt> and <tt><b>glsearch35(_t)</b></tt> are now available.
+<tt><b>ggsearch35(_t)</b></tt> calculates an alignment score that is global in the
+query and global in the library; <tt><b>glsearch35(_t)</b></tt> calculates an alignment
+that is global in the query and local, while local in the library
+sequence.  The latter program is designed for global alignments to domains.
+
+Both programs assume that scores are normally distributed.  This
+appears to be an excellent approximation for ggsearch35 scores, but
+the distribution is somewhat skewed for global/local (glsearch)
+scores.  <tt><b>ggsearch35(_t)</b></tt> only compares the query to library sequences
+that are beween 80% and 125% of the length of the query; glsearch
+limits comparisons to library sequences that are longer than 80% of
+the query.  Initial results suggest that there is relatively little
+length dependence of scores over this range (scores go down
+dramatically outside these ranges).
+
+<h3>March 29, 2007     CVS fa34t27br_lal_1</h3>
+
+At last, the <tt><b>lalign</b></tt> (SIM) algorithm has been moved from <b>FASTA21</b> to
+<b>FASTA35</b>.  A <tt><b><a href="#ps_lav">plalign</a></b></tt>
+equivalent is also available using <tt>lalign -m 11 | lav2ps</tt>
+or <tt>| lav2svg</tt>.
+
+The statistical estimates for <tt>lalign35</tt> should be much more accurate
+than those from the earlier lalign, because lambda and K are estimated
+from shuffles.
+
+In addition, all programs can now generate accurate statistical
+estimates with shuffles if the library has fewer than 500 sequences.
+If the library contains more than 500 sequences and the sequences are
+related, then the -z 11 option should be used.
+p<hr>
+<a href="changes_v34.html">FASTA v34 Change Log</a>
+<p>&nbsp;</p>
+</div>
+</body>
+</html>

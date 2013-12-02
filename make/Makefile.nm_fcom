@@ -1,0 +1,304 @@
+
+#================ common .obj files 
+
+doinit.obj : doinit.c defs.h param.h upam.h structs.h uascii.h
+	$(CC) $(CFLAGS) -c doinit.c
+
+init_sw.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DSSEARCH initfa.c /Foinit_sw.obj
+
+init_lal.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DLALIGN initfa.c /Foinit_lal.obj
+
+init_gnw.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DGGSEARCH initfa.c /Foinit_gnw.obj
+
+init_lnw.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DGLSEARCH initfa.c /Foinit_lnw.obj
+
+init_ssw.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DOSEARCH initfa.c /Foinit_ssw.obj
+
+init_rss.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DPRSS initfa.c /Foinit_rss.obj
+
+init_rfx.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DPRSS -DFASTX initfa.c /Foinit_rfx.obj
+
+init_fa.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTA initfa.c /Foinit_fa.obj
+
+init_ff.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTF initfa.c /Foinit_ff.obj
+
+init_tf.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTF -DTFAST initfa.c /Foinit_tf.obj
+
+init_fs.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTS initfa.c /Foinit_fs.obj
+
+init_fm.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTM initfa.c /Foinit_fm.obj
+
+init_tfs.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTS -DTFAST  initfa.c /Foinit_tfs.obj
+
+init_tfm.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTM -DTFAST  initfa.c /Foinit_tfm.obj
+
+init_tfa.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTA -DTFAST initfa.c /Foinit_tfa.obj
+
+init_fx.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTX initfa.c /Foinit_fx.obj
+
+init_tfx.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTX -DTFAST initfa.c /Foinit_tfx.obj
+
+init_fy.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTY initfa.c /Foinit_fy.obj
+
+init_tfy.obj : initfa.c defs.h param.h upam.h structs.h
+	$(CC) $(CFLAGS) -c -DFASTY -DTFAST initfa.c /Foinit_tfy.obj
+
+#================ miscellaneous
+
+htime.obj : htime.c
+	$(CC) $(CFLAGS) -c htime.c
+
+compacc.obj : compacc.c upam.h uascii.h param.h structs.h $(MWH) defs.h
+	$(CC) $(CFLAGS) -c compacc.c
+
+compacc2_t.obj : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c compacc2.c /Focompacc2_t.obj
+
+compacc2_s.obj : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -c compacc2.c /Focompacc2_s.obj
+
+pssm_asn_subs.obj : pssm_asn_subs.c defs.h
+	$(CC) $(CFLAGS) -c pssm_asn_subs.c
+
+#================ display list of best hits / alignments
+
+showbest.obj : $(SHOWBESTC) $(MWH) defs.h param.h structs.h  aln_structs.h drop_func.h
+	$(CC) $(CFLAGS) -c $(SHOWBESTC) /Foshowbest.obj
+
+showrss.obj : showrss.c $(MWH) defs.h param.h structs.h  aln_structs.h drop_func.h
+	$(CC) $(CFLAGS) -c showrss.c
+
+showun.obj : mshowbest.c $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DSHOWUN mshowbest.c /Foshowun.obj
+
+showrel.obj : $(SHOWBESTC) $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DSHOWREL $(SHOWBESTC) /Foshowrel.obj
+
+showsum.obj : showsum.c $(MWH) defs.h drop_func.h
+	$(CC) $(CFLAGS) -c showsum.c
+
+$(LSHOWALIGN).obj : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -DLALIGN -c $(SHOWALIGN).c /Fo$(LSHOWALIGN).obj
+
+$(SHOWALIGN).obj : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h aln_structs.h drop_func.h
+	$(CC) $(CFLAGS) -c $(SHOWALIGN).c /Fo$(SHOWALIGN).obj
+
+$(SHOWALIGN)_u.obj : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h aln_structs.h drop_func.h
+	$(CC) $(CFLAGS) -DSHOWUN -c /Fo$(SHOWALIGN)_u.obj $(SHOWALIGN).c
+re_getlib.obj : re_getlib.c mw.h mm_file.h
+	$(CC) $(CFLAGS) -c re_getlib.c
+
+lib_sel.obj : lib_sel.c defs.h structs.h
+	$(CC) $(CFLAGS) -c lib_sel.c
+
+c_dispn.obj : c_dispn.c defs.h structs.h param.h 
+	$(CC) $(CFLAGS) -c c_dispn.c
+
+build_ares.obj : build_ares.c $(MWH) defs.h param.h rstruct.h structs.h  aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -c build_ares.c /Fobuild_ares.obj
+
+#================ statistical functions
+
+karlin.obj : karlin.c param.h
+	$(CC) $(CFLAGS) -c karlin.c
+
+scale_se.obj : scaleswn.c defs.h param.h structs.h $(MWH) alt_parms.h
+	$(CC) $(CFLAGS) -DLOCAL_SCORE -c scaleswn.c /Foscale_se.obj
+
+scale_sn.obj : scaleswn.c defs.h param.h structs.h $(MWH) alt_parms.h
+	$(CC) -DNORMAL_DIST $(CFLAGS) -c scaleswn.c /Foscale_sn.obj
+
+scaleswtf.obj : scaleswt.c defs.h param.h structs.h $(MWH) alt_parms.h
+	$(CC) $(CFLAGS) -DFASTF -c scaleswt.c /Foscaleswtf.obj
+
+scaleswts.obj : scaleswt.c defs.h param.h structs.h $(MWH) alt_parms.h
+	$(CC) $(CFLAGS) -c scaleswt.c /Foscaleswts.obj
+
+tatstats_fs.obj : tatstats.c tatstats.h
+	$(CC) $(CFLAGS) -c -DFASTS tatstats.c /Fotatstats_fs.obj
+
+tatstats_ff.obj : tatstats.c tatstats.h
+	$(CC) $(CFLAGS) -c -DFASTF tatstats.c /Fotatstats_ff.obj
+
+tatstats_fm.obj : tatstats.c tatstats.h
+	$(CC) $(CFLAGS) -c -DFASTM tatstats.c /Fotatstats_fm.obj
+
+last_tat.obj : last_tat.c defs.h mm_file.h structs.h param.h
+	$(CC) $(CFLAGS) -c last_tat.c
+
+last_thresh.obj : last_thresh.c defs.h mm_file.h structs.h param.h
+	$(CC) $(CFLAGS) -c last_thresh.c
+
+#================ drop functions - actual scores/alignments
+
+drop_nfa.obj : dropnfa.c dropnfa.h param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropnfa.c /Fodrop_nfa.obj
+
+# drop_ff, _fs, _fm must define FASTF, FASTS, and FASTM to ensure
+# that tatstats.h is built appropriately
+
+drop_ff.obj : dropff2.c param.h defs.h tatstats.h drop_func.h
+	$(CC) $(CFLAGS) -DFASTF -c dropff2.c /Fodrop_ff.obj
+
+drop_tff.obj : dropff2.c param.h defs.h tatstats.h drop_func.h
+	$(CC) $(CFLAGS) -DFASTF -DTFAST -c dropff2.c /Fodrop_tff.obj
+
+drop_ff2.obj : dropff2.c param.h defs.h tatstats.h drop_func.h
+	$(CC) $(CFLAGS) -c -DFASTF  dropff2.c /Fodrop_ff2.obj
+
+drop_tff2.obj : dropff2.c param.h defs.h tatstats.h drop_func.h
+	$(CC) $(CFLAGS) -c -DFASTF -DTFAST dropff2.c /Fodrop_tff.obj
+
+drop_fs2.obj : dropfs2.c param.h defs.h tatstats.h drop_func.h
+	$(CC) $(CFLAGS) -DFASTS -c dropfs2.c /Fodrop_fs2.obj
+
+drop_tfs.obj : dropfs2.c param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DTFAST -DFASTS dropfs2.c /Fodrop_tfs.obj
+
+drop_fm.obj : dropfs2.c param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DFASTM dropfs2.c /Fodrop_fm.obj
+
+drop_tfm.obj : dropfs2.c param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DTFAST -DFASTM dropfs2.c /Fodrop_tfm.obj
+
+drop_tfa.obj : dropnfa.c dropnfa.h upam.h param.h defs.h
+	$(CC) $(CFLAGS) -c -DTFASTA dropnfa.c /Fodrop_tfa.obj
+
+drop_fx.obj : dropfx.c upam.h param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropfx.c /Fodrop_fx.obj
+
+drop_tfx.obj : dropfx.c upam.h param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DTFAST dropfx.c /Fodrop_tfx.obj
+
+drop_fz.obj : dropfz2.c upam.h param.h defs.h aamap.h drop_func.h
+	$(CC) $(CFLAGS) -c dropfz2.c /Fodrop_fz.obj
+
+drop_tfz.obj : dropfz2.c upam.h param.h defs.h aamap.h drop_func.h
+	$(CC) $(CFLAGS) -c -DTFAST dropfz2.c /Fodrop_tfz.obj
+
+dropnsw.obj : dropnsw.c upam.h param.h structs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropnsw.c
+
+dropgsw2.obj : dropgsw2.c dropgsw2.h upam.h param.h structs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropgsw2.c
+
+dropgnw2.obj : dropnnw2.c upam.h param.h structs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropnnw2.c /Fodropgnw2.obj
+
+droplnw2.obj : dropnnw2.c upam.h param.h structs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropnnw2.c /Fodroplnw2.obj
+
+droplal.obj : dropgsw2.c dropgsw2.h upam.h param.h drop_func.h a_mark.h
+	$(CC) $(CFLAGS) -DLALIGN -c dropgsw2.c /Fodroplal.obj
+
+droplal_sse2.obj : dropgsw2.c dropgsw2.h upam.h param.h drop_func.h a_mark.h
+	$(CC) $(CFLAGS) -DLALIGN -DSW_SSE2 -c dropgsw2.c /Fodroplal.obj
+
+dropgsw2_sse2.obj : dropgsw2.c dropgsw2.h upam.h param.h structs.h drop_func.h
+	$(CC) $(CFLAGS) -DSW_SSE2 -c dropgsw2.c /Fodropgsw2_sse2.obj
+
+smith_waterman_altivec.obj : smith_waterman_altivec.c smith_waterman_altivec.h dropgsw2.h defs.h param.h
+	$(CC) $(CFLAGS) -c smith_waterman_altivec.c
+
+smith_waterman_sse2.obj : smith_waterman_sse2.c smith_waterman_sse2.h dropgsw2.h defs.h param.h
+	$(CC) $(CFLAGS) -DSW_SSE2 -c smith_waterman_sse2.c
+
+dropnw.obj : dropnw.c upam.h param.h structs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropnw.c
+
+wm_align.obj : wm_align.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -c wm_align.c
+
+calcons_fa.obj : cal_cons.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTA -c cal_cons.c /Focalcons_fa.obj
+
+calcons_sw.obj : cal_cons.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSSEARCH -c cal_cons.c /Focalcons_sw.obj
+
+calcons_la.obj : cal_cons.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) -DLALIGN -DLCAL_CONS $(CFLAGS) -c cal_cons.c /Focalcons_la.obj
+
+calcons_ff.obj : cal_consf.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTF -c cal_consf.c /Focalcons_ff.obj
+
+calcons_fs.obj : cal_consf.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTS -c cal_consf.c /Focalcons_fs.obj
+
+calcons_fm.obj : cal_consf.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTM -c cal_consf.c /Focalcons_fm.obj
+
+calcons_tff.obj : cal_consf.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFAST -DFASTF -c cal_consf.c /Focalcons_tff.obj
+
+calcons_tfs.obj : cal_consf.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFAST -DFASTS -c cal_consf.c /Focalcons_tfs.obj
+
+calcons_tfm.obj : cal_consf.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFAST -DFASTM -c cal_consf.c /Focalcons_tfm.obj
+
+#================ reading query, libraries
+
+getseq.obj : getseq.c defs.h uascii.h structs.h upam.h 
+	$(CC) $(CFLAGS) -c getseq.c
+
+llgetaa.obj : llgetaa.c upam.h uascii.h
+	$(CC) $(CFLAGS) -c -DNOLIB llgetaa.c
+
+lgetlib.obj : $(NGETLIB).c altlib.h upam.h uascii.h mm_file.h
+	$(CC) $(CFLAGS) -c $(NGETLIB).c /Folgetlib.obj
+
+lgetaa_m.obj : mmgetaa.c altlib.h ncbl2_head.h upam.h uascii.h mm_file.h
+	$(CC) $(CFLAGS) -c mmgetaa.c /Folgetaa_m.obj
+
+ncbl_lib.obj : ncbl_lib.c ncbl_head.h
+	$(CC) $(CFLAGS) -c ncbl_lib.c
+
+ncbl2_mlib.obj : ncbl2_mlib.c ncbl2_head.h mm_file.h
+	$(CC) $(CFLAGS) -c ncbl2_mlib.c
+
+mysql_lib.obj : mysql_lib.c mm_file.h
+	$(CC) $(CFLAGS) -c mysql_lib.c
+
+pgsql_lib.obj : pgsql_lib.c mm_file.h
+	$(CC) $(CFLAGS) -c pgsql_lib.c
+
+#================ threading functions
+
+pthr_subs2.obj : pthr_subs2.c thr_bufs2.h pthr_subs.h
+	$(CC) $(CFLAGS) -c pthr_subs2.c
+
+uthr_subs.obj : uthr_subs.c thr_bufs2.h uthr_subs.h 
+	$(CC) $(CFLAGS) -c uthr_subs.c
+
+#================ translation
+
+faatran.obj : faatran.c upam.h uascii.h
+	$(CC) $(CFLAGS) -c faatran.c
+
+url_subs.obj : url_subs.c structs.h param.h
+	$(CC) $(CFLAGS) -c url_subs.c
+
+$(NRAND).obj : $(NRAND).c
+	$(CC) $(CFLAGS) -c $(NRAND).c
+#================ windows getopt()
+
+getopt.obj : getopt.c
+	$(CC) $(CFLAGS) -c getopt.c

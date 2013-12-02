@@ -1,0 +1,1926 @@
+\documentclass[11pt]{article}
+\RequirePackage{helvet}
+\newcommand{\CURRENT}{fasta-36.3.6}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{fancyhdr}
+\usepackage{url}
+\usepackage{needspace}
+\usepackage{longtable}
+\addtolength{\oddsidemargin}{-0.75in}
+\addtolength{\evensidemargin}{-0.75in}
+\addtolength{\textwidth}{1.5in}
+\addtolength{\topmargin}{-0.75in}
+\addtolength{\textheight}{1.5in}
+
+%% $Id: fasta_guide.tex 1173 2013-06-06 16:57:02Z wrp $
+%% Version: $Revision: 1173 $
+
+\lhead{\CURRENT}
+\rhead{\today}
+\cfoot{\thepage}
+\pagestyle{fancy}
+\newcommand{\FASTA}{\texttt{FASTA }}
+\hyphenation{Swiss-Prot}
+
+\parskip 0.5ex
+
+\begin{document}
+%% .he 'FASTA3.DOC''Release 3.6, March, 2011'
+
+\section*{\Large{The FASTA program package}}
+
+%% \begin{quote}
+%% \emph{This document is undergoing extensive revision. 
+%% Some parts of it are old; while still accurate, they are less
+%% relevant.  Recent improvements to the FASTA programs are not well
+%% documented, particularly with respect to options for selecting
+%% databases and database sequences.}
+%% \end{quote}
+
+\section*{Introduction}
+
+This documentation describes the version 36 of the FASTA program
+package (see W. R. Pearson and D. J. Lipman (1988), ``Improved Tools
+for Biological Sequence Analysis'', PNAS 85:2444-2448,\cite{wrp881}
+W. R. Pearson (1996) ``Effective protein sequence comparison''
+Meth. Enzymol. 266:227-258 \cite{wrp960}; and Pearson et. al. (1997)
+Genomics 46:24-36 \cite{wrp973}.  Version 3 of the FASTA packages
+contains many programs for searching DNA and protein databases and for
+evaluating statistical significance from randomly shuffled sequences.
+
+This document is divided into four sections: (1) A summary overview of
+the programs in the FASTA3 package; (2) A guide to using the FASTA
+programs; (3) A guide to installing the programs and
+databases. Section (4) provides answers to some Frequently Asked
+Questions (FAQs).  In addition to this document, the
+\texttt{changes\_v36.html}, \texttt{changes\_v35.html} and
+\texttt{changes\_v34.html} files list functional changes to the programs.
+The \texttt{readme.v30..v36} files provide a more complete revision
+history of the programs, including bug fixes.
+
+The programs are easy to use; if you are using them on a machine that
+is administered by someone else, you can focus on sections (1) and (2)
+to learn how to use the programs.  If you are installing the programs
+on your own machine, you will need to read section (3) carefully.
+
+\emph{FASTA and BLAST} -- FASTA and BLAST have the same goal: to
+identify statistically significant sequence similarity that can be
+used to infer homology.  The FASTA programs offer several advantages
+over BLAST:
+\begin{enumerate}
+\item
+Rigorous algorithms unavailable in BLAST (Table I).  Smith-Waterman
+(\texttt{ssearch36}), global: global (\texttt{ggsearch36}), and
+global:local (\texttt{glsearch36}) programs are available, and these
+programs can be used with \texttt{psiblast} PSSM profiles.
+\item
+Better translated alignments. \texttt{fastx36}, \texttt{fasty36},
+\texttt{tfastx36}, and \texttt{tfastx36} allow frame-shifts in
+alignments; frame-shifts are treated like gap-penalties, alignments
+tend to be longer in error-prone reads.
+\item
+Better statistics. BLAST calculates very accurate statistics for
+protein:protein alignments, but its model-based strategy is less
+robust for translated-DNA:protein and DNA:DNA scores.  FASTA uses an
+empirical estimation strategy, and now provides both search-based, and
+high-scoring shuffle-based statistics (\texttt{-z 21}).
+\item
+More flexible library sequence formats.  The FASTA programs can read
+FASTA, NCBI/ \texttt{formatdb}, and several other sequence formats, and can
+directly query MySQL and Postgres databases. The programs offer
+several strategies for specifying subsets of databases.
+\item
+A very efficient threaded implementation.  The FASTA programs are
+fully threaded; both similarity scores and alignments can be
+calculated in parallel on multi-core hardware.  On multi-core
+machines, FASTA can be faster than BLAST while producing better
+alignments with more accurate statistical estimates.
+
+\end{enumerate}
+
+In addition, the FASTA programs from \texttt{fasta-36.3.4} on provide
+an option to produce very BLAST-like output (\texttt{-m BB}), so that
+analysis pipelines require minimal modification.
+
+\section{An overview of the \texttt{FASTA} programs}
+
+\begin{table}
+\caption{\label{table1} Comparison programs in the FASTA36 package}
+\vspace{0.5ex}
+\begin{tabular}{ p{0.8in} p{0.6in} p{4.6 in}}
+\hline \\[-1.0ex]
+FASTA \mbox{program} & BLAST equiv. & Description \\[1.2ex]
+\hline \\[-1.0ex]
+\texttt{fasta36} & \texttt{blastp}/ \texttt{blastn} &
+Compare a protein sequence to a protein sequence 
+database or a DNA sequence to a DNA sequence database using the FASTA 
+algorithm \cite{wrp881,wrp960}.  Search speed and selectivity are 
+controlled with the \emph{ktup}(wordsize) parameter.  For protein 
+comparisons, \emph{ktup} = 2 by default; \emph{ktup} =1 is more sensitive 
+but slower.  For DNA comparisons, \emph{ktup}=6 by default; \emph{ktup}=3 or 
+\emph{ktup}=4 provides higher sensitivity.\\[1 ex]
+
+\texttt{ssearch36} &  & Compare a protein sequence to a protein sequence 
+database or a DNA sequence to a DNA sequence database using the 
+Smith-Waterman algorithm \cite{wat815}. \texttt{ssearch36} uses SSE2
+acceleration, and is only 2 - 5X slower than \texttt{fasta36} \cite{farrar2007}. \\[1 ex]
+
+\texttt{ggsearch36}/ \texttt{glsearch36} &  & Compare a protein sequence to a protein sequence 
+database or a DNA sequence to a DNA sequence database using
+an optimal global:global (\texttt{ggsearch36}) or global:local
+(\texttt{glsearch36}) algorithm.\\[1 ex]
+
+\texttt{fastx36}/ \texttt{fasty36} & \texttt{blastx} &
+Compare a DNA sequence to a protein
+sequence database, by comparing the translated DNA sequence in three
+frames and allowing gaps and frameshifts.  \texttt{fastx36} uses a
+simpler, faster algorithm for alignments that allows frameshifts only
+between codons; \texttt{fasty36} is slower but can produce better alignments
+because frameshifts are allowed within codons \cite{wrp971}.\\[1 ex]
+
+\texttt{tfastx36}/ \texttt{tfasty36}& \texttt{tblastn} &
+Compare a protein sequence to a DNA sequence
+database, calculating similarities with frameshifts to the forward and
+reverse orientations  \cite{wrp971}.\\[1 ex]
+
+\texttt{fastf36/ tfastf36}&  &
+Compares an ordered peptide mixture, as would be obtained by
+Edman degradation of a CNBr cleavage of a protein, against a protein
+(\texttt{fastf}) or DNA (\texttt{tfastf}) database \cite{wrp021}.\\[1 ex]
+
+\texttt{fasts36/ tfasts36}&  &
+Compares set of short peptide fragments, as would be obtained
+from mass-spec. analysis of a protein, against a
+protein (\texttt{fasts}) or DNA (\texttt{tfasts}) database \cite{wrp021}.\\[1 ex]
+
+\texttt{lalign36} & & Calculate multiple, non-intersecting alignments
+using the sim2 implementation of the Waterman-Eggert
+algorithm\cite{wat875} developed by Xiaoqui Huang and Web
+Miller\cite{mil908}.  Statistical estimates are calculated from
+Smith-Waterman scores of shuffled sequences. \\[1 ex]
+
+\hline \\
+\end{tabular}
+\end{table}
+
+Although there are a large number of programs in this package, they
+belong to three groups: (1) Traditional similarity searching programs:
+\texttt{fasta36}, \texttt{fastx36}, \texttt{fasty36},
+\texttt{tfastx36}, \texttt{tfasty36}, \texttt{ssearch36},
+\texttt{ggsearch36}, and \texttt{glsearch36}; (2) Programs for
+searching with short fragments: \texttt{fasts36}, \texttt{fastf36},
+\texttt{tfasts36}, \texttt{tfastf36}, and \texttt{fastm36}; (3) A
+program for finding non-overlapping local alignments: \texttt{lalign36}.
+Programs that start with \texttt{fast} search protein databases, while
+\texttt{tfast} programs search translated DNA databases.  Table I
+gives a brief description of the programs.
+
+In addition, there are several programs included. \texttt{map\_db} is
+used to index FASTA format sequence databases for more efficient
+scanning. \texttt{lav2ps} and \texttt{lav2svg} plot the \texttt{.lav}
+files produced by \texttt{lalign -m 11} as postscript
+(\texttt{lav2ps}) or SVG (\texttt{lav2svg}) output.
+
+\section{Using the FASTA Package}
+\subsection{Introduction/Overview}
+
+All the FASTA sequence comparison programs use similar command line
+options and arguments.  The simplest command line arguments are (in
+order): the name of a query sequence file, a library file, and
+(possibly) the \emph{ktup} parameter.  If command line options are
+provided, they \emph{must} precede the standard query-file and
+library-file arguments. Thus:
+\begin{quote}
+\texttt{fasta36 -s BP62 query.file library.file}
+\end{quote}
+will compare the sequences in \texttt{query.file} with those in
+\texttt{library.file} using the \texttt{BLOSUM62} scoring matrix with
+BLASTP gap penalties (\texttt{-11/-1}).
+
+The program can also be run by typing:
+\begin{quote}
+\texttt{fasta36 -I}
+\end{quote}
+which presents the ``classic'' interative mode (this was
+the default behavior before version \texttt{36.3.4}).
+In interactive mode,
+you will be prompted for: (1) the name of the test sequence file; (2)
+the name of the library file; (3) whether you want ktup = 1 or 2. (
+1 -- 6 for DNA sequences).
+
+Current versions of the FASTA programs expect a query file and library, if you simply type ``\texttt{fasta36}'', you will see a short help message:
+\begin{footnotesize}
+\begin{quote}
+\begin{verbatim}
+% ssearch36
+USAGE
+ ssearch36 [-options] query_file library_file
+ ssearch36 -help for a complete option list
+
+DESCRIPTION
+ SSEARCH performs a Smith-Waterman search
+ version: 36.3.4 Mar, 2011
+
+COMMON OPTIONS (options must precede query_file library_file)
+ -s:  [BL50] scoring matrix;
+ -f:  [-10] gap-open penalty;
+ -g:  [-2] gap-extension penalty;
+ -S   filter lowercase (seg) residues;
+ -b:  high scores reported (limited by -E by default);
+ -d:  number of alignments shown (limited by -E by default);
+ -I   interactive mode;
+\end{verbatim}
+\end{quote}
+\end{footnotesize}
+``\texttt{fasta36 -help}'' (or any of the other program names in Table
+I) provides complete listing of the options available for the program
+and their default values.
+
+The package includes several test files.  To check to make certain
+that everything is working, you can try:
+\begin{quote}
+\begin{verbatim}
+fasta36  ../seq/musplfm.aa ../seq/prot_test.lib
+or
+tfastx36 ../seq/mgstm1.aa ../seq/gst.nlib
+\end{verbatim}
+\end{quote}
+
+\subsection{Sequence files}
+
+The \texttt{fasta36} programs can read query and library files in many
+standard formats (Section \ref{fastlibs}). The default file format for query and library files
+-- the format that will be used if no additional file format
+information is provided -- is \texttt{FASTA} format. Like
+\texttt{BLAST}, version 36 can compare a query file with multiple
+query sequences to a sequence database, performing an independent
+search with each sequence in the query file.
+
+FASTA format files consist of a description line, beginning
+with a '$>$' character, followed by the sequence itself:
+\begin{quote}
+\begin{verbatim}
+>sequence name and description 1
+A F A S Y T .... actual sequence.
+F S S       .... second line of sequence.
+>sequence name and description 2
+PMILTYV ... sequence 2
+\end{verbatim}
+\end{quote}
+All of the characters of the description line are read, and special
+characters can be used to indicate additional information about the
+sequence. In general, non-amino-acid/non-nucleotide sequences in the
+sequence lines are ignored.
+
+FASTA format files from major sequence distributors, like the NCBI and
+EBI, have specially formatted description lines, e.g.:\\
+\indent
+\texttt{
+>gi|54321|ref|np\_12345| example NCBI refseq sequence\\
+}
+or\\
+\indent
+\texttt{
+>sw:gstm1\_human P01234 glutathione transferase GSTM1 - human\\
+}
+
+Several sample test files are included with the FASTA distribution:
+\texttt{seq/*.aa} and \texttt{seq/*.seq}, as well as two small sequence
+libraries, \texttt{seq/prot\_test.lib} and \texttt{seq/gst.nlib}.
+
+You can build your own library by concatenating several sequence
+files.  Just be sure that each sequence is preceded by a line
+beginning with a '\texttt{>}' followed by a sequence name/description.  Sequences
+entered with word processors should use a ``text'' mode, e.g. ``Save as
+text'' with MS-WORD, with end of line characters and no special
+formatting characters in the file.  The FASTA program cannot read
+Microsoft Word .DOC files, or rich text (.RTF) files; query and
+library sequence files should contain only sequence descriptions,
+sequences, and end-of-line characters.
+
+\subsection{Running the programs}
+As mentioned earlier, the FASTA programs can be run either
+interactively, by typing the name of a FASTA program (and possibly
+command line options), followed by \texttt{-I} (\texttt{fasta36 -I})
+or from the command line, entering command line options, and the
+query and library file names. For searches of large databases that
+may take several minutes (or longer), it is more convenient
+to run searches from the command line, e.g.:
+\begin{quote}
+\begin{verbatim}
+fasta36 query.file library.file > output.file
+\end{verbatim}
+\end{quote}
+The command line shown above could be typed in a Unix or MacOSX
+terminal window, or from the MS-Windows command line interface
+(command.exe).  The command line syntax shown above works for all
+the FASTA programs, e.g.:
+\begin{quote}
+\begin{verbatim}
+lalign36 mchu.aa mchu.aa > mchu.laln
+fastx36 mgstm1.seq prot_test.lseg > mgstm1.fx_out
+ssearch36 mgstm1.aa xurtg.aa > mgstm1_xurtg.ss
+\end{verbatim}
+\end{quote}
+
+\emph{Command line options} -- The FASTA programs provide a variety of
+command line options that modify the default scoring matrix
+(\texttt{-sBL62}) and gap penalties (\texttt{-f -11}, \texttt{-g -1}), other
+algorithm parameters, the output options (\texttt{-E 0.1}, \texttt{-d 20},
+\texttt{-m 9i}), and statistical procedures (\texttt{z -2}).  A complete
+list of command line options is shown near the end of this document.
+Unlike the \texttt{BLAST} programs, all \texttt{FASTA} command line options
+must precede the query file name and library file name (and there are
+no command line options available to specify the query and library
+file names).  Thus, you should type:
+\begin{quote}
+\begin{verbatim}
+ssearch36 -s BL62 -f -11 -g -1 query.file library.file > output.file
+\end{verbatim}
+\end{quote}
+If you include \texttt{-I} as one of the options, you can provide
+command line options (e.g. to change the scoring matrix or gap
+penalties) without a query file or library file, and the program will
+use the options but prompt for the necessary files .
+
+\subsection{Interpreting the results}
+
+Fig. \ref{ssearch_run} shows the output from a typical FASTA program
+( \texttt{ssearch36}).  The output file can be
+viewed as four parts: (a) the initial command line and description of
+the query sequence used (mgstm1.aa, 218 aa) and library (PIR1, 13,351
+entries); (b) a description of the search statistics, algorithm
+(Smith-Waterman, SSE2 accelerated), and search parameters (BLOSUM50
+matrix, gap penalties: -10 to open a gap, -2 for each residue in a
+gap); (c) a list of high scoring library sequences, descriptions, similarity scores, and statistical significance; (d) the alignments that produced the scores.
+
+\begin{figure}
+\include{fasta_guide.fg1}
+\caption{\label{ssearch_run}\texttt{ssearch36} results}
+\vspace{1.0ex}
+Comparison of \texttt{seq/mgstm1.aa} against a small protein database
+(\texttt{pir1.lseg}). Some high-scoring sequences and all but one
+alignment were removed to reduce the output size.
+\end{figure}
+
+\subsubsection{Identifying homologs}
+In the description section (which starts: \texttt{The best scores
+  are:}), four numbers after the description of each library sequence
+are shown: (i) (in parentheses) the length of the library sequence;
+(ii) the raw Smith-Waterman score for the alignment (\texttt{s-w}; for
+the \texttt{fasta36}, \texttt{[t]fast[x,y]36} programs, this column
+would be labeled \texttt{opt}, for the \emph{opt}imized -- banded
+Smith-Waterman -- score), (iii) the \emph{bit} score, and (iv) the
+expectation (E()), or statistical significance, of the alignment
+score.  The E()-value depends on the size of the database searched, in
+this case, 13,351 sequences, so the database size is given at the top
+of the list.
+
+The bit score is equivalent to a BLAST bit score; together with the
+length of query and library sequences, it can be used to calculate the
+significance of the alignment.\footnote{$E(D) = D m n 2^{-b}$,
+where $D$ is the number of sequences in the database, $m, n$ are the
+lengths of the two sequences, and $b$ is the bit score.}  Bit scores
+are convenient because they provide a matrix independent score that
+can be compared with other searches performed with other matrices and
+gap penalties against other databases.  However, the E()-value, or
+expectation, provides the most direct measure of the statistical
+significance of the match.
+
+In this example, the \texttt{GSTP1\_RAT}, \texttt{GSTA1\_RAT}, and
+\texttt{GSTA4\_RAT} proteins share strong significant similarity
+(better than $E() < 6.1 \times 10^{-7}$ ), while the
+\texttt{GSTF1\_MAIZE}, \texttt{GSTF3\_MAIZE}, and
+\texttt{GSTT1\_DROME} sequences do not share significant similarity
+($E() < 0.001$).  However, \texttt{GSTF1\_MAIZE},
+\texttt{GSTF3\_MAIZE}, and \texttt{GSTT1\_DROME} are all glutathione
+transferase homologs, they simply do not share statistically
+significant similarity with this particular \texttt{mGSTM1} query.
+Statistically significant sequence similarity scores \emph{can} be
+used to infer \emph{homology} (common ancestry), but non-significant
+scores \emph{cannot} be used to infer \emph{non-homology}.
+
+While percent identity is often used to characterize the quality of an
+alignment and the likelihood that it reflects homology, the E()-value
+is a much more reliable value.  Often sequences that share less than
+30\% identity will share very significant similarity (in the example
+above \texttt{mgstm1.aa} and \texttt{GSTA4\_RAT}, with E() $<$ 6.1E-07
+are 25.6\% identical).  The expectation value captures information
+about conservative replacements, identities, and alignment length to
+provide a \emph{single} value that captures the significance of the
+alignment.
+
+For protein searches, library sequences with E()-values $<$ 0.001 for
+searches of a 10,000 entry protein database are almost always
+homologous. Some sequences with E()-values from 1 - 10 may also be
+related, but unrelated sequences ( 1--10 per search) will have scores
+in this range as well.
+
+E()-values $<$ 0.001 can reliably be used to infer homology, assuming
+that the statistical estimates are accurate.  The two most common
+causes of statistical problems are low-complexity regions and
+amino-acid composition bias.  Low-complexity regions are can be
+identified using the \texttt{pseg} program \cite{woo935}, and filtered
+out using the \texttt{-S} option. Composition bias rarely produces
+highly-signficiant E()-values, but can cause unrelated sequences to
+have E()-values between 0.01 and 0.001. The FASTA programs offer two
+shuffle-based strategies for evaluating composition bias; calculating
+similarity scores for random sequences with the same length and amino
+acid composition (\texttt{-z 11} $..$ \texttt{16}),\footnote{Random
+  shuffles are performed for pairwise alignments and \texttt{lalign36}
+  by default.} and calculating statistical estimates derived from
+shuffles of the high-scoring sequences (\texttt{-z 21, 22, 24, 25,
+  26}).
+
+When \texttt{-z 21 .. 26} shuffles are performed, the FASTA36 programs
+present two E()-values in the list of high scoring sequences and the
+alignments; the traditional one based on the library search, and a
+second \texttt{E2()} value, based on the shuffles of the high scoring
+sequences.  \texttt{-z 21 .. 26} shuffles are most useful for
+evaluating the significance of translated-DNA:protein searches like
+\texttt{fastx36}.  Out-of-frame translations can produce cryptic low
+complexity regions, which are most apparent when the high-scoring
+sequences are shuffled.  \texttt{-z 21} shuffles are more efficient
+than individual sequence shuffles, because the set of high scoring
+sequences is shuffled 500 -- 1,000 times, rather than 500 shuffles for
+each of 50 -- 100 high scoring library sequences.  It is almost as
+effective, because homologous sequences share similar amino-acid
+composition.
+
+The statistical routines assume that the library contains a large
+sample of unrelated sequences.  If the library contains fewer than
+500 sequences (\texttt{MAX\_RSTATS}), then the library sequences are
+shuffled to produce 500 random scores, from which lambda and K
+statistical parameters are estimated. If the library contains a large
+number of \emph{related} sequences, then the statistical parameters
+should be estimated by using the \texttt{-z 11-15}, options.
+\texttt{-z} options greater than 10 calculate a shuffled similarity
+score for each library sequence, in addition to the unshuffled score,
+and estimate the statistical parameters from the scores of the
+shuffled sequences.
+
+\subsubsection{Looking at alignments}
+
+The description section described above contains the critical
+information for inferring homology, the \texttt{E()}-value.  The
+alignment section shows the actual alignments that produced the
+similarity score and statistical estimates.  In
+Fig. \ref{ssearch_run}, the alignment display reports the percent
+identity, percent similarity (number of aligned residues with BLOSUM50
+values $\ge$ 0), and the boundaries of the alignment.  Note that for
+the \texttt{ssearch36} and \texttt{fasta36}, the alignment shown can
+include residues that are not part of the best local alignment
+(e.g. residues 1--5 and 207--218 in \texttt{mGSTM1} in
+Fig. \ref{ssearch_run}).  The amount of additional sequence context
+shown is the alignment line length (60 residues, set by \texttt{-w
+  len}) divided by 2 by default, but can be adjusted with the
+\texttt{-W context} option.
+
+\begin{figure}
+\include{fasta_guide.fg2}
+\vspace{-3.0ex}
+\caption{\label{seg-aln}Alignment with \texttt{-S} filtered sequence}
+\end{figure}
+
+Fig. \ref{seg-aln} shows an example of a \texttt{fasta36} alignment
+produced using the \texttt{-S} option to filter out lower-case (low
+complexity) residues.  Here, additional scores (\texttt{initn},
+\texttt{init1} are shown, in addition to the \texttt{opt} score which
+is used to rank the sequences and calculate statistical significance.
+The \texttt{init1} score is the highest scoring alignment without
+gaps; \texttt{initn} is a score that combines consistent
+(non-overlapping) runs without gaps, and \texttt{opt} is the score of
+a banded Smith-Waterman of width 16 for \emph{ktup=2} that is applied
+to sequences with \texttt{initn} scores over the optimization
+threshold. In Fig. \ref{seg-aln},  the \texttt{init1} score is
+based on the long, un-gapped region from residues 46--208 in
+\texttt{mGSTM1}, while the \texttt{initn} and \texttt{opt} scores
+include the other regions joined by gaps.  The \texttt{initn} score is
+higher than the \texttt{opt} score, because it uses a simpler,
+length-independent, gap penalty.
+
+The \texttt{init1} and \texttt{initn} scores are shown for
+historical reasons, and can be used to illustrate the FASTA algorithm.
+But the \texttt{opt} score is the most reliable and sensitive score
+for inferring homology; the others can be ignored.
+
+For \texttt{fasta36} with proteins, the final alignment and score is
+calculated with the Smith-Waterman algorithm. For DNA sequences, a
+banded Smith-Waterman is used. (The \texttt{-A} option produces banded
+Smith-Waterman alignments for proteins, and full Smith-Waterman for
+DNA.)  In Fig. \ref{seg-aln}, the \texttt{opt} score and
+\texttt{Smith-Waterman} scores are calculated on exactly the same
+alignment, but the \texttt{opt} score excludes the contribution from
+the ``low-complexity'' region between 19--30 in \texttt{GST26\_SCHMA}.
+
+\subsubsection{Results without alignments}
+
+While sequence alignments are very informative, it is often not
+practical to examine all the statistically significant alignments in
+large-scale searches. The \texttt{-m 9} and \texttt{-m 8} options
+present summaries of each alignment (alignment boundaries, percent
+identity, and other information) in a much more compact form.  In
+addition, \texttt{-m 8c} or \texttt{-m 8C} (see options below) provide
+a detailed encoding of the alignment, that allows it to be
+reconstructed. For large-scale searches, we routinely use \texttt{-m
+  8} with the \texttt{-d 0} option, which sets the number of 
+alignments shown to 0 (thus none are shown).  Alternatively, the
+\texttt{-m 8} and \texttt{-m 8C} ouput options produce BLAST-format
+tabular results summaries (\texttt{-m 8C} provides commented tabular
+results).  \texttt{-m BB} produces an output that mimics BLAST output
+(with alignments).
+
+\subsection{Program Options}
+
+Command line options are available to change the scoring parameters
+and output display. Unlike the NCBI BLAST programs, command line
+options \emph{must} precede the query file name and library file name
+arguments.  To see the command-line options for a program and their
+defaults, type \texttt{program\_name -help}, e.g. \texttt{fasta36
+  -help} or \texttt{ssearch36 -help}. For a quick list of the most
+common options, just type the program name without any options
+(e.g. \texttt{fasta36$<$ret$>$}).
+
+\subsubsection{Command line options}
+\begin{description}
+\item[\texttt{-a}] (\texttt{fasta36}, \texttt{ssearch36},
+  \texttt{glsearch36}, \texttt{fasts36}) show both sequences in their
+  entirety.
+\item[\texttt{-A}] force Smith-Waterman alignments for
+  \texttt{fasta36} DNA sequences.  By default, only \texttt{fasta36}
+  protein sequence comparisons use Smith-Waterman alignments.
+  Likewise, for proteins, use band alignments (Smith-Waterman is used
+  by default).
+\item[\texttt{-b \#}] Number of sequence scores to be shown on output.
+  In the absence of this option, \texttt{fasta36} (and
+  \texttt{ssearch36}) display all library sequences obtaining
+  similarity scores with expectations less than the expectation (-E)
+  threshold, 10.0 for proteins, and 2.0 for DNA:DNA and
+  protein:translated DNA.  The \texttt{-b \#} option can limit the
+  display further.  There are two ``sub-modes'' of \texttt{-b}.
+  \texttt{-b =100} will force 100 high scores to be displayed,
+  regardless of the expectation (\texttt{-E}) threshold, and
+  \texttt{-b >1} will show at least \texttt{1}, but is otherwise
+  limited by \texttt{-E}.  Thus, \texttt{-b 10} will show \emph{no
+    more than} 10 results, limited by \texttt{-E}; \texttt{-b =10}
+  will always show \emph{exactly} \texttt{10} results, and \texttt{-b
+    >5} will show \emph{at least} \texttt{5} results, but could show
+  many more if more results have e\-values $\le$ \texttt{-E e\_cut}.
+\item[\texttt{-c \#,\#}] (\texttt{fasta36}, \texttt{[t]fast[x,y]36}
+  only) Fraction of alignments optimized (second value is fraction of
+  sequences joined). FASTA36 uses a statistical threshold strategy
+  that joins and optimizes only the fraction of the alignments with an
+  \texttt{initn} score expected \texttt{-c} times.  Thus, \texttt{-c
+    0.05} should optimize about 5\% of sequences.  The actual number
+  of sequences optimized (and joined) is displayed in the scoring
+  parameters line.  Thus:
+\begin{quote}
+\begin{verbatim}
+Parameters: BL50 matrix (15:-5), open/ext: -10/-2
+ ktup: 2, E-join: 1 (0.687), E-opt: 0.2 (0.294), width:  16
+\end{verbatim}
+\end{quote}
+reports that 20\% of the sequences in the database should have been
+band-optimized, and 29.4\% were. Reducing the \texttt{-c opt} fraction
+improves performance, but dropping the fraction below 0.02 can
+reduce the accuracy of the statistical estimates.
+
+\texttt{-c O} (letter 'O') sets the joining/optimization
+thresholds as they were prior to \texttt{fasta-36.3.3} (original thresholds). Positive
+values set the thresholds to specific score values, as was the case
+in older versions of \texttt{fasta}.
+
+\item[\texttt{-C}]
+length of the sequence name printed at the beginning of alignment
+lines (default 6 characters).
+\item[\texttt{-d \#}]
+Maximum number of alignments to be displayed (must be \texttt{<=} to the number of descriptions, \texttt{-b \#})
+\item[\texttt{-D}]
+  Provide some debugging output.  Used in conjunction
+  with the \texttt{-e expand\_script.sh}, the \texttt{link\_acc\_file}
+  and \texttt{link\_lib\_file} are not deleted during the run; so that
+  \texttt{expand\_script.sh} scripts can be tested.
+
+\item[\texttt{-e expand\_script.sh}]
+
+  Expand the set of sequences that
+  are aligned to beyond the set of sequences searched. When the
+  \texttt{-e expand\_script.sh} option is used, the
+  \texttt{expand\_script.sh} script is run after the initial search
+  scan but before the list of high-scoring sequences is displayed.
+  \texttt{expand\_script.sh} is given a single argument, the name of a
+  file that contains a list of accession strings (the text between the
+  \texttt{>} and the first space ('\textvisiblespace') character
+  followed by the E()-value for the sequence (separated by a
+  \texttt{<tab>} character), e.g.:
+\begin{quote}
+\begin{verbatim}
+gi|121719|sp|P08010|GSTM2_RAT<tab>2.69e-86
+gi|121746|sp|P09211|GSTP1_HUMAN<tab>1.51e-20
+gi|121749|sp|P04906|GSTP1_RAT<tab>1.16e-19
+gi|62822551|sp|P00502|GSTA1_RAT<tab>9.5e-12
+\end{verbatim}
+\end{quote}
+The script should produce a fasta-formatted list of additional
+sequences printed to \texttt{stdout}.  The script is run with the command:
+\begin{quote}
+\begin{verbatim}
+expand_script.sh link_acc.tmp_file > link_lib.tmp_file
+\end{verbatim}
+\end{quote}
+The sequences in \texttt{link\_lib.tmp\_file} (a temporary file name is
+actually used, and the file is deleted unless the \texttt{-D} option
+is used) are then compared and, if they are significant, included in
+the list of high scoring sequences and the alignments.  The expanded
+set of sequences does not change the database size or statisical
+parameters, it simply expands the set of high-scoring sequences.
+
+The \texttt{fasta36/misc} directory contains
+\texttt{expand\_uniref50.pl} that uses a mySQL table based on the
+\texttt{uniref50} clusters.  Using the script and the
+\texttt{uniref50} cluster information, one can search
+\texttt{uniref50.fasta}, but then expand the hits so that
+\texttt{uniprot} appears to be searched.
+
+\item[\texttt{-E e\_cut [e\_cut\_r]}] Limit the number of scores and
+  alignments shown based on the expected number of scores.  Used to
+  override the expectation value of 10.0 (protein:protein; 5.0
+  translated-DNA:protein; 2.0 DNA:DNA) used by default.  \texttt{-E
+    2.0} will show all library sequences with scores with an
+  expectation value $<=$ 2.0.  With \texttt{fasta-36}, a second
+  value, \texttt{e\_cut\_r} is available to limit the E()-values of
+  additional sequence alignments between the query and library
+  sequences.  If not given, the threshold is \texttt{e\_cut}/10.0.  If
+  given with a value $>$ 1.0, \texttt{e\_cut\_r} = \texttt{e\_cut} /
+  value; for a value $<$ 1.0, \texttt{e\_cut\_r} = value; If
+  \texttt{e\_cut\_r} $<$ 0, then the additional alignment option is
+  disabled.
+\item[\texttt{-f \#}]
+Gap open penalty (-10 by default for proteins,
+-12 for DNA, -12 for \texttt{[t]fast[xy]}).
+\item[\texttt{-F \#}]
+Limit the number of scores and alignments shown based on the expected
+number of scores. \texttt{-E \#} sets the highest E()-value shown; \texttt{-F \#} sets
+the lowest E()-value displayed. Thus, \mbox{\texttt{-F 0.0001}} will not show any matches or
+alignments with E() $<$ 0.0001.  This allows one to skip over close
+relationships to search for more distant relationships.
+\item[\texttt{-g \#}]
+Penalty per residue in a gap (-2 by default for proteins,
+-4 for DNA, -2 for \texttt{[t]fast[xy]}).  A single residue gap costs \texttt{f} $+$ \texttt{g}.
+\item[\texttt{-h}]
+Short help message. Help options with \texttt{':'}, e.g. \texttt{-s:},
+require an argument (\texttt{-s BP62}).  Defaults are shown in square
+brackets, e.g.: \texttt{-s:\ [BL50]}.
+\item[\texttt{-help}]
+Long help message
+\item[\texttt{-H}]
+Show histogram.
+\item[\texttt{-i}]
+DNA queries - search with reverse complement.  For 
+\texttt{tfastx36/y36}, search the reverse complement of the library sequence
+only (complement of \texttt{-3} option).
+\item[\texttt{-I}]
+Interactive mode (the default for versions older than \texttt{fasta-36.3.4}).
+\item[\texttt{-j \#}]
+Penalty for frameshift between codons (\texttt{[t]fastx36}, \texttt{[t]fasty36}) and within a codon (\texttt{fasty36}/ \texttt{tfasty36} only).
+\item[\texttt{-J}]
+(\texttt{lalign36} only) show the identity alignment (normally
+  suppressed, \texttt{-I} in versions before \texttt{fasta-36.3.4}).
+\item[\texttt{-k \#}]
+number of shuffles for statistical estimates from shuffling.
+\item[\texttt{-l file}]
+Location of library menu file (FASTLIBS).
+\item[\texttt{-L}]
+Display longer library sequence description.
+\item[\texttt{-M low-high}]
+Range of amino acid sequence lengths to be included in the search.
+\item[\texttt{-m \#}]
+Specify alignment type: 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, B, BB, ``F\# out\_file''
+\begin{small}
+\begin{verbatim}
+    -m 0        -m 1          -m 2          -m 3        -m 4
+MWRTCGPPYT   MWRTCGPPYT    MWRTCGPPYT                 MWRTCGPPYT
+::..:: :::     xx  X       ..KS..Y...    MWKSCGYPYT   ----------
+MWKSCGYPYT   MWKSCGYPYT
+\end{verbatim}
+\end{small}
+If the \texttt{-V '*@\%'} annotation option has been used, 
+annotations can be included in either the coordinate line (the default) or the
+middle alignment line (\texttt{-m 0M}, \texttt{-m 1M}), or both
+(\texttt{-m 0B}, \texttt{-m 1B}).  See \texttt{-V} for more details.
+
+\indent \texttt{-m 5}: a combination of \texttt{-m 4} and \texttt{-m
+  0}. \texttt{-m 6} provides \texttt{-m 5} plus HTML formatting.  In
+addition, independent \texttt{-m} options can be combined. Thus, one
+can use \texttt{-m 1 -m 6 -m 9}.
+
+\item[\texttt{-m 8}]
+provides BLAST tabular format output (a tab delimited line with the
+query name, library name, percent identity, and other alignment
+information). ``\texttt{-m 8C}'' provides some additional information
+provided by the BLAST tabular format with comment lines.
+\item[\texttt{-m 9}] display alignment coordinates and scores with the
+  best score information.  \texttt{-m 9i} provides alignment length,
+  percent identity, and percent similarity only. \texttt{ -m 9} extends
+  the normal best score information:
+\begin{footnotesize}
+\begin{verbatim}
+The best scores are:                                      opt bits E(14548)
+XURTG4 glutathione transferase (EC 2.5.1.18) 4 -   ( 219) 1248 291.7 1.1e-79
+\end{verbatim}
+\end{footnotesize}
+
+to include the additional information (on the same line, separated by
+$<$tab$>$ characters):
+\begin{footnotesize}
+\begin{verbatim}
+%_id  %_gid   sw  alen  an0  ax0  pn0  px0  an1  ax1 pn1 px1 gapq gapl  fs
+0.771 0.771 1248  218    1  218    1  218    1  218    1  219   0   0   0
+\end{verbatim}
+\end{footnotesize}
+
+The first two values are fraction identical and fraction similar
+(score $\ge 0$), followed by the Smith-Waterman alignment score (\texttt{sw}), the
+alignment length (\texttt{alen}), and the coordinates of the beginning
+and end of the alignment in the query and target (library) sequences
+(\texttt{an0} beginning, \texttt{ax1} end in query; \texttt{an1}
+beginning, \texttt{ax1} end in target/library), and the coordinate
+system for the beginning and end of the query and target/library
+sequence (\texttt{pn0} is the displayed coordinate of the first
+residue of the query sequence, \texttt{px0} is the displayed
+coordinate of the last residue, \texttt{pn1},\texttt{px1} provide the
+coordinates for the target/library sequence). \texttt{gapq},
+\texttt{gapl} report the number of gaps in the query and library
+sequence; \texttt{fs} reports the number of frameshifts.
+
+\texttt{ -m 9c} provides additional information: an encoded alignment string.  For example, the alignment:
+\begin{footnotesize}
+\begin{verbatim}
+       10        20        30        40        50          60         70  
+GT8.7  NVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKFKL--GLDFPNLPYL-IDGSHKITQ
+       :.::  . :: ::  .   .:::         : .:    ::.:   .: : ..:.. :::  :..:
+XURTG  NARGRMECIRWLLAAAGVEFDEK---------FIQSPEDLEKLKKDGNLMFDQVPMVEIDG-MKLAQ
+               20        30                 40        50        60        
+\end{verbatim}
+\end{footnotesize}
+would be encoded:
+\begin{footnotesize}
+\texttt{=23+9=13-2=10-1=3+1=5}
+\end{footnotesize}.
+The numbers in the alignment encoding is with repect to the beginning
+of the alignment, not the sequences.  The beginning coordinate of the
+alignment is given earlier in the \texttt{-m 9c} line.  \texttt{-m 9C}
+provides the alignment encoding in CIGAR format:
+\begin{footnotesize}
+\texttt{28M9D13M2I10M1I3M1D5M}
+\end{footnotesize}.
+\item[\texttt{-m 10}]
+a parseable format for use with other programs.
+\item[\texttt{-m 11}]
+Provide \texttt{lav}-like output (used by \texttt{lalign}) for graphical output.
+\begin{quote}
+\texttt{lalign36 -m 11 mchu.aa mchu.aa | lav2ps > mchu\_laln.ps}
+\end{quote}
+Produces a postscript plot of the local alignments.  Likewise,
+\texttt{lav2svg} produces SVG output.
+
+\item[\texttt{-m BB}] Format output to mimic BLAST format.  \texttt{-m
+  B} formats alignments to look like BLAST alignments (Query/Sbjct),
+  but is FASTA output otherwise. \texttt{-mBB} imitates BLAST as much
+  as possible, and cannot be used with other \texttt{-m} options.
+
+\item[\texttt{-m "F\# out.file"}] Send an alternate result format to \texttt{out.file}.
+Normally, the \texttt{-m out\_fmt} option applies to the default output
+file, which is either \texttt{stdout}, or specified with \texttt{-O out\_file} (or within
+the program in interactive mode). With \texttt{-m F}, an output format can be
+associated with a separate output file, which will contain a complete
+FASTA program output.  Thus,
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+  ssearch36 -m 9c -m "FBB blast.out" -m "F9c,10 m9c_10.out" query library
+\end{verbatim}
+\end{small}
+\end{quote}
+Sends the \texttt{-m 9c} output to \texttt{stdout}, but will also send
+\texttt{-m BB} output to the \texttt{blast.out} file, and \texttt{-m 9c -m
+  10} output to \texttt{m9\_c10.out}.  Consistent \texttt{-m out\_fmt}
+commands can be set to the same file by separating them with ','.
+Producing alternative format alignments in different files has little
+additional computational cost.
+
+Because a space (\textvisiblespace) is used to separate the output
+format (\texttt{-m}) values from the file name, the \texttt{-m F}
+argument must typically be surrounded by quotation marks (\texttt{"}).
+
+One of the shortcomings of this approach is that it affects only the
+output format, not the other options that modify the amount of output.
+Thus, if you specify \texttt{-E 0.001}; that expect threshold will be
+used for all the output files.  When a \texttt{-m} option does modify
+the output (e.g. \texttt{-m 8} sets \texttt{-d 0}), that modification
+is specific to the output file.
+
+\item[\texttt{-M low-high}]
+Include library sequences with lengths between low and
+high.
+\item[\texttt{-n}]
+Force the query sequence to be treated as a DNA sequence.  
+Useful when query sequences contain a large number of
+ambiguous residues, e.g. transcription factor binding sites.
+\item[\texttt{-N \#}]
+break long library sequences into blocks of \# residues.  Useful for
+bacterial genomes, which have only one sequence entry.  -N 2000 works
+well for well for bacterial genomes. (This option was required when
+FASTA only provided one alignment between the query and library
+sequence.  It is not as useful, now that multiple alignments are
+available.)
+
+\item[\texttt{-o off1,off2}]
+(Previously \texttt{-X}.) Specifies offsets for the beginning of the query and library sequence.
+For example, if you are comparing upstream regions for two genes, and
+the first sequence contains 500 nt of upstream sequence while the
+second contains 300 nt of upstream sequence, you might try:
+\begin{quote}
+\texttt{fasta -o "-500 -300" seq1.nt seq2.nt}
+\end{quote}
+If the \texttt{-o} option is not used, FASTA assumes numbering starts with 1.
+(You should double check to be certain the negative numbering works
+properly.)
+
+\item[\texttt{-O}] Send a copy of results to \texttt{filename}.
+  Helpful for environments without STDOUT, but should be avoided (use
+  \texttt{> filename} instead).
+
+\item[\texttt{-p}]
+Force query to be treated as protein sequence.
+
+\item[\texttt{-P PSSM\_file}]
+Specify a PSI-BLAST format PSSM (Position Specific Scoring Matrix)
+file.  \texttt{ssearch36}, \texttt{ggsearch36}, and
+\texttt{glsearch36} can use a PSSM file to improve the sensitivity of
+a search. The FASTA programs accept two PSSM file formats:\\[2ex]
+\begin{tabular}{l l l}
+\hline\\[-1.5ex]
+format & \texttt{blastpgp} & option \\[0.5ex]
+\hline\\[-1.5ex]
+0 & \texttt{blastpgp -C pssm.chk -u 0} & byte-encoded \\
+2 & \texttt{blastpgp -C pssm.asnb -u 2} & binary ASN.1 \\
+%  & \texttt{psiblast -out\_pssm\_text} \\[1.5ex]
+\hline\\[-0.5ex]
+\end{tabular}\\
+which can be specified after the file name, e.g.:
+\begin{quote}
+\texttt{ssearch36 -P 'pssm.asnb 2' pssm\_query.aa +sp+}
+\end{quote}
+Searches with a PSI-BLAST PSSM must still require a query sequence
+file, and the query sequence file must match the PSSM seed sequence.
+The format 0 byte-encoded PSSM is machine dependent; it must be
+created by \texttt{blastpgp} on the same architecture as
+\texttt{ssearch36}.  In general, you should use the binary ASN.1 (format 2) file.
+
+With the release of \texttt{NCBI-BLAST+}, \texttt{psiblast} replaces
+\texttt{blastpgp}, and \texttt{psiblast} does not produce the binary
+ASN.1 PSSM checkpoint data.  However, the text ASN.1 PSSM checkpoint
+file (produced with the \texttt{psiblast} option \texttt{-out\_pssm})
+can be converted to a binary ASN.1 format that \texttt{ssearch36} can
+read using the NCBI \texttt{datatool} program (available from
+\url{ftp://ftp.ncbi.nlm.nih.gov/toolbox/ncbi_tools++/BIN/CURRENT/datatool})
+together with
+\url{http://www.ncbi.nlm.nih.gov/data_specs/asn/NCBI_all.asn}. More
+information about \texttt{datatool} is available from
+\url{http://www.ncbi.nlm.nih.gov/data_specs/NCBI_data_conversion.html}.
+The NCBI BLASTP/PSI-BLAST website provides the same PSSM text ASN.1
+file with the downloads link.  A text ASN.1 PSSM file can be converted
+to a binary ASN.1 file using the command:
+\begin{quote}
+\texttt{datatool -m NCBI\_all.asn -v pssm.asn\_txt -e pssm.asnb}
+\end{quote}
+The \texttt{pssm.asnb} can then be used with
+\texttt{ssearch36} with the \texttt{-P 'pssm.asnb 2'}
+option shown above.
+
+\item[\texttt{-Q,-q}]
+Quiet - does not prompt for any input.  Writes scores and alignments
+to the terminal or standard output file (on by default, turned off
+with \texttt{-I}).
+\item[\texttt{-r +n/-m}]
+Specify match/mismatch scores for DNA comparisons.  The default is
+\texttt{+5/-4}. \texttt{+3/-2} can perform better in some cases.
+\item[\texttt{-R file}]
+Save a results summary line for every sequence in the sequence
+library.  The summary line includes the sequence identifier,
+superfamily number (if available) position 
+in the library, and the similarity scores calculated.  This option can
+be used to evaluate the sensitivity and selectivity of different
+search strategies \cite{wrp951,wrp981}.
+\item[\texttt{-s file}] Specify the scoring matrix file.
+  \texttt{fasta36} uses the same scoring matrice format as Blast.
+  Several scoring matrix files are included in the standard
+  distribution in the \texttt{data/} directory.  For protein
+  sequences: \texttt{codaa.mat} - based on minimum mutation matrix;
+  \texttt{idnaa.mat} - identity matrix; \texttt{pam250.mat} - the
+  PAM250 matrix; \cite{day787}, (\texttt{-s P250}), and
+  \texttt{pam120.mat} - a PAM120 matrix (\texttt{-s P120}).  The
+  default scoring matrix is BLOSUM50 (\texttt{-s BL50}). Other
+  matrices include a series of modern PAM-based matrices
+  \cite{tay925}: MDM40/\texttt{-s MD40}, MDM20/\texttt{-s MD20}, and
+  MDM10/\texttt{-s MD10}, and a selection from the BLOSUM series
+  \cite{hen929} BLOSUM50, 62, and 80/\texttt{-s BL50}, \texttt{-s
+    BL62}, \texttt{-s BL80}.  \texttt{-s BP62} sets the scoring matrix
+  to BLOSUM62 and the gap penalties to -11/-1, identical to
+  \texttt{BLASTP}.  In addition, the VTML160 matrix (\texttt{-s
+    VT160}) \cite{muller2002} and OPTIMA\_5 (\texttt{-s OPT5})
+  \cite{kan023} are available.
+
+If the scoring matrix is prefaced by a question mark,
+e.g. \texttt{?BP62}, then the scoring matrix is adjusted for each
+query to ensure that a 100\% identical match can produce a score of at
+least 40 bits.  This is designed for \texttt{fastx36} searches with
+potentially short DNA queries; A 120 nt DNA query can only produce a
+40 amino-acid alignment, which, with BLOSUM62 -11/-1, cannot produce
+more than 23 bits of score. A scoring matrix with a higher information
+content is required; in the set available by default, MD40, with 2.22
+bits/position, would be used.  For more information about alignment
+length and information content, see \cite{alt915}.
+
+\item[\texttt{-S}] Filter out lower-case characters in the query or
+  library sequences for the initial score calculation (used to filter
+  low-complexity -- \texttt{seg}-ed -- residues).  The \texttt{pseg}
+  program \cite{woo935} can be used to lower-case mask low complexity
+  regions in protein sequences. With the \texttt{-S} option, lower
+  case characters in the query or database sequences are treated as
+  \texttt{X}'s during the initial scan, but are treated as normal
+  residues during the final alignment display.  Since statistical
+  significance is calculated from the similarity score calculated
+  during the library search, the lower case residues do not contribute
+  to the score.  However, if a significant alignment contains low
+  complexity regions, the residues are shown (as lower
+  case characters, Fig. \ref{seg-aln}).
+
+The \texttt{pseg} program can be used to produce databases (or query
+sequences) with lower case residues indicating low complexity regions
+using the command:
+\begin{verbatim}
+pseg ./swissprot.fasta -z 1 -q > swissprot.lseg
+\end{verbatim}
+
+The \texttt{-S} option should always be used with \texttt{FASTX/Y} and
+\texttt{TFASTX/Y} because out-of-frame translations often generate
+low-complexity protein sequences.  However, only lower case characters
+in the protein sequence (or protein database) are masked; lower case
+DNA sequences are translated into upper case protein sequences, and
+not treated as low complexity by the translated alignment
+programs. (There is an option in the \texttt{Makefile},
+\texttt{-DDNALIB\_LC}, to enable preserving case in DNA sequences.)
+
+\item[\texttt{-t \#}]
+Translation table - fastx36, tfastx36, fasty36, and
+tfasty3 now support the BLAST translation tables.  See
+\url{http://www.ncbi.nih.gov/Taxonomy/Utils/wprintgc.cgi}.
+
+\texttt{-t t} or \texttt{-t t\#} enables the addition of
+an implicit termination codon to a protein:translated DNA match.  That
+is, each protein sequence implicitly ends with \texttt{*}, which
+matches the termination codes for the appropriate genetic code.
+\texttt{-t t\#} sets implicit termination and a different genetic
+code.
+\item[\texttt{-T \#}]
+set number of threads/workers.  Normally on a multi-core machine, the maximum
+number of processors/cores is used.
+\item[\texttt{-U}]
+Treat the query sequence an RNA sequence.  In addition to selecting a
+DNA/RNA alphabet, this option causes changes to the scoring matrix so
+that \texttt{G:A} , \texttt{T:C} or \texttt{U:C} are scored as \mbox{\texttt{G:G -3}}.
+\item[\texttt{-v \#}]
+Do window shuffles with the window size specified.
+\item[\texttt{-V str}] Specify annotation characters that can be
+  included (and will be ignored), in the query sequence file, but are
+  displayed in the alignments.  If a query file contains
+  \texttt{"ACVS*ITRLFT?"}, where \texttt{"*"} and \texttt{"?"}  are
+  used to indicate phosphorylation, giving the option \mbox{\texttt{-V
+      '*?'}}, the annotated characters in the query will (\texttt{S*},
+  \texttt{F?}) will be highlighted in the alignment (on the number
+  line). A \texttt{fasts36} alignment of \texttt{seq/ngts.aa} compared
+  to \texttt{seq/mgstm1.aa} with \texttt{-V '*?'} produces:
+\begin{footnotesize}
+\begin{verbatim}
+             *                10??                                 
+GT8.7     ILGYWN------------EYTDSSYDEKR----------------------------
+          ::::::            :::::::::::                            
+GT8.7  MPMILGYWNVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKFKLGLDFPNL
+               10        20        30        40        50        60
+\end{verbatim}
+\end{footnotesize}
+In addition to showing the alignments of post-translationally modified
+sites, the \texttt{-V} option can be used to highlight active sites in
+library sequences. In the \texttt{-m 9c} output, the state of the
+annotated sites is summarized when \texttt{-V} is used.
+
+(fasta-36.3.6 June 2012) The \texttt{-V} option has been extended to:
+(1) allow feature descriptions to be specified in a file,
+e.g. \texttt{-V =annot.defs} where \texttt{annot.defs} contains:
+\begin{footnotesize}
+\begin{verbatim}
+*:phosphorylation
+@:active site
+^:binding site
+\end{verbatim}
+\end{footnotesize}
+The annotation character is left of the  ':', the definition is on the
+right.  The \texttt{annot.defs} file can also be specified by setting
+the \texttt{FA\_ANNOT\_DEF} environment variable to the file name;
+
+(2) to include optional annotation file, e.g. \texttt{-V
+  '<features.annot'}, or script, e.g. \texttt{-V '!features.pl'} for
+library annotations and \texttt{-V 'q!features.pl'} for query annotations. (Some shells require \texttt{\textbackslash!features.pl}.) Similar to the library expansion script, the
+\texttt{features.pl} script is run against a temporary file containing
+the list of high scoring sequence accessions (the text before the
+first space), e.g.
+\begin{footnotesize}
+\begin{verbatim}
+gi|121735|sp|P09488.3|GSTM1_HUMAN
+gi|1170096|sp|Q03013.3|GSTM4_HUMAN
+gi|67461004|sp|Q5R8E8.3|GSTM2_PONAB
+...
+\end{verbatim}
+\end{footnotesize}
+The \texttt{features.pl} script then produces a file of annotations on
+those sequences, in the format:
+\begin{verbatim}
+>accession1
+position label value
+>accession2
+...
+\end{verbatim}
+For example:
+\begin{footnotesize}
+\begin{verbatim}
+>gi|121735|sp|P09488.3|GSTM1_HUMAN
+23	*	
+33	*	
+34	*	
+116	^	
+173	V	N
+210	V	T
+>gi|1170096|sp|Q03013.3|GSTM4_HUMAN
+2	V	P
+116	^	
+160	V	V
+208	V	V
+209	V	F
+211	V	K
+212	V	M
+>gi|67461004|sp|Q5R8E8.3|GSTM2_PONAB
+...
+\end{verbatim}
+\end{footnotesize}
+The same format is used for the \texttt{-V '<feature.annot'} file.
+
+The \texttt{V} label is special; it indicates that the feature is a
+variant residue and specifies the alternative residue in the label
+field.  Thus, \texttt{GSTM4\_HUMAN} can have a \texttt{M} at position
+2.  Unlike modification or active site annotations, variant residues
+can change the sequence of the library sequence if replacing the
+canonical library residue with the variant residue improves the score.
+Thus, without the \texttt{-V '!feature.pl'} script, the human
+\texttt{GSTM1B} variant with dbSNP:rs449856 would align to
+\texttt{GSTM1\_HUMAN} (\texttt{P04988}) like this (the \texttt{-m 1}
+format option was used to highlight differences) :
+\begin{footnotesize}
+\begin{verbatim}
+The best scores are:                                                          opt bits E(1)
+sp|P09488.3|GSTM1_HUMAN Glutathione S-transferase Mu 1; GST HB subuni  ( 218) 1490 335.9 3.7e-97
+
+>>sp|P09488.3|GSTM1_HUMAN Glutathione S-transferase Mu 1; GST HB s            (218 aa)
+ initn: 1490 init1: 1490 opt: 1490  Z-score: 1776.8  bits: 335.9 E(1): 3.7e-97
+Smith-Waterman score: 1490; 99.1% identity (100.0% similar) in 218 aa overlap (1-218:1-218)
+
+...
+              170       180       190       200       210        
+gtm1_h YDVLDLHRIFEPNCLDAFPNLKDFISRFEGLEKISAYMKSSRFLPRPVFTKMAVWGNK
+                   x                                    x        
+sp|P09 YDVLDLHRIFEPKCLDAFPNLKDFISRFEGLEKISAYMKSSRFLPRPVFSKMAVWGNK
+              170       180       190       200       210        
+\end{verbatim}
+\end{footnotesize}
+
+With a \texttt{-V '!feature.pl'} script to annotate the variants,
+the alignment becomes:
+\begin{footnotesize}
+\begin{verbatim}
+The best scores are:                                                          opt bits E(1)
+sp|P09488.3|GSTM1_HUMAN Glutathione S-transferase Mu 1; GST HB s       ( 218) 1500 338.1   8e-98
+
+>>sp|P09488.3|GSTM1_HUMAN Glutathione S-transferase Mu 1; GST HB s            (218 aa)
+ Variant: K173N;S210T;
+ initn: 1500 init1: 1500 opt: 1500  Z-score: 1788.7  bits: 338.1 E(1): 8e-98
+Smith-Waterman score: 1500; 100.0% identity (100.0% similar) in 218 aa overlap (1-218:1-218)
+...
+              170       180       190       200       210        
+gtm1_h YDVLDLHRIFEPNCLDAFPNLKDFISRFEGLEKISAYMKSSRFLPRPVFTKMAVWGNK
+                                                                 
+sp|P09 YDVLDLHRIFEPNCLDAFPNLKDFISRFEGLEKISAYMKSSRFLPRPVFTKMAVWGNK
+              170  V    180       190       200       21V        
+\end{verbatim}
+\end{footnotesize}
+In addition to removing the two differences as residues 173 and 210,
+which produces a 100\% identical alignment, inclusion of the variant
+library sequence also improves the raw similarity score and $E()$-value.
+An example script (\texttt{misc/up\_feats.pl}) that extracts
+annotations from a mysql database of Uniprot features is provided.
+
+If the annotation script produces lines beginning with '=', then these
+lines are taken as annotation definitions, similar to the
+\texttt{annot.defs} file described above.  Thus:
+\begin{footnotesize}
+\begin{verbatim}
+=*:phosphorylation
+=@:active site
+=^:binding site
+>gi|121735|sp|P09488.3|GSTM1_HUMAN
+23	*	
+33	*	
+34	*	
+116	^	
+173	V	N
+210	V	T
+\end{verbatim}
+\end{footnotesize}
+will produce the same annotation descriptions as the
+\texttt{annot.defs} file.
+
+Scripts to produce annotations are available in the
+\texttt{../scripts/} directory as
+\texttt{../scripts/ann\_feats*.pl}. These scripts require a MySQL
+database that associates features or domains with sequence identifiers
+(accessions).
+
+\item[\texttt{-w \#}] 
+  Display width value ($<$200). Sets the approximate width of the
+  high-score descriptions and the length of residue
+  alignments. \texttt{-w 60} by default.
+
+\item[\texttt{-W \#}] context length (default is 1/2 of line width -w)
+  for alignment, for programs like \texttt{fasta36} and
+  \texttt{ssearch36}, that provide additional sequence context.
+
+\item[\texttt{-X extended\_option}]
+A number of rarely used options are now only available as extended options:
+
+\begin{description}
+
+\item[\texttt{X1}] sort output by \texttt{init1} score (for
+  compatibility with FASTP; obsolete).
+
+\item[\texttt{XB}] (Previously \texttt{-B}.)  Show the z-score, rather
+  than the bit-score in the list of best scores (rarely used, provided
+  for backward compatibility).
+
+\item[\texttt{Xo}] (\texttt{fasta36}, \texttt{[t]fast[x/y]36} only)
+  (Previously \texttt{-o}.) Turn off the default \texttt{opt} score
+  calculation and sort results by \texttt{initn} scores (reduces
+  sensitivity and statistical accuracy, obsolete).
+
+\item[\texttt{XM}] The maximum amount of memory available for storing
+  the library in multi-sequence searches. The value is specified in
+  MBytes (\texttt{-XL16}) or GBytes (\texttt{-XL4G}) and can also be
+  set using the \texttt{LIB\_MEMK} environment variable
+  (\texttt{LIB\_MEMK=4G}).  Negative values remove the memory
+  restriction. By default (set as a compile-time option,
+  \texttt{-DMAX\_MEMK=2}), set to 2 GBytes in 32-bit environments and
+  12 GBytes in 64-bit environments.
+
+\item[\texttt{XN/XX}] Alter the treatment of N:N (DNA) or X:X
+  (protein) alignments for counts of identities and similarities. By
+  default the \texttt{FASTA} programs count N:N or X:X as identical,
+  but not similar, because their alignment scores are typically
+  negative. \texttt{-XNS}, \texttt{-XN+}, \texttt{-XXS}, and
+  \texttt{-XX+} treat N:N and X:X alignments as ``similar'' , even
+  though their alignment scores are negative, when calculating percent
+  similarity. \texttt{-XND}, \texttt{-XN-}, \texttt{-XXD}, and
+  \texttt{-XX-} treat N:N and X:X alignments as non-identical for
+  calculating percent identity.
+
+\item[\texttt{Xx}] (Previously \texttt{-x}) Specify the penalty for a
+  match to an \texttt{X}, and mismatch to \texttt{X}, independently of
+  the PAM matrix.  Particularly useful for \texttt{fastx3/fasty36},
+  where termination codons are encoded as \texttt{X}.  For example,
+  \texttt{-Xx=0,-1} scores an \texttt{X:X} match as 0, and
+  \texttt{X:not-X} as -1.
+
+\item[\texttt{Xy}] (Previously \texttt{-y}.) Set the width of the band
+  used for calculating "optimized" scores.  For proteins and ktup=2,
+  the width is 16.  For proteins with ktup=1, the width is 32 by
+  default.  For DNA the width is 16.
+
+\end{description}
+
+\item[\texttt{-z -1,0,1,2,3,4,5,6}]\hfill\\
+\texttt{-z -1} turns off statistical calculations. \texttt{z 0} estimates
+the significance of the match from the mean and standard deviation of
+the library scores, without correcting for library sequence length.
+\texttt{-z 1} (the default) uses a weighted regression of average score
+vs library sequence length; \texttt{-z 2} uses maximum likelihood
+estimates of $\lambda$
+and $K$; \texttt{-z 3} uses Altschul-Gish parameters \cite{alt960};
+\texttt{-z 4 - 5} uses two variations on the \texttt{-z 1}
+strategy. \texttt{-z 1} and \texttt{-z 2} are the best methods, in
+general.
+\item[\texttt{-z 11,12,14,15,16}]\hfill\\
+estimate the statistical parameters from shuffled copies of each
+library sequence.  This allows accurate statistics to be estimated for libraries comprised of a single protein family.
+
+\item[\texttt{-z 21,22,24,25,26}]\hfill\\
+estimate the statistical parameters from shuffled copies of the
+highest scoring sequences reported in the search.
+library sequence. This shuffling strategy is much more like
+\texttt{prss}, since the sequences shuffled share compositional
+similarity to the query.
+\item[\texttt{-Z db\_size}]
+sets the apparent size of the database to be used when calculating
+expectation E()-values.  If you searched a database with 1,000
+sequences, but would like to have the E()-values calculated in the
+context of a 100,000 sequence database, use \texttt{-Z 100000}.
+\item[\texttt{-3}]
+translate only three forward frames or search with only the forward
+strand (complement of \texttt{-i}).
+\end{description}
+
+Thus, to tell \texttt{fasta36} to align \texttt{seq1.aa} with \texttt{seq2.aa} showing the entirety of both sequences, with 80 characters per line, one would type:
+\begin{verbatim}
+fasta36 -w 80 -s BP62 -a seq1.aa seq2.aa
+\end{verbatim}
+The \texttt{-w 80} and \texttt{-a} options must precede the file
+names.  If you just enter the options on the command line followed by
+\texttt{-I}, the program will prompt for the file names.
+
+In addition, the FASTA programs can accept query sequence data from
+\texttt{STDIN}.  To specify that stdin be used as the query or library
+file, the file name should be specified as \texttt{@}.  Thus:
+\begin{quote}
+\texttt{cat query.aa | fasta36 @:25-75 /slib/swissprot }
+\end{quote}
+would take residues 25-75 from \texttt{query.aa} and search the
+\texttt{/slib/swissprot}.
+
+\subsubsection{Environment variables}
+
+FASTA allows virtually every option to be set on the command line
+(except the \emph{ktup}, which must be set as the third command line
+argument), but it is often convenient to set the \texttt{FASTLIBS}
+environment variable to specify the location of the \texttt{fastlibs}
+database description file.
+
+\texttt{FASTLIBS} -- \texttt{FASTLIBS}
+specifies the location of the file that contains the list of library
+descriptions, locations, and library types (see section on finding
+library files).
+
+\texttt{LIB\_MEMK} -- Set the maximum amount of memory (MBytes) to be
+available for library buffering (equivalent to \texttt{-XM\#}, see
+above).  By default, \texttt{2GB} is available on 32-bit systems
+(\texttt{LIB\_MEMK=2G}); \texttt{8GB} on 64-bit systems.
+
+\texttt{REF\_URL}, \texttt{SRCH\_URL} and \texttt{SRCH\_URL1} -- These
+environment variables are used in HTML mode (\texttt{-m 6}) to provide
+links from the sequence alignment (see the links at
+\url{http://fasta.bioch.virginia.edu/fasta_www2/}). \texttt{REF\_URL}
+is associated with the \texttt{Entrez Lookup} link; \texttt{SRCH\_URL}
+with the \texttt{Re-search database} link, and \texttt{SRCH\_URL1}
+with the \texttt{General re-search} link.  In each case, the text
+corresponds to a HTML URL, but with positions containing the
+\texttt{\%s} or \texttt{\%ld} (for numbers) part of a 'C'
+\texttt{sprintf()} call for specific variables. \texttt{REF\_URL} uses
+the database (\texttt{protein} or \texttt{nucleotide}), together with
+a query term (typically the \texttt{gi} number). \texttt{SRCH\_URL}
+and \texttt{SRCH\_URL1} use \texttt{db}, \texttt{query} (\texttt{gi},
+\texttt{pgm} (\texttt{fa}, \texttt{ss}, \texttt{fx}, etc.), and
+\texttt{start}, \texttt{stop}, and \texttt{n1} (library sequence
+length), where \texttt{start} and \texttt{stop} are the boundaries of
+the alignment, for sub-sequence searches.  The values of these
+environment variables are used with \texttt{sprintf} to build a new
+URL that is linked in the output.
+
+\texttt{TMP\_DIR} -- Location (if defined) of the temporary files used
+by the \texttt{-e expand\_script.sh} option.
+
+In addition, environment variables can be used inside both the
+\texttt{fastlibs} file and in the \texttt{@db.nam} files of file
+names. The \texttt{fasta36/conf/fast\_libs\_e.www} file, included with
+the distribution, shows an example, as do the descriptions of file of
+file names files shown below. Whenever a word of the form
+\texttt{\$\{WORD\}} is found in \texttt{fastlibs} or a file of file
+names, the \texttt{\$\{WORD\}} environment variable is expanded and
+inserted in the string.  Thus, if \texttt{<\$\{SLIB\}/blast\_dbs/}
+describes where a list of files will be found and \texttt{\$\{SLIB\}}
+is \texttt{"/seqdata"}, then the resulting substitution yields:
+\texttt{</seqdata/blast\_dbs/}.
+
+\section{Installing FASTA and the sequence databases}
+
+\subsection{Obtaining/preparing the sequence libraries}
+
+The FASTA program package does not include any protein or DNA sequence
+libraries.  Protein and DNA sequence databases are available via
+anonymous FTP from the NCBI (\url{ftp://ftp.ncbi.nih.gov/blast/db},
+\url{ftp://ftp.ncbi.nih.gov/blast/db}), UniProt
+(\url{ftp://ftp.uniprot.org/pub/databases/uniprot}), and the EBI
+(\texttt{ftp.ebi.ac.uk/pub/databases}).
+
+\emph{Protein Sequence Databases} -- Protein sequence databases are
+available from the NCBI, UniProt, and the EBI.  The NCBI provides a
+``raw'' database, \texttt{nr}, and a well-curated, less redundant
+database, \texttt{refseq\_protein}, and a copy of the very well
+annotated \texttt{swissprot} database. Protein sequence databases can
+also be downloaded from UniProt and the EBI; both sites provide the
+same UniProt\cite{uniprot11} database.
+
+Protein libraries, particularly those used for translated-DNA:protein
+comparisons with \texttt{fastx36} or \texttt{fasty36}, show be scanned
+to remove low-complexity regions.  Matches between low complexity
+regions can violate the composition assumptions used by the FASTA
+statistical estimates. The \texttt{pseg} program (\cite{woo935},
+\url{ftp://ftp.ncbi.nih.gov/pub/seg/pseg}) can be used to lower-case
+low complexity regions, which then can be ignored during the initial
+database search by using the \texttt{-S} option.  To lower-case low
+complexity regions, run the \texttt{pseg} program against the protein sequence database:
+\begin{quote}
+\begin{verbatim}
+pseg /seqdata/swissprot.fa -z 1 -q > /seqdata/swissprot.lseg
+\end{verbatim}
+\end{quote}
+And then you can run most FASTA programs with \texttt{-S}:
+\begin{quote}
+\begin{verbatim}
+ssearch36 -S mgstm1.aa /seqdata/swissprot.lseg
+\end{verbatim}
+\end{quote}
+
+Fig. \ref{seg-aln} shows the effect of including the \texttt{-S}
+option with lower-cased low-complexity sequences.  The \texttt{opt}
+score (407), which is used to sort the results and calculate
+statistics, is lower than the Smith-Waterman score (451), even though
+exactly the same residues are aligned for each score. The \texttt{opt}
+score excludes residues 19-30, because they were marked as
+low-complexity by \texttt{pseg}; thus they are shown as lower-case.
+The Smith-Waterman score includes the contribution from that part of
+the alignment.
+
+Out-of-frame translated DNA sequences often produce low-complexity
+regions \cite{wrp973}, so it is particularly important to avoid
+low-complexity alignments when using \texttt{fastx36} and
+\texttt{fasty36}
+
+\subsection{Searching taxonomic subsets}
+
+Because increasing database size reduces search sensitivity (an
+alignment with an $E()$-value of $0.001$ in a search of a 100,000
+entry database will have an $E()$-value of 0.1, not significant, if
+found in a database of 10,000,000 sequences), it is much more
+effective to search smaller, less redundant databases (you can always
+search the larger database later).  Thus, the \texttt{refseq\_protein}
+database from the NCBI is preferred over \texttt{nr}; even better are
+databases that reflect a limited phylogenetic range
+(e.g. \texttt{refseq\_human} for vertebrate sequences).
+
+While the NCBI provides organism-specific \texttt{refseq} subsets on
+their FTP site, they can be difficult to find.  Alternatively, you can
+use the NCBI \texttt{Entrez} web site to download a list of
+\texttt{gi} numbers specific to a particular organism or taxonomic
+range. The FASTA programs can search a subset of a large sequence
+database that is specified by a list of \texttt{gi} numbers by using
+library format 10.  For example, given a list of \texttt{gi} numbers
+for the human proteins in \texttt{swissprot.lseg}, the file
+\texttt{sp\_human.db}, with the content:
+\begin{quote}
+\begin{verbatim}
+<${SLIB}/swissprot.lseg 0:2 4|
+3121763
+51701705
+7404340
+205831112
+74735515
+...
+\end{verbatim}
+\end{quote}
+could be used to search the human subset of
+\texttt{swissprot.lseg}. The \texttt{gi} numbers for the SwissProt
+entries begin with the second line. The first line specifies the
+location of the file where the sequences containing the \texttt{gi}
+numbers can be found (\texttt{\$\{SLIB\}/swissprot.lseg}, the
+\texttt{libtype} of that file (\texttt{0:fasta}), the character offset
+to the beginning of the sequence identifier in that file (\texttt{2}),
+the identifier type (\texttt{4}), and the character
+that separates the fields in the FASTA descriptor (\texttt{|}).  The
+identifier type can take four formats:
+
+\begin{tabular}{l l}
+\hline\\[-1.5ex]
+1 & ordered accession strings  (letters or numbers)\\
+2 & ordered numbers (digits only) \\
+3 & un-ordered accession strings \\
+4 & un-ordered numbers \\
+\hline\\
+\end{tabular}\\
+(Ordered accession strings/numbers are ordered in both the library and the subset file.)
+
+Thus, given the \texttt{0:2 4|} specification above, the line:
+\begin{quote}
+\texttt{>gi|3121763|sp|O15143.3|ARC1B\_HUMAN Actin-related protein 2/3 ...}
+\end{quote}
+would be parsed, looking for an number starting at column 4 (the first
+column is numbered 0), and ending with \texttt{|}. The order of
+sequences in the library do not have to correspond to the order in the
+\texttt{sp\_human.db} file (un-ordered). Given a the
+\texttt{sp\_human.db} file, a file \texttt{swissprot.lseg} in the
+directory specified by the environment variable \texttt{\$\{SLIB\}},
+and a command of the form:
+\begin{quote}
+\texttt{fasta36 -S mgstm1.aa 'sp\_human.db 10'}
+\end{quote}
+Would use the \texttt{sp\_human.db} file to search the subset of
+\texttt{swissprot.lseg} that contained the specified \texttt{gi}
+numbers.
+
+\subsection{DNA sequence libraries}
+
+Because of the large size of DNA databases, you will probably want to
+keep DNA databases in only one format.  The FASTA3 programs that
+search DNA databases --- \texttt{fasta36}, \texttt{fastm36}, and
+\texttt{tfastx/y36} --- can read DNA databases in Genbank flatfile (not
+ASN.1), FASTA, and BLAST2.0 (\texttt{formatdb}) formats, as well as
+EMBL format.  BLAST2.0 format is preferred for DNA sequence libraries,
+because the files are considerably more compact than GenBank format.
+The NCBI does not provide software for converting from Genbank flat
+files to Blast2.0 DNA databases, but you can use the Blast
+\texttt{formatdb} program to convert ASN.1 formatted Genbank files,
+which are available from the NCBI \texttt{ftp} site.
+
+The NCBI also provides the comprehensive \texttt{nt} DNA database, and
+several EST databases in Blast2.0/\texttt{formatdb} format from
+\texttt{ftp://ncbi.nih.gov/blast/db}.
+
+
+\subsection{Finding the library files}
+
+All the FASTA programs comparison programs have the command line syntax:
+\begin{quote}
+\texttt{fasta36 query.file /seqdata/library}
+\end{quote}
+However, in addition to simply specifying the location of the database
+to be searched
+(\texttt{/seqdata/library}), the FASTA programs
+provide several methods for referring to sequence databases without specifying a specific file.  These methods can be used to provide abbreviations for sequence libraries, e.g.:
+\begin{quote}
+\texttt{fasta36 query.file s} 
+or
+\texttt{fasta36 query.file +sp+}
+\end{quote}
+To use abbreviations like \texttt{'s'} or \texttt{'+sp+'} to reference a
+sequence database, a \texttt{FASTLIBS} file must be used, see section
+\ref{fastlibs}.
+
+Large DNA and protein databases are often distributed across several
+files.  For example, the NCBI \texttt{nr} protein database is found in
+5 files, \texttt{nr.00} ... \texttt{nr.04}.  To search databases in
+multiple files, the names of the files are specified in a file of
+filenames, \texttt{nr.nam}:
+\begin{quote}
+\begin{verbatim}
+<${SLIB}/blast_dbs/
+nr.00 12
+nr.01 12
+nr.02 12
+nr.03 12
+nr.04 12
+\end{verbatim}
+\end{quote}
+In this file, the first line \texttt{<\$\{SLIB2\}/blast\_dbs/},
+beginning with \texttt{<}, specifies the location and format (Blast2.0
+\texttt{formatdb}) the data files. Text of the form
+\texttt{\$\{SLIB\}} refers to Unix/MacOSX/Windows environment
+variables; the value of \texttt{\$\{SLIB\}} is set by a Unix/MacOSX
+shell environment command. Thus, if the value of \texttt{\$\{SLIB\}}
+is \texttt{/seqdata}, then the first sequence library file to be read
+will be \texttt{/seqdata/blast\_dbs/nr.00}, in format 12 (Blast2.0
+\texttt{formatdb}).
+
+To refer to the \texttt{nr.nam} file as a file of file names, it must
+be prefixed by a \texttt{@} character, e.g.
+\begin{quote}
+\texttt{fasta36 query.file \textbf{@}nr.nam}
+\end{quote}
+Files of file names can contain references to other files of file names:
+\begin{quote}
+\begin{verbatim}
+<${SLIB}/fasta_dbs/
+@pdb.nam
+@swissprot.nam
+\end{verbatim}
+\end{quote}
+The FASTA file of file names is similar to the NCBI
+\texttt{prot\_db.pal} and \texttt{dna\_db.nal}, files, but
+unfortunately they are different, and currently FASTA cannot read NCBI
+\texttt{.pal} or \texttt{.nal} files that contain a \texttt{DBLIST}
+line. FASTA can read NCBI \texttt{.pal} or \texttt{.nal} files that do
+not contain a \texttt{DBLIST} line.
+
+FASTA version \texttt{fasta-36.3.6} provides an alternative way to
+generate a database to be searched: the \texttt{!script.sh} file.
+Like the \texttt{-e expand\_file.sh} script, a shell script or program
+can be used to produce a database to a temporary file, which is then
+seached.  For example, if the file \texttt{cat\_db.sh} contains the
+command \texttt{echo /seqdb/swissprot.lseg}, the command:
+\begin{quote}
+\begin{verbatim}
+fasta36 query.aa \!@cat_db.sh
+\end{verbatim}
+\end{quote}
+will cause \texttt{cat\_db.sh} to produce a temporary file with the
+line \texttt{swissprot.lseg}, which is interpreted as an indirect file
+of filenames; thus, because of the \texttt{@}, the file will be
+interpreted as an indirect file, and the \texttt{swissprot.lseg} file
+will be searched.  Note that on Unix systems, the \texttt{'!'} must be
+preceeded by a \texttt{'\textbackslash'} so that it is not interpreted by the
+shell, as shown above.
+
+\subsection{\texttt{FASTLIBS}}
+\label{fastlibs}
+
+All the search programs in the FASTA3 package can use the environment
+variable \texttt{FASTLIBS} to find the protein and DNA sequence
+libraries. (Alternatively, you can specify the \texttt{FASTLIBS} file
+with the \texttt{-l fastlibs.file} option.) The \texttt{FASTLIBS}
+variable contains the name of a file that has the actual filenames of
+the libraries.  The \texttt{fastlibs} file included with the
+distribution is an example of a file that can be referred to by
+FASTLIBS. To use the \texttt{fastlibs} file, type:
+\begin{quote}
+\texttt{setenv FASTLIBS /seqdata/info/fastgbs} (csh/tcsh)\\
+ or\\
+\texttt{export FASTLIBS=/seqdata/info/fastgbs} (bash/ksh)
+\end{quote}
+ Then edit the \texttt{fastlibs} file to indicate the location of the
+ protein and DNA sequence libraries.  If the protein sequence library is
+ kept in the file \texttt{/seqdata/aa/swissprot.lseg} and your Genbank
+ DNA sequence library is kept in the directory:
+ \texttt{/seqdata/genbank}, then the \texttt{fastlibs} file might
+ contain:
+%%\pagebreak
+\begin{verbatim}
+SwissProt$0P/seqdata/aa/swissprot.lseg 0
+UniProt$0+uniprot+@/seqdata/aa/uniprot.nam
+GB Primate$1P@/seqdata/genbank/gpri.nam
+GB Rodent$1R@/seqdata/genbank/grod.nam 
+GB Mammal$1M@/seqdata/genbank/gmammal.nam
+^   1    ^^^^       4                ^ ^
+          23                           (5)
+\end{verbatim}
+The first line of this file says that there is a copy of the SwissProt
+sequence database (a protein database) that can be selected by typing
+"P" on the command line or when the database menu is presented in
+interactive mode.
+
+Note that there are 4 (or 5) fields in the lines in the
+\texttt{fastlibs} file.  The first field describes library and is
+displayed by FASTA program; it ends with the '\$'.  The second field
+(1 character), is a 0 if the library is a protein library and 1 if it
+is a DNA library.  The third field can either be a single character
+(\texttt{P}) or a word surrounded by the \texttt{+} symbol
+(\texttt{+uniprot+}), and can be used to specify the library on the command line or in interactive mode.
+
+The fourth field is the name of the library file.  In the example
+above, the \texttt{/seqdata/aa/swissprot.lseg} file contains the
+entire protein sequence library.  Alternatively,
+\texttt{/seqdata/aa/uniprot.nam} is a file of file names, which
+contains a list of one or more library files.  Likewise, the DNA
+library files are files of file names.
+
+In addition, an optional fifth field can be used to specify the format
+of the library file.  Alternatively, you can specify the library
+format in a file of file names.  This field must be separated from the
+file name by a space character ('\ ') from the filename.  FASTA can
+read the libraries in the following formats:\\
+
+\begin{tabular}{r l}
+0 & FASTA (\texttt{>SEQID} - comment/sequence) \\
+1 & Uncompressed Genbank (LOCUS/DEFINITION/ORIGIN)\\
+2 & NBRF CODATA (ENTRY/SEQUENCE) (obsolete)\\
+3 & EMBL/SWISS-PROT (ID/DE/SQ)\\
+4 & Intelligenetics (;comment/SEQID/sequence) (obsolete)\\
+5 & NBRF/PIR VMS (\texttt{>P1;SEQID}/comment/sequence) (obsolete)\\
+6 & GCG (version 8.0) Unix Protein and DNA (compressed)\\
+7 & FASTQ (sequence only, quality ignored)\\
+10 & subset format (</slib2/swissprot.lseg 0:2 4|) \\
+11 & NCBI Blast1.3.2 format  (unix only) (obsolete)\\
+12 & NCBI Blast2.0 format\\
+16 & MySQL (requires special compilation) \\
+17 & Postgres (requires special compilation) \\
+\end{tabular}
+
+Today, the most popular formats are \texttt{FASTA}, type \texttt{'0'},
+the default, and the NCBI Blast2.0 \texttt{formatdb} formats (type
+\texttt{'12'}).  The FASTA programs cannot read NCBI ASN.1 formatted databases.
+If a library format is not specified, for example, because
+you are just comparing two sequences, FASTA (format 0) is used by
+default. To specify a library type on the command line, add it to the
+library filename and surround the filename and library type in quotes:
+\begin{quote}
+\begin{verbatim}
+fasta36 query.file "/seqdb/genbank/gbmam 12"
+\end{verbatim}
+\end{quote}
+NCBI \texttt{formatdb} databases are built from multiple files,
+e.g. \texttt{gbmam.nsq}, \texttt{gbmam.nhr}, \texttt{gbmam.nin}; to
+refer to the complete set of files, simply use name before the
+suffixes, e.g. \texttt{gbmam}.  When NCBI databases distributed across
+several files, e.g. \texttt{gbbct.00}, \texttt{gbbct.01}, etc, those
+files must be included in a \texttt{gbbct.nam} file of file names.
+
+FASTA subset format ({\tt 10}) allows users to search a subset of a
+sequence database, by specifying a list of {\tt gi} numbers or accessions in
+a larger database.  The format begins with a line naming the file
+sequence file followed by information about how to
+extract the {\tt gi} number or accession. Thus, the line.
+\begin{quote}
+\texttt{<library\_file lib\_fmt:id\_fmt id\_loc}
+\end{quote}
+where {\tt lib\_fmt} is the library format (0), {\tt id\_fmt} is the
+format of the sequence identifier (:1, :2 - ordered strings or
+numbers; :3, :4 - unordered strings or numbers),
+and {\tt id\_loc} is the location of the sequence identifier. For example,
+\begin{quote}
+\begin{verbatim}
+</slib2/blast/swissprot.lseg 0:2 4|
+3121763
+51701705
+7404340
+74735515
+...
+\end{verbatim}
+\end{quote}
+specifies the file containing all the sequences and the file is in
+FASTA format ('0:'), the sequence identifier is a number (':2'),
+and the identifier starts at character 4 and ends with the \texttt{'|'} symbol. 
+
+The major problem that most new users of the FASTA package have is in
+setting up the program to find the databases and their library type.
+In general, if you cannot get \texttt{fasta36} to read a sequence
+database, there is probably something wrong with the \texttt{FASTLIBS}
+file.  A common problem is that the database file is found, but either
+no sequences are read, or an incorrect number of entries is read.
+This is almost always because the library format (\texttt{libtype}) is
+incorrect.
+
+Test the setup by running FASTA.  Enter the sequence
+file '\texttt{mgstm1.aa}' when the program requests it (this file is
+included with the programs).  The program should then ask you to
+select a protein sequence library.  Alternatively, if you run the
+\texttt{tfastx36 -I} program and use the mgstm1.aa query sequence, the program
+should show you a selection of DNA sequence libraries.
+Once the \texttt{fastlibs} file has been set up correctly, you can
+set FASTLIBS=fastgbs in your AUTOEXEC.BAT file, and you will not need to
+remember where the libraries are kept or how they are named.
+
+%%\pagebreak
+\section{Frequently Asked Questions (FAQs)}
+
+{\noindent}\textbf{Where can I get FASTA?} --
+\url{http://faculty.virginia.edu/wrpearson/fasta} has the latest
+versions of the FASTA programs.  This document describes
+\texttt{\CURRENT}, which is available from
+\url{http://faculty.virginia.edu/wrpearson/fasta/fasta3.tar.gz}.
+In addition, pre-compiled versions of the programs are available for
+MacOSX and Windows.
+
+\needspace{4\baselineskip}
+{\noindent}\textbf{Which program should I use?} -- See Table I, also:\\
+
+\begin{tabular}{l l l l l }
+\hline \\[-1.0ex]
+Query & Library & FASTA pgm. & BLAST pgm. & \\[1.2ex]
+\hline \\[-1.0ex]
+Prot. & Prot. & \texttt{fasta36} & \texttt{blastp} & heuristic local similarity \\
+ &  & \texttt{ssearch36} &  & optimal local sim.\\
+ &  & \texttt{ggearch36} &  & global:global sim. \\
+ &  & \texttt{ggearch36} &  & global:local sim.\\
+DNA & DNA & \texttt{fasta36}$^*$ & \texttt{blastn} & \\[1.2ex]
+\hline \\[-1.0ex]
+Prot. & Prot. & \texttt{lalign36} & & multiple non-intersecting \\
+DNA & DNA & & & alignments \\[1.2ex]
+\hline \\[-1.0ex]
+DNA & Prot. & \texttt{fastx36} & \texttt{blastx} & trans. DNA:protein sim. \\ 
+ &  & \texttt{fasty36} & & \\[1.2ex]
+\hline \\[-1.0ex]
+Prot. & DNA & \texttt{tfastx36} & \texttt{blastn} & protein:trans. DNA \\
+ &  & \texttt{tfasty36} & & \\[1.2ex]
+\hline \\[-1.0ex]
+Prot. & Prot. & \texttt{fasts36} & & Unordered peptides \\
+Prot. & DNA & \texttt{tfasts36} & & Unordered peptides \\
+DNA & DNA & \texttt{fasts36} & & Unordered oligonucleotides \\
+Prot. & Prot. & \texttt{fastm36} & & Ordered peptides \\
+DNA & DNA & \texttt{fastm36} & & Ordered oligos \\[1.2 ex]
+\hline \\[-1.0ex]
+\multicolumn{5}{l}{$^*$\texttt{ssearch36} can also be used for DNA:DNA, but is much slower and no more sensitive.}\\[0.2ex]
+\hline \\
+\end{tabular}
+
+\needspace{4 ex}
+{\noindent}\textbf{How do I make FASTA act/look like BLAST}? --
+\vspace{-0.5ex}
+\begin{quote}
+\texttt{fasta36 -s BP62 -m BB query.file library.file}
+\end{quote}
+\vspace{-0.5ex}
+\texttt{-s BP62} sets the same scoring matrix (BLOSUM62) and
+gap-penalties (-11/-1) as BLAST (FASTA uses BLOSUM50 by
+default). \texttt{-m BB} produces very BLAST-like output.
+
+{\noindent}\textbf{When I search Genbank - the program reports:} \texttt{0 residues in 0
+sequences}?  This typically happens because the program does not
+know that you are searching a Genbank flatfile database and is looking
+for a FASTA format database.  Be certain to specify the library type
+("1" for Genbank flatfile) with the database name.
+
+{\noindent}\textbf{The search seemed to work, but I do not see any results.} -- In
+command line mode (the default), all the FASTA programs limit the
+number of high scoring sequences shown using an expectation value
+cutoff ($E()<10$ for proteins; $E()<2$ for DNA).  Sometimes, a search
+will complete successfully (you see the message \texttt{XXXX residues
+  in YYY sequences}) but the message: \texttt{!! No sequences with E()
+  < 10} instead of \texttt{The best scores are:}.  Typically, this
+happens because of a problem with the statistical estimation process;
+in particular, if the library contains only related sequences and
+\texttt{-z 11} was not used, none of the hits may be ``significant''.
+To trouble shoot this problem, you can search with \texttt{-z -1},
+which turns off all the statistical estimation procedures, and will
+show the 20 highest scoring sequences (\texttt{-b \#} sets the default
+number of sequences shown).
+
+{\noindent}\textbf{What is the difference between} \texttt{fastx3} and
+\texttt{fasty3}? (or \texttt{tfastx3} and \texttt{tfasty3})? --
+\texttt{[t]fastx3} uses a simpler codon based model for alignments
+that does not allow frameshifts in some codon positions (see
+ref. \cite{wrp971}).  \texttt{fastx3} is about 30\% faster, but
+\texttt{fasty3} can produce higher quality alignments in some cases.
+
+\vspace{0.5ex}
+{\noindent}\textbf{What is ktup}? -- All of the programs with \texttt{fast} in their
+name use a computer science method called a lookup table to speed the
+search.  For proteins with \emph{ktup}=2, this means that the program
+does not look at any sequence alignment that does not involve matching
+two identical residues in both sequences.  Likewise with DNA and
+\emph{ktup} = 6, the initial alignment of the sequences looks for 6
+identical adjacent nucleotides in both sequences.  Because it is less
+likely that two identical amino-acids will line up by chance in two
+unrelated proteins, this speeds up the comparison.  But very distantly
+related sequences may never have two identical residues in a row but
+will have single aligned identities.  In this case, \emph{ktup} = 1 may
+find alignments that \emph{ktup}=2 misses.
+
+\vspace{0.5ex} {\noindent}\textbf{How do I turn off statistics}? --
+The FASTA programs are designed to identify homologs based on
+statistically significant similarity; to infer homology you need
+accurate statistical estimates.  Sometimes, however, you know the
+sequences are related, and searching against libraries of related
+sequences can confuse FASTA if you do not use \texttt{-z 11}. If all
+you want are scores and alignments, use \texttt{-z -1} to turn off
+statistical estimates.
+
+\vspace{0.5ex}
+{\noindent}\textbf{Where are} \texttt{prss} {\noindent}\textbf{and} \texttt{prfx}? -- Earlier FASTA3
+releases included \texttt{prss3} and \texttt{prfx3}. With FASTA
+version 35 and 36, these programs have been incorporated into
+\texttt{ssearch36} and \texttt{fastx36}.  FASTA version 35 and 36
+programs now automatically estimate statistical parameters by
+shuffling - the function of \texttt{prss} and \texttt{prfx}, when
+searching for libraries with fewer than 500 members.
+
+\vspace{0.5ex}
+{\noindent}\textbf{Where is} \texttt{tfasta}? -- Although it is possible to make
+\texttt{tfasta36}, it is not compiled by default.  \texttt{tfastx36}
+and \texttt{tfasty36} allow frame-shifts to be joined into a single
+alignment; \texttt{tfasta} did not. \texttt{tfastx36} produces better
+alignments with better statistics.
+
+\vspace{0.5ex}
+{\noindent}\textbf{Can I run the FASTA programs on a cluster}? -- With version
+36.3.4, almost all of the FASTA programs can be run on clusters of
+computers using MPI (Message Passaging Interface).  The programs can
+be compiled using \texttt{make -f ../make/Makefile.mpi\_sse2} from the
+\texttt{fasta36/src} directory.  Except for \texttt{lalign36}, all the
+programs in Table I are available as \texttt{fasta36\_mpi},
+\texttt{ssearch36\_mpi}, etc.
+
+Unfortunately, the current MPI implementation involves substantially
+more communications overhead than the threaded versions.  The FASTA
+programs are very efficient on threaded machines; if the preload
+option is used (edit \texttt{make/Makefile36m.common} to use
+\texttt{comp\_lib8.c}), the FASTA programs can obtain more than 40-fold speedup on a 48-core machine (the largest I have tested). 
+
+\vspace{0.5ex}
+{\noindent}\textbf{Sometimes, in the list of best scores, the same sequence is
+  shown twice with exactly the same score.  Sometimes, the sequence is
+  there twice, but the scores are slightly different}? -- When any of
+the FASTA programs searches a long sequence, it breaks the sequence up
+into \emph{overlapping} pieces.  If the highest scoring alignment is
+at the end of one piece, it will be scored again at the beginning of
+the next piece.  If the alignment is not be completely included in the
+overlap region, one of the pieces will give a higher score than the
+other.  These duplications can be detected by looking at the
+coordinates of the alignment.  If either the beginning or end
+coordinate is identical in two alignments, the alignments are at least
+partially duplicates.
+
+\vspace{2ex}
+As always, please inform me of bugs as soon as possible.
+
+\begin{quote}
+William R. Pearson\\
+Department of Biochemistry\\
+Jordan Hall Box 800733\\
+U. of Virginia\\
+Charlottesville, VA\\
+wrp@virginia.EDU
+\end{quote}
+
+\bibliographystyle{plain}
+\bibliography{fasta_guide}
+
+\appendix
+\section*{Appendix}
+
+\section{FASTA Makefile compile time options}
+
+\begin{table}
+\caption{\label{make-defs}FASTA \texttt{Makefile} compile time \texttt{\#defines}}
+\vspace{1.0ex}
+\begin{tabular}{l l p{1.00 in} p{3.0 in}}
+\hline\\[-1.2ex]
+\texttt{\#define} & Status$^*$ & Target file(s) & Function \\[1.0ex]
+\hline\\[-1.5ex]
+\texttt{ALLOCN0} & obs & \texttt{dropnfa.c}, \texttt{dropfx.c}, \texttt{dropfz2.c} & allows FASTA algorithm to use memory $\sim$ query length (n0), not query $+$ library (n0+n1). \\
+\texttt{DNALIB\_LC} & undef & \texttt{initfa.c} & enable lower case masking for DNA libraries \\
+\texttt{HTML\_HEAD} & undef & \texttt{comp\_lib5e.c}, \texttt{comp\_lib8.c} & wrap \texttt{-m 6} HTML output with \texttt{<html> <body> </body> </html>} \\
+\texttt{M10\_CONS} & def & \texttt{c\_dispn.c} & show consensus line (\texttt{:. }) with \texttt{-m 10} output. \\
+\texttt{OLD\_FASTA\_GAP} & undef & \texttt{drop*.c} & use first-residue/additional residue penalties, not open/extend. \\
+\texttt{PGM\_DOC} & def & \texttt{comp\_lib5e.c}, \texttt{comp\_lib8.c}  & provide \texttt{\#pgm\_name -opt1 -opt2 query file} copy of command line \\
+\texttt{PROGRESS} & def & \texttt{comp\_lib5e.c}, \texttt{comp\_lib8.c}  & provide progress symbols in interactive mode \\
+\texttt{SAMP\_STATS} & def & \texttt{comp\_lib5e.c}, \texttt{comp\_lib8.c}  & scores are sampled for statistical estimates \\
+\texttt{SAMP\_STATS\_LESS} & def & \texttt{compacc.c} & a slower sampling strategy is used \\
+\texttt{SHOW\_ALIGN\_SCORE} & undef & \texttt{wm\_align.c} & print score, cummulative score, during alignment (for teaching) \\
+\texttt{SHOW\_HELP} & def & \texttt{comp\_lib5e.c}, \texttt{comp\_lib8.c}, \texttt{initfa.c}, \texttt{doinit.c} & print out help information with '-help', or no arguments given.  Undef \texttt{SHOW\_HELP} reverts to pre-\texttt{fasta-35.4.4}.\\
+\texttt{SHOW\_HIST} & undef & \texttt{doinit.c} & inverts current meaning of \texttt{-H} (shows by default for non-PCOMPLIB (MPI) programs). \\
+\texttt{SHOWSIM} & def & \texttt{mshowbest.c} \texttt{mshowalign2.c} & display percent similarity \\
+\texttt{USE\_LNSTATS} & obs & \texttt{scaleswn.c} & use $ln()$-scaling for scores, removed in \texttt{fasta2.0}.\\
+\hline \\
+\end{tabular}
+$^*$Status: def: \#defined in standard \texttt{Makefiles}; undef: undefined; obs: obsolete, provided backwards compatibility with FASTA2.0 or earlier.
+\end{table}
+
+The \texttt{fasta-36/make} directory includes \texttt{Makefile}s
+appropriate for a broad range of environments, including Linux/Unix,
+BSD, MacOSX, and Windows.  Makefiles are regularly tested against
+MacOSX, Linux, and Windows. Table \ref{make-defs} summarizes the
+Makefile options that can be modified.
+
+As distributed, the \texttt{Makefiles} in \texttt{fasta36/make}, build
+a version of the FASTA programs that is optimized for single searches
+against arbitrary sized databases, using bit scores, efficient sampled
+statistics, and gap-open/extend penalties.  The default compilation
+configuration can be changed either by changing the compile time
+defines (Table \ref{make-defs}) in the main \texttt{Makefile},
+e.g. \texttt{make/Makefile.linux64\_sse2}, or by editing
+\texttt{make/Makefile36m.common}.
+
+\emph{High-performance searches with many queries} -- By default, the
+\texttt{comp\_lib5e.c} program specified in
+\texttt{Makefile36m.common} builds FASTA programs that re-read the
+library sequence database for every query sequence.  This has the
+advantage that sequence comparison begins almost immediately, but if
+thousands of searches are being performed, the database is re-read
+thousands of times.  \texttt{Makefile36m.common} can be edited to use
+\texttt{comp\_lib8.c} in place of \texttt{comp\_lib5e.c} and the
+database is read only once, then held in memory for additional
+searches.  Of course, if \texttt{comp\_lib8.c} is used, the computer
+must have enough memory to store the complete database.  Keeping the
+database in memory allows the FASTA programs to very efficiently used
+large, multicore computers.
+
+\needspace{5\baselineskip}
+\emph{Parallel searches with MPI} -- By default under
+Unix/Linux/MacOSX, the FASTA programs are threaded; they will spawn as
+many threads as CPU cores are available (this can be limited with the
+\texttt{-t n-threads} option).  Using \texttt{comp\_lib8.c}, we see
+almost 48-fold speedup on a 48-core machine.  The FASTA programs can
+also be run in parallel in the MPI environment on clusters of
+computers.  To build the MPI versions of the programs, use
+\texttt{make ../make/Makefile.mpi\_sse2 ssearch36\_mpi},
+\texttt{fastx36\_mpi}, etc.  The MPI programs currently substantially
+more communications overhead than the threaded versions, so they may
+not scale as well to large clusters.
+
+\include{fasta.history}
+\end{document}

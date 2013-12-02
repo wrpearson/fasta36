@@ -1,0 +1,55 @@
+# $Id: Makefile.mpi_icc_sse2 849 2011-10-21 20:09:55Z wrp $
+#
+# makefile for fasta3, fasta3_t using the Intel icc compiler
+#
+# This file is designed for 64-bit Linux systems.
+# -D_LARGEFILE64_SOURCE and # -DBIG_LIB64 require a 64-bit linux system.
+#
+# uses SSE2 extensions for ssearch35(_t)
+
+SHELL=/bin/bash
+
+CC= mpicc
+#CC= mpicc-dbg -g -DDEBUG
+
+#CC=gcc -Wall -pedantic -ansi -g -O
+#CC= /usr/local/parasoft/bin/insure -g -DDEBUG
+
+# this file works for x86 LINUX
+
+# standard options
+CFLAGS= -DPCOMPLIB=MPI -DSAMP_STATS_MORE -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=8 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your_fasta_host_here"' -DUSE_MMAP -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DPGM_DOC -DBIG_LIB64 -DSAMP_STATS 
+# -DSAMP_STATS_FAST -DSUPERFAMNUM -DSFCHAR="'|'" 
+
+# -I/usr/local/include/mysql -DMYSQL_DB 
+#
+#(for mySQL databases)  (also requires change to Makefile35.common)
+
+LIB_M = -lm -lz
+#LIB_M = -L/usr/local/lib/mysql -lmysqlclient -lm
+# for mySQL databases
+
+HFLAGS= -o
+NFLAGS= -o
+
+# for Linux
+THR_SUBS = mpi_subs2
+THR_LIBS = 
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_SSE_O)
+DROPLAL_O = $(DROPLAL_SSE_O)
+DROPGNW_O = $(DROPGNW_SSE_O)
+DROPLNW_O = $(DROPLNW_SSE_O)
+
+include ../make/Makefile36mpi.common
+

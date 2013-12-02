@@ -1,0 +1,344 @@
+
+#================ common .o files 
+
+doinit.o : doinit.c defs.h param.h rstruct.h upam.h structs.h uascii.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c doinit.c
+
+init_sw.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DSSEARCH initfa.c -o init_sw.o
+
+init_sw_sse.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DSW_SSE2 -DSSEARCH initfa.c -o init_sw_sse.o
+
+init_sw_alt.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DSW_ALTIVEC -DSSEARCH initfa.c -o init_sw_alt.o
+
+init_lal.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DLALIGN initfa.c -o init_lal.o
+
+init_lnw.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DGLSEARCH initfa.c -o init_lnw.o
+
+init_lnw_sse.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DSW_SSE2 -DGLSEARCH initfa.c -o init_lnw_sse.o
+
+init_gnw.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DGGSEARCH initfa.c -o init_gnw.o
+
+init_gnw_sse.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DSW_SSE2 -DGGSEARCH initfa.c -o init_gnw_sse.o
+
+init_rss.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DPRSS initfa.c -o init_rss.o
+
+init_rfx.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DPRSS -DFASTX initfa.c -o init_rfx.o
+
+init_fa.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTA initfa.c -o init_fa.o
+
+init_ff.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTF initfa.c -o init_ff.o
+
+init_tf.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTF -DTFAST initfa.c -o init_tf.o
+
+init_fs.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTS initfa.c -o init_fs.o
+
+init_fm.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTM initfa.c -o init_fm.o
+
+init_tfs.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTS -DTFAST  initfa.c -o init_tfs.o
+
+init_tfm.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTM -DTFAST  initfa.c -o init_tfm.o
+
+init_tfa.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTA -DTFAST initfa.c -o init_tfa.o
+
+init_fx.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTX initfa.c -o init_fx.o
+
+init_tfx.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTX -DTFAST initfa.c -o init_tfx.o
+
+init_fy.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTY initfa.c -o init_fy.o
+
+init_tfy.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTY -DTFAST initfa.c -o init_tfy.o
+
+#================ miscellaneous
+
+htime.o : htime.c
+	$(CC) $(THR_CC) $(CFLAGS) -c htime.c
+
+compacc2_t.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR  -DCOMP_MLIB -c compacc2.c -o compacc2_t.o
+
+compacc2_s.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c compacc2.c -o compacc2_s.o
+
+compacc2_p.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DMPI_SRCB -c compacc2.c -o compacc2_p.o
+
+compacc.o : compacc.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -c compacc.c -o compacc.o
+
+apam.o : apam.c defs.h param.h uascii.h upam.h
+	$(CC) $(THR_CC) $(CFLAGS) -c apam.c
+
+pssm_asn_subs.o : pssm_asn_subs.c defs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c pssm_asn_subs.c
+
+#================ display list of best hits / alignments
+
+showbest.o : $(SHOWBESTC) $(MWH) defs.h param.h rstruct.h structs.h  aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -c $(SHOWBESTC) -o showbest.o
+
+build_ares.o : build_ares.c $(MWH) defs.h param.h rstruct.h structs.h  aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c build_ares.c -o build_ares.o
+
+$(SHOWALIGN_T).o : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h rstruct.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -c $(SHOWALIGN).c -o $(SHOWALIGN_T).o
+
+$(SHOWALIGN_P).o : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h rstruct.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DMPI_SRC -c $(SHOWALIGN).c -o $(SHOWALIGN_P).o
+
+$(SHOWALIGN_S).o : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h rstruct.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c $(SHOWALIGN).c -o $(SHOWALIGN_S).o
+
+$(LSHOWALIGN).o : $(SHOWALIGN).c $(MWHP) defs.h structs.h param.h rstruct.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DLALIGN -c $(SHOWALIGN).c -o $(LSHOWALIGN).o
+
+re_getlib.o : re_getlib.c mw.h mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c re_getlib.c
+
+lib_sel.o : lib_sel.c defs.h structs.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -c lib_sel.c
+
+c_dispn.o : c_dispn.c defs.h structs.h param.h rstruct.h aln_structs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c c_dispn.c
+
+#================ statistical functions
+
+karlin.o : karlin.c param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -c karlin.c
+
+scale_se.o : scaleswn.c defs.h param.h rstruct.h structs.h $(MWH) alt_parms.h
+	$(CC) $(THR_CC) $(CFLAGS) -DLOCAL_SCORE -c scaleswn.c -o scale_se.o
+
+scale_sn.o : scaleswn.c defs.h param.h rstruct.h structs.h $(MWH) alt_parms.h
+	$(CC) $(THR_CC) -DNORMAL_DIST $(CFLAGS) -c scaleswn.c -o scale_sn.o
+
+scaleswtf.o : scaleswt.c defs.h param.h rstruct.h structs.h $(MWH) alt_parms.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTF -c scaleswt.c -o scaleswtf.o
+
+scaleswts.o : scaleswt.c defs.h param.h rstruct.h structs.h $(MWH) alt_parms.h
+	$(CC) $(THR_CC) $(CFLAGS) -c scaleswt.c -o scaleswts.o
+
+tatstats_fs.o : tatstats.c tatstats.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTS tatstats.c -o tatstats_fs.o
+
+tatstats_ff.o : tatstats.c tatstats.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTF tatstats.c -o tatstats_ff.o
+
+tatstats_fm.o : tatstats.c tatstats.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTM tatstats.c -o tatstats_fm.o
+
+last_tat.o : last_tat.c defs.h mm_file.h structs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -c last_tat.c
+
+last_thresh.o : last_thresh.c defs.h mm_file.h structs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -c last_thresh.c
+
+#================ drop functions - actual scores/alignments
+
+drop_nfa.o : dropnfa.c dropnfa.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropnfa.c -o drop_nfa.o
+
+dropsbd.o : dropnfa.c dropnfa.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropsbd.c -o dropsbd.o
+
+# drop_ff, _fs, _fm must define FASTF, FASTS, and FASTM to ensure
+# that tatstats.h is built appropriately
+
+drop_ff2.o : dropff2.c param.h rstruct.h defs.h tatstats.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTF  dropff2.c -o drop_ff2.o
+
+drop_tff.o : dropff2.c param.h rstruct.h defs.h tatstats.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTF -DTFAST dropff2.c -o drop_tff.o
+
+drop_fs2.o : dropfs2.c param.h rstruct.h defs.h tatstats.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTS -c dropfs2.c -o drop_fs2.o
+
+drop_tfs.o : dropfs2.c param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST -DFASTS dropfs2.c -o drop_tfs.o
+
+drop_fm.o : dropfs2.c param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DFASTM dropfs2.c -o drop_fm.o
+
+drop_tfm.o : dropfs2.c param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST -DFASTM dropfs2.c -o drop_tfm.o
+
+drop_tfa.o : dropnfa.c dropnfa.h upam.h param.h rstruct.h defs.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFASTA dropnfa.c -o drop_tfa.o
+
+drop_fx.o : dropfx.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropfx.c -o drop_fx.o
+
+drop_tfx.o : dropfx.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfx.c -o drop_tfx.o
+
+drop_fz.o : dropfz2.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropfz2.c -o drop_fz.o
+
+drop_tfz.o : dropfz2.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfz2.c -o drop_tfz.o
+
+dropnsw.o : dropnsw.c upam.h param.h rstruct.h structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropnsw.c
+
+#dropgsw.o : dropgsw.c dropgsw.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+#	$(CC) $(THR_CC) $(CFLAGS) -c dropgsw.c -o dropgsw.o
+
+dropgsw2.o : dropgsw2.c dropgsw2.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropgsw2.c -o dropgsw2.o
+
+dropgsw2_sse.o : dropgsw2.c dropgsw2.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSW_SSE2 -c dropgsw2.c -o dropgsw2_sse.o
+
+dropgsw2_alt.o : dropgsw2.c dropgsw2.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSW_ALTIVEC -c dropgsw2.c -o dropgsw2_alt.o
+
+droplal2.o : dropgsw2.c dropgsw2.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+	$(CC) $(THR_CC) -DLALIGN $(CFLAGS) -c dropgsw2.c -o droplal2.o
+
+droplal2_sse.o : dropgsw2.c dropgsw2.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+	$(CC) $(THR_CC) -DLALIGN $(CFLAGS) -DSW_SSE2 -c dropgsw2.c -o droplal2_sse.o
+
+droplal2_alt.o : dropgsw2.c dropgsw2.h defs.h param.h rstruct.h drop_func.h a_mark.h dyn_string.h
+	$(CC) $(THR_CC) -DLALIGN $(CFLAGS) -DSW_ALTIVEC -c dropgsw2.c -o droplal2_alt.o
+
+lsim4.o : lsim4.c lsim4.h param.h rstruct.h defs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c lsim4.c
+
+smith_waterman_altivec.o : smith_waterman_altivec.c smith_waterman_altivec.h dropgsw2.h defs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSW_ALTIVEC -c smith_waterman_altivec.c
+
+smith_waterman_sse2.o : smith_waterman_sse2.c smith_waterman_sse2.h dropgsw2.h defs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSW_SSE2 -c smith_waterman_sse2.c
+
+global_sse2.o : global_sse2.c global_sse2.h dropgsw2.h defs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSW_SSE2 -c global_sse2.c
+
+glocal_sse2.o : glocal_sse2.c glocal_sse2.h dropgsw2.h defs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSW_SSE2 -c glocal_sse2.c
+
+droplnw.o : dropnnw2.c upam.h param.h rstruct.h structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropnnw2.c -o droplnw.o
+
+droplnw_sse.o : dropnnw2.c upam.h param.h rstruct.h structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) -DSW_SSE2 $(CFLAGS) -c dropnnw2.c -o droplnw_sse.o
+
+dropgnw.o : dropnnw2.c upam.h param.h rstruct.h structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) -DGLOBAL_GLOBAL $(CFLAGS) -c dropnnw2.c -o dropgnw.o
+
+dropgnw_sse.o : dropnnw2.c upam.h param.h rstruct.h structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) -DGLOBAL_GLOBAL -DSW_SSE2 $(CFLAGS) -c dropnnw2.c -o dropgnw_sse.o
+
+lwm_align.o : wm_align.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -c wm_align.c -o lwm_align.o
+
+gwm_align.o : wm_align.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DGGSEARCH -c wm_align.c -o gwm_align.o
+
+calcons_fa.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTA -c cal_cons.c -o calcons_fa.o
+
+calcons_tfa.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFASTA -c cal_cons.c -o calcons_tfa.o
+
+calcons_sw.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSSEARCH -c cal_cons.c -o calcons_sw.o
+
+calcons_la.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) -DLALIGN -DLCAL_CONS $(CFLAGS) -c cal_cons.c -o calcons_la.o
+
+calcons_ff.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTF -c cal_consf.c -o calcons_ff.o
+
+calcons_fs.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTS -c cal_consf.c -o calcons_fs.o
+
+calcons_fm.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTM -c cal_consf.c -o calcons_fm.o
+
+calcons_tff.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFAST -DFASTF -c cal_consf.c -o calcons_tff.o
+
+calcons_tfs.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFAST -DFASTS -c cal_consf.c -o calcons_tfs.o
+
+calcons_tfm.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFAST -DFASTM -c cal_consf.c -o calcons_tfm.o
+
+#================ reading query, libraries
+
+getseq.o : getseq.c defs.h uascii.h structs.h rstruct.h upam.h mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c getseq.c
+
+llgetaa.o : llgetaa.c upam.h uascii.h mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DNOLIB llgetaa.c
+
+lgetlib.o : $(NGETLIB).c altlib.h upam.h uascii.h mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c $(NGETLIB).c -o lgetlib.o
+
+lgetaa_m.o : mmgetaa.c altlib.h ncbl2_head.h upam.h uascii.h mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c mmgetaa.c -o lgetaa_m.o
+
+ncbl_lib.o : ncbl_lib.c ncbl_head.h
+	$(CC) $(THR_CC) $(CFLAGS) -c ncbl_lib.c
+
+ncbl2_mlib.o : ncbl2_mlib.c ncbl2_head.h mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c ncbl2_mlib.c
+
+mysql_lib.o : mysql_lib.c mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c mysql_lib.c
+
+pgsql_lib.o : pgsql_lib.c mm_file.h
+	$(CC) $(THR_CC) $(CFLAGS) -c pgsql_lib.c
+
+#================ threading functions
+
+pthr_subs2.o : pthr_subs2.c thr_bufs2.h pthr_subs.h
+	$(CC) $(THR_CC) $(CFLAGS) -c pthr_subs2.c
+
+uthr_subs.o : uthr_subs.c thr_bufs2.h uthr_subs.h 
+	$(CC) $(THR_CC) $(CFLAGS) -c uthr_subs.c
+
+#================ MPI worker function
+
+mpi_subs2.o : pcomp_subs2.c pcomp_bufs.h pcomp_bufs.h thr_buf_structs.h
+	$(CC) -DMPI_SRC $(CFLAGS) -c pcomp_subs2.c -o mpi_subs2.o
+
+#================ translation
+
+faatran.o : faatran.c upam.h uascii.h
+	$(CC) $(THR_CC) $(CFLAGS) -c faatran.c
+
+url_subs.o : url_subs.c structs.h param.h rstruct.h
+	$(CC) $(THR_CC) $(CFLAGS) -c url_subs.c
+
+#================ lav plotting functions
+
+lav2plt.o : lav2plt.c lav_defs.h
+	$(CC) $(CFLAGS) -c lav2plt.c
+
+lavplt_ps.o : lavplt_ps.c lav_defs.h
+	$(CC) $(CFLAGS) -c lavplt_ps.c
+
+lavplt_svg.o : lavplt_svg.c lav_defs.h
+	$(CC) $(CFLAGS) -c lavplt_svg.c

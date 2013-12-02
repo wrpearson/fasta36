@@ -1,0 +1,52 @@
+#
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+
+SHELL=/usr/bin/bash
+
+#CC= cc -g -xarch=v8plusa
+
+# switches for 64-bit addressing
+CC= cc -fast -xO4 -xarch=v9
+#CC= cc -g -xarch=v9
+
+# for SUNMP, use -DTHR_EXIT=thr_exit
+# HZ=100 for Solaris x86
+# -DIS_LITTLE_ENDIAN for Solaris x86
+
+CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DBIGMEM -DSFCHAR="':'" -DMAX_WORKERS=2 -DTHR_EXIT=thr_exit -DPROGRESS -DFASTA_setscope -DUSE_MMAP -DBIG_LIB64 -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DM10_CONS -DSAMP_STATS -DPGM_DOC
+HFLAGS= -o
+NFLAGS= -o
+
+# use -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+# for files > 2 GB
+
+#for Sun pthreads (preferred, pthreads used on all other platforms)
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthread
+THR_CC =
+
+#for Sun threads (no longer necessary as Sun supports pthreads)
+#THR_SUBS = uthr_subs2
+#THR_LIBS = -lthread
+#THR_CC =
+
+LIB_M= -lmopt
+
+BIN = ../bin
+XDIR = /seqprg/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_NA_O)
+DROPLAL_O = $(DROPLAL_NA_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# renamed (fasta34)  programs
+include ../make/Makefile36m.common
+# conventional (fasta3) names
+# include ../make/Makefile.common

@@ -1,0 +1,20 @@
+.TH PS_LAV 1 local
+.SH NAME
+ps_lav [-B] [-Z db_size] \- plot an "lav" file in postscript.
+.SH DESCRIPTION
+ps_lav is a simple program to take "lav" format output from "lalign35"
+and produce postscript alignment plots (which look like "dot-plots").
+It was designed to work with the output of the \fClalign35\fP program,
+but should work with other \fClav\fP output as well.
+.TP
+\-B
+color alignment lines using the "bit" score.
+.TP
+\-Z db_size
+set the effective database size for an E()-value calculate to db_size,
+and color alignment lines using E()-values.  Requires bit scores in
+the \fClav\fP ouput.
+.SH AUTHOR
+Bill Pearson
+.br
+wrp@virginia.EDU

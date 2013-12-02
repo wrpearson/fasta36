@@ -1,0 +1,38 @@
+
+Because of interdependencies in the Makefile, sometimes you must
+type "make" a second time to get everything built.
+
+June 12, 1996 - fasta30t1
+
+	Fixed bug in reading blast-format DNA sequence files.
+	Fixed core-dump for some large libraries on some machines.
+
+June 19, 1996 - fasta30t2
+
+	Fixed a serious bug in the Smith-Waterman alignment routines used
+	by both fasta3 (dropnfa.c) and ssearch3 (dropgsw.c) that caused
+	the amount of memory required to depend on the library sequence
+	size, rather than the query sequence size.
+
+	Fixed some memory-overwrite errors in showalign.c
+
+June 27, 1996 - fasta30t3
+
+	Found and fixed bugs in comp_thr.c and nxgetaa.c that caused core
+	dumps when reading DNA libraries with long sequences in fasta
+	format.
+
+July 6, 1996  - fasta30t4
+
+	ibm_pthread_subs.c available, Makefile.ibm for multiprocessor
+	IBM RS/6000 AIX systems.
+
+	Finally (?) fixed the previous bug that caused core dumps when
+	reading DNA libraries in fasta format.
+
+	Corrections to the fastx algorithm.
+
+July 10, 1996
+
+	Fixed reading of compressed GCG DNA format.
+

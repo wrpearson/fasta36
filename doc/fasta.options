@@ -1,0 +1,55 @@
+doinit.c
+  case 'B': m_msg->z_bits = 0;
+  case 'C': m_msg->nmlen
+  case 'D': ppst->debug_lib = 1;
+  case 'F': m_msg->e_low
+  case 'H':  m_msg->nohist = 0
+  case 'i':  m_msg->revcomp = 1
+  case 'l':  m_msg->flstr
+  case 'L':  m_msg->long_info = 1
+  case 'm':  m_msg->markx
+  case 'N':  m_msg->maxn
+  case 'O':  m_msg->outfile
+  case 'q':
+  case 'Q':  m_msg->quiet = 1;
+  case 'R':  m_msg->dfile
+  case 'T':  max_workers
+             PCOMPLIB: worker_1,worker_n
+  case 'v':  ppst->zs_win
+  case 'w':  m_msg->aln.llen
+  case 'W':  m_msg->aln.llcntx
+  case 'X':  m_msg->sq0off,&m_msg->sq1off
+  case 'z':  ppst->zsflag
+  case 'v':  ppst->zs_win
+  case 'V':  m_msg->ann_arr
+  case 'Z':  ppst->zdb_size
+
+initfa.c
+  case '1': ppst->param_u.fa.iniflag=1;
+  case '3': m_msg->nframe = 3; /* TFASTA */
+	    m_msg->nframe = 1;	/* for TFASTXY */
+	    m_msg->qframe = 1;  /* for FASTA, FASTX */
+  case 'a': m_msg->aln.showall = 1;
+  case 'A': ppst->sw_flag= 1;
+  case 'b': m_msg->mshow
+  case 'c': ppst->param_u.fa.optcut
+  case 'd': m_msg->ashow;
+  case 'E': m_msg->e_cut, m_msg->e_cut_r
+  case 'f': ppst->gdelval
+  case 'g': ppst->ggapval
+  case 'h': help /ppst->gshift (-USHOW_HELP)
+  case 'I': m_msg->self = 1
+  case 'j': ppst->gshift, ppst->gsubs
+  case 'k': m_msg->shuff_max
+  case 'K': ppst->max_repeat
+  case 'M': m_msg->n1_low,&m_msg->n1_high
+  case 'n': m_msg->qdnaseq = SEQT_DNA (1)
+  case 'o': ppst->param_u.fa.optflag = 0;
+  case 'p': m_msg->qdnaseq = SEQT_PROT (0);
+  case 'r': ppst->p_d_mat,&ppst->p_d_mis
+  case 's': standard_pam(smstr); ppst->pamoff=atoi(bp+1);
+  case 'S': ppst->ext_sq_set = 1;
+  case 't': ppst->tr_type
+  case 'x': ppst->pam_x
+  case 'y': ppst->param_u.fa.optwid
+  case 'z': ppst->zsflag

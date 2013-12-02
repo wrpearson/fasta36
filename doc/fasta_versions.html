@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<title>Major FASTA versions</title>
+<style type="text/css">
+body {  margin-left: 6px; }
+.sidebar { 
+font-size: 12px; font-family: sans-serif; text-decoration:none; background-color: #FFFFCC; }
+.fasta { font-family: sans-serif; }
+.fasta h2 { font-size: 16px; color: #000000 }
+.fasta h3 { font-size: 14px; color: #000000 }
+.fasta td {background-color: #FFFFCC }
+.fasta a { text-decoration: none; }
+.fasta li { margin-left:-1em }
+</style>
+<head>
+<body>
+<div class=fasta>
+<h2>FASTA version summary</h2>
+<code> $Id: fasta_versions.html 256 2010-03-29 13:41:48Z wrp $</code>
+<hr>
+<b>March, 2010</b>
+<p />
+Currently, there are five different versions of the FASTA programs that can be downloaded from the <a href="http://faculty.virginia.edu/wrpearson/fasta">FASTA Software WWW site</a>.  I recommend that you use either <a href="fasta36/">fasta-36</a>, the very latest version, or <a href="CURRENT/">fasta-35</a>, the "classic" version that has been available for since 2007.
+<p />
+Here I try to explain the major differences.
+<p />
+<hr />
+<table>
+<tr><th>Version</th><th>New Programs</th><th>Other changes</th></tr>
+<tr>
+<td><a href="fasta36/">fasta-36</a></td><td> None </td><td>
+The major improvement in FASTA v36 is the ability to calculate and
+display multiple significant alignments (multiple HSP's) between a
+query sequence and a library sequence.  Previous FASTA versions had
+the serious shortcoming of only showing the best
+alignment. A <tt>tfastx36</tt> alignment between a protein and its
+exon-containing gene will show all of the exon alignments that are
+long enough to be significant.
+<p>
+FASTA v36 also provides more flexible strategies for searching lists
+of datbase files, and versions after fasta-36.2 are fully threaded, so
+both searches and alignments can be distributed among multiple
+processors with efficient speedup.
+<p>
+PVM/MPI parallel versions of FASTA v36 are under development.
+</td>
+</tr>
+<tr><td colspan=3><hr /></td></tr>
+<tr>
+<td><a href="fasta3/">fasta-35</a></td>
+<td><code>+lalign35</code><br /><code>+ggsearch35</code><br /><code>+glsearch35</code><br /><code>-prss3</code><br /><code>-prfx3</code>
+</td>
+<td>FASTA v35 provides significant improvements in statistical accuracy and program efficiency in threaded (multi-CPU, multi-core) environments. The program now automatically produces 500 random shuffles when small libraries are searched.  Thus, <code>prss</code> and <code>prfx</code> are no longer required; <code>ssearch35</code> and <code>fastx35</code> provide the same function.</td>
+</tr>
+<tr><td colspan=3><hr /></td></tr>
+<tr>
+<td><a href="fasta3/">fasta34</a></td>
+<td><code>+ssearch3</code><br /><code>+fasts3/tfasts3</code><br /><code>+fastf3/tfastf3</code><br /><code>-lfasta</code><br /><code>-lalign</code><br /><code>-tfasta</code>
+</td>
+<td>FASTA v34 is the last version of the FASTA3 series before the
+  significant changes introduced with FASTA v35.  The FASTA v3
+  programs were first introduced in 1996, with threaded code
+  for multi-processors, more accurate statistical estimates, and
+  optimal Smith-Waterman alignments with <code>ssearch</code>.  More
+  recent versions (v34) provided accelerated Smith-Waterman searches
+  using Altivec and SSE2 vector processors. FASTA v34 is no longer
+  updated for bug fixes. </td>
+</tr>
+<tr><td colspan=3><hr /></td></tr>
+<tr>
+<td><a href="fasta2/">fasta2</a></td>
+<td><code>+lfasta</code><br /><code>+tfasta</code>
+</td>
+<td>FASTA v2 was introduced in 1995, improving sensitivity by
+  calculated gapped alignment scores. Modern (V34 and V35) versions of
+  FASTA have significantly more robust statistical estimates, threaded
+  code, and vectorized Smith-Waterman, so FASTA v2 should not be used
+  for database searching.  However, until <code>lalign</code> was addeed
+  to FASTA v35 in March, 2007, FASTA v2 was the only source for
+  the <code>lalign</code> program.  Today, the only programs provided in
+  FASTA v2 that are not provided in FASTA v35 are the Kyte-Doolittle
+  hydropathy plotter <code>grease</code> and the classic (though very
+  inaccurate) secondary structure prediction programs <code>chofas</code>
+  and <code>garnier</code></td>
+</tr>
+</table>
+<p />
+The current stable version of the FASTA programs is version 35,
+and older releases of version 35
+are <a href="fasta3/">available</a>
+to make it easier for software packagers to work with a consistent
+version of the software.  However,
+the <a href="CURRENT/">CURRENT</a>
+version of FASTA should be used whenever possible.  Many bug reports
+reflect older versions of the software.
+<hr /> <p /> Description of minor changes: <a href="changes_v35.html">changes_v35.html</a> <p />
+<hr />
+</html>

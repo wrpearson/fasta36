@@ -1,0 +1,170 @@
+.TH PRSS3 1 local
+.SH NAME
+prss \- test a protein sequence similarity for significance
+.SH SYNOPSIS
+.B prss34
+\&[-Q -A -f # -g # -H -O file -s SMATRIX -w # -Z #
+.I -k # -v #
+]
+sequence-file-1 sequence-file-2
+[
+.I #-of-shuffles
+]
+
+.B prfx34
+\&[-Q -A -f # -g # -H -O file -s SMATRIX -w # -z 1,3 -Z #
+.I -k # -v #
+]
+sequence-file-1 sequence-file-2
+[
+.I ktup
+]
+[
+.I #-of-shuffles
+]
+
+.B prss34(_t)/prfx34(_t)
+[-AfghksvwzZ]
+\- interactive mode
+
+.SH DESCRIPTION
+.B prss34
+and
+.B prfx34
+are used to evaluate the significance of a protein:protein, DNA:DNA
+(
+.B prss34
+), or translated-DNA:protein (
+.B prfx34
+) sequence similarity score
+by comparing two sequences and calculating optimal similarity scores,
+and then repeatedly shuffling the second sequence, and calculating
+optimal similarity scores using the Smith-Waterman algorithm. An
+extreme value distribution is then fit to the shuffled-sequence
+scores.  The characteristic parameters of the extreme value
+distribution are then used to estimate the probability that each of
+the unshuffled sequence scores would be obtained by chance in one
+sequence, or in a number of sequences equal to the number of shuffles.
+This program is derived from
+.B rdf2\c
+\&, described by Pearson and Lipman, PNAS (1988) 85:2444-2448, and
+Pearson (Meth. Enz.  183:63-98).  Use of the extreme value
+distribution for estimating the probabilities of similarity scores was
+described by Altshul and Karlin, PNAS (1990) 87:2264-2268.  The
+'z-values' calculated by rdf2 are not as informative as the P-values
+and expectations calculated by prdf.
+.B prss34
+calculates optimal scores using the same rigorous Smith-Waterman
+algorithm (Smith and Waterman, J. Mol. Biol. (1983) 147:195-197) used by the
+.B ssearch34
+program.
+.B prfx34
+calculates scores using the FASTX algorithm (Pearson et al. (1997) Genomics 46:24-36.
+.PP
+.B prss34
+and 
+.B prfx34
+also allow a more sophisticated shuffling method: residues can be shuffled
+within a local window, so that the order of residues 1-10, 11-20, etc,
+is destroyed but a residue in the first 10 is never swapped with a residue
+outside the first ten, and so on for each local window.
+.SH EXAMPLES
+.TP
+(1)
+.B prss34
+\& -v 10 musplfm.aa lcbo.aa
+.PP
+Compare the amino acid sequence in the file musplfm.aa with that
+in lcbo.aa, then shuffle lcbo.aa 200 times using a local shuffle with
+a window of 10.  Report the significance of the
+unshuffled musplfm/lcbo comparison scores with respect to the shuffled
+scores.
+.TP
+(2)
+.B prss34
+musplfm.aa lcbo.aa 1000
+.PP
+Compare the amino acid sequence in the file musplfm.aa with the sequences
+in the file lcbo.aa, shuffling \fClcbo.aa\fP 1000 times.  Shuffles can also be specified with the -k # option.
+.TP
+(3)
+.B prfx34
+mgstm1.esq xurt8c.aa 2 1000
+.PP
+Translate the DNA sequence in the \fCmgstm1.esq\fP file in all six
+frames and compare it to the amino acid sequence in the file
+\fCxurt8c.aa\fP, using ktup=2 and shuffling \fCxurt8c.aa\fP 1000
+times.  Each comparison considers the best forward or reverse
+alignment with frameshifts, using the fastx algorithm (Pearson et al
+(1997) Genomics 46:24-36).
+.TP
+(4)
+.B prss34/prfx34
+.PP
+Run prss in interactive mode.  The program will prompt for the file
+name of the two query sequence files and the number of shuffles to be
+used.
+.SH OPTIONS
+.PP
+.B prss34/prfx34
+can be directed to change the scoring matrix, gap penalties, and
+shuffle parameters by entering options on the command line (preceeded
+by a `\-'). All of the options should preceed the file names number of
+shuffles.
+.TP
+\-A
+Show unshuffled alignment.
+.TP
+\-f #
+Penalty for opening a gap (-10 by default for proteins).
+.TP
+\-g #
+Penalty for additional residues in a gap (-2 by default) for proteins.
+.TP
+\-H
+Do not display histogram of similarity scores.
+.TP
+\-k #
+Number of shuffles (200 is the default)
+.TP
+\-Q -q
+"quiet" - do not prompt for filename.
+.TP
+\-O filename
+send copy of results to "filename."
+.TP
+\-s str
+specify the scoring matrix.  BLOSUM50 is used by default for proteins;
++5/-4 is used by defaul for DNA. 
+.B prss34
+recognizes the same scoring matrices as fasta34, ssearch34, fastx34, etc;
+e.g. BL50, P250, BL62, BL80, MD10, MD20, and other matrices in BLAST1.4
+matrix format.
+.TP
+\-v #
+Use a local window shuffle with a window size of #.
+.TP
+\-z #
+Calculate statistical significance using the mean/variance
+(moments) approach used by fasta34/ssearch or from maximum likelihood
+estimates of lambda and K.
+.TP
+\-Z #
+Present statistical significance as if a '#' entry database had
+been searched (e.g. "-Z 50000" presents statistical significance as if
+50,000 sequences had been compared).
+.SH ENVIRONMENT VARIABLES
+.PP
+.B (SMATRIX)
+the filename of an alternative scoring matrix file.  For protein
+sequences, BLOSUM50 is used by default; PAM250 can be used with the
+command line option
+.B -s P250\c
+(or with -s pam250.mat).  BLOSUM62 (-s BL62) and PAM120 (-S P120).
+.SH "SEE ALSO"
+ssearch3(1), fasta3(1).
+.SH AUTHOR
+Bill Pearson
+.br
+wrp@virginia.EDU
+

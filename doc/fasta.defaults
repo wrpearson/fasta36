@@ -1,0 +1,17 @@
+#pgm	mol	matrix	g_open	g_ext	fr_shft	e_cut	ktup
+#	-n/-p	-s	-e	-f	-h/-j	-E	argv[3]
+fasta	prot	BL50	-10	-2	-	10.0	2
+fasta	dna	+5/-4	-14	-4	-	2.0	6
+ssearch	prot	bl50	-10	-2	-	10.0	-
+ssearch	dna	+5/-4	-14	-4	-	2.0	-
+fastx	prot	BL50	-12	-2	-20	5.0	2
+fasty	prot	BL50	-12	-2	-20/-24	5.0	2
+tfastx	dna	BL50	-14	-2	-20	5.0	2
+tfasty	dna	BL50	-14	-2	-20/-24	5.0	2
+fasts	prot	MD20-MS	-	-	-	5.0	-
+tfasts	prot	MD10-MS	-	-	-	2.0	-
+fastf	prot	MD20	-	-	-	5.0	-
+tfastf	prot	MD10	-	-	-	2.0	-
+fastm	prot	MD20	-	-	-	5.0	-
+tfastm	prot	MD10	-	-	-	2.0	-
+lalign	prot	BL50	-12	-2		10.0	-

@@ -1,0 +1,35 @@
+#
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+#
+# options for Intel C compiler (v9.1) 
+#
+# must be compiled/linked with /MT (or /MTd for debugging) to ensure
+# multi-threaded staticly linked executables.  /MD uses dynamic
+# linking to DLL's, which may not be available on the users machine
+
+CC= icl /O2 /MT /W1
+#CC= icl /Zi /MTd /W1
+CL= icl /O2 /MT
+#CL= icl /Zi /MTd
+
+# standard options
+CFLAGS= -DSHOW_HELP -DSHOWSIM -DWIN32 -DHZ=100 -DPROGRESS -DSAMP_STATS -DPGM_DOC -DTHR_EXIT=pthread_exit -D_CRT_SECURE_NO_WARNINGS=1
+
+BIN = ../bin
+XDIR = /seqprg/bin
+
+THR_SUBS = pthr_subs2
+THR_LIBS= pthreadVC2.lib
+
+DROPGSW_SSE2_O = dropgsw2_sse2.obj smith_waterman_sse2.obj wm_align.obj calcons_sw.obj
+DROPGSW_O = dropgsw2.obj wm_align.obj calcons_sw.obj
+DROPLAL_SSE2_O = droplal_sse2.obj smith_waterman_sse2.obj lsim4.obj calcons_la.obj
+DROPLAL_O = droplal.obj lsim4.obj calcons_la.obj
+
+# 
+
+# renamed (fasta36)  programs
+include ../make/Makefile36.nmk_com
+# conventional (fasta3) names
+# include ../make/Makefile.common
+

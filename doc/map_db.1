@@ -1,0 +1,45 @@
+.TH MAP_DB "September, 1999"
+.SH NAME
+.B map_db
+\- read a FASTA (0), GENBANK flat file (1) PIR/VMS (5) or GCG binary
+(6) sequence database and produce the offsets necessary for efficient
+memory mapping.
+.SH SYNOPSIS
+.B map_db
+[-n] filename | "filename libtype"
+.SH DESCRIPTION
+.B map_db
+.I filename
+reads the sequence database in
+.I filename
+and produce a new file
+.I filename.xin
+with the offset information necessary for efficient memory mapping.
+.LP
+The programs in fasta version 32t08 can use memory mapped i/o to load
+sequence database files and read them efficiently.  Memory mapping is
+used only if a "\c
+.I .xin\c
+\&" file is available.  The "\c
+.I .xin\c
+\&" file is created by
+.B map_db\c
+\&.
+.LP
+In addition to
+.B map_db\c
+\&,
+.B list_db
+is available to display the database size, etc, and set of offsets calculated
+by
+.B map_db\c
+\&.
+.SH OPTIONS
+.TP
+\-n 
+Read file as DNA database.
+.SH BUGS
+.SH AUTHOR
+Bill Pearson
+.br
+wrp@virginia.EDU

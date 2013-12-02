@@ -1,0 +1,176 @@
+.TH FASTF/TFASTFv3 1 local
+.SH NAME
+fastf3, fastf3_t \- compare a mixed peptide sequence against a protein
+database using a modified fasta algorithm.
+
+tfastf3, tfastf3_t \- compare a mixed pepide sequence against a
+translated DNA database.
+
+.SH DESCRIPTION
+
+.B fastf3
+and
+.B tfastf3
+are designed to compare a sequence of mixed peptides to a protein
+(fastf3) or translated DNA (tfastf3) database.  Unlike the traditional
+.B fasta3
+search, which uses a protein or DNA sequence,
+.B fastf3
+and
+.B tfastf3
+work with a query sequence of the form:
+.in +5
+.nf
+>testf from mgstm1
+MGCEN,
+MIDYP,
+MLLAY,
+MLLGY
+.fi
+.in 0
+This sequence indicates that a mixture of four peptides has been
+found, with 'M' in the first position of each one (as from a CNBr
+cleavage), in the second position 'G', 'I', or 'L' (twice), at the
+third position 'C', 'D', or 'L' (twice), at the fourth position 'E',
+'Y', 'A', or 'G', etc.  When this sequence is compared against mgstm1.aa 
+(included with the distribution), the mixture is deconvolved to form:
+.nf
+.ft C
+.in +5
+testf    MILGY-----------MLLEY-----------MGDAP-----------
+         :::::           :::::           :::::           
+GT8.7  MPMILGYWNVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEK
+               10        20        30        40        50
+
+testf  --------------------------------------------------
+                                                         
+GT8.7  FKLGLDFPNLPYLIDGSHKITQSNAILRYLARKHHLDGETEEERIRADIV
+               60        70        80        90       100
+
+                      20                                 
+testf  ------------MLCYN                                 
+                   :::::                                 
+GT8.7  ENQVMDTRMQLIMLCYNPDFEKQKPEFLKTIPEKMKLYSEFLGKRPWFAG
+              110       120       130       140       150
+.in 0
+.ft P
+.fi
+.SH Options
+.LP
+.B fastf3
+and
+.B tfastf3
+can accept a query sequence from the unix "stdin" data stream.  This makes it much
+easier to use fasta3 and its relatives as part of a WWW page. To
+indicate that stdin is to be used, use "-" or "@" as the query
+sequence file name.
+.TP
+\-b #
+number of best scores to show (must be < -E cutoff)
+.TP
+\-d #
+number of best alignments to show ( must be < -E cutoff)
+.TP
+\-D
+turn on debugging mode.  Enables checks on sequence alphabet that
+cause problems with tfastx3, tfasty3, tfasta3.
+.TP
+\-E #
+Expectation value limit for displaying scores and
+alignments.  Expectation values for
+.B fastf3
+and
+.B tfastf3
+are not as accurate as those for the other 
+.B fasta3
+programs.
+.TP
+\-H
+turn off histogram display
+.TP
+\-i
+compare against only the reverse complement of the library sequence.
+.TP
+\-L
+report long sequence description in alignments
+.TP
+\-m 0,1,2,3,4,5,6,10
+alignment display options
+.TP
+\-n
+force query to nucleotide sequence
+.TP
+\-N #
+break long library sequences into blocks of # residues.  Useful for
+bacterial genomes, which have only one sequence entry.  -N 2000 works
+well for well for bacterial genomes.
+.TP
+\-O file
+send output to file
+.TP
+\-q/-Q
+quiet option; do not prompt for input
+.TP 
+\-R file
+save all scores to statistics file
+.TP
+\-S #
+offset substitution matrix values by  a constant #
+.TP
+\-s name
+specify substitution matrix.  BLOSUM50 is used by default;
+PAM250, PAM120, and BLOSUM62 can be specified by setting -s P120,
+P250, or BL62.  With this version, many more scoring matrices are
+available, including BLOSUM80 (BL80), and MDM_10, MDM_20, MDM_40 (M10,
+M20, M40). Alternatively, BLASTP1.4 format scoring matrix files can be
+specified.
+.TP
+\-T #
+(threaded, parallel only) number of threads or workers to use (set by
+default to 4 at compile time).
+.TP
+\-t #
+Translation table - tfastf3 can use the BLAST tranlation tables.  See
+\fChttp://www.ncbi.nih.gov/htbin-post/Taxonomy/wprintgc?mode=c/\fP.
+.TP
+\-w #
+line width for similarity score, sequence alignment, output.
+.TP
+\-x "#,#"
+offsets query, library sequence for numbering alignments
+.TP
+\-z #
+Specify statistical calculation. Default is -z 1, which uses
+regression against the length of the library sequence. -z 0 disables
+statistics.  -z 2 uses the ln() length correction. -z 3 uses Altschul
+and Gish's statistical estimates for specific protein BLOSUM scoring
+matrices and gap penalties. -z 4: an alternate regression method.
+.TP
+\-Z db_size
+Set the apparent database size used for expectation value calculations.
+.TP
+\-1
+Sort by "init1" score.
+.TP
+\-3
+(TFASTF3 only) use only forward frame translations
+.SH Environment variables:
+.TP
+FASTLIBS
+location of library choice file (-l FASTLIBS)
+.TP
+SMATRIX
+default scoring matrix (-s SMATRIX)
+.TP
+SRCH_URL
+the format string used to define the option to re-search the
+database.
+.TP
+REF_URL
+the format string used to define the option to lookup the library
+sequence in entrez, or some other database.
+
+.SH AUTHOR
+Bill Pearson
+.br
+wrp@virginia.EDU

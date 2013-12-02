@@ -1,0 +1,61 @@
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+#
+#  $Name:  $ - $Id: Makefile.os_x86 750 2011-05-19 17:07:40Z wrp $
+#
+# 12-Dec-2007 - modified to allow compilation of both accelerated and
+# non-accelerated Smith-Waterman
+
+# the -DDEBUG option provides additional debugging information, particularly
+# with -D on the command line.
+
+# use -DBIG_LIB64 to generate 64-bit offsets in map_db .xin files
+
+SHELL=/bin/bash
+
+CC= gcc -g -O3 -arch i386 -msse2
+#CC= gcc -g -DDEBUG -arch i386 -msse2
+
+#CC= cc -g -Wall -pedantic
+#
+# standard line for normal searching
+CFLAGS= -DSHOW_HELP -DSHOWSIM -DM10_CONS -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your.fasta.host"' -DIS_LITTLE_ENDIAN -DUSE_MMAP -DUSE_FSEEKO -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DBIG_LIB64 -DMAX_MEMK=2*1024*1024
+# -I/usr/local/mysql/include -DMYSQL_DB  # add for MySQL support
+
+#CFLAGS= -DSHOWSIM -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your.fasta.host"' -DIS_LITTLE_ENDIAN -DUSE_MMAP -DUSE_FSEEKO -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DSUPERFAMNUM -DSFCHAR="'|'"
+
+LDFLAGS= -arch i386
+
+HFLAGS= -o
+NFLAGS= -o
+
+#for Linux, MacOS, DEC Unix V4.0
+THR_SUBS = pthr_subs2
+THR_LIBS =
+THR_CC =
+
+BIN = ../bin
+#XDIR = ${HOME}/bin
+#XDIR = /home/slib/bin/MACOSX/
+#XDIR = /Users/seqprg/bin
+XDIR = /seqprg/bin
+#XDIR = ./i386
+
+# diectory for universal binary process
+UDIR = $(BIN)/i386
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# Altivec acceleration
+#
+DROPGSW_O = $(DROPGSW_SSE_O)
+DROPLAL_O = $(DROPLAL_SSE_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# provide mysql function
+#include ../make/Makefile36m.common_mysql
+
+# no mysql
+include ../make/Makefile36m.common

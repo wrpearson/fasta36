@@ -1,0 +1,1683 @@
+
+  $Id: readme.v34t0 348 2010-07-20 21:33:22Z wrp $
+  $Revision: $
+
+>>May 28, 2007
+
+Small modification for GCG ASCII (libtype=5) header line.
+
+>>January 12, 2007	fasta-34_26_2
+
+Fix a problem with pssm_asn_subs.c reading strings (sequences) longer
+than 1024 bytes.
+
+Remove searchfa.cgi, searchnn.cgi, cgi-lib.pl, my-cgi.pl - this code
+was used for an ancient FASTA WWW implementation and has been replaced
+by the FASTA_WWW package.
+
+FASTA Version numbers are being modified to make releases easier to
+track, thus fa34t26b5 has become fasta-34_26_1.  I would prefer to use
+decimal versions, but CVS does not allow '.' in tags.
+
+>>January 4, 2007	fasta-34_26_1
+
+Include scripts for building Mac OS X Universal binaries on a PPC
+machine.  Programs are compiled first with Makefile.os_x (gcc-3.3 for
+PPC) and then installed into ./ppc/.  Programs are next compiled with
+Makefile.os_x86 for i386, and the resulting executables installed into
+./i386/.  Finally, the "make_osx_univ.sh" script is run to build the
+universal binaries from the two executables using "lipo".
+
+>>December 12, 2006
+
+Fix some problems with p2_workcomp.c: (1) no longer initialize pad
+characters for non-existant sequences. (2) deal with small libraries
+consistently with the serial versions.
+
+>>November 17, 2006	fa34t26b5
+
+Fixed a problem reading ASN.1 format 2 PSSM's.  It is now possible to
+download a PSI-BLAST PSSM RID and search properly.  Next, the query
+sequence from the PSSM should be used instead of the provided query
+sequence, so that the query sequence is ignored.
+
+>>October 19, 2006	fa34t26b4
+
+Fixed problem with SSE2 code when PSSM's are used.
+
+>>October 6, 2006	fa34t26b3
+
+A new set of WIN32 programs is now available that use the Intel C++
+9.1 compiler, rather than the much older Borland Turbo-C compiler. All
+of the unthreaded programs that are part of the Unix and MacOSX FASTA
+distributions are now available.  Threaded (multiprocessor) versions
+of the program as available as well, as are sse2 accelerated versions
+of ssearch34 (ssearch34sse2.exe, ssearch34sse2_t.exe).
+
+Th new WIN32 code also uses Microsoft's "nmake" program to build the
+programs, which allows much greater consistency between the Unix and
+Windows versions.
+
+
+>>September 18, 2006
+
+Static global alignment variables removed from dropnfa.c, dropfx.c,
+dropfz2.c.  dropnfa.c, dropfx.c and dropfz2.c should be thread safe.
+Together with the earlier changes, all the FASTA functions should now
+be thread safe during the alignment process.
+
+>>August 17, 2006
+
+Begin removal of static variables from Smith-Waterman alignment
+functions.  These variables kept the functions from being thread-safe.
+Now dropgsw.c and dropnsw.c are thread-safe.
+
+>>August 15, 2006	fa34t26b2
+
+Fixed a problem with pv34compfx/mp34compfx (and fy) producing
+improperly labeled alignments and de-allocating memory for the reverse
+complement.
+
+>>July 18, 2006
+
+The library file name parsing programs now provide the option for
+environment variable substitions.  For example, SLIB2=/slib2 as an
+environment variable (e.g. export SLIB2=/slib2 for ksh and bash), then
+
+	fasta34 -q query.aa '${SLIB2}/swissprot.fa'  expands as expected.
+
+While this is not important for command lines, where the Unix shell
+would expand things anyway, it is very helpful for various
+configuration files, such as files of file names, where:
+
+	<${SLIB2}/blast
+	swissprot.fa
+
+now expands properly, and in FASTLIBS files the line:
+
+	NCBI/Blast Swissprot$0S${SLIB2}/blast/swissprot.fa
+
+expands properly.  Currently, Environment variable expansion only
+takes place for library file names, and the <directory in a file of
+file names.
+
+>>July 14, 2006	  fa34t26b1
+
+Updated Farrar smith_waterman_sse2.c code to address possible bug
+(code from Michael Farrar).  Include <sunmedia_intrin.h> for
+compilation with Sun compiler with Makefile.sun_x86.
+
+>>July 2, 2006	  fa34t26b0
+
+This release provides an extremely efficient SSE2 implementation of
+the Smith-Waterman algorithm for the SSE2 vector instructions written
+by Michael Farrar (farrar.michael@gmail.com).  The SSE code speeds up
+Smith-Waterman 8 - 10-fold in my tests, making it comparable to Eric
+Lindahl's Altivec code for the Apple/IBM G4/G5 architecture.
+
+The Farrar code is largely confined to smith_waterman_sse2.c and
+smith_waterman_sse2.h, which are copyright (2006) by Michael Farrar,
+and cannot be redistributed without his permission.  Mr. Farrar has
+agreed to provide his code under the same policy used by FASTA -
+e.g. the code can be used without permission, but not redistributed.
+
+The Farrar code uses GCC version 4.0 SSE2 intrinsic functions to avoid
+assembly language code.  Unfortunately, in my hands, "gcc -O3" causes
+"out of memory" errors, and other problems, so "gcc -O" is used instead.
+
+>>June 23, 2006   fa34t25d10
+
+Modifications to comp_lib.c, compacc.c, and other files to ensure that
+function-specific MAXTOT values are used properly.  MAXTOT is now
+available as m_msg.max_tot, which is set in initfa.c (m_msg.max_tot =
+MAXTOT) to ensure that functions that need very large MAXTOT values
+(e.g. TFASTX) can get them.  tfastx can now search successfully with
+titin, a 27,000 residue protein.
+
+Other changes have been made to accomodate long query sequences.
+
+A serious bug was found in fastx34(_t) that caused alignment
+coordinates to be calculated improperly when the DNA sequence was much
+longer than the protein sequence.
+
+>>May 31, 2006	fa34t25d9
+
+Fixed some problems with fasts/fastf alignments when -m 9 options were
+used.  Unlike the other algorithms, the a_res structure does not
+capture all the information to re-produce an alignment, so do_walign
+now sets bptr->have_ares to indicate whether the a_res structure is
+valid.
+
+Various problems with bad library names, and short query titles were
+also fixed.
+
+Updated version number/date on all drop*.c functions.
+
+>>May 24, 2006	fa34t25d8
+
+Revised code for NCBI *.pal/*.nal databases has been tested on all
+architectures, including Windows.
+
+In addition, support for ASN.1 PSSM:2 files provided by the NCBI
+PSI-BLAST WWW site is included.  This code will not work with
+iteration 0 PSSM's (which have no PSSM information).  For ASN.1
+PSSM's, which provide the matrix name (and in some cases the gap
+penalties), the scoring matrix and gap penalties are set appropriately
+if they were not specified on the command line. ASN.1 PSSM's are type 2:
+	ssearch34 -P "pssm.asn1 2" .....
+
+>>May 18, 2006
+
+Support for NCBI Blast formatdb databases has been expanded.  The
+FASTA programs can now read some NCBI *.pal and *.nal files, which are
+used to specify subsets of databases.  Specifically, the
+swissprot.00.pal and pdbaa.00.pal files are supported.  FASTA supports
+files that refer to *.msk files (i.e. swissprot.00.pal refers to
+swissprot.00.msk); it does not currently support .pal files that
+simply list other .pal or database files (e.g. FASTA does not support
+nr.pal or swissprot.pal).
+
+In the process of providing this support, the routines used to read
+ASN.1 binary formatdb files were substantially improved.  It is now
+possible to see multiple description lines for a single sequence.
+
+IS_BIG_ENDIAN has been removed from all of the Makefiles.  The code
+now looks for the definition of __BIG_ENDIAN__ or _BIG_ENDIAN to
+decide whether the architecture IS_BIG_ENDIAN.  If, for some reason,
+one of these macros is not defined on a BIG_ENDIAN architecture, then
+-DIS_BIG_ENDIAN is required.
+
+>>May 12, 2006	CVS fa34t25d7
+
+Corrected serious problem with coordinate display calculation for
+fasta34 and ssearch34 - in some cases the coordinates and alignment
+symbols were off by the length of the context (typically 30 residues).
+
+Added capability to read ASN.1 binary PSSM information.  This
+information is provided (in an encoded form) from the NCBI PSI-BLAST
+WWW site.  (What is actually provided from the WWW site is a bzip2-ed
+binary file that is converted to ASCII HEX.  The ASCII HEX file must
+be converted to binary, and then bunzip'ed. This bunzip-ed file is
+binary ASN.1.)  These files can also be generated by 
+
+ blastpgp -J T -C pssm.asn1_bin -u 2
+
+I am parsing the ASN.1 binary manually, not using the NCBI toolkit, so
+there may be some files that are not parsed properly - if so, let me
+know.
+
+(May 12, 2006 - The NCBI changed the format of the psi-blast ASN.1
+PSSM - and has not yet provided documentation of the new structure, so
+this code does not work. It does work with blastpgp v 2.2.13, but not
+with the web site version 2.2.14.  A fix was provided 24-May-2006)
+
+>>April 18, 2006
+
+Small modification in mshowbest.c to provide more consistent display
+widths with -m 9i in list of best hits.
+
+>>April 11, 2006 CVS fa34t25d6
+
+Corrected a problem introduced with the new, more efficient method for
+displaying alignments.  For the tfast* programs, which must translate
+the library sequence, translations were not done when alignments were
+re-displayed.
+
+Corrected an older problem with tfastx34 against very long sequence
+databases - the code to more efficiently do the display alignment did
+not use the correct sequence coordinates.
+
+Modifications to dropfs2.c to ensure that exact peptide matches are
+captured more frequently.
+
+>>March 16, 2006 CVS fa34t25d5
+
+Change to initfa.c to allow lower case DNA libraries using the
+-DDNALIB_LC compile time option.
+
+Modify p2_complib.c, p2_worklib.c (and doinit.c, msg.h) to allow the
+-V annotation option for the parallel programs.  Also modify to allow
+specification of the query range (but only for the first query, like
+fasta34) for the parallel programs.
+
+Modification of p2_workcomp.c to correct some problems presenting
+percent similarity.  Also correct unreleased bugs in the alignment
+routines that allow more efficient alignment re-calculation.
+
+>>Nov 20, 2005
+
+Changes to support asymmetric matrices - a scoring matrix read in from
+a file can be asymmetric.  Default matrices are all symmetric.
+
+>>Oct 24, 2005
+
+Modifications extended to p2_complib.c/p2_workcomp.c.  Incorporation
+of drop_func.h into p2_workcomp.c greatly simplifies things.  No
+changes in communication - struct a_res_str is internal to
+p2_workcomp.c.
+
+Additional changes to do_walign() so that aln_func_vals() must be
+called to set llfact, qlfact, etc in a_struct aln before or after
+do_walign is called.  do_walign produces a_res_str a_res, which has
+all the information necessary to produce a calcons() or calc_code()
+alignment.
+
+>>Oct 19, 2005 CVS fa34t26b0
+
+Modifications to drop*.c and c_dispn.c to separate (and simplify) some
+of the alignment coordinate calculations.  Before, the "a_struct" had
+the coordinates of the alignment used in the display (seqc0, seqc1)
+AND in the original sequences (aa0, aa1), as well as other information
+used to calculate alignment coordinates.  In the new version, astruct
+coordinates always refer to seqc0,1, while a new structure, a_res_str,
+has coordinates for aa0, aa1 as well as the alignment encoding in res[nres].
+Eventually, this should make it possible to display multiple local
+alignments from the same two sequences.
+
+In addition, the file "drop_func.h" has been added to the project, and
+is included by many of the files (all the drop*.c functions,
+mshowbest.c, mshowalign.c) to ensure that the various functions are
+declared and used consistently.
+
+>>Sept 19, 2005	CVS fa34t25d4
+
+Changes to support Mac OS 10.4 - Tiger (include sys/types.h in more
+files).  Documentation update for prss34/prfx34. Modifications to
+comp_lib.c to support prss34_t/prfx34_t.  Shuffle numbers for
+prss/prfx can now be specified by "-k #".
+
+>>Sept 2, 2005
+
+The prss34 program has been modified to use the same display routines
+as the other search programs.  To be more consistent with the other
+programs, the old "-w shuffle-window-size" is now "-v window-size".
+
+prss34/prfx34 will also show the optimal alignment for which the
+significance is calculated by using the "-A" option. 
+
+Since the new program reports results exactly like other
+fasta/ssearch/fastxy34 programs, parsing for statistical significance
+is considerably different.  The old format program can be make using
+"make prss34o".
+
+>>Aug 26, 2005
+
+Modifications to save_best() in comp_lib.c to support prss34_t.  It
+did not work before.
+
+>>July 25, 2005
+
+Modify mshowbest.c to suppress gi|12345 in HTML mode.
+
+>>July 18, 2005	CVS fa34t25d3
+
+Modifications to Makefile.tc to support NCBI formatdb formats under
+Windows.
+
+>>May 19, 2005  CVS fa34t25d2
+
+Modifications to dropfs2.c to fix an obscure bug that occurred when
+correctly ordered peptides aligned one residue apart.
+
+>>May 5, 2005 CVS fa34t25d1
+
+Modification to the -x option, so that both an "X:X" match score and
+an "X:not-X" mismatch score can be specified. (This score is also used
+
+give a positive score to a "*:*" match - the end of a reading frame,
+while giving a negative score to "*:not-*".
+
+>>March 14, 2005  CVS fa34t25b4
+
+Fixed some problems caused by padding characters required for
+Smith-Waterman ALTIVEC in the parallel (p2_complib.c, p2_workcomp.c)
+versions.
+
+>>Feb 24, 2005	CVS fa34t25b3
+
+Changes to comp_lib.c (and Makefile.pcom) to support prss34_t.
+
+>>Feb 12, 2005
+
+Modify dropfs.c to dynamically allocate space for alignments, so that
+queries with a large number of fragments can still place all the
+fragments on the alignment.  Also fix a problem produced by removing
+-DBIGMEM from most of the Makefile's, but not fixing defs.h to use
+BIGMEM sizes by default.
+
+>>Jan 24, 2005
+
+Include a new program, "print_pssm", which reads a blastpgp binary
+checkpoint file and writes out the frequency values as text.  These
+values can be used with a new option with ssearch34(_t) and prss34,
+which provides the ability to read a text PSSM file.  To specify a
+text PSSM, use the option -P "query.ckpt 1" where the "1" indicates a
+text, rather than a binary checkpoint file.  "initfa.c" has also been
+modified to work with PSSM files with zero's in the in the frequency
+table.  Presumably these positions (at the ends) do not provide
+information. (Jan 26, 2005) blastpgp actually uses BLOSUM62 values
+when zero frequencies are provided, so read_pssm() has been modified
+to use scoring matrix values for zero frequencies as well.
+
+>>Jan 13, 2005
+
+Change to initfa.c to have fasts34 do a protein comparison by default,
+rather than an unknown sequence type.  Automatic checking for fasts34
+does not work reliably, because queries can be very short.  Likewise
+for fastm34.  [Jan 26, 2004] Undo this change, which broke DNA
+comparison when "-n" was specified.
+
+>>Jan 7, 2005
+
+Changes to tatstats.h, dropfs2.c to allow larger numbers of peptides
+to match when fasts is used to show coverage on a proteomics
+experiment.  Previously fasts could match no more than 30 peptides,
+that has been increased to 50.  In addition, ktup=2 can be used
+to increase the likelihood that short exact matchs trump longer
+mismatched regions.  
+
+>>Nov 11, 2004	   CVS fa34t25
+
+Finished merge of earlier fa34t24 branch with HEAD.  Correct
+labeling of TFASTM.
+
+>>Nov 4-8, 2004	   
+
+Incorporation of Erik Lindahl "anti-diagonal" Altivec code for
+Smith-Waterman, only.  Altivec SSEARCH is now faster than FASTA for
+query sequences < 250 amino acids.
+
+Small modifications to output score display to ensure that the correct
+scores are shown, and that they are correctly labeled.
+
+>>Aug 25,26, 2004  CVS fa34t24b3
+
+Small change in output format for p34comp* programs in
+">>>query_file#1 string" line before alignments.  This line is not present
+in the non-parallel versions - it would be better for them to be consistent.
+
+Change in last_stats.c to properly label fasts statistics with -z != 1.
+
+Change in dropfs2.c to ensure that tatprobs are not precalculated with -z 4.
+
+Modify -m 9i output option to show in HTML output.
+
+Add "#ifdef NOOVERHANG" to dropfs2.c that causes overlapping
+alignments to score a 0, rather than the partial overlap score.
+Useful for SAGE alignments, because "fasts" requires global alignments
+(except for for overhangs, unless NOOVERHANG is defined).
+
+>>Aug 23, 2004
+
+Fix problem with very long definition lines with formatdb version4
+ASN databases.  Fix mshowalign.c to re-enable "-L" option.
+
+>>July 28, 2004 
+
+Fix to re-enable -w window shuffle for PRSS.  Modify comp_lib.c
+for PRSS to ensure that the unshuffled score and probability
+are shown, even for very high probabililty alignments.
+
+>>July 21, 2004
+
+Modifications to support PostgreSQL databases with the same commands
+as MySQL databases.  MySQL database libraries are type 16, PostgreSQL
+are type 17.  Makefile.linux_sql and Makefile.pvm4_sql support both
+database types simultaneously.
+
+>>June 23, 2004 CVS fa34t24b2
+
+Additional fixes to enable -n or -p with fasts34 and
+fastm34. Makefile.pcom was fixed for fastm34_t.  A new file,
+mgstm1.nts, of DNA fragments from mgstm1.seq, is included for testing
+fasts34 and fastm34.
+
+>>May 4, 2004  
+
+Fixes to initfa.c to allow DNA:DNA for FASTS, FASTM.  This change
+introduced a bug that broke FASTS completely, but was fixed June 18,
+2004 (and retagged fa34t24b2).
+
+>>April 23, 2004 CVS fa34t24b1
+
+Fix bug in initfa.c that caused tfasts/tfastf not to examine all six
+frames.
+
+>>May 4, 2004
+
+Fixes to initfa.c to allow DNA:DNA for FASTS, FASTM.
+
+>>March 19, 2004 CVS fa34t24b0
+
+Modify all the drop*.c files, plus mshowbest.c and mshowalign.c, to
+display percent similarity, rather than percent ungapped.  An
+alignment is counted as similar if the score is greater than or equal
+to zero (the same criterion used for placing ".". To disable this
+change, remove -DSHOWSIM from the appropriate Makefile.*.
+
+>>March 18, 2004 CVS fa34t23b8
+
+Fix bug in initfa.c tables that caused prss to generally compare
+proteins.
+
+>>March 15, 2004 
+
+Fix bug in calls to revcomp(); make revcomp() guarantee NULL termination.
+
+>>March 2, 2004	CVS fa34t23b7
+
+Fix a very embarrassing and surprising bug that caused insertions
+in fasta alignments to appear in the wrong sequence.
+
+>>Feb 7, 2004	CVS fa34t23b6
+
+Change initfa.c to allow "-i" (reverse complement) and "-i -3" with
+"fastx34" and "prfx34".  In addition, "prfx34" now examines both query
+DNA strands in calculated the shuffled statistical significance.
+
+>>Feb 5, 2004
+
+Reverse assignments for G:U baseparing in initfa.c.
+
+Fix memory allocation error caused by doubling DNA alignment width.
+
+>>Jan 7, 2004	CVS fa34t23b5
+
+Change in do_walign() in dropnfa.c to make final DNA alignments use a
+band that is 2X as large as the search band width.
+
+>>Dec 22, 2003	CVS fa34t23b4
+
+Fix typo in p2_complib.c that prevented compilation.  Fix problem
+with karlin.c for asymmetrical matrices, such as used with -U.
+
+>>Dec 10, 2003  CVS fa34t23b3
+
+Fix problem in resetp()/initfa.c that disabled banded Smith-Waterman
+DNA alignments.
+
+Allow spam() to do extended alignments for DNA if one of the sequences
+is < 50 nt.
+
+Cause default ktup to drop for short sequences.  For protein < 50, ktup=1;
+for DNA < 20, 50, 100 ktup = 1, 2, 3, respectively.
+
+>>Dec 7, 2003
+
+A new option, "-U" is available for RNA sequence comparison.  "-U"
+functions like "-n", indicating that the query is an RNA sequence.  In
+addition, to account for "G:U" base pairs, "-U" modifies the scoring
+matrices so that a "G:A" match has the same score as "G:G" match,
+and "T:C" match has the same score as a "T:T" match. (Corrected
+13-July-2010 -- the G:A/T:C scores are score(G:G)-3.) The asymmetric
+matrix required changes in dropnfa.c that were similar to the changes
+in dropgsw.c required for profiles.  In addition, m_msg.qdnaseq and pst.dnaseq
+ can now be SEQT_DNA, SEQT_RNA, SEQT_PROT, SEQT_UNK, or SEQT_OTHER.
+m_msg.ldnaseq does not use SEQT_RNA, only SEQT_DNA.  A new member of
+struct pstruct: int nt_align, is used to indicate nucleotide
+alignments.
+
+>>Nov 19, 2003
+
+Changes to Makefile's to distinguish between tatstats_fs.o and
+tatstats_ff.o.
+
+>>Nov 2, 2003
+
+Substantial changes to comp_lib.c, p2_complib.c, mshowbest.c, and
+mshowalign.c to support more sophisticated display options.
+Previously, one could have only on "-m #" option, even though several
+of the options were orthogonal (-m 9c is independent of -m 1 and -m2,
+which is independent of -m 6 (HTML)).  The programs now use a bitmask
+that allows independent options to be combined.  In particular -m 9c
+can be combined with -m 6, which can be very helpful for runs that
+need HTML output but can also exploit the encoding provided by -m 9c.
+
+The "-m 9" option now also allows "-m 9i", which shows the standard
+best score information, plus percent identity and alignment length.
+
+>>Oct 26, 2003	CVS fa34t23b1
+
+Additional fixes to Makefiles to enable tfastf34(_t).  Changes to
+support ossearch34 (a non-Phil Green optimized Smith-Waterman).
+
+>>Oct 8, 2003	CVS fa34t23b0
+
+Fixes to get DNA queries working in both directions, and to fix PCOMPLIB
+programs for "-V" option.  Currently, the parallel programs cannot use
+the "-V" option.
+
+>>Sept 25, 2003
+
+A new option is available for annotating alignments.  -V '@#?!'
+can be used to annotate sites in a sequence, e.g:
+	>GTM1_HUMAN ...
+	PMILGYWDIRGLAHAIRLLLEYTDS@S?YEEKKYT@MG
+	DAPDYDRS@QWLNEKFKLGLDFPNLPYLIDGAHKIT
+might mark known and expected (S,T) phosphorylation sites.  These
+symbols are then displayed on the query coordinate line:
+
+               10        20    @?  30  @     40  @     50        60
+GTM1_H PMILGYWDIRGLAHAIRLLLEYTDSSYEEKKYTMGDAPDYDRSQWLNEKFKLGLDFPNLP
+       ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+gtm1_h PMILGYWDIRGLAHAIRLLLEYTDSSYEEKKYTMGDAPDYDRSQWLNEKFKLGLDFPNLP
+               10        20        30        40        50        60
+
+This annotation is mostly designed to display post-translational
+modifications detected by MassSpec with FASTS, but is also available
+with FASTA and SSEARCH.
+
+>>Sept 22, 2003	  CVS fa34t22b5
+
+The Altivec Smith-Waterman code has been removed.
+
+>>Sept 17, 2003	  CVS fa34t22b4
+
+A variety of different bugs have been fixed.  (1) All the functions in
+the old initsw.c are now in initfa.c; initsw.c will be removed.
+Specifically, the Profile/PSSM code is now in initfa.c.  initfa.c is
+now fully table driven. (2) various problems with prss34 and prfx34
+have been fixed in initfa.c.  (3) An additional ncbl2_mlib.c buffer
+overrun has been fixed. (4) fastf34 is now available in this package.
+Its performance is very similar to, but not identical to, fastf33.  I
+am tracking down the differences.  In general, the raw scores
+calculated by both programs are the same, but the statistical analysis
+seems to be slightly different.
+
+>>July 30, 2003   CVS fa34t22b3
+
+Fix bug in ncbl2_mlib.c that caused buffer overrun with blast/formatdb
+v3 description lines.
+
+>>July 28, 2003
+
+The initfa.c file has been substantially re-structured to use a
+table-driven approach to parameter setting, rather than the previous
+confusing combinations of #ifdef's.  Two tables of parameters are
+used, pgm_def_arr[] and msg_def_arr[], which specify values like the
+program name, reference, scoring matrix, default gap penalties, etc.
+msg_def_arr[] has the sequence types for the query, library, and
+algorithm, as well as other parameters (qframe, nframe, nrelv, etc),
+which greatly simplifies the sequence recognition logic.  ppst->pgm_id
+can be used to identify the program that is running.  Eventually,
+almost all of the program specific #ifdef's will be removed from
+initfa.c.  initfa.c now provides initsw.c functionality, so that
+initsw.c is no longer needed.
+
+>>July 25, 2003
+
+A new file is included - fasta.defaults - that lists the scoring
+matrix, gap penalty, and other defaults for all of the fasta34
+programs.  This file will be used soon to simplify parameter setting
+for the FASTA programs, and should also be used by Javascript WWW
+interfaces to the FASTA programs.
+
+>>July 22, 2003    CVS fa34t22b2
+
+Fixes to dropfs2.c, tatprobs.c to ensure that negative probabilities
+cannot occur.  Negative probabilities were never seen with standard
+matrices, but did occur with BL50.  Another optimization in dropfs.c
+considerably improves fasts34 performance in some cases.
+
+Fix a problem with formatdb v4 ASN.1 format files.
+
+>>July 12, 2003
+
+Fix a bug that prevented "-L" (long sequence descriptions) from
+working.
+
+>>July 9, 2003
+
+Fix reverse complement (M:K) error.  Fix off-by-one error for FASTA
+DNA alignments that caused the first aligned residue pair to be
+missed.
+
+>>July 4 - 8, 2003
+
+Incorporate blast-def-line ASN.1 parsing so that NCBI formatdb version
+4 files can be read.
+
+>>June 26, 2003
+
+The strategy for displaying the match/mismatch line (" .:" for -m 0)
+has been changed dramatically to acommodate more sophisticated
+strategies for indicating conservative replacements, e.g. because of
+PSSM's.  In addition to seqc0 and seqc1, which hold the aligned
+sequences for display, there is also seqca, which holds the alignment
+symbol.  calcons(), do_show(), and discons() have all changed to
+include seqca.  calcons() is somewhat more complex; discons() is much
+simpler.  (June 29, 2003 - dropgsw.c calcons() now displays profile
+similarity accurately - it is very very illuminating.)
+
+>>June 16, 2003	version: fasta34t22
+
+ssearch34 now supports PSI-BLAST PSSM/profiles.  Currently, it only
+supports the "checkpoint" file produced by blastall, and only on
+certain architectures where byte-reordering is unnecessary.  It has not
+been tested extensively with the -S option.
+
+	ssearch34 -P blast.ckpt -f -11 -g -1 -s BL62 query.aa library
+
+Will use the frequency information in the blast.chkpt file to do a
+position specific scoring matrix (PSSM) search using the
+Smith-Waterman algorithm.  Because ssearch34 calculates scores for
+each of the sequences in the database, we anticipate that PSSM
+ssearch34 statistics will be more reliable than PSI-Blast statistics.
+
+The Blast checkpoint file is mostly double precision frequency
+numbers, which are represented in a machine specific way.  Thus, you
+must generate the checkpoint file on the same machine that you run
+ssearch34 or prss34 -P query.ckpt.  To generate a checkpoint file,
+run:
+
+blastpgp -j 2 -h 1e-6 -i query.fa -d swissprot -C query.ckpt -o /dev/null
+
+(This searches swissprot for 2 iterations ("-j 2" using a E()
+threshold 1e-6 saving the resulting position specific frequencies in
+query.ckpt.  Note that the original query.fa and query.ckpt must
+match.)
+
+>>June 5, 2003
+
+Fix to mshowbest.c to get -m 9 coordinates correct on reverse strand
+with pv34comp*.  Some additional fixes for prfx34.
+
+>>May 22, 2003
+
+Changes to llgetaa.c, getseq.c, comp_lib.c to provide a different
+library residue lookup table (sascii) for queries and libraries.  This
+allows one to make a prfx34 (like prss34, but using the fastx
+algorithm).  prfx34 is now available.
+
+>>May 13,14 2003
+
+Fixes to most of the drop*.c files, and mshowbest.c, to ensure that
+coordinates displayed with -m 9(c) and the final alignment are
+consistent.  They were consistent for fasta34/ssearch34/fasts34, but
+not for fastx34/fasty34.  The alignment coordinate system has been
+been revised for consistency in allthe drop*.c programs (coordinates
+used to be off-by-one for some, but not other functions).
+
+Fixes to -m 9c for fasty34/pv34compfy.  In addition, a problem was
+fixed with fastx34/fasty34 that appeared with a protein sequence was
+considerably longer than the DNA query, e.g. an EST vs titin (26K
+residues).  This problem only appeared on pv34compfx/fy on Xserve's
+under OS_X; but it should improve fastx34/fasty34 performance with
+very long protein sequences on all platforms.
+
+>>May 7,8 2003
+
+Changes to p2_workcomp.c, compacc.c, and p_mw.h to fix persistent
+bugs in the -m 9c display.  Previous pv34comp* programs would not
+return the correct coded alignment if more than 100 alignments came
+from the same node, or if an encoding was longer than 127 chars.
+
+Also, fixes to p2_complib.c, comp_lib.c, to allow long query sequences
+to be segmented.  Previously, only the first 20,000 residues were
+used.  The segmented queries are not overlapped; segmented library
+sequences are.
+
+>>May 5, 2003
+
+Changes to last_tat.c, scaleswt.c to ensure that all fasts alignments
+that are likely to have significant scores are displayed.  In previous
+implementations, if the query had more than 10 fragments, only the 100
+best scores were shown.  Now, we rescore up to 2500 alignments.  The
+new approach allows large mixtures to be used for searches, where some
+of the fragments from the mixture match too many proteins
+(e.g. actins).  Some differences between the fasts34 and pv34compfs
+implementations have been fixed.  The two programs typically will not
+give exactly the same results, because of small differences in the
+sampling procedures, but the results are essentially equivalent.
+
+>>Apr 11, 2003  CVS fa34t21b3
+
+Fixes for "-E" and "-F" with ssearch34, which was inadvertantly disabled.
+
+A new option, "-t t", is available to specify that all the protein
+sequences have implicit termination codons "*" at the end.  Thus, all
+protein sequences are one residue longer, and full length matches are
+extended one extra residue and get a higher score.  For
+fastx34/tfastx34, this helps extend alignments to the very end in
+cases where there may be a mismatch at the C-terminal residues.
+
+-m 9c has also been modified to indicate locations of termination
+codons ( *1).
+
+>>Mar 17, 2003  CVS fa34t21b2
+
+A new option on scoring matrices "-MS" (e.g. "BL50-MS") can be used to
+turn the I/L, K/Q identities on or off.  Thus, to make "fastm34" use
+the isobaric identities, use "-s M20-MS".  To turn them off for "fasts34",
+use "-s M20".
+
+More fixes for correct alignment coordinates.  There was a conflict between
+-m 9 and -m 9c and subsequent alignment displays.
+
+>>Mar 13, 2003	
+
+Various fixes to produce correct fastm34 alignments.  Changes to all
+functions to correct potential problem with -m 9 alignment coordinates
+when both -m 9 and actual alignments are shown.
+
+>>Feb 25,27, 2003
+
+Modifications to re-activate showsum.c, which included corrections to
+the showbest() call in p2_complib.c.
+
+>>Feb 13, 2003	CVS fa34t21b1
+
+Modifications to dropfx.c to dramatically improve alignment speed for
+cases where the DNA sequence is considerably longer than the protein
+sequence.  Previously, a 200 aa vs 5000 nt comparison would do a full
+200 x 5000 Smith-Waterman alignment; with this modification, no more
+than a 200 x 1200 (2x3x200) alignment is done.  This optimization has
+not (yet) been applied to dropfz2.c (fasty/tfasty).
+
+>>Feb 11, 2003
+
+Small modifications to comp_lib.c, p2_complib.c, and nmgetlib.c to
+pass openlib() a possibly old lmf_str.  This allows openlib() to
+re-use memory mapped files.  closelib() no longer releases memory
+mapped file buffers.  Under Linux, memory mapped file buffers were not
+really released, so when comparing a set of sequences against nr, the
+program could not mmap() the database after several searches.  This
+will also speed up memory mapped multiple sequence searches.
+
+>>Jan 28-31, 2003  CVS fa34t21b0
+
+Fix another bug (all of v34t20) involved with overlapping long
+sequences.  And another bug that occurred when using sampled
+statistics, but appeared only on the SGI platform - thanks to Dmitri
+Mikhailov.  Several other issues have been addressed based on more
+instrumented runtime testing.
+
+Fix an old (all v34) bug that caused problems with -z 11-16 (shuffled
+sequence array was not allocated properly).  Fixed another bug with -z
+6/16 when using threaded (_t) searches in fasta34_t.
+
+Restructure statistical analysis functions (scaleswn.c, scaleswt.c) to
+return the "final" statistical estimation routine done in pst.zsflag_f.
+This allows the program to cope with searches against a single sequence
+correctly.
+
+Corrected an error for DNA sequences needing Altschul-Gish statistics.
+
+>>Jan 25, 2003
+
+Add option "-J start:stop" to pv34comp*/mp34comp*.  "-J x" used to
+allow one to start at query sequence "x"; now both start and stop can
+be specified.
+
+>>Jan 14, 2003
+
+Changes to apam.c to provide an error message on stderr when a scoring
+matrix cannot be found.
+
+Changes to dropfs2.c, initsw.c, initfa.c to provide -m9c information
+for fasts34 searches.  Modify the alignment algorithm to use
+probabilistic scores properly.
+
+>>Dec 22, 2002
+
+Change to compacc.c (sortbeste()) to do a second sort on zscore when
+several sequences have E() == 0.
+
+>>Nov 27, 2002
+
+Change FSEEK_T to fseek_t to keep Borland BCC5 happy. 
+
+>>Nov 14-22, 2002  CVS fa34t20b6
+
+Include compile-time define (-DPGM_DOC) that causes all the fasta
+programs to provide the same command line echo that is provided by the
+PVM and MPI parallel programs.  Thus, if you run the program:
+
+    fasta34_t -q -S gtt1_drome.aa /slib/swissprot 12
+
+the first lines of output from FASTA will be:
+
+    # fasta34_t -q gtt1_drome.aa /slib/swissprot
+     FASTA searches a protein or DNA sequence data bank
+     version 3.4t20 Nov 10, 2002
+    Please cite:
+     W.R. Pearson & D.J. Lipman PNAS (1988) 85:2444-2448
+
+This has been turned on by default in most FASTA Makefiles.  
+
+Fix p2_complib.c so that qstats[] is always allocated before it is used.
+
+Fix serious bug in non-threaded comp_lib.c that caused some high
+scoring sequences to be missed by fasts34.  New tests are included in
+test.sh to detect this problem in the future.
+
+The shell sort algorithm in sortbeste(), sortbestz(), and sortbesto()
+has been modified to use an improved algorithm that will not go
+quadratic in pathological cases.
+
+nmgetlib.c and mmgetaa.c have been modified to remove "^A" in libstr
+when used with p2_complib.c.
+
+Fix problem with MAXSEG in tatstats.h with IBM/AIX.
+
+Changes to most Makefiles to use -DSAMP_STATS; fixes to p2_complib.c
+for SAMP_STATS.
+
+>>Oct 22, Nov 3, Nov 9, 2002   CVS tag fa34t20b5
+
+Fix problem in comp_lib.c that caused the query sequence length to be
+counted twice.
+
+Fixed problem with prss34 (updated find_zp in showrss.c).
+
+Correct shuffling function in several places.
+
+Add jitter back to addhistz() - improves appearance with prss34.
+
+Changes to fix problems with aln_code using -m 9c.
+
+Fix to serious bug in scaleswt.c (fasts34, etc) that caused sorts on
+the high scores to take much to long.  The program is now 10X faster,
+and scales well on PVM/MPI.
+
+Fix to llgetaa.c to work with new getseq() API with automatic alphabet
+recognition.
+
+>>Oct 12, 2002 CVS tag fa34t20b4
+
+Several very obscure (and sometimes old) bugs that appeared in certain
+MPI environments have been fixed.  This occurred because the pst.sq[]
+array did not always have a '\0' at the end.  In addition,
+mshowalign.c/p2_workcomp.c sometimes failed to put the '\0' at the end
+of seqc0/seqc1.  Correct bug introduced in fa34t20b3 for fasts34(_t).
+
+>>Oct 9, 2002 CVS tag fa34t20b3
+
+Fix to apam.c build_xascii() to not zero-out qascii[0].  Fix
+Makefile.pvm4.  Mix problem with -m 9c with compacc.c.
+
+>>Sept 28, 2002 
+
+Additional fixes to -m 9c in p2_complib.c/compacc.c/mshowbest.c.
+Remove restriction in fasts34(_t) to less than 30 peptides (though no
+more than 30 peptides can be aligned currently).
+
+>>Sept 24, 2002
+
+Fix p2_workcomp.c so that e_scores are delivered correctly when
+last_calc flag is set, and -m 9c provides alignments when only one
+best hit is present.
+
+Fix comp_lib.c to use different maxn and overlap for each different
+query sequence.  fasta34 and fasta34_t now have identical results when
+a long sequence is searched.
+
+Add '@C:101' support to memory mapped FASTA format files.
+
+Fix mshowalign.c so that coordinates returned by cal_coord() use
+loffset+l_off.
+
+>>Sept 14, 2002	CVS tag fa34t20b2
+
+Changes to p2_complib.c, compacc.c to fix statistics problems with
+pv34compfs on query sequences with more than 10 fragments.
+
+>>Aug 27, 2002
+
+Modifications to mshowbest.c and drop*.c (and p2_workcomp.c,
+compacc.c, doinit.c, etc.) to provide more information about the
+alignment with the -m 9 option.  There is now a "-m 9c" option, which
+displays an encoded alignment after the -m 9 alignment information.
+The encoding is a string of the form: "=#mat+#ins=#mat-#del=#mat".
+Thus, an alignment over 218 amino acids with no gaps (not necessarily
+100% identical) would be =218.  The alignment:
+
+       10        20        30        40        50          60         70  
+GT8.7  NVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKFKL--GLDFPNLPYL-IDGSHKITQ
+       :.::  . :: ::  .   .:::         : .:    ::.:   .: : ..:.. :::  :..:
+XURTG  NARGRMECIRWLLAAAGVEFDEK---------FIQSPEDLEKLKKDGNLMFDQVPMVEIDG-MKLAQ
+               20        30                 40        50        60        
+
+would be encoded: "=23+9=13-2=10-1=3+1=5".  The alignment encoding is
+with respect to the beginning of the alignment, not the beginning of
+either sequence.  The beginning of the alignment in either sequence is
+given by the an0/an1 values. This capability is particularly useful
+for [t]fast[xy], where it can be used to indicate frameshift positions
+"/#\#" compactly.  If "-m 9c" is used, the "The best scores" title
+line includes "aln_code".
+
+>>Aug 14, 2002	CVS tag fa34t20
+
+Changes to nmgetlib.c to allow multiple query searches coming from
+STDIN, either through pipes or input redirection.  Thus, the command
+
+       cat prot_test.lseg | fasta34 -q -S @ /seqlib/swissprot
+
+produces 11 searches.  If you use the multiple query functions, the
+query subset applies only to the first sequence.
+
+Unfortunately, it is not possible to search against a STDIN library,
+because the FASTA programs do not keep the entire library in memory
+and need to be able to re-read high-scoring library sequences.  Since
+it is not possible to fseek() against STDIN, searching against a STDIN
+library is not possible.
+
+>>Aug 5, 2002
+
+fasts34(_t) and fastm34(_t) have been modified to allow searches with
+DNA sequences.  This gives a new capability to search for DNA motifs,
+or to search for ordered or unordered DNA sequences spaced at
+arbitrary distances.
+
+>>Aug 4, 2002
+
+comp_lib.c has been modified to provide comp_mlib.c function.
+comp_mlib.c is no longer used.  comp_lib.c with the "mlib" function
+can now recognize protein or DNA sequences automatically, and reads
+from stdin can now detect DNA/protein sequence types automatically.
+Changes to compacc.c, getseq.c, doinit.c initfa.c, initsw.c, and
+nmgetlib.c to support automatic sequence type detection.
+
+>>July 28-31, 2002
+
+(1) The various Makefile's have been "normalized".  The fast*34[_t]
+    (Makefile.34m.common[_sql]), Makefile.pvm4[_sql], and
+    Makefile.mpi4[_sql] make files all use a common set of filenames,
+    described in Makefile.fcom.  This greatly simplifies adding
+    programs, but requires that all *.o files be deleted when moving
+    from fast*34* to pv34comp* to mp34comp*.
+
+(2) showalign.c/p_showalign.c have been merged into mshowalign.c
+    showbest.c/manshowbest.c have been merged into mshowbest.c.  Some
+    of the related files (showun.c, manshowun.c, have not been merged
+    or tested).
+
+(3) Code for ranking scores with valid e_value's incorporated.
+
+(4) Bug fixes in p2_complib.c, so that fasts34/fasts34_t/pvcompfs
+    provide identical statistics.
+
+>>July 26, 2002
+
+Makefile.pvm4_sql and Makefile.pvm4 have been substantially simplified
+by providing the worker program name from the h_init() function in the
+initfa.c/initsw.c files.
+
+>>July 24, 2002
+
+Substantial modifications to param.h, structs.h to ensure that no
+sequence specific information is kept in struct pstruct.  This
+structure now holds the pam[] matrix, and other scoring parameters,
+but nothing that is dependent on aa0.  The aa0 dependent stuff (nm0,
+Lambda, K, etc) is now stored in struct mngmsg.  This was mostly done
+to support the pv34comp* programs, which have separate mngmsg
+structures but the same pstructs.
+
+The fasts34, fasts34_t, and pv34compfs/c34.workfs have all been tested
+successfully.
+
+>>July 19, 2002
+
+Fix an old bug in the calculation of E()-values in DNA databases
+longer than 2147483647 residues on machines with 32-bit longs.
+
+
+>>July 28-31, 2002
+
+(1) The various Makefile's have been "normalized".  The fast*34[_t]
+    (Makefile.34m.common[_sql]), Makefile.pvm4[_sql], and
+    Makefile.mpi4[_sql] make files all use a common set of filenames,
+    described in Makefile.fcom.  This greatly simplifies adding
+    programs, but requires that all *.o files be deleted when moving
+    from fast*34* to pv34comp* to mp34comp*.
+
+(2) showalign.c/p_showalign.c have been merged into mshowalign.c
+    showbest.c/manshowbest.c have been merged into mshowbest.c.  Some
+    of the related files (showun.c, manshowun.c, have not been merged
+    or tested).
+
+(3) Code for ranking scores with valid e_value's incorporated.
+
+(4) Bug fixes in p2_complib.c, so that fasts34/fasts34_t/pvcompfs
+    provide identical statistics.
+
+>>July 26, 2002
+
+Makefile.pvm4_sql and Makefile.pvm4 have been substantially simplified
+by providing the worker program name from the h_init() function in the
+initfa.c/initsw.c files.
+
+>>July 24, 2002
+
+Substantial modifications to param.h, structs.h to ensure that no
+sequence specific information is kept in struct pstruct.  This
+structure now holds the pam[] matrix, and other scoring parameters,
+but nothing that is dependent on aa0.  The aa0 dependent stuff (nm0,
+Lambda, K, etc) is now stored in struct mngmsg.  This was mostly done
+to support the pv34comp* programs, which have separate mngmsg
+structures but the same pstructs.
+
+The fasts34, fasts34_t, and pv34compfs/c34.workfs have all been tested
+successfully.
+
+>>July 8, 2002
+
+Modifications to comp_lib.c, initfa.c and new scaleswt.c, tatstats.c
+to support FASTS with Tatusov statistics.
+
+last_params() has been introduced to allow aa0 dependent changes in m_msg/pstr.
+
+sortbest() has been moved into initfa.c/initsw.c to make it function specific.
+
+find_z() takes an additional parameter, escore.
+
+The do_work() results structure, beststr, and stat_str all accommodate
+escores as well as integer scores (stat_str also saves segn and segl
+but doesn't need them).
+
+In scaleswt.c, process_hist() now knows much more about Tatusov statistics.
+
+last_stats() provided to accommodate rank-based statistical corrections.
+
+scale_scores() is the last function to modify the beststr scores
+(final calculation of E-value).
+
+Some sortbest*() calls and some bptr[i]->zscore=find_zp() loops have
+been moved into scale_scores();
+
+>>July 3,5, 2002
+
+Modifications to allow mySQL comments (--) in "library.sql 16" files.
+Thus, a first line of:
+
+	--host seqdb user password;
+
+is read by FASTA as the login information to a mySQL server, but is
+ignored by mySQL.  "DO" commands in FASTA mySQL files can also be
+rendered invisible to mySQL in this way.  See "do.sql".
+
+Modifications to mysql_lib.c to allow very long SQL statements.  The
+buffer is now dynamically reallocated in 4Kb chunks.
+
+The fasta3.1 man page has been updated and re-organized.
+
+>>June 26, 2002
+
+Minor modifications to nmgetaa.c (openlib()) to use the same arguments
+for searching and PRSS.  PRSS needs access to all of m_msg, but
+searches do not.  Other small fixes to comp_mlib.c, towards the goal
+of merging comp_mlib.c and comp_lib.c.
+
+>>June 25, 2002
+
+Modify the statistical estimation strategy to sample all the sequences
+in the database, not just the first 60,000.  The histogram is still
+based only on the first 60,000 scores and lengths, though all scores
+an lengths are shown.  The fit to the data may be better than the
+histogram indicates, but it should not be worse.
+
+Currently, this modification is available only if the -DSAMPLE_STATS
+option is defined.
+
+>>June 23, 2002	CVS fa34t11d4
+
+Fix a very long-standing bug in fasty/tfasty that caused 'NNN' to be
+translated as 'S', rather than 'X'.  fastx/tfastx has done this
+correctly for many years, but the fasty/tfasty code that I received
+from Zheng Zhang was not implemented correctly (my fault, his code was
+fine).
+
+>>June 19, 2002
+
+Added "-C #" option, where 6 <= # <= MAX_UID (20), to specify the
+length of the sequence name display on the alignment labels.  Until
+now, only 6 characters were ever displayed.  Now, up to MAX_UID
+characters are available.
+
+>>May 30, 2002	CVS fa34t11d3
+
+Fixed problem with programs using the default -E cutoff when -b was
+provided.  With this implementation, -E can override -b, but -b
+overrides the default -E.
+
+Fixed problem with 64-bit file offsets in param.h (change USE_FSEEK0
+-> USE_FSEEKO, include -D_LARGEFILE_SOURCE and -D_LARGEFILE64_SOURCE
+in Makefile.linux_sql).  Put limits on alignment display length (200
+chars).  More checks for null returns from SQL queries.
+
+>>Apr 17, 2002	CVS fa34t11d2
+
+Fixed bug in mm_file.h/ncbl2_mlib.c that caused the SGI version to be
+unable to read blast2 format files.
+
+Changed "mp_*" tags to "pg_*" for -m 10 option.
+
+>>Mar 30, 2002
+
+Fix embarrassing bug in revcomp() (getseq.c) that failed to complement
+the central nucleotide in a sequence with an odd number of residues.
+
+Small changes to dropfs.c for more segments.
+
+>>Mar 16, 2002
+
+Added create_seq_demo.sql, nt_to_sql.pl to show how to build an SQL
+protein sequence database that can be used with with the mySQL
+versions of the fasta34 programs.  Once the mySQL seq_demo database
+has been installed, it can be searched using the command:
+
+	fasta34 -q mgstm1.aa "seq_demo.sql 16"
+
+mysql_lib.c has been modified to remove the restriction that mySQL
+protein sequence unique identifiers be integers.  This allows the
+program to be used with the PIRPSD database.  The RANLIB() function
+call has been changed to include "libstr", to support SQL text keys.
+Due to the size of libstr[], unique ID's must be < MAX_UID (20)
+characters.
+
+A "pirpsd.sql" file is available for searching the mySQL distribution
+of the PIRPSD database.  PIRPSD is available from
+ftp://nbrfa.georgetown.edu/pir_databases/psd/mysql.
+
+>>Mar 6, 2002
+
+Fix showbest.c showbest() to report pst.zdb_size as database size.
+Fix dropnfa.c spam() to address off-by-one on end of run, and double
+counting on backwards scan.  Fix dropnfa.c do_fasta() to fix another
+problem introduced by -S.  Changes to comp_lib.c to ensure that both
+the beginning and end of the query and library sequence have '\0'
+present.  Changes to initfa.c, initsw.c to ensure that a match to a
+lower-case letter with -S gets exactly the same score as a match to an
+'X'.  Changes to mmgetlib.c to work with 64-bit longs in *.xin files.
+
+>>Feb 26, 2002
+
+Fixes to doinit.c, initfa.c, initsw.c to allow DNA matrices using the
+"-s dna.mat" option.  A new matrix, "d50ry.mat" is available that
+scores +5 for a match, -2 for a transition, and -5 for a
+transversion. "d50ry.mat" corresponds to DNA PAM50 with transitions
+twice as common as transversions.  When "-s dna.mat" is used, "-n"
+MUST be used as well.
+
+Query sequence names ("aa", "nt") should be more accurate.
+
+>>Feb 22, 2002
+
+Fix to getseq.c to allow "plain" sequence files.
+
+>>Feb 12, 2002
+
+Minor fix to res_stats.c.
+
+>>Jan 28, 2002
+
+Fixes to resurrect res_stats.c.  res_stats (cc -o res_stats
+res_stats.c scaleswn.c -lm) takes the output from a current "-R
+file.res" file and calculates statistical significance - this allows
+one to take exactly the same set of scores (and lengths) and calculate
+statistical estimates using different strategies.
+
+>>Jan 24, 2002
+
+modifications to mmgetlib.c, ncbl2_mlib.c to more robustly read memory
+mapped files (*.xin, map_db) on machines lacking "native" 64-bit
+longs.  If the machine provides some definition for a 64-bit long
+(e.g. "long long", "int64_t"), things should work. 64-bit offsets into
+memory mapped files work properly on Alpha, SGI, i386 Linux, and
+MacOSX.  The current implementation depends either on 64 bit longs
+(Compaq Alpha's pre 4.0G) or the <sys/inttype.h> file.  Makefile,
+Makefile.alpha, and Makefile.linux have been modified.
+
+Modifications to nmgetlib.c, mmgetlib.c to provide GI numbers and
+Accession versions for Genbank searches.  If the GI:123456 number is
+available, it will be used and the description line will be formatted:
+
+	gi|123456|gb|ACC1234.1|LOCUS description
+
+This should help FAST_PAN runs, where the version of a sequence
+changes frequently.
+
+>>Jan 10, 2002
+
+Modifications to p2_complib.c, p2_workcomp.c to more reliably allocate
+space for library sequence descriptions on the master and workers.
+
+>>Jan 2-3, 2002		CVS fa34t10c/fa34t10d3
+
+Fixes to comp_lib.c to support Macintosh and Windows/Turbo-C
+compilation.  New Makefile.tc.  Macintosh version supports both
+"Classic" and "Carbon" environments.
+
+"<values.h>" has been replaced with the more modern "<limits.h>"
+
+Fixes to p2_complib.c to support n_libstr (libstr length) in GETLIB().
+
+comp_thr.c, complib.c removed.
+
+>>Dec 16, 2001
+
+Complete integration of comp_mlib.c with both the unthreaded and
+threaded programs.  Comp_mlib allows fasta34 and fasta34_t to compare
+a database with a second database, just as pv34compfa does.  Using
+multiple queries with fasta34_t is not as efficient as pv34compfa (and
+it cannot use networks of Unix workstations), but it is much easier to
+use and install.
+
+With the comp_mlib.c option, fasta34 cannot automatically recognize
+DNA sequences, just as pv34compfa no longer recognizes DNA sequences.
+You must use the "-n" option to search with DNA sequences.  The other
+programs (fastx34, tfastx34, etc) "know" the type of the query and
+database sequences, so "-n" is only required for fasta34(_t).
+
+>>Dec 14, 2001		CVS tag fa34t10b
+
+Fix problems reading DNA databases in blast2 format.
+
+>>Dec 11, 2001
+
+Changes to spam() in dropnfa.c so that, for DNA sequences, the
+previous behavior for finding the boundaries of a local alignment
+region use the same algorithm as previous versions of fasta.  For
+protein sequences, the algorithm will extend the local region beyond
+the "ktup" boundaries if a better score can be found.  For DNA
+sequences, this raises the noise rather than increasing sensitivity,
+so it is turned off and "ktup" boundaries are respected.  The old,
+"ktup" boundary algorithm is available with -DNOSPAM_EXT.
+
+This version also includes a working res_stats.c, which can be used to
+test various statistical estimates on exactly the same set of scores.
+
+Fixed problems with -m 9 percent identity for fastx/fasty/tfastx/tfasty.
+These errors have been present since -m 9 was implemented.
+
+>>Dec 10, 2001
+
+Fix to map_db.c to work correctly with files > 2 Gb when 64-bit longs
+are available.  It is not yet designed to work with ftello() and other
+offset types.
+
+>>Nov 11,21, 2001	CVS tag fa34t10a, fa34t10d1
+
+Substantial changes to revcomp(), getseq(), and other functions to
+correct problems with -S on DNA sequences.  Sequences with lower case
+nucleotides were not recognized or reverse complemented properly.
+
+Fix to dropnfa.c (v34t07, Nov 21, 2001) bg_align() to re-initialize
+static globals - this fixes a problem encountered with pv34compfa.  A
+new main program, comp_mlib.c has been added to the CVS archive,
+although it is not referenced in any of the Makefile.  comp_mlib.c
+works like p2_complib.c and compares a library against another
+library.
+
+>>Nov 4, 2001
+
+Change to dropnfa.c spam () while(1) -> while(lpos <= dmax->stop).
+This fixes a problem with ktup=1 on Suns only, so far.
+
+>>Oct 4, 2001		CVS tag fa34t10
+
+Add comp_lib.c file, which merges complib.c (unthreaded) and
+comp_thr.c (threaded) code into one file.
+
+Modifications to nmgetlib.c, mmgetaa.c to allow Genbank flatfile
+format without DESCRIPTION or ACCESSION lines.
+
+Additional fix for -S with ktup=1.
+
+>>Sept. 24, 2001
+
+Fix to have correct gap-penalties for short scoring matrices with
+tfastx/fastx.
+
+>>Sept. 10, 2001	CVS tag fa34t05d6
+
+Fix a bug introduced by -S fix in fa34t05d5.  Also, try to remove
+changes in p34compfa compared to pv4compfa output.
+
+>>Sept. 6, 2001		CVS tag fa34t05d5
+
+Fix the -S dropnfa/fx/fz2 bug that was not actually fixed in
+fa34t05d4.  Incorporate the correct scaleswn.c refered to in
+fa34t05d4.
+
+>>Sept. 5, 2001		CVS tag fa34t05d4
+
+Fix problem with m_msg.quiet that prevented interactive prompts for
+ktup, file name, etc with threaded programs.
+
+Fix serious bug in dropnfa.c/dropfx.c/dropfz2.c that caused -S to work
+improperly on sequences with effective length of 3 or less.
+
+Change to scaleswn.c to make mle_cen(), mle_cen2() more robust to cases
+where the top and bottom scores are the same.
+
+Change p2_complib.c to avoid compiler complaints with (void *)wstage2p=NULL
+on some platforms.
+
+>>Aug. 30, 2001		CVS tag fa34t05d3
+
+Fixed problem with uthr_subs.c for Suns, but changed Makefile.sun to
+use pthreads rather than Sun Unix threads.  Removed SQL stuff from
+Makefile.mpi4/pvm4 and added Makefile.mpi4_sql/pvm4_sql.  
+
+fa34t05d2 - fix to map_db.c to provide *sascii.
+
+fa34t05d1 - fixes to ibm_pthr_subs.c and Makefile.ibm from IBM.
+
+>>Aug. 20, 2001		CVS tag fa34t05d0
+
+The pvm/mpi complib programs have been substantially updated with
+release 3.4.  See readme.v34t0 for more information.  With version
+3.4, the MPI programs are mp34comp*, mu34comp*, etc.
+
+A major effect of this change is to disable automatic sequence type
+(protein/DNA) recognition with pv34compfa/mp34compfa.  By default,
+protein libraries are assumed.  Thus, pv34compfa/mp34compfa require
+the "-n" command line option when running pv34compfa/mp34compfa on DNA
+sequence libraries.  This issue does not occur with the other
+programs, which will recognize the appropriate sequence type, because
+it is determined by the program (e.g. pv34compfx requires
+DNA:protein).
+
+Fixed substantial problem with 64-bit file offsets for Linux in
+complib.c/comp_thr.c, p2_complib.c.  This problem, solved by Doug
+Blair, was preventing the threaded versions from working properly in
+memory mapped mode.
+
+In all earlier versions of fasta, when very long sequences were
+searched, the sequence length reported was that of the "chunk" that
+was actually searched (typically 80,000-query_length) rather than the
+actual library sequence length.  The peculiar behavior now changed,
+and the full length of the library sequence, not the sequence chunk,
+is reported as the library sequence length.  Note that chunks are
+still used, however, which can cause the same alignment to be shown
+twice.  In addition, the "-m 9" output format has changed to report
+the coordinates of the query and library sequence (see below), which
+may be different from 1-sequence_length because the the query and
+library sequences may have been extracted from larger sequences.  Four
+additional fields have been added, "pn0", "px0","pn1", "px1" that are
+the positions in for the beginning (pn0/1) and end (px0/1) of they
+query/library sequence.  pn0/1 would typically be changed with the
+"@C:#" directive, described below.
+
+Changes to doinit.c/initfa.c/initsw.c to provide a new function -
+f_lastenv() - that allows function-specific adjustments to parameters
+after the command line options have been read but before the first
+sequence is read.  This change solved problems with "mp/pv34compfx -S".
+
+fasts34/tfasts34 now recognize that 'I/L' are the same, as are 'Q/K'
+(which are apparently indistinguishable by Mass-Spec).  The latter
+identity is on by default, but can be turned off with "-h 0".
+
+The MPI/PVM versions of the programs have been tested extensively with
+compfa, compfx, and comptfx.  Makefile.mpi4 now works properly.
+Changes to p2complib.c to support the PVM option "-T 1-4", which
+allows one to run on nodes 1-4 of a (presumably larger) PVM virtual
+machine.  This option has no effect on the mp34comp* programs.  The
+old "-T 4" to run on 4 nodes, is also available.  If each node has 2
+cpu's, as indicated in the "pvmd hostfile", both CPU's will be used
+for a total, in this example, of 8 processes. This allows one to
+specify a large PVM machine and use separate parts of it
+independently.
+
+Changes to nmgetlib.c to fix problems with longer dates in GCG files
+(Y2K).  Fixes to faatran.c for extended alphabets and 'X's.  Various
+code clean-ups to make "gcc -Wall" a little bit (not much) happier.
+
+This is the first distributed fasta34 version.
+
+================
+>>Aug 9, 2001		CVS tag fa34t05
+
+Corrections to initfa.c to allow -S to work with tfastx/y.
+Fix to manshowbest.c for query position with -m 9.
+
+>>July 18, 2001		CVS tag fa34t04
+
+Various changes to complib.c, comp_thr.c, p2_complib.c, showbest.c,
+showalign.c to deal with overlapping alignments in long sequences that
+have been segmented.  When long sequences are segmented (lcont>0), the
+eventual total length (n1tot_v) is saved at beststr->n1tot_p.  If
+there was no lcont, then beststr->n1tot_p = NULL, and beststr->n1
+should be used as the sequence length.  This has the advantage of
+requiring space only when long sequences are encountered, and
+requiring only one integer for several segments.
+
+m_msg.noshow has been removed.
+
+The -m 9 format has been changed - 5 fields have been added, 4
+(pmn0/pmx0/pmn1/pmx1) provide the beginning and end coordinates of the
+query and library sequence; the last (fs) reports the number of
+frameshifts.  The names of the alignment boundaries have been changed
+from min0/max0/min1/max1 to amn0/amx0/amn1/amx1 (Alignment miN/maX).
+
+The SQL format has been extended to provide for statements that do
+things but do not generate results, such as creating and selecting into a temporary table, e.g.:
+================
+    do
+    create temporary table seq_pos (
+    id int unsigned not null auto_increment primary key,
+    prot_id int unsigned not null default 0,
+    start int unsigned not null default 0,
+    length int unsigned not null default 0,
+    )
+    ;
+    do
+    insert into seq_pos (prot_id, start, length)
+      select id, 11, len-10
+      from protein, annot
+      where len > 100
+      and annot.protein_id = protein.id
+      and annot.pref=1
+    ;
+    select seq_pos.id,
+       substring(protein.seq, start, length),
+       concat("@C:", start, " ", descr)
+    from protein, seq_pos, annot
+    where protein.id = annot.protein_id
+      and protein.id = seq_pos.prot_id
+      and annot.pref = 1
+    ;
+    select prot_id,
+       concat("@C:", start, " ", descr)
+    from seq_pos, annot
+    where annot.protein_id = seq_pos.prot_id
+      and seq_pos.id = #
+      and annot.pref = 1
+     ;
+================
+
+  In the current implementation, these statements must start with "DO"
+as the first two characters on the line, and come immediately after a
+line ending with ';'.  The text from "DO" to the next ";", excluding
+the "DO", is executed when the database connection is made.
+
+===== >>July 12, 2001
+
+The allocation of the work_info data structure used to send
+information to the worker threads has been changed.  The old method
+worked, possibly by accident.
+
+A bug in p2_complib.c that caused E()-values to be calculated
+improperly for the first query sequence has been fixed.
+
+>>July 11, 2001	--> fa34t02
+
+It is now possible to specify output coordinates in library sequences
+by including the string: "@C:number" on the description line, e.g.
+
+   >gtm1_human gi|12345 human glutathione transferase M1 @C:21
+
+would label the first residue in the library sequence "21" rather than
+"1".  This capability has been included to provide accurate
+coordinates for searches done against subsequences generated by an SQL
+query.  For example, one could use a query of the form:
+
+ SELECT protein.id, substring(protein.seq,11,length(protein.seq)-20),
+	concat(protein.name," @C:11 ",protein.descr)
+ FROM protein;
+
+to generate a sequence set with each sequence starting with residue
+11.  Without the "@C:11" option on the description line, the program
+would number the alignment positions starting at 1, even though the
+first residue of the sequence really started at 11.  "@C:11" allows
+one to correct the coordinate system.
+
+Currently, "@C:offset" is available only with library type 1 (fasta
+format) and 16 (mySQL).
+
+The SQL-generated database with "@C:offset" can be used with both the
+fast*34(_t) programs and with pv34comp*.  However, the SQL syntax is
+used differently in the fasta34 and pv34compfa programs.  fast*34(_t)
+requires three SQL statements during a search: (1) a statement to
+generate a large set of library sequences; (2) a statement to generate
+a description of a single sequence, given a unique identifier provided
+by (1); and (3) a statement to generate a single sequence given a
+unique identifier provided by (1).  For fast*34 searches, the third
+(3) SQL statement must provide the "@C:offset" information in the
+third results field for the offset to be used.  It is optional in (1)
+and (2).
+
+The pv34comp* programs only require one SQL statement, statement (1)
+above, which must provide three fields, a unique identifier, the
+sequence, and a complete description that must include "@C:offset" if
+substrings are used.  If SQL queries (2) and (3) are provided, they
+are  ignored.  Thus, the same files can be used by both programs, but
+the "@C:offset" is required in different SQL queries by the fast*34
+and pv34comp* programs.
+
+Other changes:
+
+Re-incorporation of GAP_OPEN option; fix to Altschul-Gish stats when
+GAP_OPEN is used.
+
+Re-incorporation of A. Mackey's spam() improvement in dropnfa.
+
+Fixes to include file ordering to allow fast*34(_t) pv34comp* programs
+to compile.
+
+Fix to lascii[] for SQL database queries.
+
+Fix to an old bug in comp_thr.c to send individual worker_info
+structures to threads (does not fix LINUX threads problems, however).
+
+=====
+>>July 9, 2001
+
+Considerable changes to support no-global library functions. 
+
+(1) Separate ascii/sequence mapping arrays are used by the
+    query-reading (qascii), library-reading (lascii), and sequence
+    comparison function (pascii) routines.  As a result, there is no
+    longer a need for tgetlib.o/lgetlib.o - lgetlib.o can serve both
+    functions.
+
+(2) This also allows us to remove all #ifdef TFAST/FASTX conditionals
+    from complib.c/comp_thr.c/p2_complib.c.  We no longer need
+    tcomp_thr.o, comp_thrx.o, etc.  We still have a variety of
+    p2_complib.o variations to support the different c34.work* files.
+
+(3) Because non-global openlib/getlib functions are available, exactly
+    the same open/get functions are available for reading both the
+    query and reference libraries in pv34comp* programs.  The
+    host-specific openlib/getlib functions in hxgetaa.c are now
+    provided by nmgetlib.c, etc. This has two effect:
+
+    (a) it is now possible to compare a query database generated by an
+        SQL query to a library database generated by a different SQL
+        query.
+
+    (b) pv34comp* has lost (at least in this version) the ability to
+        automatically detect the query sequence type. To search with a
+        DNA query, you MUST use "-n".
+
+(4) the resetp() function is now responsible for almost all of the
+    function sepcific (TFAST/FASTX/etc) initializations.  All of the
+    function specific code has been removed from complib.c/comp_thr.c
+    and most of it has been moved to initfa.c/resetp().
+
+(5) manageacc.c has been merged into compacc.c (mostly prhist()).
+
+=====
+>>June 1, 2001
+
+Many changes to accommodate a new - no global variable - strategy for
+reading sequence databases.  Every time a file is opened, a struct
+lmf_str is allocated which can be used for memory mapped files, ncbl2,
+files, and mysql files.
+
+In addition, an open'ed file has a default sequence type: DNA or
+protein, or one can open a file in a mode that will allow the sequence
+type to be changed.
+
+=====
+>>May 18, 2001		CVS: fa33t09d0
+
+A new compile time parameter - -DGAP_OPEN, is available to change the
+definition of the "-f gap-open" parameter from the penalty for the
+first residue in a gap to a true gap-open penalty, as is used in BLAST
+and many other comparison algorithms.  This will probably become the
+default for fasta in version 3.4.
+
+Fixes to conflicts between "-S" and "-s matrix".  When a scoring
+matrix file was specified, lower-case alignments were not displayed
+with -S (although the scores were calculated properly).
+
+More extensive testting of mysql_lib.c (mySQL query-libraries) with
+the pv4comp* and mp4comp* programs.
+
+=====
+>>April 5, 2001		CVS: fa33t08d4b3
+
+Changes in nmgetlib.c and ncbl2_mlib.c to return long sequence
+descriptions for PCOMPLIB (pv4/mp3comp*).  Also fix p2_complib.c to
+request DNA library for translated comparisons.
+
+Fix for prss33(_t) to read both sequences from stdin.
+
+=====
+>>March 27, 2001	CVS: fa33t08d4
+
+Modifications to allow 64-bit fseek/ftell on machines like Sun,
+Linux/Intel, that support -D_FILE_OFFSET_BITS=64, -D_LARGE_FILE_SOURCE
+off_t, and fseeko(), ftello() with the option -DUSE_FSEEKO.  Machines
+with 64-bit long's do not need this option.  Machines with 32-bit
+longs that allow files >2 Gb can do so with 64-bit file access
+functions, including fseeko() and ftello(), which work with off_t file
+offsets instead of long's.
+
+=====
+>>March 3, 2001		CVS: fa33t08d2
+
+Corrected problems in nmgetaa.c and mysql_lib.c with parallel
+programs, and one serious problem with alternate DNA scoring matrices
+(initfa.c, initsw.c) not being set properly.  A subtle problem with
+the merge of scaleswn.c and scaleswg.c is fixed.
+
+>>February 17, 2001
+
+Modified mysql_lib.c to use "#", rather than "%ld", to indicate the
+position of the GID.  This change was made because sprintf() cannot be
+used reliably to generate an SQL string, as '"' and '%' are used in 
+such strings.
+
+=====
+>>January 17, 2001
+(no version change, date change)
+
+Minor fixes to initfa.c, initsw.c to deal with DNA scoring matrices
+properly. "-n -s dna.mat" is required for the sequence/matrix to be
+recognized as DNA.
+
+>>January 16, 2001
+-->v34t00
+
+Merge of the main CVS trunk - fa33t06 with the latest release branch,
+fa33t08.
+
+In addition, PCOMPLIB mods have been made to mysql_lib.c.  Because
+p2_complib.c gets sequence description information during the first
+read of the database, the mysql_query must be changed to return:
+result[0]=GID, result[1]=description, result[2]=sequence.  In the
+PCOMPLIB case, the other SQL queries (for GID description, sequence)
+are not necessary but must still be provided.

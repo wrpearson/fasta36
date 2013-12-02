@@ -1,0 +1,407 @@
+
+FASTX/Y and FASTA (DNA) are now half as fast, because the programs now
+search both the forward and reverse strands by default.
+
+The documentation in fasta3x.me/fasta3x.doc has been substantially
+revised.
+
+>>October 9, 1999
+ --> v32t08 (no version number change)
+
+Added "-M low-high" option, where low and high are inclusion limits
+for library sequences.  If a library sequence is shorter than "low" or
+longer than "high", it will not be considered in the search.  Thus,
+"-M 200-250" limits the database search to proteins between 200 and
+250 residues in length.  This should be particularly useful for fasts3
+and fastf3.  This limit applies only to protein sequences.
+
+Modified scaleswn.c to fall back to maximum likelihood estimates of
+lambda, K rather than mean/variance estimates. (This allows MLE
+estimation to be used instead of proc_hist_n when a limited range of
+scores is examined.)
+
+>>October 20, 1999
+(no version change)
+
+Modify nxgetaa.c/nmgetaa.c to recognize 'N' as a possible DNA character.
+
+>>October 9, 1999
+ --> v32t08 (no version number change)
+
+Added "-M low-high" option, where low and high are inclusion limits
+for library sequences.  If a library sequence is shorter than "low" or
+longer than "high", it will not be considered in the search.  Thus,
+"-M 200-250" limits the database search to proteins between 200 and
+250 residues in length.  This should be particularly useful for fasts3
+and fastf3.  -M -500 searches library sequences < 500; -M 200 -
+searches sequences > 200. This limit applies only to protein
+sequences.
+
+Modified scaleswn.c to fall back to maximum likelihood estimates of
+lambda, K rather than mean/variance estimates. (This allows MLE
+estimation to be used instead of proc_hist_n when a limited range of
+scores is examined.)
+
+>>October 2, 1999
+ --> v32t08
+
+Many changes:
+
+(1) memory mapped (mmap()ed) database reading - other database reading fixes
+(2) BLAST2 databases supported
+(3) true maximum likelihood estimates for Lambda, K
+(4) Misc. minor fixes
+
+(1) (Sept. 26 - Oct. 2, 1999) Memory mapped database access.
+It is now possible to use mmap()ed access to FASTA format databases,
+if the "map_db" program has been used to produce an ".xin" file.  If
+USE_MMAP is defined at compile time and a ".xin" file is present, the
+".xin" will be used to access sequences directly after the file is
+mmap()ed.  On my 4-processor Alpha, this can reduce elapsed time by
+50%. It is not quite as efficient as BLAST2 format, but it is close.
+
+Currently, memory mapping is supported for type 0 (FASTA), 5
+(PIR/GCG ascii), and 6 (GCG binary).  Memory mapping is used if a
+".xin" file is present. ".xin" files are created by the new program
+"map_db".  The syntax for "map_db" is:
+
+	map_db [-n] "/dir/database.fa"
+
+which creates the file /dir/database.fa.xin.  Library types can be
+included in the filename; thus:
+
+	map_db -n "/gcggenbank/gb_om.seq 6"
+
+would be used for a type 6 GCG binary file. 
+
+The ".xin" file must be updated each time the database file changes.
+map_db writes the size of the database file into the ".xin" file, so
+that if the database file changes, making the ".xin" offset
+information invalid, the ".xin" file is not used. "list_db" is
+provided to print out the offset information in the ".xin" file.
+
+(Oct 2, 1999) The memory mapping routines have been changed to
+allow several files to be memory mapped simultaneously. Indeed, once a
+database has been memory mapped, it will not be unmap()ed until the
+program finishes.  This fixes a problem under Digital Unix, and should
+make re-access to mmap()ed files (as when displaying high scores and
+alignments) much more efficient.  If no more memory is available for
+mmap()ing, the file will be read using conventional fread/fgets.
+
+(Oct 2, 1999) The names of the database reading functions has been
+changed to allow both Blast1.4 and Blast2.0 databases to be read.  In
+addition, Makefile.common now includes an option to link both
+ncbl_lib.o and ncbl2_lib.o, which provides support for both libraries.
+However, Blast1.4 support has not been tested.
+
+The Makefile structure has been improved.  Each architecture specific
+Makefile (Makefile.alpha, Makefile.linux, etc) now includes
+Makefile.common.  Thus, changes to the program structure should be
+correct for all platforms.  "map_db" and "list_db" are not made with
+"make all".
+
+The database reading functions in nxgetaa.c can now return a database
+length of 0, which indicates that no residues were read.  Previously,
+0-length sequences returned a length of 1, which were ignored.
+Complib.c and comp_thr.c have changed to accommodate this
+modification.  This change was made to ensure that each residue,
+including the last, of each sequence is read.
+
+Corrected bug in nxgetaa.c with FASTA format files with very long
+(>512 char) definition lines.
+
+(2) (September 20, 1999) BLAST2 format databases supported
+
+This release supports NCBI Blast2.0 format databases, using either
+conventional file reading or memory mapped files.  The Blast2.0 format
+can be read very efficiently, so there is only a modest improvement in
+performance with memory mapping.  The decision to use mmap()'ed files
+is made at compile time, by defining USE_MMAP.  My thanks to Eamonn
+O'Toole of DEC/Compaq, and Daryl Madura of Sun Microsystems, for
+providing mmap()'ed modifications to fasta3.  On my machines, Blast2.0
+format reduces search time by about 30%.  At the moment, ambiguous DNA
+sequences are not decoded properly.
+
+(3) (September 30, 1999) A new statistical estimation option is
+available.  -z 2 has been changed from ln()-scaling, which never
+should have been used, to scaling using Maximum Likelihood Estimates
+(MLEs) of Lambda and K.  The MLE estimation routines were written by
+Aaron Mackey, based on a discussion of MLE estimates of Lambda and K
+written by Sean Eddy.  The MLE estimation examines the middle 95% of
+scores, if there are fewer than 10000 sequences in the database;
+otherwise it excludes (censors) the top 250 scores and the bottom 250
+scores.  This approach seems to effectively prevent related sequences
+from contaminating the estimation process.  As with -z 1, -z 12 causes
+the program to generate a shuffled sequence score for each of the
+library sequences; in this case, no censoring is done.  If the
+estimation process is reliable, Lambda and K should not vary much with
+different queries or query lengths.  Lambda appears not to vary much
+with the comparison algorithm, although K does.
+
+(4) Minor changes include fixes to some of the alignment display routines,
+individual copies of the pstruct structure for each thread, and some
+changes to ensure that every last residue in a library is available
+for matching (sometime the last residue could be ignored).  This
+version has undergone extensive testing with high-throughput sequences
+to confirm that long sequences are read properly.  Problems with
+fastf3/fasts3 alignment display have also been addressed.
+
+>>August 26, 1999 (no version change - not released)
+
+Corrected problem in "apam.c" that prevented scoring matrices from
+being imported for [t]fasts3/[t]fastf3.
+
+>>August 17, 1999
+ --> v32t07
+
+Corrected problem with opt_cut initialization that only appeared
+with pvcomp* programs.
+
+Improved calculation of FASTA optcut threshold for DNA sequence
+comparison for match scores much less than +5 (e.g. +3).  The previous
+optcut theshold was too high when the match penalty was < 4 and
+ktup=6; it is now scaled more appropriately.
+
+Optcut thresholds have also been raised slightly for
+fastx/y3/tfastx/y3.  This should improve performance with minimal
+effects on sensitivity.
+
+>>July 29, 1999
+(no version change - date change)
+
+Corrected various uninitialized variables and buffer overruns
+detected.
+
+>>July 26, 1999 - new distribution
+(no version change - v32t06, previous version not released)
+
+Changed the location of "(reverse complement)" label in tfasta/x/y/s/f
+programs.
+
+Statistical calculations for tfasta/x/y in unthreaded version
+corrected.  Statistical estimates for threaded and unthreaded versions
+of the tfasta/x/y/s/f programs should be much more consistent.
+
+Substantial modifications in alignment coordinate calculation/
+presentation.  Minor error in fastx/y/tfastx/y end of alignment
+corrected.  Major problems with tfasta alignment coordinates
+corrected.  tfasta and tfastx/y coordinates should now be consistent.
+
+Corrected problem with -N 5000 in tfasta/x/y3(_t) searches encountered
+with long query sequences.
+
+Updated pthr_subs.c/Makefile.linux to increase the pthreads stacksize
+to try to avoid "cannot allocate diagonal arrays" error message.
+Pthreads stacksize can be changed with RedHat 6.0, but not RedHat 5.2,
+so Makefile.linux uses -DLINUX5 for RedHat5.* (no pthreads stack size).
+I am still getting this message, so it has not been completely
+successful.  Makefile.linux now uses -DALLOCN0 to avoid this problem,
+at some cost in speed.
+
+The pvcomp* programs have been updated to work properly with
+forward/reverse DNA searches.  See readme.pvm_3.2.
+
+>>July 7, 1999 - not released
+ --> v32t06
+
+Corrected bug in complib.c (fasta3, fastx3, etc) that caused core
+dumps with "-o" option.
+
+Corrected a subtle bug in fastx/y/tfastx/y alignment display.
+
+>>June 30, 1999 - new distribution
+(no version change)
+
+Corrected doinit.c to allow DNA substitution matrices with -s matrix
+option.
+
+Changed ".gbl" files to ".h" files.
+
+>>June 2 - 9, 1999 - new distribution
+(no version change)
+
+Added additional DNA lambda/K/H to alt_param.h.  Corrected some
+other problems with those table. for the case where (inf,inf)
+gap penalties were not included.
+
+Fixed complib.c/comp_thr.c error message to properly report filename
+when library file is not found.
+
+Included approximate Lambda/K/H for BL80 in alt_parms.h.
+BL80 scoring matrix changed from 1/3 bit to 1/2 bit units.
+
+Included some additional perl files for searchfa.cgi, searchnn.cgi
+in the distribution (my-cgi.pl, cgi-lib.pl).
+
+>>May 30, 1999, June 2, 1999 - new distribution
+(no version number change)
+
+Added Makefile.NetBSD, if !defined(__NetBSD__) for values.h.  Changed
+zs_to_E() and z_to_E() in scaleswn.c to correctly calculate E() value
+when only one sequence is compared and -z 3 is used.
+
+>>May 27, 1999
+(no version number change)
+
+Corrected bug in alignment numbering on the % identity line
+	27.4% identity in 234 aa (101-234:110-243)
+for reverse complements with offset coordinates (test.aa:101-250)
+
+>>May 23, 1999
+(no version number change)
+
+Correction to Makefile.linux (tgetaa.o : failed to -DTFAST). 
+
+>>May 19, 1999
+(no version number change)
+
+Minor changes to pvm_showalign.c to allow #define FIRSTNODE 1.
+Changes to showsum.c to change off-end reporting.  (Neither of these
+changes is likely to affect anyone outside my research group.)
+
+>>May 12, 1999
+ --> v32t05
+
+Fixed a serious bug in the fastx3/tfastx3 alignment display which
+caused t/fastx3 to produce incorrect alignments (and incorrectly low
+percent identities).  The scores were correct, but the alignment
+percent identities were too low and the alignments were wrong.
+
+Numbering errors were also corrected in fastx3/tfastx3 and
+fasty3/tfasty3 and when partial query sequences were used.
+
+>>May 7, 1999
+
+Fixed a subtle bug in dropgsw.c that caused do_work() to calculate
+incorrect Smith-Waterman scores after do_walign() had been called.
+This affected only pvcompsw searches with the "-m 9" option.
+
+>>May 5, 1999
+
+Modified showalign.c to provide improved alignment information that
+includes explicitly the boundaries of the alignment.  Default
+alignments now say:
+
+Smith-Waterman score: 175;  24.645% identity in 211 aa overlap (5:207-7:207)
+
+>>May 3, 1999
+
+Modified nxgetaa.c, showsum.c, showbest.c, manshowun.c to allow a
+"not" superfamily annotation for the query sequence only.  The
+goal is to be able to specify that certain superfamily numbers be
+ignored in some of the search summaries.  Thus, a description line
+of the form:
+
+>GT8.7 | 40001 ! 90043 | transl. of pa875.con, 19 to 675
+
+says that GT8.7 belongs to superfamily 40001, but any library
+sequences with superfamily number 90043 should be ignored in any
+listing or summary of best scores.
+
+In addition, it is now possible to make a fasta3r/prcompfa, which is
+the converse of fasta3u/pucompfa. fasta3u reports the highest scoring
+unrelated sequences in a search using the superfamily annotation.
+fasta3r shows only the scores of related sequences.  This might be
+used in combination with the -F e_val option to show the scores
+obtained by the most distantly related members of a family.
+
+>>April 25, 1999
+
+ -->v32t04 (not distributed)
+
+Modified nxgetaa.c to remove the dependence of tgetaa.o on TFASTA
+(necessary for a more rational Makefile structure).  No code changes.
+
+>>April 19, 1999
+
+Fixed a bug in showalign.c that displayed incorrect alignment coordinates.
+(no version number change).
+
+>>April 17, 1999
+
+ --> v32t03
+
+A serious bug in DNA alignments when the sequence has been broken into
+multiple segments that was introduced in version fasta32 has been
+fixed.  In addition, several minor problems with -z 3 statistics on
+DNA sequences were fixed.
+
+Added -m 9 option, which unfortunately does different things in
+pvcompfa/sw and fasta3/ssearch3.  In both programs, -m 9 provides the
+id's of the two sequences, length, E(), %_ident, and start and end of
+the alignment in both sequences.  pvcompfa/sw provides this
+information with the list of high scoring sequences.  fasta3/ssearch3
+provides the information in lieu of an alignment.
+
+>>March 18, 1999
+
+ --> v32t02
+
+Added information on the algorithm/parameter description line to
+report the range of the pam matrices.  Useful for matrices like
+MD_10, _20, and _40 which require much higher gap penalties.
+
+>>March 13, 1999 (not distributed)
+
+ --> v32t01 
+
+ -r results.file  has been changed to -R results.file to accomodate
+ DNA match/mismatch penalties of the form: -r "+1/-3".
+
+>>February 10, 1999
+
+Modify functions in scalesw*.c to prevent underflow after exp() on
+Alpha Linux machines.  The Alpha/LINUX gcc compiler is buggy and
+doesn't behave properly with "denormalized" numbers, so "gcc -g -m
+ieee" is recommended.
+
+Add "Display alignments also (y/n)[n] "
+
+pvcomplib.c again provides alignments!!  In addition, there is a
+new "-m 9" option, which reports alignments as:
+
+>>>/home/wrp/slib/hlibs/hum0.aa#5>HS5 gi:1280326 T-cell receptor beta chain 30 aa, 30 aa vs /home/wrp/slib/hlibs/hum0.seg library
+HS5         	  30	HS5         	  30	1.873e-11	1.000	  30	   1	  30	   1	  30
+HS5         	  30	HS2249      	  40	1.061e-07	0.774	  31	   1	  30	   7	  37
+HS5         	  30	HS2221      	  38	1.207e-07	0.833	  30	   1	  30	   7	  35
+HS5         	  30	HS2283      	  40	1.455e-07	0.774	  31	   1	  30	   7	  37
+HS5         	  30	HS2239      	  38	1.939e-07	0.800	  30	   1	  30	   7	  35
+
+where the columns are:
+
+query-name      q-len   lib-name      lib-len   E()             %id    align-len  q-start q-end   l-start l-end
+
+>>February 9, 1999
+
+Corrected bug in showalign.c that offset reverse complement alignments
+by one.
+
+>>Febrary 2, 1999
+
+Changed the formatting slightly in showbest.c to have columns line up better.
+
+>>January 11, 1999
+
+Corrected some bugs introduced into fastf3(_t) in the previous version.
+
+>>December 28, 1998
+
+Corrected various problems in dropfz.c affecting alignment scores
+and coordinates.
+
+Introduced a new program, fasts3(_t), for searching with peptide
+sequences.
+
+>>November 11, 1998
+
+  --> v32t0
+
+Added code to correct problems with coordinate number in long library
+sequences with tfastx/tfasty.  With this release, sequences should be
+numbered properly, and sequence numbers count down with reverse
+complement library sequences.
+
+In addition, with this release, fastx/y and tfastx/y translated
+protein alignments are numbered as nucleotides (increasing by 3,
+labels every 30 nucleotides) rather than codons.
+

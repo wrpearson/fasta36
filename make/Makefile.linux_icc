@@ -1,0 +1,58 @@
+# $Id: Makefile.linux_icc 499 2011-01-28 10:20:04Z wrp $
+#
+# makefile for fasta3, fasta3_t using the Intel icc compiler
+#
+# This file is designed for 64-bit Linux systems.
+# -D_LARGEFILE64_SOURCE and # -DBIG_LIB64 require a 64-bit linux system.
+
+SHELL=/bin/bash
+
+CC= icc -g -O3
+#CC = icc -g -DDEBUG
+
+#CC=gcc -Wall -pedantic -ansi -g -O
+#CC= /usr/local/parasoft/bin/insure -g -DDEBUG
+
+# EBI uses the following with pgcc, -O3 does not work:
+# CC= pgcc -O2 -pipe -mcpu=pentiumpro -march=pentiumpro -fomit-frame-pointer
+
+# this file works for x86 LINUX
+
+# standard options
+CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=8 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your_fasta_host_here"' -DUSE_MMAP -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DPGM_DOC -DBIG_LIB64 -DSAMP_STATS
+
+# -I/usr/local/include/mysql -DMYSQL_DB 
+#
+#(for mySQL databases)  (also requires change to Makefile36.common)
+
+LIB_M = -lm
+#LIB_M = -L/usr/local/lib/mysql -lmysqlclient -lm
+# for mySQL databases
+
+HFLAGS= -o
+NFLAGS= -o
+
+# for Linux
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthread
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_NA_O)
+DROPLAL_O = $(DROPLAL_NA_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# renamed (fasta36)  programs
+include ../make/Makefile36m.common
+# conventional (fasta3) names
+# include ../make/Makefile.common
+

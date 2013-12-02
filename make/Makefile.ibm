@@ -1,0 +1,37 @@
+#
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+#
+
+CC= xlc_r -O3 -qarch=auto -qtune=auto -qcache=auto
+
+# for IBM with current pthreads
+CFLAGS= -DUNIX -DTIMES -DSFCHAR="':'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DIS_BIG_ENDIAN -DUSE_MMAP -DIBM_AIX -D_LARGE_FILES -DHAS_INTTYPES -D_LARGE_FILES -UMAXSEG -DSAMP_STATS -DPGM_DOC
+
+# consider -D_LARGE_FILE_API -D_LARGE_FILES for files > 2 GB
+
+LIB_M = -lm
+
+HFLAGS= -o
+NFLAGS= -o
+
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthreads
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/slib/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_NA_O)
+DROPLAL_O = $(DROPLAL_NA_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# renamed (fasta34)  programs
+include ../make/Makefile36m.common
+

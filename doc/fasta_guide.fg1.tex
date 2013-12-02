@@ -1,0 +1,60 @@
+\begin{footnotesize}
+\begin{quote}
+\begin{verbatim}
+# ../bin/ssearch36 -q -w 80 ../seq/mgstm1.aa a
+SSEARCH performs a Smith-Waterman search
+ version 36.3.6 June, 2013(preload9)
+Please cite:
+ T. F. Smith and M. S. Waterman, (1981) J. Mol. Biol. 147:195-197; 
+ W.R. Pearson (1991) Genomics 11:635-650
+Query: ../seq/mgstm1.aa
+  1>>>mGSTM1 mouse glutathione transferase M1 - 218 aa
+Library: PIR1 Annotated (rel. 66) 
+  5121825 residues in 13143 sequences
+
+Statistics:  Expectation_n fit: rho(ln(x))= 7.4729+/-0.000484; mu= 2.0282+/- 0.027
+ mean_var=56.9651+/-10.957, 0's: 9 Z-trim(119.4): 17  B-trim: 67 in 1/62
+ Lambda= 0.169930
+ statistics sampled from 13135 (13143) to 13135 sequences
+Algorithm: Smith-Waterman (SSE2, Michael Farrar 2006) (7.2 Nov 2010)
+Parameters: BL50 matrix (15:-5), open/ext: -10/-2
+ Scan time:  3.820
+The best scores are:                                                    s-w bits E(13143)
+sp|P08010|GSTM2_RAT Glutathione S-transferase Mu 2; GST 4-4; GT  ( 218) 1248 312.0 7.7e-86
+sp|P04906|GSTP1_RAT Glutathione S-transferase P; Chain 7; GST -  ( 210)  344 90.4 3.8e-19
+sp|P00502|GSTA1_RAT Glutathione S-transferase alpha-1; GST 1-1   ( 222)  237 64.1 3.2e-11
+sp|P14942|GSTA4_RAT Glutathione S-transferase alpha-4; GST 8-8   ( 222)  179 49.9 6.1e-07
+sp|P12653|GSTF1_MAIZE Glutathione S-transferase 1; GST class-pi  ( 214)  120 35.4   0.013
+sp|P04907|GSTF3_MAIZE Glutathione S-transferase 3; GST class-pi  ( 222)  115 34.2   0.032
+sp|P20432|GSTT1_DROME Glutathione S-transferase 1-1; DDT-dehydr  ( 209)  100 30.5    0.38
+sp|P11277|SPTB1_HUMAN Spectrin beta chain, erythrocytic; Beta-   (2137)  108 31.6     1.9
+... (alignments deleted) ...
+>>sp|P14942|GSTA4_RAT Glutathione S-transferase alpha-4; GST 8-8;             (222 aa)
+ s-w opt: 179  Z-score: 231.0  bits: 49.9 E(13143): 6.1e-07
+Smith-Waterman score: 179; 25.6% identity (54.5% similar) in 211 aa overlap (5-207:7-207)
+                 10        20        30        40        50          60         70     
+mGSTM    MPMILGYWNVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKF-KLG-LDFPNLPYL-IDGSHKITQSNA
+             : :.. ::  . :: ::  .   ..:         .: ...   ::. : : : : ..: . :::   .::. :
+sp|P14 MEVKPKLYYFQGRGRMESIRWLLATAGVEFEE---------EFLETREQYEKLQKDGCLLFGQVPLVEIDG-MLLTQTRA
+               10        20        30                 40        50        60         70
+          80        90       100       110       120       130       140            150
+mGSTM  ILRYLARKHHLDGETEEERIRADIVENQVMDTRMQLIMLCYNPDFEKQKPEFLKTIPEKMKLYSEF--LGK---RPWFAG
+       :: ::: :..: :.  .::.: :.  . ..:  :..:   ..   ::..   : .   : . .  :  . :   . ...:
+sp|P14 ILSYLAAKYNLYGKDLKERVRIDMYADGTQDLMMMIIGAPFKAPQEKEESLALAVKRAKNRYFPVFEKILKDHGEAFLVG
+               80        90       100       110       120       130       140       150
+              160       170       180       190       200       210            
+mGSTM  DKVTYVDFLAYDILDQYRMFEPKCLDAFPNLRDFLARFEGLKKISAYMKSSRYIATPIFSKMAHWSNK    
+       ......:.   . . . .      :. :: :. : .:. ..  :. ... .     :               
+sp|P14 NQLSWADIQLLEAILMVEEVSAPVLSDFPLLQAFKTRISNIPTIKKFLQPGSQRKPPPDGHYVDVVRTVLKF
+              160       170       180       190       200       210       220  
+... (alignments deleted) ...
+218 residues in 1 query   sequences
+5121825 residues in 13143 library sequences
+ Tcomplib [36.3.6 May, 2013(preload9)] (4 proc in memory [0G])
+ start: Thu Jun  6 11:23:28 2013 done: Thu Jun  6 11:23:30 2013
+ Total Scan time:  3.820 Total Display time:  0.130
+Function used was SSEARCH [36.3.6 May, 2013(preload9)]
+\end{verbatim}
+\end{quote}
+\end{footnotesize}
+\vspace{-4.0ex}

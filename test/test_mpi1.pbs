@@ -1,0 +1,27 @@
+#!/bin/sh
+#PBS -l nodes=4:ppn=4
+#PBS -l mem=8GB
+#PBS -l walltime=60:00
+
+echo ""
+echo "starting FASTA36" `date` "on" `hostname`
+echo `uname -a`
+echo ""
+if [ ! -d ${TEST_DIR}/test/mpi_results ]; then
+  mkdir ${TEST_DIR}/test/mpi_results
+fi
+echo "starting fasta36_mpi - protein" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasta36_mpi -q -m 9c -Z 100000 -d 10 ${TEST_DIR}/seq/prot_test.lseg q > ${TEST_DIR}/test/mpi_results/test_plib.ok2_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasta36_mpi -S -q -z 21 -s BP62 -d 10 -E 1e-6 ${TEST_DIR}/seq/prot_test.lseg q >${TEST_DIR}/test/mpi_results/test_plib.ok2_mpi_BP62
+echo "done"
+echo "starting fastxy36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastx36_mpi -m 9c -S -q ${TEST_DIR}/seq/gst.nlib q 1 > ${TEST_DIR}/test/mpi_results/test_nlib.xk1_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasty36_mpi -S -q ${TEST_DIR}/seq/gst.nlib q > ${TEST_DIR}/test/mpi_results/test_nlib.yk2_mpi
+echo "done"
+echo "starting ssearch36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/ssearch36_mpi -m 9c -S -z 21 -d 10 -E 1e-6 -q ${TEST_DIR}/seq/prot_test.lseg  q > ${TEST_DIR}/test/mpi_results/test_plib.ss_mpi_z21
+echo "done"
+echo "starting ggsearch36/glsearch36" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/ggsearch36_mpi -q -m 9i -w 80 -d 5 ${TEST_DIR}/seq/prot_test.lseg q >${TEST_DIR}/test/mpi_results/test_plib.gg_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/glsearch36_mpi -q -m 9i -w 80 -d 5 ${TEST_DIR}/seq/prot_test.lseg q >${TEST_DIR}/test/mpi_results/test_plib.gl_mpi
+echo "done" `date`

@@ -1,0 +1,300 @@
+Over all structure of the fasta3 program.  (Some functions
+are different for translated comparisons FASTX, FASTY, TFASTX, TFASTY.)
+
+main() {	/* complib.c structure */
+
+  /* get command line arguments, set up initial parameter values */
+  initenv (argc, argv, &m_msg, &pst,&aa0[0],outtty);
+
+  /* allocate space for sequence arrays */
+  /* get the query file name if not on command line */
+  /* get query */
+  m_msg.n0 = getseq (m_msg.tname,aa0[0], MAXTOT, m_msg.libstr,&pst.dnaseq,
+		     &m_msg.sq0off);
+
+  /* reset some parameters if DNA */		     
+  resetp (aa0[0], m_msg.n0, &m_msg, &pst);
+
+  /* get a library name if not on command line */
+  libchoice(m_msg.lname,sizeof(m_msg.lname),&m_msg);
+  /* use library name to build list of library files */
+  libselect(m_msg.lname, &m_msg);
+
+  /* get additional options (ktup, prss-window) if not specified */
+  query_parm (&m_msg, &pst);
+
+  /* do final parameter initializations */
+  last_init(&m_msg, &pst);
+
+  /* set up structures for saved scores[20000], statistics[50000] */
+  nbest = 0;
+  
+  /* initialize the comparison function */
+  init_work (aa0[0], m_msg.n0, &pst, &f_str[0]);
+
+  /* open the library */
+  for (iln = 0; iln < m_msg.nln; iln++) {
+    if (openlib(m_msg.lbnames[iln],m_msg)!=1) {continue;}
+  }
+
+  /* get the library sequence and do the comparison */
+  while ((n1=GETLIB(aa1ptr,maxt,libstr,&lmark,&lcont))>0) {
+    do_work (aa0[itt], m_msg.n0, aa1, n1, itt, &pst, f_str[itt], &rst);
+
+  /* save the scores */
+  /* save the scores for statistics */
+  }
+
+  /* all done with all libraries */
+  process_hist(stats,nstats,pst);
+
+  /* sort the scores by z-value */
+  sortbestz (bptr, nbest);
+
+  /* sort the scores by E-value */
+  sortbeste (bptr, nbest);
+
+  /* print the histogram */
+  prhist (stdout,m_msg,pst,gstring2);
+
+  /* show the high scoring sequences */
+  showbest (stdout, aa0, aa1, maxn, bptr, nbest, qlib, &m_msg, pst,
+            f_str, gstring2);
+
+  /* show the high-scoring alignments */
+  showalign(outfd, aa0, aa1, maxn, bptr, nbest, qlib, m_msg, pst,
+	    f_str, gstring2);
+
+  /* thats all folks !!! */
+}
+
+================
+complib.c	/* version set as mp_verstr */
+
+main()
+printsum()	/* prints summary of run (residues, entries, time) */
+void fsigint() 	/* sets up interrupt handler for HUP not used */
+
+================
+compacc.c
+
+void selectbest() /* select best 15000/20000 based on raw score */
+void selectbestz() /* select best 15000/20000 based on z-score */
+void sortbest()  /* sort based on raw score */
+void sortbestz() /* sort based on z-score */
+void sortbeste() /* sort based on E() score - different from z-score for DNA */
+
+prhist()	/* print histogram */
+
+shuffle()	/* shuffle sequence (prss) */
+wshuffle()	/* window shuffle */
+
+================
+showbest.c
+
+void showbest()	/* present list of high scoring sequences */
+
+================
+showalign.c
+
+void showalign() /* show list of high-scoring alignments */
+void do_show()	/* show an individual alignment */
+void initseq()	/* setup seqc0/seqc1 which contain alignment characters */
+void freeseq()	/* free them up */
+
+================
+htime.c
+
+time_t s_time()	/* get the time in usecs */
+void ptime()	/* print elapsed time */
+
+================
+apam.c
+
+initpam ()	/* read in PAM matrix or change default array */
+void mk_n_pam()	/* make DNA pam from +5/-3 values */
+================
+doinit.c
+
+void initenv()	/* read environment variables, general options */
+================
+initfa.c	/* version set as "verstr" */
+
+alloc_pam()	/* allocate 2D pam array */
+initpam2()	/* fill it up from 1D pam triangle */
+f_initenv()	/* function-specific environment variables */
+f_getopt()	/* function-specific options */
+f_getarg()	/* function specific argument - ktup */
+resetp()	/* reset scoring matrix, optional parameters for DNA-DNA */
+reseta()	/* reset scoring matrix, optional parameters for prot-DNA */
+query_parm()	/* ask for additional program arguments (ktup) */
+last_init()	/* last chance to set up parameters based on query,lib,parms */
+f_initpam()	/* not used - could set parameters from pam matrix */
+
+================
+scaleswn.c
+
+process_hist()	/* do statistics calculations */
+
+  proc_hist_r()	/* regression fit z=1, also used by z=5 */
+    float find_z() /* gives z-score for score, length, mu, rho, var */
+    float find_zr() /* gives z-score for score, length, mu, rho, var */
+    fit_llen()	/* first estimate of mu, rho, var */
+    fit_llens()	/* second estimate of mu, rho, var, mu2, rho2 */
+
+  proc_hist_r2()  /* regression_i fit z=4 */
+    float find_zr2() /* gives z-score for score, length, mu, rho, mu2, rho2 */
+    fit_llen2()	/* iterative estimate of mu, rho, var */
+
+  proc_hist_ln()  /* ln()-scaled z=2 */ /* no longer used */
+    float find_zl() /* gives z-score from ln()-scaled scores */
+
+  proc_hist_ml() /* estimate lambda, K using Maximum Likelihood */
+    float find_ze() /* z-score from lambda, K */
+
+  proc_hist_n()   /* no length-scaling z=0 */
+    float find_zn() /* gives z-score from mu, var (no scaling) */
+
+  proc_hist_a()   /* Altschul-Gish params z= 3 */
+    ag_parm()	/* match pst.pamfile name, look_p() */
+    look_p()	/* lookup Lambda, K, H given param struct */
+    float find_za()
+
+eq_s()	/* returns (double)score (available for length correction) */
+ln_s()	/* returns (double)score * ln(200)/ln(length) */
+
+proc_hist_r()	/* regression fit z=1, also used by z=5 */
+alloc_hist()	/* set up arrays for score vs length  */
+free_hist()	/* free them */
+inithist()	/* calls alloc_hist(), sets some other globals */
+addhist()	/* update score vs length hist */ 
+inithistz()	/* initialize displayed (z-score) histogram hist[]*/
+addhistz()	/* add to hist[], increment num_db_entries */
+addhistzp()	/* add to hist[], don't change num_db_entries */
+prune_hist()	/* remove scores from score vs length */
+update_db_size() /* num_db_entries = nlib - ntrimmed */
+set_db_size()	/* -Z db_size; set nlib */
+
+double z_to_E()	/* z-value to E() (extreme value distribution */
+double zs_to_E() /* z-score (mu=50, sigma=10) to E() */
+double zs_to_bit() /* z-score to BLAST2 bit score */
+
+float E_to_zs()	/* E() to z-score */
+double zs_to_Ec() /* z-score to num_db_entries*(1 - P(zs))
+
+summ_stats()	/* put stat summary in string */
+vsort()		/* not used, does shell sort */
+calc_ks()	/* does Kolmogorov-Smirnoff calculation for histogram */
+================
+dropnfa.c	/* contains worker comparison functions */
+
+init_work()	/* set up struct f_struct fstr - hash query */
+get_param()	/* actually prints parameters to string */
+close_work()	/* clean up fstr */
+do_work()	/* do a comparison */
+  do_fasta()	/* use the fasta() function */
+    savemax()	/* save the best region during scan */
+    spam()	/* rescan the best regions */
+    sconn()	/* try to connect the best regions for initn */
+    kssort()	/* sort by score */
+    kpsort()	/* sort by left end pos */
+    shscore()	/* best self-score */
+    dmatch()	/* do band alignment for opt score */
+      FLOCAL_ALIGN()	/* fast band score-only */
+
+do_opt()	/* do an "optimized comparison */
+
+do_walign()	/* put an alignment into res[] for calcons() */
+  sw_walign()	/* SW alignment driver - find boundaries */
+    ALIGN()	/* actual alignment driver */
+      nw_align()	/* recursive global alignment */
+    CHECK_SCORE()	/* double check */
+    DISPLAY()	/* Miller's display routine */
+
+  bd_walign()	/* band alignment driver for DNA */
+    LOCAL_ALIGN()	/* find boundaries in band */
+    B_ALIGN()		/* produce band alignment  */
+      bg_align()	/* recursively produce band alignment */
+    BCHECK_SCORE()	/* double check */
+
+calcons()	/* calculate ascii alignment  seqc0,seqc1 from res[]*/
+calc_id()	/* calculate % identity with no alignment */
+================
+nxgetaa.c
+
+getseq()	/* get a query (prot or DNA) */
+getntseq()	/* get a nt query (for fastx, fasty) */
+gettitle()	/* get a description */
+
+int openlib()	/* open a library */
+closelib()	/* close it */
+GETLIB()	/* get a fasta-format next library entry */
+RANLIB()	/* jump back in, get description, position for getlib() */
+
+lgetlib()	/* get a Genbank flat-file format next library entry */
+lranlib()	/* jump back in, get description, position for lgetlib() */
+
+pgetlib()	/* get CODATA format next library entry */
+pranlib()	/* jump back in, get description, position for lgetlib() */
+
+egetlib()	/* get EMBL format next library entry */
+eranlib()	/* jump back in, get description, position for egetlib() */
+
+igetlib()	/* get Intelligenetics format next library entry */
+iranlib()	/* jump back in, get description, position for igetlib() */
+
+vgetlib()	/* get PIR/VMS/GCG format next library entry */
+vranlib()	/* jump back in, get description, position for vgetlib() */
+
+gcg_getlib()	/* get GCG binary format next library entry */
+gcg_ranlib()	/* jump back in, get description, position for gcg_getlib() */
+
+int scanseq()	/* find %ACGT */
+
+revcomp()	/* do reverse complement */
+sf_sort()	/* sort superfamily numbers */
+================
+c_dispn.c
+
+discons()	/* display alignment from seqc0, seqc1 */
+disgraph()	/* display graphical representation, -m 4,5 */
+aancpy()	/* copy a binary sequence to ascii */
+r_memcpy()
+l_memcpy()
+iidex()		/* lookup ascii-encoding of residue */
+cal_coord()	/* calculate coordinates of alignment ends */
+
+================
+ncbl_lib.c
+
+ncbl_openlib()
+ncbl_closelib()
+ncbl_getliba()
+ncbl_getlibn()
+ncbl_ranlib()
+src_ulong_read()
+src_long_read()
+src_char_read()
+src_fstr_read()
+newname()
+
+================
+lib_sel.c
+
+getlnames()
+libchoice()
+libselect()
+addfile()
+ulindex()
+
+================
+nrand48.c
+
+irand(time)	/* initialize random number generator */
+nrand(n)	/* get a number 0 - n */
+
+================
+url_subs.c
+
+void do_url1()	/* setup search links */
+

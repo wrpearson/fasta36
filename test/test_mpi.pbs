@@ -1,0 +1,59 @@
+#!/bin/sh
+#PBS -l nodes=4:ppn=4
+#PBS -l mem=16GB
+#PBS -l walltime=2:00:00
+
+echo ""
+echo "starting FASTA36" `date` "on" `hostname`
+echo `uname -a`
+echo ""
+if [ ! -d ${TEST_DIR}/test/mpi_results ]; then
+  mkdir ${TEST_DIR}/test/mpi_results
+fi
+echo "starting fasta36_mpi - protein" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasta36_mpi -q -m 6 -Z 100000 ${TEST_DIR}/seq/mgstm1.aa:1-100 q > ${TEST_DIR}/test/mpi_results/test_m1.ok2_mpi.html
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasta36_mpi -S -q -z 11 -O ${TEST_DIR}/test/mpi_results/test_m1.ok2_mpi_p25 -s P250 ${TEST_DIR}/seq/mgstm1.aa:100-218 q
+echo "done"
+echo "starting fastxy36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastx36_mpi -m 9c -S -q ${TEST_DIR}/seq/mgtt2_x.seq q 1 > ${TEST_DIR}/test/mpi_results/test_t2.xk1_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasty36_mpi -S -q ${TEST_DIR}/seq/mgtt2_x.seq q > ${TEST_DIR}/test/mpi_results/test_t2.yk2_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastx36_mpi -m 9c -S -q -z 2 ${TEST_DIR}/seq/mgstm1.esq a > ${TEST_DIR}/test/mpi_results/test_m1.xk2_mpi_z2
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasty36_mpi -S -q -z 2 ${TEST_DIR}/seq/mgstm1.esq a > ${TEST_DIR}/test/mpi_results/test_m1.yk2_mpi_z2
+echo "done"
+echo "starting fastxy36_mpi rev" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastx36_mpi -m 9c -q -m 5 ${TEST_DIR}/seq/mgstm1.rev q > ${TEST_DIR}/test/mpi_results/test_m1.xk2r_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasty36_mpi -q -m 5 -M 200-300 -z 2 ${TEST_DIR}/seq/mgstm1.rev q > ${TEST_DIR}/test/mpi_results/test_m1.yk2r_mpi_z2
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasty36_mpi -q -m 5 -z 11 ${TEST_DIR}/seq/mgstm1.rev q > ${TEST_DIR}/test/mpi_results/test_m1.yk2rz11_mpi
+echo "done"
+echo "starting ssearch36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/ssearch36_mpi -m 9c -S -z 3 -q ${TEST_DIR}/seq/mgstm1.aa  q > ${TEST_DIR}/test/mpi_results/test_m1.ss_mpi_z3
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/ssearch36_mpi -q -M 200-300 -z 2 -Z 100000 -s P250 ${TEST_DIR}/seq/mgstm1.aa q > ${TEST_DIR}/test/mpi_results/test_m1.ss_mpi_p25
+echo "done"
+echo "starting ggsearch36/glsearch36" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/ggsearch36_t -q -m 9i -w 80 ${TEST_DIR}/seq/hahu.aa q > results/test_h1.gg_t
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/glsearch36_t -q -m 9i -w 80 ${TEST_DIR}/seq/hahu.aa q > results/test_h1.gl_t
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/ggsearch36_t -q ${TEST_DIR}/seq/gtt1_drome.aa q > results/test_t1.gg_t
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/glsearch36_t -q ${TEST_DIR}/seq/gtt1_drome.aa q > results/test_t1.gl_t
+echo "done"
+echo "starting fasta36_t - DNA" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasta36_t -S -q ${TEST_DIR}/seq/mgstm1.nt %R 4 > results/test_m1.ok4_t
+echo "done"
+echo "starting tfastxy36_t" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfastx36_t -m 9c -q -i -3 -m 6 ${TEST_DIR}/seq/mgstm1.aa %p > results/test_m1.tx2_t.html
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfasty36_t -q -i -3 -N 5000 ${TEST_DIR}/seq/mgstm1.aa %p > results/test_m1.ty2_t
+echo "done"
+echo "starting fastf36_t" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastf36_t -q ${TEST_DIR}/seq/m1r.aa q > results/test_mf.ff_t
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastf36 -q ${TEST_DIR}/seq/m1r.aa q > results/test_mf.ff_s
+echo "done"
+echo "starting tfastf36_t" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfastf36_t -q ${TEST_DIR}/seq/m1r.aa %r > results/test_mf.tf_tr
+echo "done"
+echo "starting fasts36_t" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasts36_t -q -V '*?@' ${TEST_DIR}/seq/ngts.aa q > results/test_m1.fs1_t
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasts36_t -q ${TEST_DIR}/seq/ngt.aa q > results/test_m1.fs_t
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasts36_t -q -n ${TEST_DIR}/seq/mgstm1.nts m > results/test_m1.nfs_t
+echo "done"
+echo "starting tfasts36_t" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfasts36_t -q ${TEST_DIR}/seq/n0.aa %r > results/test_m1.ts_r
+echo "done" `date`

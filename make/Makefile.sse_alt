@@ -1,0 +1,23 @@
+#
+# $Name:  $ - $ Id: $
+#
+# sets of files for no (DROPGSW_NA_O), SSE2, or Altivec Smith-Waterman acceleration
+#
+DROPGSW_NA_O = init_sw.o dropgsw2.o lwm_align.o calcons_sw.o
+DROPGSW_SSE_O = init_sw_sse.o dropgsw2_sse.o smith_waterman_sse2.o lwm_align.o calcons_sw.o
+DROPGSW_ALT_O = init_sw_alt.o dropgsw2_alt.o smith_waterman_altivec.o lwm_align.o calcons_sw.o
+
+P_DROPNSW_NA_O = dropnsw.o lwm_align.o calcons_sw.o
+P_DROPGSW_NA_O = dropgsw2.o lwm_align.o calcons_sw.o
+P_DROPGSW_SSE_O = dropgsw2_sse.o smith_waterman_sse2.o lwm_align.o calcons_sw.o
+P_DROPGSW_ALT_O = dropgsw2_alt.o smith_waterman_altivec.o lwm_align.o calcons_sw.o
+
+DROPLAL_NA_O = droplal2.o lsim4.o calcons_la.o
+DROPLAL_SSE_O = droplal2_sse.o smith_waterman_sse2.o lsim4.o calcons_la.o
+DROPLAL_ALT_O = droplal2_alt.o smith_waterman_altivec.o lsim4.o calcons_la.o
+
+DROPGNW_NA_O = init_gnw.o dropgnw.o gwm_align.o calcons_sw.o
+DROPGNW_SSE_O = init_gnw_sse.o dropgnw_sse.o global_sse2.o gwm_align.o calcons_sw.o
+
+DROPLNW_NA_O = init_lnw.o droplnw.o gwm_align.o calcons_sw.o
+DROPLNW_SSE_O = init_lnw_sse.o droplnw_sse.o glocal_sse2.o gwm_align.o calcons_sw.o

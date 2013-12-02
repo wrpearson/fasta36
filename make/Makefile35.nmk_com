@@ -1,0 +1,30 @@
+#
+# $Name:  $ - $Id: Makefile35.nmk_com 344 2010-06-29 18:20:22Z wrp $
+#
+# commands common to all architectures
+# if your architecture does not support "include", append at the end.
+#
+
+# use for multiple query sequences
+COMP_LIBO=comp_mlib2.obj
+COMP_THRO=comp_mthr2.obj
+WORK_THRO=work_thr2.obj
+GETSEQO = 
+
+# standard nxgetaa, no memory mapping for 0 - 6
+LGETLIB=getseq.obj lgetlib.obj 
+NGETLIB=nmgetlib
+
+# memory mapping for 0FASTA, 5PIRVMS, 6GCGBIN
+# no memory mapping for Win32
+#LGETLIB= lgetlib.obj lgetaa_m.obj
+
+NRAND=nrand
+
+# normally use ncbl2_mlib.c
+NCBL_LIB=ncbl2_mlib.obj
+#LIB_M= -lm
+
+include ../make/Makefile.nm_pcom
+
+include ../make/Makefile.nm_fcom

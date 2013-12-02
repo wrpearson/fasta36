@@ -1,0 +1,175 @@
+>> October 30, 1996
+
+A new program, sc_to_e, can be used to calculate expectation values
+from the regression coefficients reported from a search.  The
+expectation value is based on similarity score, sequence length, and
+database size.
+
+>> November 8, 1996
+
+fasta30t7 differs from fasta30t6 in the amount of information provided
+with the -m 10 option.
+
+(1) The query and library sequence identifiers are no longer abbreviated.
+
+(2) New information about the program and program version are provided:
+
+The new information provided is:
+
+	mp_name: program name (actually argv[0])
+	mp_ver: main program version (can be different from function version)
+	mp_argv: command line arguments (duplicates argv[0])
+
+    Some statistical information is provided as well:
+	mp_extrap: XXXX YYY - statistics extrapolated from XXX to YYY
+	mp_stats: indicates type of statistics used for E() value
+	mp_KS: Kolmogorov-Smirnoff statistic
+
+The "mp_" (main program) information is function independent, while the "pg_"
+information is produced by a particular comparison function (ssearch,
+fastx, fasta, etc).  "pg_" should probably be called "fn_", and "mp_"
+called "pg_", but I remain backwards compatible.
+
+(3) The end of the "parseable" records is denoted with:
+
+	>>><<<
+
+(4) There now an compile-time option -DM10_CONS, that allows you to
+display a final alignment summary:
+
+;al_cons:
+     .::.:-   .:: ..  :.    .:.---:   :  .--.:. : 
+..  .---  ..: :: ... :..: .::.:. .  .---.  .   .: 
+ : .  . . :    ..   .    :..: .--. . : .:. .. :  .
+ .:.:::  ..:. :
+
+or, if M10_CONS_L is defined (in addition to M10_CONS), the output is:
+;al_cons:
+     p==p=-mmmp==mpzmm=pmmmmz=p---=mmm=mmp--p=zm=m
+pzmmp---mmzp=m==mzzzm=zp=mz==z=pmzmmz---pmmpmmmp=m
+m=mzmmzmpm=mmmmppmmmpmmmm=pp=mp--pmpm=mp=pmzzm=mmp
+mp=z===mmpz=zm=
+
+where '=' indicates identical residues, '-' a gap in one or the other
+sequence, 'p' indicates a positive pam value, 'm' indicates a negative
+pam value, and 'z' indicates a zero pam value.
+
+A typical run now looks like:
+
+>>>gtm1_mouse.aa, 217 aa vs s library
+; mp_name: fasta3_t
+; mp_ver: version 3.0t7 November, 1996
+; mp_argv: fasta3_t -q -m 10 gtm1_mouse.aa s
+; pg_name: FASTA
+; pg_ver: 3.06 Sept, 1996
+; pg_matrix: BL50
+; pg_gap-pen: -12 -2
+; pg_ktup: 2
+; pg_optcut: 24
+; pg_cgap: 36
+; mp_extrap: 50000 51933
+; mp_stats: Expectation fit: rho(ln(x))= 5.8855+/-0.000527; mu= 1.5386+/- 0.029;  mean_var=73.0398+/-15.283
+; mp_KS: 0.0133 (N=29) at  42
+>>GTM1_MOUSE GLUTATHIONE S-TRANSFERASE GT8.7 (EC 2.5.1.18) (GST 1-1) (CLASS-MU).
+; fa_initn: 1490
+; fa_init1: 1490
+; fa_opt: 1490
+; fa_z-score: 1754.6
+; fa_expect:      0
+; sw_score: 1490
+; sw_ident: 1.000
+; sw_overlap: 217
+>GTM1_MOUSE ..
+; sq_len: 217
+; sq_type: p
+; al_start: 1
+; al_stop: 217
+; al_display_start: 1
+PMILGYWNVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKF
+KLGLDFPNLPYLIDGSHKITQSNAILRYLARKHHLDGETEEERIRADIVE
+NQVMDTRMQLIMLCYNPDFEKQKPEFLKTIPEKMKLYSEFLGKRPWFAGD
+KVTYVDFLAYDILDQYRMFEPKCLDAFPNLRDFLARFEGLKKISAYMKSS
+RYIATPIFSKMAHWSNK
+>GTM1_MOUSE ..
+; sq_len: 217
+; sq_type: p
+; al_start: 1
+; al_stop: 217
+; al_display_start: 1
+PMILGYWNVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKF
+KLGLDFPNLPYLIDGSHKITQSNAILRYLARKHHLDGETEEERIRADIVE
+NQVMDTRMQLIMLCYNPDFEKQKPEFLKTIPEKMKLYSEFLGKRPWFAGD
+KVTYVDFLAYDILDQYRMFEPKCLDAFPNLRDFLARFEGLKKISAYMKSS
+RYIATPIFSKMAHWSNK
+>>GTM1_RAT GLUTATHIONE S-TRANSFERASE YB1 (EC 2.5.1.18) (CHAIN 3) (CLASS-MU).
+; fa_initn: 1406
+; fa_init1: 1406
+; fa_opt: 1406
+; fa_z-score: 1656.3
+; fa_expect:      0
+; sw_score: 1406
+; sw_ident: 0.931
+; sw_overlap: 217
+>GTM1_MOUSE ..
+; sq_len: 217
+; sq_type: p
+; al_start: 1
+; al_stop: 217
+; al_display_start: 1
+PMILGYWNVRGLTHPIRMLLEYTDSSYDEKRYTMGDAPDFDRSQWLNEKF
+KLGLDFPNLPYLIDGSHKITQSNAILRYLARKHHLDGETEEERIRADIVE
+NQVMDTRMQLIMLCYNPDFEKQKPEFLKTIPEKMKLYSEFLGKRPWFAGD
+KVTYVDFLAYDILDQYRMFEPKCLDAFPNLRDFLARFEGLKKISAYMKSS
+RYIATPIFSKMAHWSNK
+>GTM1_RAT ..
+; sq_len: 217
+; sq_type: p
+; al_start: 1
+; al_stop: 217
+; al_display_start: 1
+PMILGYWNVRGLTHPIRLLLEYTDSSYEEKRYAMGDAPDYDRSQWLNEKF
+KLGLDFPNLPYLIDGSRKITQSNAIMRYLARKHHLCGETEEERIRADIVE
+NQVMDNRMQLIMLCYNPDFEKQKPEFLKTIPEKMKLYSEFLGKRPWFAGD
+KVTYVDFLAYDILDQYHIFEPKCLDAFPNLKDFLARFEGLKKISAYMKSS
+RYLSTPIFSKLAQWSNK
+;al_cons:
+:::::::::::::::::.:::::::::.::::.::::::.::::::::::
+::::::::::::::::.::::::::.::::::::: ::::::::::::::
+:::::.::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::..::::::::::::.:::::::::::::::::::
+::..::::::.:.::::
+>>><<<
+
+
+217 residues in 1 query   sequences
+18531385 residues in 52205 library sequences
+ Tcomplib (4 proc)[version 3.0t7 November, 1996]
+ start: Fri Nov  8 18:20:26 1996 done: Fri Nov  8 18:20:41 1996
+ Scan time: 38.434 Display time:  2.166
+
+Function used was  FASTA 
+
+================================================================
+
+>> November 11, 1996
+
+ --> v30t71
+
+Made changes to complib.c, comp_thr.c, nxgetaa.c to allow scoring
+matrix to be modified in fastx3, fastx3_t.
+
+================================================================
+
+>> November 15, 1996
+
+ --> v30t72
+
+nxgetaa.c now accepts query sequences from "stdin" by using "-" as the
+input file name.  If DNA sequences are read in this mode, the "-n"
+option must be used.
+
+> November 23, 1996
+
+Included code in nxgetaa.c and Makefile.sgi to get around a bug in SGI's
+sscanf() that prevented compressed GCG databases from being read properly.
+

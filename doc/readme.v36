@@ -1,0 +1,1752 @@
+
+  $Id: readme.v36 1240 2013-11-08 21:04:46Z wrp $
+  $Revision: 55 $
+
+Version 3.6 of the FASTA programs is a significant update over version
+3.5.  It uses the same underlying structure as FASTA35 (specifically
+the strategies for ensuring accurate statistics), but it allows for
+multiple high-scoring alignments to be shown, rather than just one.
+This is the main functional difference between FASTA and BLAST -
+BLAST could show multiple HSPs, FASTA did not.
+
+>>Nov. 8, 2013   (re-released as fasta-36.3.6d)
+[ncbl2_mlib.c]
+Fix problem with src_long8_read() where int/uint64_t seems to cause
+problems with Linux intel icc. Using int/unsigned int solves the problem. 
+
+>>Nov. 1, 2013
+[apam.c, ncbl2_mlib.c, map_db.c]
+[apam.c ] Fix problem with query sequences and libraries that do not
+end in newline ('\n').  [ncbl2_mlib.c, map_db.c] provide grouping for
+shifts for byte extraction in src_int4/long8_read() to remove compiler
+warnings.  [map_db.c] Fix problem reading sequences for indexing that
+caused crash.
+
+>>Oct. 8, 2013	 (released as fasta-36.3.6d)
+[comp_lib9.c, initfa.c]
+Modify initfa.c/re_ascii() function to avoid qascii[] characters that
+had been remapped for annotations.
+
+>>Oct. 4, 2013
+[nmgetlib.c, ncbl2_mlib.c]
+Modify nmgetlib.c/re_openlib() to re-use memory mapped file arrays.
+This had been the intention for some time, but a check for libf != 0
+prevented the memory mapped arrays from being reused.  libf is no
+longer checked, just mm_flag.
+
+>>Sep. 26, 2013
+[ncbl2_mlib.c]
+Fix a bug in ncbl2_mlib.c/parse_fastadl_asn() that prevented
+accessions longer than 20 characters in description lines from BLAST
+formatted libraries.
+
+[compacc2.c]
+Fix a bug in compacc2.c/comment_var() that showed the wrong original
+sequence in qVariant changes.
+
+>>Sep. 2, 2013
+[dropfs2.c]
+Fix bug in dropfs2.c/init_work() that prevents correct tatusov
+statistics with -z >10.
+
+>>Aug. 21, 2013  (released as fasta-36.3.6c)
+[comp_lib9.c]
+Fix bug in comp_lib9.c/new_seqr_chain() that prevented memory from
+being allocated to the chain if a memory mapped database was followed
+by a non-memory mapped database.
+
+>>Aug. 9, 2013 
+[scaleswn.c]
+Ensure shift to MLE_STATS if too many scores are excluded by trimming.
+
+>>July 31, 2013 (released as fasta-36.3.6b)
+[url_subs.c]
+Make JSON output for -m 6 (html) dependent on $ENV{JSON_HTML}. JSON
+output is not currently used.
+
+>>July 26, 2013
+[mshowalign2.c, scripts/lavplt_svg.pl]
+Correct offsets in -m 11 lav plots, and modify lav2plt.pl/
+lavplt_svg.pl/ lavplt_ps.pl to reflect the corrections.
+
+Move all perl scripts out of /src into /scripts.
+
+>>July 19, 2013 (released as fasta-36.3.6a)
+[compacc2.c, cal_cons.c, dropfx.c, dropfz2.c, build_ares.c]
+Provide dynamic string allocation/dyn_strcat for annotation string
+output. This fixes problems with long proteins with many domains or
+other annotations, which were too long for the fixed annotation output
+storage.
+
+Version date updated to July, 2013.
+Compiled and tested on Windows32.
+
+>>July 8, 2013
+[cal_cons.c, dropfx.c, dropfz2.c]
+Properly terminate annotions with offsets [cal_cons.c], and with
+domains beyond alignment [dropfx.c, dropfz2.c]
+
+>>July 5, 2013	 (released as fasta-36.3.6)
+[comp_lib9.c, doinit.c, dropfx.c, dropfz2.c]
+Fix conflict between -m 9 and -z -1; fix annotation display using
+non-script annotations. Stop using calc_last_set in dropfx/fz2.c.
+
+>>June 24, 2013
+[scripts/ann_feats_up_www2.pl]
+Add script (ann_feats_up_www2.pl) for annotating UniProt sequences using:
+"http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb".
+
+>>June 6, 2013
+[compacc2.c, cal_cons.c, initfa.c, dropfx.c, dropfz2.c]
+Provide the -XNS/-XXS/-XN+/XX+ and -XND/-XXD/-XN-/-XX- options that
+specify how N:N and X:X alignments are counted for similarity and
+identity.  By default, N:N (DNA) and X:X (protein) alignments are
+considered identical, but not similar (because their scores are
+typically negative to address statistical issues).
+-XNS/-XXS/-XN+/-XX+ cause N:N/X:X alignments to be counted as similar,
+even though their alignment are negative.  Likewise,
+-XND/-XXD/-XN-/-XX- cause N:N and X:X alignments to be considered
+non-identical (and non-similar).
+
+>>May 28, 2013
+[url_subs.c]
+do_url1() has been modified to: (1) require env($REF_URL, $SRCH_URL,
+$SRCH_URL1) for these links to produce printout.  (2) Link text is
+surrounded by <!-- LINK_START "lname" --> <!-- LINK_STOP -->.  (3)
+do_url1() now produces <!-- JSON --> output automatically, which can
+be used to get all the information provided by earlier URL links.
+
+>>May 29, 2013
+[mshowalign2.c]
+Re-instate code in showalign() to ensure that original bbp->rst is
+used for first alignment, rather than that calculated by CHECK_SCORE
+(which is used for later sub-HSP's).  The CHECK_SCORE -S alignment
+score is based on the non-S alignment, and is then re-scored with the
+low-complexity -S matrix. But the best alignment excluding
+low-complexity can have a higher score than the best all-complexity
+alignment rescored with -S.
+
+>>May 27, 2013
+[mshowalign2.c, url_subs.c]
+The plot_domain.cgi SVG code has been expanded to allow the domain
+structure of the entire query and library sequence, not just the
+aligned regions, to be displayed.  Showing domains above the query or
+below the library takes an additional 18 px in each direction (36
+total); this size needs to be provided in the <object data=""
+width="660" height="54"> format string that is provided in
+$DOMAIN_PLOT_URL.
+
+Right now, the argument to $DOMAIN_PLOT_URL can get very long with
+lots of aligned domain (region), and query and library domain
+information.  It would be better to provide this in some separate way.
+YAML might also be a more efficient strategy.
+
+>>May 9, 2013
+[dropfx.c, dropfz2.c, compacc2.c, url_subs.c]
+The web infrastructure for domain plots has been completed --
+plot_domain2.cgi which generates SVG for domain plots now understands
+reverse-complement cDNA fastx/y alignments, and plots coordinates
+accordingly.  Testing with fastx36/fasty36 revealed some memory
+errors, which have been fixed.  In addition, dropfz2.c has been
+updated to properly treat some region/alignment-boundary conditions;
+dropfx.c and dropfz2.c provide equivalent sub-alignment scores.
+
+[../scripts, ../misc]
+A new directory, ./scripts, has been created to collect the scripts
+used for sequence library expansion and domain/feature annotation.
+../scripts/README.scripts provides more information.  Modify code to
+allow expansion scripts (-e) to start with '\!', like annotation
+scripts.
+
+>>Apr. 15, 2013
+(compacc2.c, cal_cons.c, dropfx.c, dropfz2.c, mshowalign2.c)
+Modifications to properly deal with sequence and coordinate offsets in
+annotation alignments.  compacc2.c/get_annot_list() has been modified
+to only print/read an annotation once (the same sequence may appear
+twice with fastx/fasty).  mshowalign2.c now includes <!--
+ANNOT_START/STOP --> and <!-- ALIGN_START/STOP --> in HTML mode.  This
+comments are not on their own line, to save output space, so the
+remainder of the line should be captured.
+
+>>Apr. 5, 2013
+(doinit.c)
+Add the ability to specify HTML output using the -m '0H' option.  This
+addresses the problem that -m "F6" does not fully specify the output
+format.  In addition, -m 6 should probably explicitly set -m 0 (if it
+has not been set), rather than simply 'or'ing it, but right now we do
+not know when it is set.
+
+>>Mar. 17, 2013
+(compacc2.c, url_subs.c, plot_domain.cgi, ann_feats2l.pl)
+Modifications to url_subs.c to support SVG domain maps in HTML output.
+
+A new evironment variable has been defined, DOMAIN_PLOT_URL, which can
+be used to plot (using SVG or PNG) a map of the domains on the library
+sequence.  The argument to DOMAIN_PLOT_URL is the concatenated list of
+annotations provided by the -V options.  All annotations (including
+sites) are passed; non-alpha-numeric characters are URL encoded.
+plot_domain.cgi is an example of a script that can be passed as
+DOMAIN_PLOT_URL.  To use this script:
+
+$ENV{DOMAIN_PLOT_URL}="<object data=\"plot_domain.cgi?n0=%d&query=%s&db=%s&lib=%s&q_start=%ld&q_stop=%ld&l_start=%ld&l_stop=%ld&n1=%d&o_pgm=%s&doms=%s\" width=\"660\" height=\"72\"></object>\n";
+
+ann_feats2l.pl has been extended to allow the --neg
+(or --neg-dom) option, which puts domain a NODOM domain annotation
+between the domain annotations provided by the database.
+
+>>Mar. 7, 2013
+(cal_cons.c) 
+Modify update code to properly begin global alignments that start with
+insertions or deletions.
+
+>>Feb. 20, 2013
+(compacc2.c)
+Annotation scripts (-V \!ann_feats.pl) were being inactivated if no
+annotations were returned, fixed.
+
+>>Feb. 2, 2013
+(comp_lib9.c)
+Prevent premature termination of query title in -m 9 mode (guarantees
+the full >accession text to first space is preserved).
+(compacc2.c)
+Provide domain information (;C=PF00016) in -m9 domain scoring.
+
+>>Jan 7-9, 2013
+(initfa.c, pssm_asn_subs.c)
+Modify pssm_asn_subs.c to properly parse binary PssmWithParameters
+produced by NCBI asntool from psiblast (blast+) text ASN.1 output.
+The text ASN.1 uses a binary encoded query sequence; get_lambda() in
+initfa.c was modified to work with a binary encoded query sequence
+(the query is used to find the p_i from rrcounts[query[i]]).
+
+Modify pssm_asn_subs.c to set query=NULL when PSSM does not include
+query sequence.  Modify read_asn_pssm() to set query=aa0 if query==NULL;
+
+>>Dec. 14, 2012
+(cal_cons.c, dropfx.c, dropfz2.c)
+Enable percent identity calculation on domains.  Merge
+cal_cons.c/calc_code() strategies into dropfx.c, dropfz2.c
+
+>>Dec. 6, 2012
+(comp_lib8.c, comp_lib9.c, nmgetlib.c)
+Fix code in close_lib_list() that did not properly re-initialize files
+for re-reading (not seen when library is in memory, or for single
+sequence search).
+
+>>Dec 2, 2012
+(wm_align.c, Makefiles)
+CHECK_SCORE() in wm_align.c must return different scores for local and
+global (#define GGSEARCH in wm_align.c).  Requires modified Makefiles.
+
+>>Sep 24, 2012
+(doinit.c, compacc2.c, cal_cons.c)
+Fix bugs introduced with next_annot_entry() strategy for reallocating
+annot_arr[]; find a bug in cal_cons.c where i1_annot was indexing
+annot0_arr_p[]; ensure that m_msg.ann_arr_def[] is appropriately initialized.
+
+>>Sep 17, 2012
+(lav2plt.pl, lavplt_ps.pl, lavplt_svg.pl, lav_defs.pl, l_feat_dom.pl)
+Convert the lav*.c programs to perl.  This simplifies adding the
+ability to script domain annotation.  The format for domain
+annotations for the lav2plt.pl programs differs slightly from the
+current up_feats_dom.pl program, because it requires a beginning and
+end for each domain, e.g.:
+
+>sp|Q14247.2|SRC8_HUMAN
+80	[]	116	Cortactin 1.
+117	[]	153	Cortactin 2.
+154	[]	190	Cortactin 3.
+191	[]	227	Cortactin 4.
+228	[]	264	Cortactin 5.
+265	[]	301	Cortactin 6.
+302	[]	324	Cort. 7; trunc.
+492	[]	550	SH3.
+
+and takes a single accession from the command line, e.g.:
+"l_annot_dom.pl sp|P09488" rather than reading a file.
+
+>>Sep 4, 2012
+(doinit.c, compacc2.c, fasta_guide.tex)
+Annotations can now be provided within a sequence (-V '%#!'), by a
+script (-V '\!up_feats.pl'), or from a file (-V '<annot.file
+q<annot.file').  Annotation files make particular sense for query
+annotations, where the user may know much more about the query than
+the database does.
+
+(doinit.c, compacc2.c, comp_lib9.c, structs.h)
+Ensure that calc_code() is called if any -m 'F9c file' requires it.
+
+>>Aug 31, 2012
+(cal_cons.c, compacc2.c, dropfx.c, dropfz2.c)
+The region score calculations have been corrected to include regions
+that overlap alignment boundaries, and regions that start in gaps.
+
+>>Aug 10, 2012
+(cal_cons.c, compacc2.c, dropfx.c, dropfz2.c)
+
+Introduce a second kind of annotation feature, the "Region" (denoted
+by '[' and ']'), that specifies a region that should be scored
+separately.  These regions cannot be nested, each residue can belong
+to only one region.  However, the scores in these regions can be
+calculated (perhaps percent identity and length later), and are
+displayed:
+
+>>sp|P09488|gstm1_human GLUTATHIONE S-TRANSFERASE MU 1 (  (218 aa)
+ Site:* : 23Y=23Y : MOD_RES: Phosphotyrosine (By similarity).
+ Site:* : 33Y=33Y : MOD_RES: Phosphotyrosine (By similarity).
+ Site:* : 34T=34T : MOD_RES: Phosphothreonine (By similarity).
+ Region : 3-82 : score=547; bits=146.4 :  GST_N
+ Site:^ : 116Y=116Y : BINDING: Substrate.
+ Region : 104-171 : score=465; bits=125.8 :  GST_C
+
+All information about the region should be provided with the '['
+(start) symbol.
+
+>>Aug 1, 2012
+(dropfx.c, dropfz2.c, c_dispn.c)
+Fix some very old bugs that caused errors in coordinate displays of
+reverse-complement fastx/fasty alignments.  Fix BLAST alignment
+display coordinates.  Enable variant calculations for FASTY
+(dropfz2.c), and simplify calculations for dropfx.c
+
+>>Jul 29,2012
+(doinit.c, compacc2.c, comp_lib9.c)
+Allow annotation descriptions to be delivered by annotation script,
+denoted by '=' in first line, e.g.:
+=*:phosphorylation
+=^:binding site
+=@:active site
+>gi|121735|sp|P09488.3|GSTM1_HUMAN
+7	V	F	Mutagen: Reduces catalytic activity 100- fold.
+23	*	-	MOD_RES: Phosphotyrosine (By similarity).
+33	*	-	MOD_RES: Phosphotyrosine (By similarity).
+34	*	-	MOD_RES: Phosphothreonine (By similarity).
+
+remove requirement for leading space before annotation script: e.g.:
+-V '\!up_feats_c.pl'
+
+>>Jul 27, 2012
+(compacc2.c, cal_cons.c, dropfx.c)
+
+(1) Allow comments/descriptions on features other than type 'V' (variant)
+to be displayed with alignment.  If a '@' SITE feature has a comment
+provided by the annotation script, the comment will be displayed in
+the alignment description , e.g.:
+
+>>sp|P28161.2|GSTM2_HUMAN Glutathione S-transf            (218 aa)
+ ^ :116Y=116Y: BINDING: Substrate (By similarity).
+ @ :210S+210T: SITE: Important for substrate specificity.
+ initn: 632 init1: 632 opt: 632  Z-score: 1414.3  bits: 268.8 E(450603): 2.6e-71
+Smith-Waterman score: 945; 75.2% identity (93.6% similar) in 218 aa overlap (1-218:1-218)
+
+If no comment is provided, the annotation will only appear in the
+coordinate line. This provides a way to show annotation locations in
+BLAST output.
+
+(2) Also add code to ensure that symbols returned by annotation scripts
+are displayed on the coordinate line.
+
+(3) Add environment variable substitution to =${TMP_D}/annot.defs and
+\!${TMP_D}/up_feats_c.pl parsing.
+
+>>Jul 24, 2012
+(uascii.h, map_db.c)
+Modify NANN, a value one more than the largest amino-acid encoding
+value, increasing it from 50 (too small for NCBIStdaa_ext_n) to 60;
+ESS changed to 59.
+
+>>Jul 20, 2012
+(mshowalign2.c, mshowbest.c, compacc2.c, comp_lib8.c)
+(transferred from fasta-36.3.5)
+(a) Fix bug in mshowalign2.c that occurred because of re-use of the
+"tmp_len" variable when adding '\n' to -L long descriptions.  This
+typically occurred with -m 10.  (b) Modify logic used to capture if an
+alignment had been calculated, reducing dramatically the number of
+re-alignments with multiple -m "F" output files.
+
+>>Jun 30, 2012
+(mshowbest.c)
+Ensure that opt score and E()-value are based on initial scan score,
+not later alignment score.  score_delta is used to increment initial
+scan score.  However, currently the E()-value of the alignment score
+is displayed in the alignment list, so the -m 9 and showalign()
+E()-values can be inconsistent.
+
+>>Jun 29, 2012 (from fasta-36.3.5c)
+(pssm_asn_subs.c)
+Add chk_asn_buf() before getting RPSPARAMS_MATRIX.
+
+>>Jun. 27, 2012 (from fasta-36.3.5c))
+(nmgetlib.c, compacc2.c)
+Fix bug that allocated unnecessary space for re-loading sequences in
+pre_load_best() (compacc2.c).  Ensure that closed/NULL memory mapped
+file descriptors are not returned.
+
+>>Jun. 18, 2012
+(compacc2.c)
+Modify pre_load_best() to allocate memory for sequences to be aligned
+only if the sequences are not already in memory.  (Searches against
+hg18 with repetitive queries caused very large amounts of memory to be
+allocated in duplicate.)
+
+>>Jun. 12, 2012
+(compacc2.c, doinit.c, dropfx.c, cal_consf.c)
+Implement variant scoring for fastx36.  Also address problems with
+annotation location when -m markx is not set.  Check function
+definitions for other drop functions where variant scoring is not yet
+implemented.
+
+>>Jun. 9, 2012
+(defs.h, doinit.c, c_dispn.c)
+Add 'M' and 'B' options to -m 0,1 to specify annotation location. For
+example, -m 0M (-m1) causes the annotation to be inserted in the
+"middle" alignment line, rather than in the coordinate line (making
+the sequence with the annotated feature ambiguous).  -m 0B, -m1B
+puts the annotation in both the middle (alignment) line and the
+coordinate line.
+
+>>Jun. 8, 2012
+(doinit.c, compacc2.c, build_ares.c, mshowbest.c, mshowalign2.c,
+structs.h and others)
+
+Implement a script-driven strategy for feature annotation in
+alignments.  In addition to: fasta36 -V '*%^@', which extracts the
+annotation characters from the library sequences, we can also do:
+fasta36 -V '*%^@ \!feature_script.pl' which expects the same
+annotation characters ('*%^@'), but expects them from the script
+'feature_script.pl'.  This script gets the sequence description line,
+e.g: "gi|121746|sp|P09211|GSTP1_HUMAN Glutathione S-transferase P (GST
+class-pi) (GSTP1-1)", and is expected to return a tab-delimited file:
+====
+pos label value
+23	*	
+33	*	
+34	*	
+116	^	
+173	V	N
+210	V	T
+====
+
+Currently, the "value" is ignored unless the label is "V", for
+variant. If 'V' annotations are present, then the alternative
+amino-acid residue values are tested in alignments; if the variant
+residue improves the score, the score is updated and the variant
+sequence is displayed, and a 'V' indicates the variant in the
+coordinate line.  Currently, variant annotations can only affect
+library sequences.
+
+By default, annotation symbols are shown in the coordinate line for -m
+0 (default) and -m 1 (difference) alignments, sometimes overwriting
+the coordinate. Annotation symbols (from either sequence) can be shown
+in the middle alignment line by specifying -m 0M or -m 1M, or in both
+the middle alignment line and the coordinate line with -m 0B, -m 1B.
+
+>>May 5, 2012
+(dropnnw2.c)
+Enable rev-comp for ggsearch/glsearch.
+
+>>Mar. 13, 2012
+(defs.h)
+Increase default file name length to 256 from 120 to accommodate long
+file names at the EBI.  Also allow much longer command line arguments
+argv_line[MAX_LSTR=4096] to be reported.
+
+>>Jan. 30, 2012
+(nmgetlib.c, altlib.h)
+Read .fastq sequence libraries (ignoring quality information) as library type '7';
+
+>>Dec. 21, 2011 (released as fasta-36.3.5c)
+(nmgetlib.c)
+Fixed a problem reading multiple library files that produced
+segmentation faults because a data buffer was free()ed and then
+re-used.
+
+>>Nov. 17, 2011
+(initfa.c, mshowalign.c)  (from fasta-36.3.5b)
+Fix problem with ppst->e_cut_r for LALIGN DNA sequences (set
+improperly to 0.001).  Add ':' to s_bits: in -m 10 output.  Also
+remove "score" from "lsw_s-w opt" score description (not present in
+non-LALIGN -m 10).
+
+>>Nov. 9, 2011 (from fasta-36.3.5b)
+(lavplt_svn.c, lavplt_ps.c, ncbl2_mlib.c)
+Fix buffer overrun for lav legend.  Fix old problem re-opening NCBI
+blastdbfmt indirect OID files.
+
+>>Oct. 30, 2011
+(comp_lib9.c)
+Correct re-initialization bug that prevented the second query sequence
+from seeing the entire library.
+
+[from fasta-36.3.5a_svn]
+(comp_lib9.c, comp_lib8.c, ncbl2_mlib.c, nmgetlib.c)
+Address out-of-memory problems when searching memory mapped, and fix
+problem using fopen()/fread() rather mmap for NCBI DNA databases.  On
+32-bit machines, NCBI database files cannot be left open, and are now
+more agressively closed.  However, searches that produce very large
+numbers of alignments may still run out of memory on low-memory 32-bit
+machines.
+
+(compacc2.c, comp_lib8.c, comp_lib9.c, htime.c)
+Correct problems that produce negative scan times.
+
+>>Oct. 21, 2011
+(pcomp_subs2.c, work_thr2.c, mshowalign2.c, make/Makefile.mp_com2, Makefile.fcom)
+Fixes to re-enable MPI compilation and execution.
+
+>>Oct. 18, 2011
+(compacc2.c, mshowbest.c, comp_lib8.c, comp_lib9.c, initfa.c)
+Fix the logic for specifying the number of alignments displayed with
+the -b 123, -b '>123', -b '=123', -b '$' options, particularly when
+statistics are not used.
+
+>>September 21, 2011
+(initfa.c, apam.c, scaleswn.c compacc2.c)
+Two major problems have been addressed (which also affect fasta-36.3.5
+and earlier versions): (a) specifying a -s dna.mat DNA matrix did not
+work properly; (b) too few shuffles, particularly with DNA sequences,
+were produced with pairwise comparisons.  The problem with scoring
+matrix files was exacerbated by the use of fixed library alphabets.
+initfa.c has been modified to recognize that when a DNA scoring matrix
+is specified, the "-n" option is set.  The shuffling problem appeared
+when, for pairwise DNA comparisons, fewer than 50 shuffles were
+reported. This occurred because the buffers used to communicate with
+threads no longer have a fixed amount of sequence buffer associated
+with them.
+
+>>August 23, 2011
+(tatstats.c, upam.h, apam.c)
+The remapping of the amino-acid encoding to NCBIstdaa broke some
+assumptions in tatstats.c, and elsewhere.  In addition to the simple
+mapping problem, which changed the counts[] assignment in
+tatstats.c/calc_priors(), the fact that NCBIstdaa does not have
+contiguous real amino acids (e.g. B is at position 2), broke the
+generate_tatprobs() function because of a very old bug where priorptr
+was not always incremented.
+
+Some of the drop*.c functions have been updated to ensure that the
+space allocated for rapid pam[][] score lookup includes space for
+lower-case characters, which can be present in pseg'ed "map_db -b"
+libraries.  In addition, binary format (currently all mmap'ed)
+libraries cannot include annotations, because common annotation values
+('*', '&') overlap the range of the NCBIstdaa_l (lowercase) mapping.
+
+>>August 1, 2011
+(map_db.c)
+map_db.c has been modified to provide a more efficient memory mapping
+for FASTA format files. map_db -b works like map_db, but, in addition
+to writing the .xin index file of descriptions and sequences in the
+FASTA library, it also produces a new protein_library.bsq file and
+protein_library.xin_b that contains binary encodings of the databases
+and an index for this file.  The binary encoding can be memory mapped,
+so that database searches can proceed directly from memory.  map_db -b
+.bsq files are very similar to the blastfmtdb files, except that they
+accomodate lower-case letters (masked) in the sequences.  The
+implementation of blastfmtdb lower-case masking prevents it from being
+used in directly memory mapped files.
+
+map_db.c introduces a new memory mapped format encoding, MP2.  I
+expect this format to be extended to allow not only directly memory
+mapped files, but also directly memory mapped lookup tables.  A
+database can be hashed, and the hash and link files written to a
+library file, which can then be used for searches without the need to
+re-calculate the hash/link tables.
+
+(comp_lib9.c, mmgetaa.c, ncbl2_mlib.c, initfa.c, dropfz.c)
+Modifications to allow memory mapped files to be read and processed
+directly.  Databases with lower-case characters can be memory mapped,
+which means that lower-case characters are coming into the alignment
+programs even when -S is not specified.  As a result, all the protein
+scoring matrices must be built-out to allow lower-case
+characters. Likewise, the dropfz2.c matrices built by init_weights()
+must always be set for lower-case characters.
+
+>>July 20, 2011
+(mshowbest.c, mshowalign2.c)
+gi|12345 numbers are no longer shown in the list of best hits unless
+-m 8 or -m 9 are used.  They are never shown in the alignments.
+(dropfz2.c)
+Modify MAX_UC, MAX_LC to be consistent with NCBIstdaa alphabet. Modify
+<= nsq for init_weights().
+
+>>July 16, 2011	 fasta-36.3.6
+(comp_lib9.c, drop*.c, cal_cons*.c)
+The internal encoding of amino-acids has changed to NCBIstdaa
+throughout the programs.  This allows the programs to use memory
+mapped NCBI blastdbfmt libraries directly, without re-encoding, but
+lower-case low-complexity mapping is not recognized.  This allows
+substantial speedup in single query searching.  However, to allow
+low-complexity searches, a new memory mapped format/encoding will be
+required.
+
+>>July 5, 2011	 fasta-36.3.6
+(compacc2.c)
+Modify save_best2() logic for identifying scores to be used for
+statistics.  An is_valid_stat is set for multi-frame results that
+specify which scores can be used for the stats[] and qstats[] arrays.
+Modifications to buf_do_work(), buf_shuf_work(), and buf_qshuf_work()
+to cause the calculation to be done in the thread, rather than the
+main program.  Fix some bugs in the qshuffle code to ensure that all
+valid shuffles up to maxshuff are saved.
+
+(complib5e.c, complib7e.c, complib8.c)
+Fix -m 9c/C core dump with -z -1.
+
+(cal_cons.c, cal_consf.c)
+Reverse 'I', 'D' with CIGAR string.
+
+>>June 26, 2011
+(comp_lib8.c, compacc2.c)
+
+Added the ability to search a library produced/specified by a script.
+Like the "-e expand_script.sh", searching against a library that
+begins with a '!', e.g. '!library_script.sh', causes the
+library_script.sh to be executed, producing a temporary file from
+stdout, which is then scanned as the database.  As with expansion
+files, all the standard library syntax can be included.  Thus, if
+cat_db.sh contains the command 'echo /seqdb/swissprot.lseg', the
+command:
+
+  fasta36 query.aa '\!@cat_db.sh' 
+
+will cause cat_db.sh to produce a temporary file with the line
+"swissprot.lseg"; the temporary file will be interpreted as an
+indirect file of filenames; and swissprot.lseg will be searched.  Note
+that in Unix systems, the '!' must be preceeded by a '\' as shown
+above, so that it is not interpreted by the shell.
+
+>>June 23,24 2011
+(compacc2.c, comp_lib8.c, mysql_lib.c)
+A new save_best2() function in compacc2.c has been designed to
+simplify the logic involved in saving best scores, with the goal of
+moving some of the save_best() calculations into individual threads.
+
+mysql_lib.c has a new command, close_tables, that allows a script to
+remove a table after it has been used. (It might make more sense to
+add this to the extension script option.)
+
+>>June 14, 2011 (released as fasta-36.3.5a June, 2011)
+(comp_lib7e.c, comp_lib8.c, compacc2.c)
+Fix a serious bug in next_sequence_p() that caused a portion of the library to
+be missed when long sequences filled the sequence buffer before the
+slots were filled.
+
+Make certain that thread buffers are cleared when running an expansion
+script.
+
+Return an extra '\n' before the final summary for consistency with
+earlier versions.
+
+>>June 2, 2011	 (released as fasta-36.3.5 June, 2011)
+(comp_lib8.c, comp_lib5e.c, comp_lib7e.c)
+Fix a bug that indicated that linked expanded sequences were
+pre-loaded for alignment when they were not.
+
+>>May 24, 2011 (released as fasta-36.3.5)
+(comp_lib8.c, comp_lib7e.c, comp_lib5e.c, mshowalign2.c, compacc2.c,
+initfa.c, param.h, scaleswn.c)
+
+The in-memory versions of the program are allocating much more memory
+than they actually use, causing the memory limits to cut in too soon.
+Fix this by using a smaller MAXLIB_P (36000) for searches against
+protein libraries, and expanding/contracting the aa1b_size more
+sensibly.  Also add lost_memK value to track lost memory.  For protein
+searches, lost memory is now around 15% of allocated memory (down from
+40%).
+
+Numerous fixes to improve formatting of HTML output.  Full statistics
+parameters are now available with the fdata output.
+
+Add fset_vars() to comp_lib8.c to set m_msg.max_memK properly.
+Parameters have been modified to ensure less memory waste (all buffers
+have 1000 sequences); Drop default 64-bit library memory limit to 8GB
+(-XM8G, LIB_MEMK=8G).
+
+>>May 25, 2011
+(comp_lib8.c, comp_lib7e.c, comp_lib5e.c, mshowbest.c)
+
+Add the '-b >1' option, guarantees that at least 1 result is shown,
+but otherwise limits by E()-value.  '-b =10' guarantees to show
+exactly 10 results (never more or less if the library is large
+enough), '-b 10' will show no more than 10 results, limited by -E
+e_cut, and '-b >1' will show at least 1 result, but is otherwise
+limited by -E e_cut.
+
+>>May 19, 2011
+(comp_lib8.c, compacc2.c, param.h)
+comp_lib8.c is a version of comp_lib7e.c that keeps sequences in
+memory over multiple searches, but returns seqr_chains of buffers of
+sequences as they are read, rather than waiting for everything to be
+read. comp_lib8.c will automatically allocate up to 2 GB (32-bit
+machines) or 8 GB (64-bit machines) to hold the sequence database in
+a multiple query search.  This number can be increased or decreased
+using the -XM# (megabytes) or -XM#G (gigabytes) option, or by setting
+the LIB_MEMK environment variable.  -XM4G (LIB_MEMK=4G) makes 4GB
+available for sequence libraries; -XM-1 makes all machine memory
+available.
+
+>>May 5 2011
+(mshowbest.c)
+Fix problems that prevented "-b align_number" properly limit output
+with "-z -1".  "-z -1" also broke multiple HSPs (since no threshold
+could be calculated); fixed.  
+(dropnfa.c)
+Fix some offset arithmetic that prevented FASTA alignments from
+extending to full length in do_walign().
+
+>>May 4, 2011
+(scaleswn.c)
+Provide additional checks for division by low numbers in fit_llen2()
+and fit_llens().  The similarities between fit_llen(), fit_llens(),
+and fit_llen2() have been highlighted, and their differences
+documented.  scaleswn.c now provides pstat_info, which writes all the
+values required to re-calculate zscores or E()-values from raw scores.
+
+>>May 2, 2011
+(dropnfa.c)
+Fix a problem with the traditional cgap(join)/optcut(opt) thresholds
+(no longer used by default) caused by allowing ktup=3 for proteins.
+The ktup=3 modification increased the cgap/opt thresholds by 6.
+
+(comp_lib5e.c, comp_lib7e.c, comp_lib8.c)
+Confirm identity of -m # and -m "F3 file.out".  Small differences fixed.
+
+(mshowbest.c, mshowalign2.c)
+Remove gi|12345 information from -m B, -m BB blast-like output.  NCBI
+Blast does not display gi numbers.
+
+>>Apr. 22, 2011
+(doinit.c, initfa.c)
+Several of the less common options have been changed to expanded
+options, changing the meaning of -X (which now specifies expanded
+options), as well as -o, -1, -B, -x, and -y.  -o now provides the
+offset coordinates previously specified with -X; -B is now -XB, -o
+-Xo, -x -Xx1,-1, and -y -Xy, e.g. -Xy32.
+
+>>Apr. 19, 2011
+(comp_lib7e.c, comp_lib5e.c, doinit.c, mshowbest.c)
+Test lastest version with -I interactive mode.  Modificiations
+required to ensure that aligments goto outfd, not stdout, when
+filename is entered.  In addition, in interactive mode there can be
+more scores shown than e_cut, so bbp->repeat_thresh must be set in
+showbest() not main() program.
+
+>>Apr. 17, 2011
+(comp_lib7e.c, doinit.c, compacc.c)
+
+The FASTA programs now support multiple output files with different -m
+out_fmt types using the -m "F# out_file" or -m "F#,#,# out_file"
+option.  Normally, the -m out_fmt option applies to the default output
+file, which is either stdout, or specified with -O out_file (or within
+the program in interactive mode). With -m F, an output format can be
+associated with a separate output file, which will contain a complete
+FASTA program output.  Thus,
+
+  ssearch36 -m 9c -m "FBB blast.out_file" -m "F10 m10.out_file" query library
+
+Will sent the -m 9c output to stdout, but will also send -m BB output
+to blast.out_file, and -m 10 output to m10.out_file.  Consistent -m
+out_fmt comands can be set to the same file by separating them with
+','; e.g.:
+
+  ssearch36 -m 9c -m "F9c,10 m9c_10.out_file" query library.
+
+Producing alternative format alignments in different files has little
+additional computational cost.
+
+One of the shortcomings of this approach is that it affects only the
+output format, not the other options that modify the amount of output.
+Thus, if you specify -E 0.001; that expect threshold will be used for
+all the output files.  When a -m option can modify the output (e.g. -m
+8 sets -d 0), that modification persists only for that file.
+
+>>Apr. 14, 2011
+(initfa.c)
+Fix bugs in e_cut_r calculation that made it much too low for
+lalign36, and used the >1.0 divisor improperly for all programs
+(change from e_cut_r = e_cut_r/divisor to e_cut_r = e_cut/divisor).
+
+>>Apr. 11, 2011
+(comp_lib5e.c, comp_lib7e.c, compacc.c)
+
+The non-preload version of FASTA (comp_lib5.c) has been extended to
+allow script expansion (comp_lib5e.c). To do this, the central score
+calculation loops have been moved to getlib_buf_work(), just as
+seqr_chain_work() was created for comp_lib7e.c.  Moreover, the
+function used to build the link_file names is build_link_data() is now
+in compacc.c.  Differences between comp_lib5e.c and comp_lib7e.c have
+been reduced.
+
+>>Apr. 5, 2011
+(comp_lib7e.c)
+Fix issue with closing unopened link_lib_list_p when no results are
+found. Remove no-sequence error message for link library file.
+
+>>Apr. 1, 2011
+(comp_lib7e.c)
+The -e script.sh has been generalized to have all the capabilities of
+a library file, in particular '@' specifies an indirect file, and
+"script.sh #" allows a library type to be specified.  Thus, the
+script.sh invoked by "@script.sh" should not produce a fasta file; it
+should produce a file that contains the name of a fasta file (or
+possibly some other format).  If '@' is used, the link_lib file
+written to stdout will be prepended with '@', and treated as an
+indirect file of file names.
+
+(comp_lib5.c, comp_lib7.c, comp_lib7e.c)
+Fix problem with null refstr (no Please cite:).
+
+>>Mar. 31, 2011
+(comp_lib7.c, comp_lib7e.c)
+close_lib() was being called after each query.  This is incorrect for
+versions (like comp_lib7) that keep the entire database in memory; the
+files must be kept open to allow ranlib() to get long descriptions
+(alternatively, a long description could be read initially).
+
+(comp_lib5.c, comp_lib7.c, comp_lib7e.c) 
+Fix query offset coordinates for long queries that are broken up.
+Allow query library to have zero-length sequences without stopping
+(queries now stop when end-of-file is reached).
+
+(upam.h)
+Fix gap penalties for BLOSUM80 matrix (change from -14, -2 to -10, -2).
+
+>>Mar. 29, 2011
+(comp_lib7e.c, doinit.c)
+
+Add the ability to search an expanded set of sequences based on the
+accessions from the initial search using "-e expand.sh" option.
+If "-e expand_script.sh" is specified, the command:
+
+    expand.sh link_acc_file > link_lib_file
+
+is run by the program (fasta36, ssearch36, fastx36, etc), where
+link_acc_file and link_lib_file are temporary file names produced by
+the program. (The location of the temporary files can be specified
+with the $TMP_DIR environment variable.)  link_acc_file contains a
+list of accession strings for the statistically significant hits - the
+information in the description line to the first space, e.g.
+
+gi|121719|sp|P08010|GSTM2_RAT
+gi|121746|sp|P09211|GSTP1_HUMAN
+
+from a search against my pir1.lseg library.
+
+"expand.sh" then reads that file, extracts the accession information,
+expands the accessions to a new set of accessions, extracts the
+expanded set of accessions from a database and writes them to
+standard output (which is saved in the temporary link_lib_file
+name). The sequences in expanded link_lib_file are then added to the
+initial search, and included in the list of best scores (and
+alignments) if their scores are statistically significant. The
+additional sequences do not change the initial library size.
+
+To test the expansion capability, use an expand.sh script that simply
+cat's a file of homologs to stdout (which will go to link_lib_file and
+be read), e.g. expand.sh contains "cat ../seq/gst.lib".
+
+Building a program that can take an arbitrary list of accessions and
+produce a library of homologs is more complicated (and slower), but
+will allow a smaller database to be searched yet produce results
+similar to those found from a larger database.
+
+>>Mar. 24, 2011		(released as fasta-36.3.4)
+(comp_lib7.c, dropfx.c, dropfz2.c, doinit.c)
+Fix a bug in the new help display; identify and correct various memory
+leaks and references to uninitialized data.
+
+>>Mar. 15, 2011
+(doc/fasta3x.me, fasta3x.tex)
+The ancient, rarely updated, fasta3x.me has been replaced with
+fasta3x.tex, with the goal of producing a more up-to-date, accurate,
+and comprehensive document describing the capabilities of the FASTA
+programs.  In addition, fasta36.1 has been updated/corrected.
+
+(make/Makefile.os_x86_64)
+Mac OS X clang 2.0, distributed with Xcode4.0, does not properly
+optimize the smith_waterman_sse2_word() in smith_waterman_sse2.c when
+clang -O is used to compile.
+
+>>Mar. 4, 2011
+(doinit.c)
+Histograms are now turned off by default.  -H shows histograms for all
+programs, not just the *_mpi (PCOMPLIB) programs.
+
+>>Feb. 27, 2011
+(make/Makefile36m.common, Makefile.pcom_t, Makefile.pcom_s)
+
+The threaded programs are now the default, and the *_t versions of
+programs have been removed from the Unix and unix-like (MacOX)
+distributions.  Windows versions can have either threaded or
+non-threaded versions, since the threaded windows programs require an
+additional library. Serial versions of the programs can still be built
+by editing the make/Makefile36m.common file, and using
+include Makefile.pcom_s instead of include Makefile.pcom_t.
+
+The documentation has been edited to reflect these changes.
+
+>>Feb. 24, 2011 (comp_lib5.c, comp_lib7.c, doinit.c, initfa.c,
+structs.h) The FASTA programs have a much more informative help
+system.  If the -DSHOW_HELP option is included in the Makefile, the
+following changes occur: (1) the program is no longer interactive by
+default. To get interaction, use the -I option (-I previously meant
+showing the identity alignment in lalign; that option is now available
+with -J). (2) fasta36 and fasta36 -h present a short help message. (3)
+fasta36 -help provides a complete list of options with a more complete
+set of options.  The getopt() option strings are now built
+dynamically.
+
+>>Feb. 18-21, 2011
+(doinit.c)
+Fix missing -m 9i percent identity/alignment length.  Fix issues with
+short sequence description in -m 6 (html) mode.
+
+>>Feb. 17, 2011
+(comp_lib5.c, comp_lib7.c, doinit.c)
+Implementation of -m BB which provides completely BLAST-like output
+(not just alignments).
+
+Modification of the -b ### option.  Previously, -b 100 guaranteed 100
+alignments; now -b 100 limits to 100 alignments if more than 100
+alignments have E()-values less than the -E threshold. An '=' symbol
+before the number reverts to the previous behavior; e.g. -m =100
+guarantees 100 alignments, regardless of E()-value (-m =100 is
+equivalent to -m 100 -E 100000.0, and disables other setting of the
+E()-value threshold).
+
+>>Feb. 10, 2011
+(doinit.c, mshowalign2.c, c_dispn.c)
+The FASTA programs have a new alignment option, "-m B", which shows
+alignments in BLAST format (no context, coordinates on the same line,
+BLAST symbols for matches and mismatches.)  This version does not
+change the descriptions of the alignments, which are still FASTA like,
+but the alignments themselves should look just like BLAST alignments.
+Option -m BB makes output even more blast-like, showing not only the
+alignments, but the initial set of high scoring sequences, and other
+initial information, like BLAST+.
+
+>>Feb. 9, 2011 	released as fasta-36.3.3
+(dropfs2.c, initfa.c, comp_lib*.c)
+Modify fasts36/fastm36 to allow up to ktup=3 for proteins; ktup=6 for
+DNA (previously the max was ktup=2 for both).
+
+Modify version string to match release version number.
+
+>>Feb. 6, 2011
+(initfa.c)
+Fix bug that prevented fastm36 from working properly with DNA queries.
+
+>>Jan. 31, 2011
+(pcomp_subs2.c, work_thr2.c)
+Fixes to fasty36_mpi/tfastx36_mpi problem.  Only fasty needs pascii[]
+for alignments, but it wasn't being sent to workers. Fixed.  The MPI
+versions of the programs have now been tested much more thoroughly.
+
+>>Jan. 29, 2011
+(comp_lib5.c, comp_lib6.c, comp_lib7.c, work_thr2.c, initfa.c,
+param.h, dropfs2.c, scaleswt.c, dropfx.c)
+
+Translated DNA shuffles (tfastx36, tfasty36) now shuffle DNA as
+codons.  (1) Modify param.h pstruct to include shuffle_dna3,
+initialized in resetp() [initfa.c] (2) modify buf_shuf_work() to use
+ppst-zs_win and ppst->shuffle_dna3. (3) Add ppst->zs_off=0 to
+scaleswt.c/process_hist(). (4) Fix some memory leaks in dropfx.c.
+(5) Fix some other memory leads in dropfs2.c.
+
+>>Jan. 28, 2011
+(initfa.c, scaleswn.c, mshowalign2.c)
+Address crashes that occurred when novel scoring matrices and gap
+penalties were specified, particularly for DNA.  Fix memory problem
+with long (-L) sequence descriptions.
+
+>>Jan. 23, 2011
+(comp_lib7.c)
+comp_lib7.c uses a more efficient strategy for reading chunks of
+sequences that ensures that sequence data is contiguous for *_mpi
+programs.  comp_lib7.c replaces comp_lib6.c, which will be removed.
+
+>>Jan. 22, 2011
+(many files)
+Replace "mw.h" with "best_stats.h", a much more informative name.
+
+(drop*.c, p_mw.h, w_mw.h)
+Remove p_mw.h, w_mw.h from code base and update_params() from
+drop*.c. These files are left over from the old p2_complib.c parallel
+programs.
+
+>>Jan. 21, 2011	released as fasta-36.3.2
+(comp_lib5.c, comp_lib6.c, pcomp_subs2.c)
+Fixes for MPI version of programs.  Earlier versions did not handle
+DNA/translated DNA comparisons properly, because duplicated sequences
+(forward/reverse strand) were not handled properly. The current code
+produces the correct scores and alignments, but probably is much less
+efficient than it should be.
+
+>>Jan. 11, 2011
+(initfa.c, scaleswn.c)
+Re-enable DNALIB_LC (read lower-case DNA sequences as lower case).
+
+Reset ktup to default after change for short query in multi-query
+searches.
+
+Address multiple issues associated with variable scoring matrices,
+i.e. -s '?BP62'.  Introduce pst->pam_name for the actual scoring
+matrix, to distinguish it from pst->pam_file, which can correspond to
+the std_pam->abbrev, for values like BP62 (which encodes both a matrix
+and a specific set of gap penalties).  Ensure that the new scoring
+matrix is initialized and extended correctly.  Fix some issues with
+scoring matrix names in scaleswn.c
+
+>>Jan. 5, 2010
+(dropnnw2.c, dropgsw2.h, global_sse2.c,h, glocal_sse2.c,h)
+Include SSE2 optimization for global/global and global/local alignments
+provided by Michael Farrar.  Global and glocal alignments are now 20X
+faster.
+
+>>Jan. 5, 2011	re-released as fasta-36.3.1
+(initfa.c, last_tat.c)
+Fix bug resetting pst.e_cut_r for DNA sequences.  Modify last_tat.c
+code to use pre-loaded sequence if available. Remove last_tat.c
+PCOMPLIB code.
+
+>>Jan. 3, 2011	 released as fasta-36.3.1
+(comp_lib5.c, comp_lib6.c)
+Add >>><<<, >>>/// to -m 9,10 output for separating multiple query
+searches.  Also clean up extra >>>query line before alignments when no
+alignments are shown.
+
+>>Dec. 16, 2010
+(dropgsw2.c, dropnnw2.c, dropnsw.c, comp_lib5.c, comp_lib6.c)
+Fix bug that caused ssearch to not invert coordinates for
+reverse-complement DNA alignments (I never imagined using ssearch for
+DNA) in dropgsw2.c, dropnnw2.c, and dropnsw.c.  Add SEQ_PAD to aa0[1]
+(rev-comp copy) in comp_lib5.c, comp_lib6.c.
+
+>>Dec. 14, 2010
+Modify CIGAR strings for frameshifts, including 1F and 1R for forward
+and reverse frameshifts.  Extensive documentation updates.
+doc/fasta36.1 is the most comprehensive and accurate description of
+FASTA options.
+
+>>Dec. 1, 2010
+(drop*.c, comp_lib5.c, comp_lib6.c)
+Correct problems with copying for recursive sub-alignments.  Correct
+bug in adler32_crc calculation that suggested a problem with continued
+library sequences that did not exist.
+
+(initfa.c, defs.h)
+Use MAXLIB, rather than MAXLIB+MAXTST for comp_lib6.c, which
+pre-allocates the sequence database.  Increase MAXLIB.
+
+>>Nov. 24, 2010
+(drop*.c, drop_func.h)
+Modify drop*.c functions that do recursive sub-alignments to avoid
+modifying the aa1[] sequence array, which conceivably could be in use
+by other threads. do_walign() now has const *aa0 AND const *aa1.  To
+prevent modification of aa1, sub-regions of aa1 are now copied into
+newly allocated arrays.
+
+>>Nov. 20, 2010
+(cal_cons.c, mshowbest.c, mshowalign2.c, doinit.c)
+The -m 9C option displays an alignment code in CIGAR format. (-m 9c
+shows the older alignment encoding.)
+
+>>Nov. 16, 2010		(beginning of fasta-36.3.*, verstr 36.07)
+(initfa.c, apam.c, upam.h, param.h)
+
+Provide the ability to adjust the scoring matrix based on the length
+of the query sequence for alignments using a protein alphabet (this
+could certainly be extended to DNA as well).  By including a '?'
+before the scoring matrix, e.g. -s '?BP62', a shallower matrix will be
+chosen if the entropy of the selected matrix (i.e. bit score per
+aligned position) times the length of the protein query is
+<=DEF_MIN_BITS (defs.h), currently 40 -- this value should be set
+based on the library size).  The FASTA programs include BLOSUM50 (0.49
+bits/pos) and BLOSUM62 (0.58 bits/pos) but can range to MD10 (3.44
+bits/position). The variable scoring matrix option searches down the
+list of scoring matrices to find one with information content high
+enough to produce a 40 bit alignment score.  This option is included
+primarily for metagenomics scans, which can include relatively short
+DNA reads, and correspondingly short protein translations.
+
+Also correct the short-query modification to ktup, so that it works
+properly with translated FASTX/FASTY searches (ktup is set to 1 when
+the query_length/3 <= 20).
+
+(dropnfa.c, dropfx.c, dropfz2.c)
+Shuffled sequence alignment scores are calculated identically to
+library alignment scores. Previously, optimized scores were calculated
+for all shuffled sequences for FASTA type alignments, even though
+typically 20 - 40% of library sequences were optimized.  Now the two
+sampling strategies are consistent, though this may cause problems
+when only a small fraction of sequences are optimized.
+
+Small changes to provide consistent dropnfa.c, dropfx.c, dropfz2.c
+parameter display, and fix display with -m 10.
+
+>>Nov. 15, 2010
+(initfa.c)
+Enable statistical thresholds by default (previously, they were
+enabled with -c -1 or -c 0.01 or anything < 1.0).  The "classical"
+join/opt threshold behavior can be restored with -c O (upper case
+letter O), or by providing an optimization threshold >
+1.0. Statistical thresholds dramatically speed up searches (typically
+2-fold), and provide more accurate statistical estimates.  The old
+join/optimization thresholds where optimized for BLOSUM50, and other
+1/3-bit scaled scoring matrices, and did not work well with BLOSUM62.
+Statistical thresholds have been tested extensively, particularly with
+-z 21, and produce much more reliable statistical estimates.
+
+>>Oct. 14, 2010
+(Makefile.fcom, cal_cons.c)
+Edits to re-enable compilation and successful execution of
+tfasta36(_t). tfasta36 has been superceeded by tfastx36(_t), which is
+faster, and treats frameshifts as a different type of gap.
+
+>>Oct. 13, 2010
+(mshowbest.c)
+Make it more difficult to request more description/scores than are
+available.
+
+>>Sep. 30, 2010	 (released as fasta-36.2.7)
+(comp_lib5.c, comp_lib6.c, dropnfa.c, dropfx.c, dropfz2.c)
+Fix bugs in DEBUG versions with adler32_crc calculations on
+overlapping sequences.  Add more informative error messages when
+debugging.  Fix a problem with hist2.hist_a != NULL with some
+compilers. Fix formats for some debugging error messages in dropnfa.c,
+dropfx.c, and dropfz2.c.
+
+Also fix repeat_threshold calculation for very short sequences, to
+guarantee that all matches as good as the best match with the sequence
+are found.  Fix some problems that prevented FASTA from finding short
+repeats with short queries.
+
+This version of the FASTA36 package offers an alternate main program
+file, comp_lib6.c, which reads the entire database into memory before
+doing the search.  Using comp_lib6.c can dramatically speed up
+searches with multiple queries (there is no advantage with single
+query sequences) on large multi-core computers, as each search is done
+without re-reading the database.  On a 48-core processor, we see
+speedups greater than 40X with ssearch36_t and fastx36_t.  To enable
+comp_lib6.c, edit the make/Makefile36m.common file to comment out
+lines refering to comp_lib5.c and un-comment lines referring to
+comp_lib6.c.
+
+>>Sep. 29, 2010
+(comp_lib5.c, comp_lib6.c, mshowbest.c)
+Added -m 8C option, which mimics BLAST+ tabular with comment lines
+format.
+
+>>Sep. 17, 2010
+(dropfx.c)
+
+Fix a bug in dropfx.c/do_walign() that modified library sequences.
+(This only caused a problem with comp_lib6.c, which reads the entire
+database into memory and re-uses sequence buffers.  Check sequence
+consistency with adler32 CRC calculation.
+
+>>Sep. 15, 2010
+(mshowbest.c, mshowalign2.c)
+Change the output format slightly.  E2() expect values (-z 21+) no
+longer contain the library size (which is always the same as the
+E(library_size) value), and the -m 9 +- line no longer contains the
+frame information, since it is redundant. (The redundant rev-comp
+remains on the >-- HSP lines.)
+
+>>Sep. 14, 2010
+(comp_lib5.c, mshowbest.c, drop*.c, cal_cons[f].c, etc.)
+Implement BLAST -m 8 tabular output.
+
+>>Sep. 9, 2010
+
+(compacc.c) Fix a bug in pre_load_best() that disabled
+-L long sequence descriptions.
+
+(doinit.c) Fix a bug that prevented non-overlapping alignments from
+being displayed when the -E threshold was changed.  Before -E 0.001
+would disable additional alignments.  Now, -E "0.001 0" is required to
+disable the additional alignments.
+
+(drop*.c) The display of search parameters has changed to ensure that
+gap penalties are displayed on the same line as the scoring
+matrix. Previously, the FASTA "Parameters:" section looked like:
+
+Parameters: BL50 matrix (15:-5)xS ktup: 2
+ join: 42 (0.0944), opt: 30 (0.601), open/ext: -10/-2, width:  16
+ Scan time:  0.450
+
+With fasta-36.2.7 (and later), the Parameters: section is:
+
+Parameters: BL50 matrix (15:-5), open/ext: -10/-2
+ ktup: 2, join: 42 (0.102), opt: 30 (0.574), width:  16
+
+The [T]FAST[X/Y] Parameters: section includes the frameshift/substitution penalties (tfasty36):
+
+Parameters: BL50 matrix (15:-5) open/ext: -12/ -2 shift: -20, subs: -24
+ ktup: 2, E-join: 0.5 (0.224), E-opt: 0.1 (0.0536),  width:  16
+
+>>Aug. 3, 2010	(released as fasta-36.2.6)
+(scaleswn.c)
+
+Modifications to calc_thresh(), proc_hist_ml(), to better accommodate
+search strategies (fast?? with statistical thresholds) that provide
+complete scores only for a high-scoring fraction of sequences.  For
+some query sequences, the E()-values from the database were sometimes
+much "worse" than E2()-values, an observation that is
+counter-intuitive (if parameters are estimated against shuffled
+related sequences, the E()-values should get worse, not better).  For
+some queries, the result was very dramatic (E() < 1E-80, E2() <
+1E-150).  This error appears to occur because the z-trim or mle_cen
+thresholds are including many related sequences.  -z 2 was modified to
+censor more sequences when only a subset are scored, and -z 1 was
+modified to adjust z-trim more carefully.  As a result, z-trim was
+reduced, excluding more sequences.  If too many sequence are excluded,
+then regression statistics do not work, and the program fails over to
+Altschul-Gish statistics.
+
+-z 21+ modified so that MLE statistics are used for shuffle E2()
+values if Altschul-Gish statistics are used for the library
+E()-values.
+
+>>July 30, 2010
+(comp_lib5.c, pcomp_subs2.c)
+
+Fix bug in buf_align_seq() that allowed buffer over-runs with long DNA
+sequences with MPI.  Checks on buffer over-runs are now included in
+pcomp_subs2.c/put_rbuf(),get_wbuf().  Aug. 1, 2010, fixed similar bug
+in buf_shuf_seq().  -z 21 now works with long DNA sequences.
+
+>>July 28, 2010
+(mshowalign2.c)
+Fix lalign36/showalign() to show best sub-optimal E()-value, not
+bptr[0] E()-value (often identical).
+
+>>July 19, 2010	(released as fasta-36.2.5)
+(wm_align.c, dropfx.c,dropfz2.c)
+Fix some off-by-one boundary calculations to ensure that every query
+that can fit into a library is aligned correctly.
+
+>>May 18, 2010
+Implement comp_lib5.c, which simplifies the structure of
+comp_lib4.c by moving some calculations into functions.
+
+>>May 10, 2010
+Fix problem setting nshow with small library in interactive mode.
+
+>>May 5, 2010  fasta-36.2.3
+Fix bug that prevented shuffled scores to be used properly for small
+databases (prss capability was lost).
+
+>>May 2, 2010  fasta-36.2.2
+Fix problem with tat_score values from fasts and fastm.  fasta35 did
+not re-calculate the z-score after last_stats().  fasta36 does, so it
+must ensure that the e-value (sometimes p-value) is used correctly.
+
+>>Apr. 29, 2010
+More extensive testing of the MPI-PCOMPLIB programs revealed some
+problems sending sequences when (or more) frames for the same sequence
+was used.  This problem has been addressed, and large scale testing of
+fastx36_mpi (with 100K sequence queries in a run) works.
+
+>>Apr. 16,19, 2010
+(pcomp_subs2.c, comp_lib4.c, work_thr2.c)
+The MPI-PCOMPLIB parallel version of the FASTA36 programs is
+working. This PCOMPLIB version takes a very different approach from
+the older PVM/MPI parallel programs (p2_complib2.c/p2_workcomp2.c) -
+it works virtually identically to the threaded programs (sharing the
+same work_thr2.c code and get_rbuf/put_rbuf() (manager) and
+get_wbuf/put_wbuf() (worker/thread) functions.  As a result, in this
+initial version, the database is NOT distributed to the nodes.  During
+multiple searches, the library is re-read each time.  However, load is
+distributed to workers exactly the way it would be for the threaded
+system, so the workload should scale.
+
+To distinguish them from the earlier mp35compsw, mp35compfa, etc, the
+new versions are search36_mpi, fasta36_mpi, etc.
+
+The programs work with multiple queries, and producing multiple
+sub-alignments, and work with -m 9c encodings.
+
+>>Apr. 7, 2010
+(various Makefiles, comp_lib4.c, pcomp_subs2.c, thr_bufs2.h,
+thr_buf_structs.h)
+
+The MPI version of the threaded programs, sseach36_mp, now compiles.
+pcomp_subs2.c replaces pthr_subs2.c, and thr_bufs.h ->
+thr_buf_structs.h, thr.h -> thr_bufs2.h, and pcomp_bufs2.h has been
+added as the equivalent of thr_bufs2.h for PCOMPLIB.
+
+>>Apr. 2, 2010
+(comp_lib4.c, work_thr2.c, compacc.c)
+Implement init_aa0(), which isolates code that calls init_work and
+sets up aa0s, aa1s, f_str[1] (reverse complement) and qf_str so that
+the same code is used by the serial, threaded, and (future) PCOMP
+versions.
+
+(work_thr2.c)
+work_thr2.c now contains code for either threaded or PCOMPLIB
+processes. Threaded processes get stuff from work_info; PCOMPLIB
+processes get the same information via messages sent from init_thr()
+called by main().
+
+>>Mar. 30, 2010
+(comp_lib4.c, work_thr2.c, thr_bufs.c +pcomp_subs2.c
+
+The the data buffers used to communicate between workers and threads
+have been restructured to separate the old buf2_str, which contained
+sequence, score results, and alignment results, into three buffers,
+buf2_data_s, buf2_res_s, and buf2_ares_s, separating sequence data
+from scores and alignments.  This was done to simplify communication
+in the MPI/PVM environment. Workers should be able to return results
+directly into the appropriate buffer.
+
+>>Mar. 25, 2010		fasta-36.2.1
+
+(dropfx.c, dropfz2.c)
+Found/removed two "static" declarations in small_global that caused problems
+with [t]fastx/y with threaded alignments.
+
+>>Mar. 24, 2010  (now version 36.06 with threaded alignments)
+(dropnfa.c)
+The DNA band aligner in dropnfa.c was not thread safe.  This has been
+fixed.
+
+>>Mar. 23, 2010
+Code for pre-loading/threaded-aligning sequences has been
+significantly cleaned up.  Checks are made before RANLIB() and
+re_getlib() in showbest() and showalign() that should be consistent
+with annotations AND functions that cannot encode alignments.
+
+Add mshowalign2.c (which does not do PCOMPLIB) to provide threaded
+alignments.  build_ares_code() and buf_do_align() modified to ignore
+MX_M9SUMM so that alignments are produced whenever demanded (still
+does not do alignment if a_res is available).
+
+>>Mar. 22, 2010
+(comp_lib4.c, work_thr2.c, thr_bufs.h)
+
+comp_lib4.c has been modified to thread the alignment encoding
+(build_ares) for -m 9c. If m_msg.quiet and alignments are required for
+showbest(), then the program identifies the number of alignments
+required, reads the sequences (and annotations) into a buffer, and
+sends them to the threads to be encoded.  Then, when showbest() is
+called, bbp->have_ares has been set, and the alignments are not
+re-calculated.  This should be extended to thread actual alignment
+production, and additional work is required to clean-up the sequence
+and bline(description) buffers before a second search.
+
+>>Mar. 17, 2010
+(comp_lib4.c, dropnfa,fx,fz2.c)
+Modifications to provide more sensible E2() statistical estimates with
+threshold-heuristic comparison functions and -z 21.  Also fixed bug
+that caused the wrong zs_off to be used with -z 21. dropnfa,fx,fz2.c
+now optimize all scores when shuff_flg is set.
+
+>>Mar. 16, 2010
+(comp_lib4.c, scaleswn.c, drop*.c)
+
+A new, relatively consistent, statistical estimation strategy has been
+introduced for the heuristic programs that optimize only a fraction of
+scores (fasta36, [t]fast[xy]36).  Statistics-based heuristic
+thresholds can increase search speed 2 - 4-fold by doing band
+optimization on only a small fraction of library sequences (with the
+-c -1 option, about 10% of alignments are band-optimized, compared
+with more than 50% with the classic thresholds).  However, optimizing
+only a small part of the library produces two classes of scores,
+optimized (10% or less) and non-optimized, with different statistical
+properties.  fasta36 addresses this problem by calculating statistical
+estimates only for the optimized scores, and then correcting the
+significance of the score by accounting for the frequency of
+optimization.  For example, sampling only 5% of scores increases the
+z-value (std. deviation above the mean) by -logE(0.05)*sqrt(6)/Pi =
+2.34 which offsets the z-score by 23.4.  This effect is only seen when
+the -c option is used to specify statistical thresholds, and is most
+apparent when looking at the histogram, which will be offset by the
+appropriate z-score.
+
+This strategy appears to produce more accurate statistics in general,
+but can produce less accurate statistics for the heuristic programs when
+the -z 21 option is used.
+
+>>Mar. 3, 2010
+
+(comp_lib4.c)
+Fix the new stats[] sampling strategy to sample >60K sequences more
+more uniformly.  The old code massively over-sampled later sequences,
+because of several bugs. The new code works as expected.  The first
+60K sequences are represented about 30% more than the rest, but after
+60K, sequences are sampled moderately uniformly.  The older
+SAMP_STATS_MORE is uniform across all the scores.
+
+(build_ares.c)
+Move code to produce chains of alignments (a_res) produced by
+do_walign, followed by subsequent calls to calc_id, calc_code, into a
+new function, build_ares_code(), which is shared by the
+serial/threaded and parallel (p2_workcomp.c) programs.  This is a
+first step towards having the parallel programs produce multiple HSP
+alignments.
+
+>>Feb. 27, 2010
+
+(lib_sel.c)
+Fix problem with new chained library access that prevented more than
+two files from being searched.  Also, library name string has been
+lengthened to allow a list of libraries to be displayed.
+
+>>Feb. 26, 2010
+
+Parallel programs have been tested in both PVM and MPI versions, and
+some additional bugs have been fixed.  Currently, the PVM/MPI versions
+are fully functional, but only with FASTA35 capabilities.  The new
+multiple HSP alignments and best-shuffle E2() scores are not yet
+available.
+
+>>Feb. 24, 2010
+
+Fix some leaks, largely do to more complex alignment data structures
+for multiple alignments.  Currently, all the major leaks are in data
+structures allocated in main(), and which I don't bother to
+de-allocate (mostly library buffer memory).
+
+Change zsflag > 10 to zsflag >= 10 && zsflag < 20 in three places.
+Too many shuffles were being done with zsflag==21.
+
+>>Feb. 22, 2010
+
+Begin conversion of p2_complib2.c/p2_workcomp.c.  Very old code to
+allocate aln_d_base removed from v35 and v36. No code for best list
+shuffle, or multiple high-scoring alignments.  However, the code now
+works properly with statistical thresholds. (Changes made to
+p2_complib2.c, p2_workcomp.c to update pst struct after last_param.()).
+
+>>Feb. 19, 2010 fasta-36x6
+
+Fix issues with -z 26 statistics.  Add description of E2() statistics.
+
+Added option to specify statistics routine for best-shuffled
+statistics independently of library statistics by specifying a second
+-z option.  Thus, -z "21 2" uses regression scaled statistics for the
+library estimate, and MLE statistics for the best-shuffled estimates.
+
+>>Feb. 17, 2010	fasta-36x5
+
+Some of the simplifications dealing with threads in comp_lib4.c failed
+on some compilers and architectures. The code for terminating threads
+has been modified to allow sequence buffers with zero entries, to
+simplify the empty_buffer logic.  There is now an explicit option to
+terminate threads by setting lib_bhead_p->stop_thread.  However, this
+flag is never set, as rbuf_done() stops the threads instead.
+
+Also fix problem with stats_idx being associated with wrong buf2_p in
+two frame searches.
+
+>>Feb. 15, 2010	fasta-36x4
+
+fasta36 can now display both "search" (E()) and "shuffled" (E2())
+E()-value calculation and display in the best scores and
+alignments. If the -z option is greater than 20, then two evalues are
+calculated, one from the search (e.g. -z 1 uses regression scaled
+scores) and a second derived from shuffling the high scoring
+sequences.  The high-scoring sequence shuffled scores are
+approximately equivalent to doing a PRSS (pairwise shuffle), but more
+efficient.  High-scoring shuffled E()-values (labled E2()) are
+typically 2 - 5-fold more conservative for average composition
+proteins, and 10 - 20X more conservative for biased composition
+proteins.
+
+Fix another bug in -S alignment scores vs opt scores in ssearch36 (see
+Feb. 8).
+
+>>February 12, 2010
+(prev. version 142)
+
+Create comp_lib4.c (from comp_lib3.c), which simplifies some of the
+processes for handling buffers of results (no more empty_reader_bufs)
+and enables shuffles of high-scoring sequences to evaluate significance.
+
+>>February 8, 2010
+
+Fix a problem with scores and E()-values for SSEARCH sub-alignments
+when the -S option is used.  When the -S option was used to ignore
+lower-case residues in query or library for the initial score, the
+final alignments include the lower-case masked residues.  The
+SSEARCH36 was using the non-masked alignment score, rather than the
+orginal score (FASTA36, and [T]FAST[XY]36 used the masked score).
+This was incorrect, as the statistics are calculated for masked
+sequences.  The corrected version calculates both a non-masked and a
+masked score, where the masked score (for subalignments) uses the
+non-masked alignment.
+
+[T]FAST[XY]36 had a related problem, which is that when multiple
+sequences are in the query with the same pam2p[0] (no -S) score, then
+the wrong alignment could be shown with the initial scores.  Fixing
+this requires that the alignment routine only work on the region
+specified from the initial band (fixed in dropnfa.c, dropfx.c, and
+dropfz2.c).
+
+>>February 4, 2010
+
+The more efficient statistical thresholds in fasta36 have been
+disabled by default.  They can be turned on with -c -1, or by setting
+thesholds (-c "0.05 0.2" would set E_band_opt to 0.05 - target 5% of
+sequences - and E_join at 20% target).
+
+My initial implementation produced very inaccurate statistics,
+presumably because only a small fraction of unrelated sequences were
+being band-optimized (fasta35 typically optimized about 60% of library
+sequences, fasta36 with statistical thresholds optimizes about 2%,
+which causes a 2 - 3X speed increase). The sampling strategy for
+fasta36, and [t]fast[xy]36 scores has been adjusted to provide
+relatively accurate scores for searches that optimize only a small
+fraction of sequences.  On the cases I have tested, statistical
+accuracy is comparable to, or better than, the version 35 programs,
+but probably not as robust as ssearch estimates.
+
+>>January 29, 2010
+
+The logic to predetermine where scores went for shuffling breaks when
+some scores are not calculated (e.g. -M 200 - 300).  Fix by using
+nstats as the index for nstats < MAX_STATS, and then use stats_idx
+afterwards.
+
+Provide more efficient score sampling logic.  The old method (left
+over from fasta34 or earlier) generated a random number for every
+sequence after MAX_STATS; if it was less than MAX_STATS, the sample
+was used. This logic is still available with -DSAMP_STATS_MORE.  The
+new logic samples every other sequence between MAX_STATS and
+2*MAX_STATS, every third between 2*MAX_STATS and 3*MAXSTATS, etc, and
+randomly replaces one of the stats scores.  For 430K SwissProt, this
+reduces the number of samples from 178K to about 145K, and reduces the
+number of calls to the random number generator from 430K to 85K.
+
+>>January 28, 2010
+
+(comp_lib3.c, mrandom.c) Tests of ssearch36 statistical accuracy
+suggests that the default statistical estimates (-z 1) are not as
+accurate as they should be with BLOSUM62, -11/-1.  Both -z 11 and -z 2
+work better.  In FASTA35, -z 11 - 15 caused a 2X-slowdown (actually
+more) because EVERY library sequence was shuffled, even though only a
+fraction of the sequences (for libraries > 60,000 would be used for
+the statistical calculation.  comp_lib3.c uses a more sophisticated
+strategy for sampling scores after 60,000 so that sequences are only
+shuffled and aligned if they will be used in the statistical
+calculation.  Doing this on SwissProt, with 430,000 sequences, means
+that ~180,000 additional shuffle alignments are done, not 430,000
+additional.
+
+However, using -z 11 with the threaded program was much more than
+2X-slower -- random() is not re-entrant, and is designed to provide a
+consistent set of random numbers over threads, so threads were waiting
+on the random number generator, with a big performance penalty.  Using
+code from WikiPedia, I implemented a random number generator
+(mrandom.c) that saves a local copy of state, so threaded -z 11 has
+the correct performance penalty.
+
+>>January 25, 2010 (initfa.c 36.04 January 2010)
+
+(dropfz2.c, aln_struct.h) At long last, tfasty36 correctly produces
+multiple alignments on the reverse strand. (Jan. 26, 2010) Fixed
+introduced bug in fasty36 that used wrong offset in recursion.
+
+>>January 17, 2010
+
+Extensive changes have been made to all the drop_* functions, so that
+multiple alignment results are properly sorted from highest to lowest
+sw_score. dropnfa.c, dropgsw2.c, dropfx.c and dropfz2.c now all use
+similar strategies to calculate non-overlapping alternative alignments.
+score_thresh thresholds are applied to rst.score[ppst->score_ix]
+appropriately for all recursive functions.
+
+>>August 24, 2009
+
+Statistical thresholds have been adjusted to produce more
+approximately the correct number of joins/band optimizations.  The
+approximate fraction of joins/band optimizations is now shown in the
+results.
+
+>>August 21, 2009
+
+fasta/fastx/fasty/tfastx/tfasty now use statistically based thresholds
+for joining short segments and deciding to do a band optimization --
+similar to the threshold strategy used by BLAST.
+
+The statistical thresholds used are set with the
+-c option, which used to be used to set optcut.  The -c option now has three ranges:
+
+-c < 0       -- use the old FASTA thresholds, calculated in the same way
+0 < -c < 1.0 --	use the statistical thresholds and set E_opt_cut.
+c >= 1.0     -- use the old FASTA threshold, and specify it.
+
+For 0 < -c < 1.0, a second argument can be supplied (-c "0.02 0.1")
+for the joining E()-threshold.  If this value is < 1.0, it is used as
+E_join; if it is > 1.0, E_opt_cut is multiplied by the value to get
+E_join.
+
+>>August 19, 2009
+
+Implement Lambda/K/H based c_gap, opt_cut in dropnfa.c, dropfx.c
+(fastx), and dropfz2.c (fasty).  Add ELK_to_s() to scaleswn.c.
+
+>>August 11, 2009
+
+Fix bug in dropfx.c that used the wrong variables for calculating
+offsets into a long DNA sequence for subset alignments.
+
+Stop putting sw_score in score[0] when no score[0] was calculated.
+Use 0 instead.
+
+>>July 31, 2009
+
+(dropgsw2.c) Fix problems with dropgsw2.c that allowed poor
+sub-alignments to be shown.  Consolidate merge_ares_acc() for all the
+functions.  Add pst.do_rep to disable multiple alignments.
+
+>>July 6, 2009
+
+(initfa.c, apam.c, complib2.c, p2_complib.c) move changes for
+validate_novel_aa() from fasta35.
+
+(initfa.c) Enable checks for unusual characters ('Uu' in proteins) for
+many more programs with the -p option.
+
+>>June 16, 2009
+
+Modify statistical sampling strategy to greatly simplify the
+calculation.
+
+>>May 15, 2009
+
+Fix bug in lav2ps.c, lav2svg.c that occured when displaying very long
+sequence alignments (e.g. genome alignments).  The maximum coordinate
+is set properly now.
+
+>>May 5, 2009
+
+(initfa.c) Fix bug (int e_cut in pgm_def_arr[]) that prevented e_cut
+to be set properly for lalign for DNA.
+
+>>May 4, 2009
+
+The functions that return multiple sub-alignments (HSPs) after the
+best alignment have been modified to ensure that alignments are
+returned sorted by score, by merging the list of alignments found to
+the left and right of the best alignment. 
+
+>>April 28, 2009
+
+(p2_complib2.c, p2_workcomp2.c, mshowbest.c, mshowalign.c) modified to
+support new coordinate system, preliminary work on multiple HSPs in
+parallel environment.
+
+>>April 14, 2009
+
+(comp_lib2.c, nmgetaa.c) Comprehensive restructuring of library file
+list from a fixed length array to a variable length linked list.  The
+link lists allows library files to insert additional files into the
+list, so that, for example, a file of accession numbers can refer to a
+list of files for the accessions.
+
+Eventually, this should allow FASTA to support .pal/.nal files from
+the NCBI, and to support files of file names most places file names
+are allowed.
+
+>>April 2, 2009		(from fasta35)
+
+(structs.h, comp_lib2.c, doinit.c, mshowbest.c, mshowalign.c) The code
+that selects the number of high scores to display has been reorganized
+to support the -F e_low option (which was not implemented properly if
+-b and -d were specified).  The code is simplified; m_msg.nshow is
+used to specify the number of best scores listed, and min(m_msg.nshow,
+m_msg.ashow) is used to specify the number of alignments shown.
+
+>>March 26, 2009	(from fasta35 - fa35_04_07)
+
+(initfa.c) Fix problems with 'U' recognition in DNA pam matrix,
+correct implementation of -r +mat/-mis.  Previous versions of fasta35
+may not have used the correct DNA matrix when the -r +mat/-mis option
+was specified.
+
+>>March 23, 2009	(initfa.c verstr -> 36.02)
+
+(mshowbest.c, aln_structs.h) Add loop for displaying multiple aligned
+regions with -m 9, -m 9i, and -m 9c in mshowbest.c.
+
+>>March 22, 2009
+
+(dropgsw2.c, dropnnw2.c, wm_align.c) Rearrange code in dropgsw2.c,
+dropnnw2.c (which replaces dropnnw.c) so that a single function,
+wm_align.c:nsw_malign() is responsible for recursive algnments for
+both dropgsw2.c (sw_walign) and dropnnw2.c (nw_walign).  The strategy
+for tnese (Smith-Waterman, Global-Local) alignments is
+identical. nsw_malign() uses a function pointer that calculates S-W or
+N-W that it gets from dropgsw2.c or dropnnw2.c
+
+It might make sense to use a similar strategy for the recursive
+translated alignments.
+
+>>March 19, 2009
+
+(map_db.c, mm_file.h) Fix another bug in map_db.c that appears for
+sequence files larger than 2Gb.  MM_OFF is now consistently used in
+more of the places where an int64_t might is required.
+
+>>March 17, 2009
+
+(list_db.c) Fix a bug in list_db that caused it to misread the maximum
+sequence length, and then be off by 4-bytes for all the offsets.  
+Include list_db with map_db in the list of auxiliary programs.
+
+>>Mar. 8, 2009		fa35_04_06
+
+(comp_lib2.c, pthr_subs2.c, pthr_subs.h, doinit.c, dec_pthr_subs.c)
+Dynamically allocate pthread_t *fa_threads, rather than limit it to
+MAX_WORKERS.  MAX_WORKERS is no longer used in the Unix environment;
+it gets its value from sysconf(_SC_NPROCESSORS_CONF).  If sysconf() is
+not available, MAX_WORKERS is used.  The threaded programs should now
+automatically adjust the number of threads to the number of
+processors.  Moreover, the number of threads can be set to more than
+the number of processors with -T #threads.  Also, max_workers was
+renamed fa_max_workers, and pthread_t *threads is now *fa_threads.
+
+>>Mar. 6, 2009
+
+copied comp_lib2.c from v35 (fix for query offset coordinates)
+
+>>Oct. 22, 2008
+
+The programs that allow multiple alignments to be found include:
+
+    ssearch36(_t)
+    fasta36(_t)
+    fastx36(_t)
+    fasty36(_t)
+
+fasts and fastf will probably not be updated in this way, because of
+the difficulty in reconstructing alignments, but fastm may be.
+
+Right now, the pvm/mpi versions of the programs do not support
+multiple sub-alignments.
+
+>>Sep. 25, 2008
+
+Modify the syntax for the -E option to allow the repeat E()-value
+cutoff to be specified in either of two ways. 
+
+       -E "e_cut e_rep"
+
+If the value of e_rep is less than one, it is taken as the absolute
+E()-value threshold for additional local domains, for example:
+
+       -E "1.0 0.05" says use 1.0 for the main E()-value threshold,
+        and 0.05 as the threshold for additional local alignments.
+
+Alternatively, if e_rep >= 1.0, it is taken as a divisor for the
+E()-value threshold, thus:
+
+	-E "1.0 10.0" 
+
+Sets the E()-value threshold for additional local alignments to
+1.0/10.0 = 0.1.
+
+Finally, if e_rep <= 0.0, no multiple alignments are done (equivalent
+to previous versions of FASTA).

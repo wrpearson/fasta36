@@ -1,0 +1,48 @@
+
+ $Id: README.versions 120 2010-01-31 19:42:09Z wrp $
+ $Revision: 210 $
+
+January, 2010
+
+This directory contains the newest version of FASTA, version 36.
+FASTA36 is a major update to FASTA35 that provides the ability to
+display multiple significant alignments to a query sequence.  Previous
+versions of FASTA displayed only the best alignment between the query
+and library sequence; if the library sequence was long, with multiple
+similar regions, only the best was shown.  This contrasts with BLAST,
+which has always displayed multiple "HSPs" when they are present.
+
+FASTA36 provides some additional improvements; like BLAST, it now uses
+statistical estimates to set thresholds for band optimization, which
+can increase search speed as much as 2-fold, and it provides much more
+flexibility in specifying the files that are searched (indirect files
+of filenames can include additional indirection).  But the main
+improvement is the display of multiple HSPs.
+
+All of the traditional alignment programs: ssearch36, fasta36,
+[t]fast[xy]36 and glsearch36 display multiple HSPs.  The peptide and
+mixed peptide alignment programs ([t]fasts36, fastf36, fastm36) still
+show a single HSP.
+
+Currently, the PVM/MPI parallel versions of the programs still display
+a single HSP.
+
+As of late 2007, there is almost no reason to use the fasta2 programs;
+the major programs present in fasta2 that were not present in fasta3
+(version 34) -- align (global alignments) and lalign (non-overlapping
+local alignments) are now available in fasta version 36.
+
+For more information about the programs in the current FASTA v36
+package, see the "changes_v36.html" and "readme.v36" files.
+
+There are still a very few programs in the fasta2 package that are not
+available in the fasta3 package - programs for global alignments
+without end-gap penalties, the "grease" Kyte-Doolittle plot, and
+"garnier" and "chofas" for classic (but inaccurate) secondary
+structure prediction. You should not use the fasta2 programs for
+library searching; the fasta3 programs are more sensitive and have
+better statistics.
+
+Precompiled versions of the programs for Windows and MacOS are available in the
+executables directory.
+

@@ -1,0 +1,68 @@
+#
+# $Id: Makefile.linux32_sse2 479 2011-01-12 13:13:03Z wrp $
+#
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+#
+# This file is designed for 32-bit Linux systems using an X86
+# architecture with SSE2 extensions.  SSE2 is used for ssearch35(_t)
+#
+# To use on a 64-bit linux system, add -D_LARGEFILE64_SOURCE and -DBIG_LIB64
+# (or use Makefile.linux64_sse2)
+#
+
+SHELL=/bin/bash
+
+CC= gcc -g  -O -msse2 -ffast-math
+#CC = gcc -g -DDEBUG -msse2
+
+#CC= /usr/local/parasoft/bin/insure -g -DDEBUG
+
+#CC=gcc -Wall -pedantic -ansi -g -O
+
+# EBI uses the following with pgcc, -O3 does not work:
+# CC= pgcc -O2 -pipe -mcpu=pentiumpro -march=pentiumpro -fomit-frame-pointer
+
+# this file works for x86 LINUX
+
+# standard options
+
+CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=8 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your_fasta_host_here"' -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DSAMP_STATS -DPGM_DOC -DUSE_MMAP
+
+# -DSUPERFAMNUM -DSFCHAR="'|'" 
+
+# -I/usr/local/include/mysql -DMYSQL_DB 
+#
+#(for mySQL databases)  (also requires change to Makefile35.common)
+
+LIB_M = -lm
+#LIB_M = -L/usr/local/lib/mysql -lmysqlclient -lm
+# for mySQL databases
+
+HFLAGS= -o
+NFLAGS= -o
+
+# for Linux
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthread
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/bin
+#XDIR = ~/bin/LINUX
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# SSE2 acceleration
+#
+DROPGSW_O = $(DROPGSW_SSE_O)
+DROPLAL_O = $(DROPLAL_SSE_O)
+DROPGNW_O = $(DROPGNW_SSE_O)
+DROPLNW_O = $(DROPLNW_SSE_O)
+
+# renamed (fasta35)  programs
+include ../make/Makefile36m.common
+# conventional (fasta3) names
+# include ../make/Makefile.common
+

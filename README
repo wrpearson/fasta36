@@ -1,0 +1,75 @@
+
+ $Id: README 634 2011-03-25 13:11:26Z wrp $
+
+March, 2011
+
+This version of the FASTA programs is fasta-36.3.4.  With this
+version, the FASTA programs are no longer interactive.  Typing bin/fasta36
+(or any of the other programs) provides a help message.  The "classic"
+interactive mode is available by typing "fasta36 -I".  In addition,
+there is only one version of the programs, "fasta36", "ssearch36",
+etc., which is threaded by default on Unix/Linux/MacOSX.
+
+Up to date release notes are available in the file doc/readme.v36
+
+Documentation on the fasta3 version programs is available in the files:
+
+	doc/fasta36.1	(unix man page)
+
+	doc/changes_v36.html      (short descriptions of enhancements to
+				   FASTA programs)
+
+	doc/readme.v36	(text descriptions of bug fixes and version history)
+
+	doc/fasta_guide.tex 	(Latex file which describes fasta-36,
+				 and provides an introduction to the FASTA programs,
+				 their use and installation.)
+
+	doc/fasta_guide.pdf	(printable/viewable description of fasta-36)
+
+The latter two files provide background information on installing the
+fasta programs (in particular, the FASTLIBS file), that new users of
+the fasta3 package may find useful.
+
+================================================================
+
+The FASTA distribution directories (this directory) has been
+substantially re-organized to make it easier to find things.  However,
+some documentation has not yet been completely updated to reflect the
+re-organization, so some things may not make sense.
+
+Files can now be found in several sub-directories
+      bin/	(pre-compiled binaries for some architectures)
+      conf/	example fastlibs files
+      data/	scoring matrices
+      doc/	documentation files
+      make/	make files
+      misc/	some perl scripts
+      seq/ 	test sequences
+      src/	source code
+      sql/	sql files and scripts for using the sql database access
+      test/	test scripts
+
+For some binary distributions, only the doc/, data/, seq/, and bin/,
+directories are provided.
+
+================
+
+To make the standard FASTA programs:
+
+   cd src
+   make -f ../make/Makefile.linux_sse2 all
+
+where "../make/Makefile.linux_sse2" is the appropriate file for your system. 
+
+The executable programs will then be found in ../bin
+(e.g. ../bin/fasta35_t, etc.)
+
+For a simple test of a program, try (from the src directory)
+
+   ../bin/fasta35 -q ../seq/mgstm1.aa ../seq/prot_test.lseg     
+
+================================================================
+
+Bill Pearson
+wrp@virginia.edu

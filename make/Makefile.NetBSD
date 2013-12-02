@@ -1,0 +1,40 @@
+#
+# this file works for NetBSD
+#
+# provided by Marc Baudoin <babafou@babafou.eu.org>
+#
+
+CC= cc -O
+#CC= cc -g -DDEBUG
+#CC= gcc -g -Wall
+#
+# standard line for normal searching
+CFLAGS= -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your.host.here/fasta/cgi"' -DUSE_MMAP
+
+# special options for SUPERFAMLIES
+#CFLAGS= -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DSFCHAR="'|'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DSUPERFAMNUM -DUSE_MMAP
+
+LIB_M= -lm
+HFLAGS= -o
+NFLAGS= -o
+
+# for NetBSD
+THR_SUBS = pthr_subs2
+THR_LIBS = -L/usr/pkg/pthreads/lib -lpthread
+THR_CC = -I/usr/pkg/pthreads/include
+
+BIN = ../bin
+XDIR = /seqprg/slib/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_NA_O)
+DROPLAL_O = $(DROPLAL_NA_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+include ../make/Makefile36m.common

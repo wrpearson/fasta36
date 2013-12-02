@@ -1,0 +1,70 @@
+October 6, 2006
+
+The FASTA programs for Windows32 environments (WindowsNT, 2000, XP)
+has undergone a major upgrade, so that now all the programs in the
+Unix/MacOSX distribution are available to Windows users.  Moreover,
+Windows users with modern (SSE2 compatible) processors can run greatly
+accelerated versions of the Smith-Waterman ssearch program.
+
+Moreover, these programs work both with FASTA formatted files, and
+NCBI BLAST formatted files.
+
+The following programs are available:
+
+    fasta36.exe	       	protein-protein or DNA-DNA database searches
+    fastf36.exe
+    fastm36.exe
+    fasts36.exe
+    fastx36.exe		compare DNA query to protein library with frameshifts
+    fasty36.exe		compare DNA query to protein library with frameshifts
+    prfx36.exe
+    prss36.exe		evaluate statistical significance using shuffles
+    prss36sse2.exe
+    ssearch36.exe	Smith-Waterman for prot-prot or DNA-DNA searches
+    ssearch36sse2.exe	Smith-Waterman, accelerated with SSE2 extensions
+    tfastf36.exe
+    tfastm36.exe
+    tfasts36.exe
+    tfastx36.exe	compare protein to DNA library with frameshifts
+    tfasty36.exe	compare protein to DNA library with frameshifts
+
+Each of these programs also has a "threaded" version, which can run on
+multiple processors (or dual cores) if they are available.  However,
+they are built using the Unix pthreads API, so to use these programs,
+you must download the pthreadVC2.dll from:
+
+ftp://sources.redhat.com/pub/pthreads-win32/dll-latest/lib/pthreadVC2.dll
+
+see also http://sourceware.org/pthreads-win32/
+
+    fasta36_t.exe
+    fastf36_t.exe
+    fastm36_t.exe
+    fasts36_t.exe
+    fastx36_t.exe
+    fasty36_t.exe
+    prfx36_t.exe
+    prss36_t.exe
+    prss36sse2_t.exe
+    ssearch36_t.exe
+    ssearch36sse2_t.exe
+    tfastf36_t.exe
+    tfasts36_t.exe
+    tfastx36_t.exe
+    tfasty36_t.exe
+
+Without that DLL, the threaded programs will not run at all. The
+current compilation supports two threads, and speeds up searches about
+2-fold on dual-core processors.
+
+The programs have been tested with protein and DNA databases in FASTA
+format, PIR/GCG-text format, and Genbank flatfile format.  The program
+does not work properly with GCG binary format databases, but it seems
+unlikely that Windows users would need these. 
+
+Be certain to use an program that can work with long file names when
+unpacking the program source files.
+
+Please report bugs to:
+
+	wrp@virginia.edu

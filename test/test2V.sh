@@ -1,0 +1,28 @@
+#!/bin/sh
+echo ""
+echo "starting FASTA36" `date` "on" `hostname`
+echo `uname -a`
+echo ""
+echo "starting fasta36 - protein" `date`
+if [ ! -d results ]; then
+ mkdir results
+fi
+../bin/fasta36 -V \!../scripts/ann_feats2ipr.pl -S -z 21 -s BP62 ../seq/gstm1_human.vaa q > results/test2V_m1.ok2_bp62
+../bin/fasta36 -V \!../scripts/ann_feats2ipr.pl -S -z 21 ../seq/gstm1_human.vaa q > results/test2V_m1.ok2_z21
+../bin/fasta36 -V \!../scripts/ann_feats2ipr.pl -S -m BB  ../seq/gstm1_human.vaa q > results/test2V_m1.ok2mB
+echo "done"
+echo "starting fastxy36" `date`
+../bin/fastx36 -V \!../scripts/ann_feats2ipr.pl -m 9c -S -q ../seq/mgtt2_x.seq q > results/test2V_t2.xk2m9c
+../bin/fastx36 -V \!../scripts/ann_feats2ipr.pl -m BB -S -q ../seq/mgtt2_x.seq q > results/test2V_t2.xk2mB
+../bin/fasty36 -V \!../scripts/ann_feats2ipr.pl -S -m8 -q ../seq/mgtt2_x.seq q > results/test2V_t2.yk2m8
+../bin/fastx36 -V \!../scripts/ann_feats2ipr.pl -m 9c -S -q -z 22 ../seq/gstm1b_human.nt q > results/test2V_m1.xk2m9cz22
+../bin/fasty36 -V \!../scripts/ann_feats2ipr.pl -S -q -z 21 ../seq/gstm1b_human.nt q > results/test2V_m1.yk2z21
+echo "done"
+echo "starting ssearch36" `date`
+../bin/ssearch36 -V \!../scripts/ann_feats2ipr.pl -m 9c -S -z 22 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9cz22
+../bin/ssearch36 -V \!../scripts/ann_feats2ipr.pl -m 9C -S -z 21 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9Cz21
+echo "done" `date`
+echo "starting ssearch36" `date`
+../bin/ggsearch36 -V \!../scripts/ann_feats2ipr.pl -m 9c -S -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ggm9c
+../bin/ggsearch36 -V \!../scripts/ann_feats2ipr.pl -m 9C -S -z 21 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ggm9Cz21
+echo "done" `date`

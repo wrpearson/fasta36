@@ -1,0 +1,58 @@
+#
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+#
+# for more information on FASTA on SGI's, see:
+#
+#	http://www.sgi.com/chembio/resources/fasta/index.html
+#
+# use -DBIG_LIB64 to generate 64-bit offsets in map_db .xin files.  This
+# only works on SGI's with the -64 option.
+
+CC= cc -w -64 -mips4 -O2 -TENV:X=3 -DSGI_BUG -Wl,-multigot -DIRIX
+#CC= cc -64 -mips4 -g -DSGI_BUG -DDEBUG -DIRIX
+
+HFLAGS= -64 -mips4 -o
+NFLAGS= -64 -mips4 -o
+
+#CC= cc -g
+#HFLAGS= -o
+#NFLAGS= -o
+
+LIB_M= -lm
+# For R2000/R3000 MIPS Processors, use -mips1
+#
+#CC= cc -mips1 -O2 
+#HFLAGS= -mips1 -o
+#NFLAGS= -mips1 -o
+#
+# For R4000 MIPS Processors, use -mips2:
+#
+#CC = cc -mips2 -O2
+#HFLAGS= -mips2 -o
+#NFLAGS= -mips2 -o
+#
+
+CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DBIGMEM -DSFCHAR="':'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"crick.med.virginia.edu/fasta/cgi"' -DIS_BIG_ENDIAN -DUSE_MMAP -DBIG_LIB64 -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DBIG_LIB64
+
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthread
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/slib/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_NA_O)
+DROPLAL_O = $(DROPLAL_NA_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# renamed (fasta34)  programs
+include ../make/Makefile36m.common
+# conventional (fasta3) names
+# include ../make/Makefile.common

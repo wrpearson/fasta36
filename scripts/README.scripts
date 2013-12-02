@@ -1,0 +1,66 @@
+
+  $Id: README.scripts 1149 2013-05-13 16:49:03Z wrp $
+  $Revision: 1149 $
+
+May 13, 2013
+
+This directory contains a variety of scripts that work with the two
+scripting options for the FASTA programs:
+
+-e expand_script.pl
+
+and
+
+-V \!annotate_script.pl
+
+All these scripts use a mysql database that provides a mapping between
+the sequence identifiers provided by the sequence library and the
+additional sequences (-e) or annotations (-V) that are generated.
+Thus, the scripts will NOT work as written because they reference
+mysql databases that are only available inside the University of
+Virginia.
+
+Scripts for sequence library expansion:
+
+expand_uniref50.pl -- produces new sequences from the
+   Uniref50 mapping of Uniref50 to Uniprot.
+
+expand_links.pl -- produce new sequences from a custom-built database
+  of protein links
+links2sql.pl -- build the file of protein accessions to linked accessions
+
+exp_up_ensg.pl -- (human sequences only) use the ENSEMBL to Uniprot
+  mapping to extract alternative splice isoforms.
+
+The expansion scripts expect a file name for a file that contains:
+
+sp|P09488|GSTM1<tab>1e-100
+...
+
+The file is then opened, read, and the accessions extracted and used
+to find the linked sequences.
+
+================
+
+Scripts for library annotation:
+
+The annotation scripts are very similar to the expansion scripts, but
+have the option of either (1) taking the name of a file sequence
+annotations, e.g.
+
+  annot_script.pl annot_file
+
+or (2) taking an argument that is a single sequence identifier:
+
+  annot_script.pl 'sp|P09488|GSTM1_HUMAN'  ('|' must be escaped for  many shells)
+
+Three annotation scripts are available:
+
+  ann_feats2l.pl - get features and domains from Uniprot
+  ann_feats2ipr.pl -- get features from Uniprot and domains from a local Interpro database
+  ann_pfam26.pl -- get domains (only) from the Pfam26 database
+
+These scripts have additional information on options with 'ann_feats2l.pl --help'
+
+================
+

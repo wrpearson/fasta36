@@ -1,0 +1,81 @@
+# $Name:  $ - $Id: Makefile.pLinux_sql 488 2011-01-21 17:38:53Z wrp $
+#
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+# this file works for DEC Alphas
+#
+# this file supports mmap()'ed databases in BLAST2 format use -DUSE_MMAP
+# for mmap()ed BLAST2 format.
+
+# the -DDEBUG option provides additional debugging information, particularly
+# with -D on the command line.
+
+# use -DBIG_LIB64 to generate and use 64-bit offsets in map_db .xin
+# files
+
+# for Tru64 4.0F, no "<inttypes.h>" 4.0G has inttypes.h
+
+CC= xlc_r
+
+#CC= cc -g3 -O -std1
+#CC= insure -g -DDEBUG
+#CC= cc -g -DDEBUG -std1
+
+#CC= gcc -g -Wall
+#
+
+CFLAGS= -O3 -qtune=auto -qarch=auto -DUNIX -DTIMES -DBIGMEM -DMAX_WORKERS=4 -DSFCHAR="':'" -DTHR_EXIT=pthread_exit -DPROGRESS -DUSE_MMAP -DIS_BIG_ENDIAN -DSAMP_STATS -DPGM_DOC -D_LARGE_FILES -DHAS_INTTYPES -D__pLinux__ -DFASTA_HOST='"fasta.bioch.virginia.edu/fasta/cgi"' -I/usr/include/mysql -DMYSQL_DB   
+#
+#(-DMYSQL_DB for mySQL databases)  (also requires change to Makefile35.common)
+
+# special options for SUPERFAMLIES
+#CFLAGS= -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DBIGMEM -DSFCHAR="'|'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DSUPERFAMNUM -DIS_LITTLE_ENDIAN -DUSE_MMAP -DMAXBEST=200000
+ 
+#LIB_M = -lm
+LIB_M = -L/usr/local/lib/mysql -lmysqlclient -lm
+# for mySQL databases
+
+HFLAGS= -o
+NFLAGS= -o
+
+#for DEC Unix V4.0 
+#THR_SUBS = pthr_subs2
+#THR_LIBS = -threads
+#THR_CC =
+
+#for Sun
+#THR_SUBS = uthr_subs
+#THR_LIBS = -lthread
+#THR_CC =
+#
+# for SGI with current pthreads
+#THR_SUBS = pthr_subs
+#THR_LIBS = -lpthreads
+#THR_CC = 
+#
+# for IBM with current pthreads
+#CC= xlc_r -v -g
+#THR_SUBS = ibm_pthr_subs
+#THR_LIBS = -lpthreads
+#THR_CC =
+
+# for IBM Linux with current pthreads
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthread
+
+BIN = ../bin
+XDIR = /seqprg/slib/bin
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# no acceleration
+#
+DROPGSW_O = $(DROPGSW_NA_O)
+DROPLAL_O = $(DROPLAL_NA_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# renamed (fasta34)  programs
+include ../make/Makefile36m.common_sql
+

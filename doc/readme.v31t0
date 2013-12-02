@@ -1,0 +1,160 @@
+
+>>November 1, 1997
+
+ --> v31t0
+
+version 31t of the fasta program package uses a more modular
+structure for comparison functions.  In addition to modular functions
+to initialize, calculate and align sequences, v31 provides a modular
+function for creating the alignment display.  This was required for
+fasty and fastf, which have very different alignment strategies from
+the other search programs.
+
+>>February 13, 1998
+
+modified nascii[] so that 0, 1, 2 are no longer end of sequence
+characters.
+
+prss3 added.  Unlike prss, prss3 uses -d # to specify the number of
+shuffles.
+
+>>March 18, 1998
+
+First public release.  Corrected problems with dropfz.c (which is
+used in fasty3, tfasty3).  Makefile is well tested, but other Makefile's
+are not.  PVM versions not tested.
+
+>>March 19, 1998
+
+Problem with unthreaded tfastx3, tfasty3 caused by bug in complib.c
+fixed. All Makefiles (Makefile.alpha Makefile.sun, Makefile.sgi,
+Makefile.linux) have been tested and work properly. Threaded versions
+do not work on linux (yet).  Function labeling problems with fasty3,
+tfasty3 corrected.
+
+>>March 20, 1998
+
+ --> v31t02
+
+Fixed problem with inconsistent openlib() calls that broke BLAST databases
+on some platforms.
+
+>>March 27, 1998
+
+ --> v31t04
+
+Fixed a long standing problem with fastx/tfastx and fasty/tfasty that
+caused various memory allocation problems and core dumps.
+
+The PVM version works again, but cannot produce alignments.  The
+change in the location of the modular display functions will require
+significant changes in the pvm display functions.  For the moment,
+showalign() has been commented out.
+
+Code tested on Macintosh without changes.
+
+Added some additional information in the results file.
+
+
+Please report bugs to wrp@virginia.edu
+
+>>April 3, 1998
+
+Removed some debugging code in faatran.c now that fastx/fasty bugs
+seem corrected.
+
+  FASTA --> v3.14
+
+Corrected uninitialized array elements in dropnfa.c.
+
+>>April 10, 1998
+
+Added facility for specifying SRCH_URL (the URL string that will be
+used to re-search the database) and REF_RUL (the URL string that
+will be used to lookup the sequence) ini url_subs.c.  This allows perl
+scripts to provide different databases for re-searching dynamically.
+
+>>April 16, 1998
+
+ --> v31t05
+
+Corrected problem with ignoring ','s in databases (','s are found in
+PIR).
+
+>>April 18, 1998
+
+Corrected some problems with sequence names for Entrez lookups and
+re-searching databases.
+
+Made minor modifications to nxgetaa.c and compacc.c for compatibility
+with Borland 'C' compiler for Win32 systems.  Including makefile.tc
+fasta.rsp, prss.rsp, and test.bat for Borland 'C'/win32.
+
+>>April 24, 1998
+
+ --> v31t06
+
+Fixed another bug in fasty3/tfasty3 alignment routines.
+
+Added additional information to the do_url1() (url_subs.c) function.
+The re-search URL can now reference the start, stop, and length of the
+library sequence to be re-searched with.  For DNA library sequences,
+these values are always in nucleotides, even with tfasta/x/y.
+
+
+>>May 12, 1998
+
+(no version change as v31t06 was not released prior to this)
+
+Correct nxgetaa.c GETLIB to deal correctly with BLAST NR database
+sequences with exceptionally long title lines.
+
+Fix bug with long -O results files.
+
+>>May 18, 1998
+
+ --> v31t07
+
+Corrected some bugs in information string lengths (e.g. gstring1,
+stat_str), disabling statistics with -z 0, translation of 'X' by
+saatran() (faatran.c) that caused problems with FASTX.
+
+A serious bug has been fixed in the FASTX alignment routines.
+For some pathological sequences, % identity increases from < 10%
+to 40%. The version number of the main program has not changed,
+but the version number of the fastx function has changed to 3.2.
+
+>>June 19, 1998
+
+ --> v31t08
+
+Corrected some problems with alignments with -m 10.
+
+Added -Z db_size option to modify apparent database size for
+expectation value calculation (used only for protein/protein FASTA and
+SSEARCH, FASTX, FASTY, TFASTX, and TFASTY).
+
+>>July 1, 1998
+
+ (no version change)
+
+Corrected size of lbnames[], lb_size[] in structs.h to accomodate MAX_LF
+files.
+
+>>July 13, 1998
+
+ --> v31t09
+
+Corrected problem in nxgetaa.c encountered when reading long sequences
+(that must be split) in fasta format.
+
+Corrected problem in statistics calculation encountered with a small number
+of very long DNA sequences.
+
+>>July 17, 1998
+
+ (no version change, date change for ssearch3)
+
+Corrected default expectation cutoff (it was 10, now it is 2.0) for
+DNA with ssearch3.
+

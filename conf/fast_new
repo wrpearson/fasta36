@@ -1,0 +1,38 @@
+NBRF PIR1 Annotated Protein Database (rel 56)$0+pir1+/slib2/blast/pir1.lseg
+NBRF Protein database (complete)$0+nbrf+@/seqlib/lib/NBRF.nam
+NRL_3d structure database$0D/seqlib/lib/nrl_3d.seq 5
+NCBI/Blast non-redundant proteins$0+nr+/slib2/blast/nr.lseg
+NCBI/Blast Swissprot$0+sp+/slib2/blast/swissprot.lseg
+GENPEPT Translated Protein Database (rel 106.0)$0G/slib2/blast/genpept.fsa
+Swiss-Prot Release 34$0S/slib0/lib/swiss.seq 5
+Yeast proteins$0Y/slib0/genomes/yeast_nr.pep
+C. elegans blast server$0W/slib2/blast/C.elegans_blast.fa
+E. coli proteome$0E/slib0/genomes/ecoli.npep
+H. influenzae proteome$0I/slib0/genomes/hinf.npep
+H. pylori proteome$0L/slib0/genomes/hpyl.npep
+NCBI Entrez Human proteins$0H/slib2/blast/human.aa
+M. pneumococcus proteome$0M/slib0/genomes/mpneu.npep
+M. jannaschii proteome$0J/slib0/genomes/mjan.npep
+Synechosystis proteome$0C/slib0/genomes/synecho.npep
+GB108.0 Invertebrates$1I/seqlib2/gcggenbank/gb_in.seq 6
+GB108.0 Bacteria$1T@/slib0/lib/gb_ba.nam 6
+GB108.0 Primate$1P@/slib0/lib/gb_pri.nam
+GB108.0 Rodent$1R/seqlib2/gcggenbank/gb_ro.seq 6
+GB108.0 other Mammal$1M/seqlib2/gcggenbank/gb_om.seq 6
+GB108.0 verteBrates$1B/seqlib2/gcggenbank/gb_ov.seq 6
+GB108.0 Expressed Seq. Tags$1E@/slib0/lib/gb_est.nam
+GB108.0 High throughput genmomic$1h/seqlib2/gcggenbank/gb_htg.seq 6
+GB108.0 pLants$1L@/slib0/lib/gb_pl.nam 6
+GB108.0 genome Survey sequences$1S@/slib0/lib/gb_gss.nam 6
+GB108.0 Viral$1V/seqlib2/gcggenbank/gb_vi.seq 6
+GB108.0 Phage$1G/seqlib2/gcggenbank/gb_ph.seq 6
+GB108.0 Unannotated$1D/seqlib2/gcggenbank/gb_un.seq 6
+GB108.0 New$1u/seqlib2/gcggenbank/gb_new.seq 6
+GB108.0 All sequences (long)$1A@/slib0/lib/genbank.nam
+Yeast genome$1Y@/seqlib/yeast/yeast_chr.nam
+E. coli genome$1D/slib0/genomes/ecoli.gbk 1
+Blast Human ESTs$1F/slib2/blast/est_human
+TIGR Human Gene Index$1K/slib2/blast/HGI.nr.031898
+Blast Mouse ESTs$1C/slib2/blast/est_mouse
+TIGR Mouse Gene Index$1J/slib2/blast/MGI.nr.022498
+NCBI/BLAST NR DNA$1n/slib2/blast/nt

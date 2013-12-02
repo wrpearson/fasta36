@@ -1,0 +1,535 @@
+
+  $Id: readme.v35 120 2010-01-31 19:42:09Z wrp $
+  $Revision: 55 $
+
+>>Sep. 10, 2008
+
+Fix problem in init_ascii() call for p2_complib2.c.
+
+>>Sep. 9, 2008
+
+Fix bug in display of library name when written to an output file
+(rather than stdout).
+
+>>Aug. 28, 2008		fa35_04_02	SVN Revision: 45
+
+Fix serious bug in alignment generation that only occurred when large
+libraries were used as a query with [t]fast[x/y].  This bug often
+resulted in a core dump.
+
+Address some other issues with uninitialized variables with -m 9c.
+
+>>Jul. 15, 2008		fa35_04_01	SVN Revision: 38
+
+Correct problems with Makefiles.  Add information on compiling to README.
+Address issue with mp_KS for -m 10 when searching small libraries.
+
+>>Jul. 7, 2008		fa35_04_01	SVN Revision: 35
+
+Fix problems that occurred when statistics are disabled with -z -1,
+both for a normal library search, and for searches of a small library.
+
+>>Jul. 3, 2008	  	  	SVN Revision: 33
+
+Continue to fix an issue with 'J' and -S.
+
+>>Jun. 29, 2008     	 	SVN Revision: 29, 31
+
+Fix additional problems with Makefiles, some issues uncovered with
+Solars 'C' compiler (Rev. 30).
+
+Discover serious bug when searching long, overlapping sequences, such
+as genomes.  The length of the library sequence was not updated to
+reflect the length of the new region plus the overlap.
+
+Fix inconsistency in the value of 'J' between uascii.h/aascii[] and
+pascii[].  Add code to ensure that lascii[], qascii[], never return a
+value outside pam2[][] (all <= pst.nsq) (particularly for 'O' and 'U'
+amino-acids).
+
+exit(0) returns for map_db, list_db.
+
+>>Jun. 11, 2008
+
+Correct bug in scaleswn.c that prevented exact matches to queries < 10
+residues from being scored and displayed.
+
+>>Jun. 1, 2008
+
+Address various cosmetic issues in FASTA output:
+
+(1) Modify comp_lib2.c so that -O outfile works when multiple queries are
+compared in one run.
+
+(2) remove the duplicated query sequence length in the 1>>>query line.
+
+(3) in -m 10 output, the tags "pg_name" and "pg_ver" were duplicated, e.g.
+
+>>>K1HUAG, 109 aa vs a library
+; pg_name: fasta35_t
+; pg_ver: 35.03
+; pg_argv: fasta35_t -q -b 10 -d 5 -m 10 ../seq/prot_test.lseg a
+; pg_name: FASTA
+; pg_ver: 3.5 Sept 2006
+
+The ; pg_ver and ; pg_name produced by the get_param() functions in
+drop*.c have been renamed ; pg_ver_rel and ; pg_ver_alg.
+
+>>>K1HUAG, 109 aa vs a library
+; pg_name: fasta35_t
+; pg_ver: 35.03
+; pg_argv: fasta35_t -q -b 10 -d 5 -m 10 ../seq/prot_test.lseg a
+; pg_name_alg: FASTA
+; pg_ver_rel: 3.5 Sept 2006
+
+Modify mshowbest.c, mshowalign.c to highlight E() values (<font
+color="dark red"></font> in HTML output.
+
+>>Apr. 16, 2008     fa35_03_07
+
+Merge fa35_ann1_br, which allows annotations in library sequences.
+
+The PVM/MPI parallel version now support query sequence annotations
+and -m 9c annotation encoding.  It does not yet support library
+annotations.  Tested with both PVM and MPI.
+
+>>Apr. 2, 2008	    fa35_03_06
+
+Ensure that code in last_init() to modify ktup never increases ktup value.
+
+Add fasta_versions.html to more explicitly describe programs available.
+
+>>Mar. 4, 2008
+
+Fix parsing of parameters (matrix, gap open, gap ext) in ASN.1 PSSM
+files produced by blastpgp.
+
+>>Feb. 18, 2008	  fa35_03_05
+
+Re-implement -M low-high sequence range options.  Sequence range
+restriction has probably been missing since the introduction of
+ggsearch and glsearch, which use a new approach to limiting the
+sequence range.
+
+>>Feb. 7, 2008	  fa35_ann1_br
+
+Add annotations to library sequences (they were already available in
+query sequences).  Currently, annotations are only available within
+sequences, but they should be available in FASTA format, or any of the
+other ascii text formats (EMBL/Swissprot, Genbank, PIR/GCG).  If
+annotations are present in a library and the annotation characters
+includes '*', then the -V '*' option MUST be used.  However, special
+characters other than '*' are ignored, so annotations of '@', '%', or
+'@' should be transparent.
+
+In translated sequence comparisons, annotations are only available for
+the protein sequence.
+
+The format for encoded annotations has changed to support annotations
+in both the query and library sequence.  If the -m 9c flag is provided
+and annotations are present, then an annotated position in the
+alignment will be encoded as:
+
+ '|'q-pos':'l-pos':'q-symbol'l-symbol':'match-symbol'q-residue'l-residue'
+
+For example:
+
+    |7:7:@@:=YY|14:14:##:=TT
+
+In cases where the query or library sequence does not have an
+annotation, then the q-symbol or l-symbol will be 'X' (which is not a
+valid annotion symbol).
+
+>>Jan. 25, 2008	   fa35_03_04
+
+Map 'O' (pyrrolysine) to 'K', 'U' (seleno-cysteine) to 'C' in uascii.h
+('J' is already recognized and mapped to the average of 'I' and 'L').
+Thus, 'J' will appear in alignments, but 'O' and 'U' are transformed
+to 'K' and 'C'.
+
+Because "Oo" and "Uo" are not (currently) part of aax[] ("Uu" is in
+ntx[]), apam.c/build_xascii() was extended to add characters from
+othx[] - "oth" for "other" so that they are not lost.
+
+Double check, and fix, some mappings for 'J/j' and 'Z/z'.
+
+>>Jan. 11, 2008	   fa35_03_03
+
+Clean up some issues with -m 10 output; put "; mp_Algorithm", ";
+mp_Parameters" down with other -m 10 ";" lines.  Also provide ";
+al_code" and "; al_code_ann" if -m 9c is specified.  Remove duplicate
+">>>query" line.
+
+Add "; aln_code" and "; ann_code" to -m 10 -m 9c output.  The
+alignment/annotation encoding is only produced once (in showbest(),
+and is then saved for -m 10 aligment.
+
+>>Dec. 13, 2007	  fa35_03_02m (merge of fa35_03_02 and fa35_02_08_br)
+
+Add ability to search a subset of a library using a file name and a
+list of accession/gi numbers. This version introduces a new filetype,
+10, which consists of a first line with a target filename, format, and
+accession number format-type, and optionally the accession number
+format in the database, followed by a list of accession numbers.  For
+example:
+
+	  </slib2/blast/swissprot.lseg 0:2 4|
+	  3121763
+	  51701705
+	  7404340
+	  74735515
+	  ...
+
+Tells the program that the target database is swissprot.lseg, which is
+in FASTA (library type 0) format.
+
+The accession format comes after the ":".  Currently, there are four
+accession formats, two that require ordered accessions (:1, :2), and
+two that hash the accessions (:3, :4) so they do not need to be
+ordered.  The number and character after the accession format
+(e.g. "4|") indicate the offset of the beginning of the accession and
+the character that terminates the accession.  Thus, in the typical
+NCBI Fasta definition line:
+
+ >gi|1170095|sp|P46419|GSTM1_DERPT Glutathione S-transferase (GST class-mu)
+
+The offset is 4 and the termination character is '|'.  For databases
+distributed in FASTA format from the European Bioinformatics
+Institute, the offset depends on the name of the database, e.g.
+	   
+ >SW:104K_THEAN Q4U9M9 104 kDa microneme/rhoptry antigen precursor (p104).
+
+and the delimiter is ' ' (space, the default).
+
+Accession formats 1 and 3 expect strings; accession formats 2 and 4
+work with integers (e.g. gi numbers).
+
+>>Dec. 12, 2007  fa35_02_08
+
+Correct bug in ssearch35 gapped scores that only occurred in
+non-accelerated code.  This bug has been present since fa35_02_06.
+Modified the Makefiles so that accelerated (ssearch35(_t)) and
+non-accelerated (ssearch35s(_t)) are available. Edited Makefile's to
+provide accelerated ssearch35 more specifically.
+
+Modifications to provide information about annotated residues in the
+-m9c coded output. Previously, -m 9c output added a field:
+
+    =26+9=15-2=9-1=3+1=74-2=3-3=63
+
+after the standard -m 9 output information.  With the new version, an
+annotated query sequence ( -V '*#' ) adds the field:
+
+    |14:16:#<TM|24:26:#>TA|44:37:*>ST|71:66:#=TT
+
+which indicates that residue 14 in the query sequence aligns with
+residue 16 in the target (library) with annotation symbol '#', the
+alignment score is '<' less than zero, and the residues are 'T'
+(query) and 'M' (library). (The '|' is used to separate each
+annotation entry.)
+
+>>Nov. 10, 2007
+
+Parts of p2_complib.c and p2_workcomp.c, and the pvm/mpi Makefiles,
+have been updated to be consistent with name changes in the param.h
+and structs.h directories.
+
+>>Nov. 20, 2007   fa35_02_08
+
+Parts of p2_complib.c and p2_workcomp.c, and the pvm/mpi Makefiles,
+have been updated to be consistent with name changes in the param.h
+and structs.h directories.
+
+>>Nov. 6, 2007	  fa35_02_07
+
+Correct problems with asymmetric RNA matrices in initfa.c and rna.mat.
+
+>>Oct. 18, 2007
+
+Correct problem parsing ASN1 FastaDefLines when the database is local.
+
+Recovering from a misplaced cvs commit of code that was supposed to be
+on a branch, code has been recovered from earlier versions (fa35_02_05
+because fa35_02_06 has some branch contamination).
+
+>>Oct. 4, 2007	  fa35_02_06
+
+Correct error in gap penalties in dropnnw.c.  Due to an unfortunate
+inconsistency, the gap parameter in FLOCAL_ALIGN (in dropgsw2.c) had a
+different meaning than that in almost all the other programs (it was
+the sum of gap_open and gap_ext).  The FLOCAL_ALIGN function call was
+copied for FGLOBAL_ALIGN, even though the the FGLOBAL_ALIGN function
+used the more conventional gap_open, gap_ext parameters.  Thus,
+FGLOBAL_ALIGN was wrong and the subsequent do_walign() in dropnnw.c
+were wrong.  dropgsw2.c:FLOCAL_ALIGN has been modified to use the
+conventional gap_open parameter, and calls to dropnnw.c:
+FGLOBAL_ALIGN() and do_walign() have been fixed.
+
+>>Sept. 20, 2007
+
+Modify the logic used when saving a seq_record *seq_p into beststr
+*bbp to ensure that if the seq_record is replaced, it is replaced at
+all the places where it is referenced.  This involves adding a linked
+list into beststr (*bbp->bbp_link).  When making the link (and freeing
+it up), be certain that the linked seq_p is the same as the one being
+replaced.
+
+>>Sept. 18, 2007   fa35_02_05
+
+A relatively obscure problem was found on the SGI platform when
+searching a library smaller than 500 sequences (thus requiring some
+shuffles). Two bugs were found and corrected; one involved not
+allocating aa1shuff with COMP_THR and not do a m_file_p->ranliba()
+before re_getlib().  The second involved destroying a pointer to the
+list of seq_records when a sequence was being shuffled.  The bugs were
+confirmed with Insure, and have been fixed.
+
+>>Sept. 7, 2007	fa35_02_04
+
+Revamp the offset handling code to provide better uniformity between
+query and library offsets and coordinate systems.
+
+Fix a problem with load_mmap() to load 64-bit sequence locations
+properly on machines with 32-bit integers.
+
+>>Sept. 4, 2007
+
+Modify ncbl2_mlib.c slightly to check to see whether the amino-acid
+mapping in blast databases is identical to the FASTA mapping (it
+should be).  If they are identical, do not re-map the blast amino acid
+sequences (potentially a small speed up).
+
+>>Aug. 22, 2007
+
+Change ps_lav.c to lav2ps.c, and add lav2svg.c.  It is now possible to
+generate a lalign35 HTML output that has both SVG (lav2svg) and PNG
+(lav2ps | gs ), graphics.
+
+>>Aug. 10, 2007	CVS fa35_02_03
+
+Fix faatran.c:aacmap() bug.
+
+>>Aug. 6, 2007
+
+Extensive restructuring of pssm_asn_subs.c to parse PSSM:2 ASN.1's
+downloaded from NCBI WWW PSI-BLAST more robustly.
+
+>>July 25, 2007	  CVS fa35_02_02
+
+Change default gap penalties for OPTIMA5 matrix to -20/-2 from -24/-4.
+
+>>July 24, 2007
+
+Correct bugs introduced by adding 'J' - 'J' was initially put before
+'X' and '*' in the alphabet, which led to problems because the
+one-dimensional lower-triangular pam[] matrices (abl50[], abl62[],
+etc) had entries for 'X', and '*', but not for 'J'.  By placing 'J'
+after the other characters, the problem is resolved.
+
+Modify tatstats.c to accommodate 'J'.
+
+'*' is back in the aascii[] matrix, so that it is present by default
+(like fasta34).
+
+>>July 23, 2007
+
+Changes to support sub-sequence ranges for "library" sequences -
+necessary for fully functional prss (ssearch35) and lalign35.  For all
+programs, it is now possible to specify a subset of both the query and
+the library, e.g.
+
+    lalign35 -q mchu.aa:1-74 mchu.aa:75-148
+
+Note, however, that the subset range applied to the library will be
+applied to every sequence in the library - not just the first - and
+that the same subset range is applied to each sequence.  This probably
+makes sense only if the library contains a single sequence (this is
+also true for the query file).
+
+Correct bugs in the functions that produce lav output from lalign35 -m
+11 to properly report the begin and end coordinates of both sequences.
+Previously, coordinates always began with "1".  Correct associated bug
+in ps_lav.c that assumed coordinates started with "1".
+
+>>June 29, 2007	CVS fa35_02_01
+
+Merge of HEAD with fasta35 branch.
+
+>>June 29, 2007	CVS fa35_01_06
+
+Add exit(0); to ps_lav.c for 0 return code.
+
+>>June 26, 2007
+
+Add amino-acid 'J' for 'I' or 'L'.
+
+Add Mueller and Vingron (2000) J. Comp. Biol. 7:761-776 VT160 matrix,
+"-s VT160", and OPTIMA_5 (Kann et al. (2000) Proteins 41:498-503).
+
+Changes to dropnnw.c documentation functions to remove #ifdef's from
+strncpy() - which apparently is a macro in some versions of gcc.
+
+>>June 7, 2007
+
+Modify initfa.c to allow ggssearch35(_t), glsearch35(_t) to use PSSMs.
+
+>>June 5, 2007  CVS fa35_01_05
+
+Modifications to p2_complib.c, p2_workcomp.c to support Intel C
+compiler.  Fixed bug in p2_workcomp.c - gstring[2][MAX_STR] required -
+[MAX_SSTR] too short.  mp35comp* programs now tested and working (as
+are pv35comp*, c35.work* programs).
+
+Fix problem with fasts/fastm/fastf last_tat.c with limited memory.
+
+Correct problem with lalign35.exe Makefile.nm_[fp]com.
+
+Add $(CFLAGS) to map_db to enable large file support.
+
+Address problem with PSSM's when '*' not defined (initfa.c:extend_pssm()).
+
+>>May 30, 2007	CVS fa35_01_04
+
+Complete work on ps_lav, which converts an lalign35 lav (-m 11) file
+into a postscript plot, which looks identical to the plots produced by
+plalign from fasta2.  (ps_lav has been replaced by lav2ps and lav2svg).
+
+>>May 25,29, 2007
+
+Changes to defs.h, doinit.c mshowalign.c for -m 11, which produces lav
+output only for lalign35.
+
+Changes to comp_lib2.c to add m_msg.std_output, which provides all the
+standard print lines.  This is turned off for -m 11 (lav) output.
+lalign35 -m 11 provides standard lav output, with the addition of
+#lalign35 -q ... .
+
+>>May 18, 2007
+
+Add m_msg.zsflag to preserve pst.zsflag when reset by global/global
+exclusion of many library sequences.
+
+>>May  9, 2007	CVS fa35_01_03
+
+Tested local database size determination with p2_complib2/p2_workcomp2.
+
+>>May 2, 2007	renamed fasta35, pv35comp, etc
+
+Separate thread buffer structures from param.h.
+
+Problems with incorrect alignments has been fixed by re-initializing the
+best_seqs and lib_buf2_list.buf2 structures after each query sequence.
+
+The labels on the alignment scores are much more informative (and more
+diverse).   In the past, alignment scores looked like:
+
+>>gi|121716|sp|P10649|GSTM1_MOUSE Glutathione S-transfer  (218 aa)
+ s-w opt: 1497  Z-score: 1857.5  bits: 350.8 E(): 8.3e-97
+Smith-Waterman score: 1497; 100.0% identity (100.0% similar) in 218 aa overlap (1-218:1-218)
+^^^^^^^^^^^^^^
+
+where the highlighted text was either: "Smith-Waterman" or "banded
+Smith-Waterman". In fact, scores were calculated in other ways,
+including global/local for fasts and fastf.  With the addition of
+ggsearch35, glsearch35, and lalign35, there are many more ways to
+calculate alignments: "Smith-Waterman" (ssearch and protein fasta),
+"banded Smith-Waterman" (DNA fasta), "Waterman-Eggert",
+"trans. Smith-Waterman", "global/local", "trans. global/local",
+"global/global (N-W)".  The last option is a global global alignment,
+but with the affine gap penalties used in the Smith-Waterman
+algorithm.
+
+>>April 24, 2007
+
+The new program structure has been migrated to the PVM and MPI
+versions.  In addition, the new global algorithms (pv35compgg,
+pv35compgl) have been moved, though the the PVM/MPI versions do not
+(yet) to the appropriate size filtering.
+
+>>April 19, 2007
+
+Two new programs, ggsearch35(_t) and glsearch35_t are now available.
+ggsearch35(_t) calculates an alignment score that is global in the
+query and global in the library; glsearch35_t calculates an alignment
+that is global in the query and local, while local in the library
+sequence.  The latter program is designed for global alignments to domains.
+
+Both programs assume that scores are normally distributed.  This
+appears to be an excellent approximation for ggsearch35 scores, but
+the distribution is somewhat skewed for global/local (glsearch)
+scores.  ggsearch35(_t) only compares the query to library sequences
+that are beween 80% and 125% of the length of the query; glsearch
+limits comparisons to library sequences that are longer than 80% of
+the query.  Initial results suggest that there is relatively little
+length dependence of scores over this range (scores go down
+dramatically outside these ranges).
+
+A bug was found and fixed in showalign() and showbest() where the
+aa1save buffer was not preserved when some sequences needed to be
+re-read, while others were stored in the beststr.
+
+>>April 9, 2007
+
+Some of the drop*.c functions have been reconfigured to reduce the
+amount of duplicate code.  For example, dropgsw.c, dropnsw.c, and
+dropnfa.c all used exactly the same code to produce global alignments
+(NW_ALIGN() and nw_align()), this code is now in wm_align.c.
+Likewise, those same files, as well as dropgw2.c, use identical code
+to produce consensus alignments (calcons(), calcons_a(), calc_id(),
+calc_code()).  Rather than working with three or four copies of
+identical code, there is now one version.
+
+>>March 29, 2007
+
+At last, the lalign (SIM) algorithm has been moved from FASTA21 to
+FASTA35.  Currently, only lalign35 is available.  A plotting version
+will be available shortly (or perhaps a more general solution that
+produces lav output).
+
+The statistical estimates for lalign35 should be much more accurate
+than those from the earlier lalign, because lambda and K are estimated
+from shuffles.
+
+Many functions have been modified to reduce the number of times
+structures are passed as arguments, rather than pointers.
+
+>>February 23, 2007
+
+The threading strategy has been modified slightly to separate the end
+of the search phase (and a complete reading of all results buffers)
+from the termination phase.  This will allow future threading of
+subsequent phases, including the Smith-Waterman alignments in
+showbest() and showalign() (though care will be required to ensure
+that the results are presented in the correct order).
+
+>>February 20, 2007	fasta-34_27_0  (released as fasta-35_1)
+
+The FASTA programs have been restructured to reduce the differences
+between the threaded and unthreaded versions (and ultimately the
+parallel versions) and to make more efficient use of modern large
+memory systems.  This is the beginning of a move towards a more robust
+shuffling strategy when searching databases with modest numbers of
+related sequences.
+
+The major changes:
+
+  comp_lib.c -> comp_lib2.c  - comp_lib.c will be removed
+  work_thr.c -> work_thr2.c  - work_thr.c will be removed
+
+  mshowbest.c, mshowalign.c have been modified to remove aa1 as an
+    argument. They must allocate that space if they need it.
+
+  The system is set up to allocate a substantial amount of library
+  sequence memory, either to a single buffer (unthreaded) or to the
+  threaded buffer pool.  For smaller databases, the library sequences
+  are read once, and then subsequently read from memory (this could be
+  extended for RANLIB(bline) as well).
+
+Soon, these changes will allow the program to re-read the beststr[]
+sequences and shuffle them to produce accurate lambda/K estimates.
+
+================================================================
+
+See readme.v34t0 for earlier changes.
+
+================================================================

@@ -1,0 +1,49 @@
+#
+# $Name:  $ - $Id: Makefile35m.common_mysql 344 2010-06-29 18:20:22Z wrp $
+#
+# commands common to all architectures
+# if your architecture does not support "include", append at the end.
+#
+
+# use for multiple query sequences
+# work with prss34 (yet)
+COMP_LIBO=comp_mlib2.o
+COMP_THRO=comp_mthr2.o
+WORK_THRO=work_thr2.o
+GETSEQO = 
+
+# standard nxgetaa, no memory mapping for 0 - 6
+#LGETLIB=getseq.o lgetlib.o
+#NGETLIB=nmgetlib
+
+# memory mapping for 0FASTA, 5PIRVMS, 6GCGBIN
+LGETLIB= $(GETSEQO) lgetlib.o lgetaa_m.o
+NGETLIB=nmgetlib
+
+NRAND=nrandom
+
+# use ncbl_lib.c for BLAST1.4 support instead of ncbl2_mlib.c
+#NCBL_LIB=ncbl_lib.o
+
+# this option should support both formats (BLAST1.4 not currently supported): 
+#NCBL_LIB=ncbl_lib.o ncbl2_mlib.o
+
+# normally use ncbl2_mlib.c
+#NCBL_LIB=ncbl2_mlib.o
+#LIB_M= -lm
+
+# this option supports NCBI BLAST2 and mySQL
+# it requires  "-I/usr/local/include/mysql -DMYSQL_DB" in CFLAGS
+# and "-L/usr/local/lib/mysql -lmysqlclient -lz" in LIB_M
+# some systems may also require a LD_LIBRARY_PATH change
+LIB_M= -L/usr/lib64/mysql -lmysqlclient -lz -lm
+#LIB_M= -L/usr/lib/pgsql/ -lpq -lm -lcrypto -lssl
+# LIB_M= -lm
+NCBL_LIB=ncbl2_mlib.o mysql_lib.o
+#NCBL_LIB=ncbl2_mlib.o pgsql_lib.o
+# NCBL_LIB=ncbl2_mlib.o
+
+include ../make/Makefile.pcom
+
+include ../make/Makefile.fcom
+

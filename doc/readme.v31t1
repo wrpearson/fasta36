@@ -1,0 +1,113 @@
+>>July 22, 1998
+
+ --> v31t10
+
+Corrected problem with histogram when unscaled statistics used (e.g. prss3).
+
+Corrected problems with prss3 shuffled sequence prompt.  Provided option
+to enter number of shuffles, window size, for prss3.  Number of shuffles
+for prss3 can be entered as an option (-d #) or as the third argument
+on the command line (prss3 query lib 1000).
+
+Modified nrand.c, nrand48.c to use time to set random number.
+
+Corrected problems reading GCG formatted files with prss3.
+
+Corrected various problems with pvcomp* programs, but they still do
+not produce alignments with version 3.1.
+
+Two new programs, fastf3(_t) and tfastf3(_t) are available.  These
+programs compare a set of mixed peptide sequences from an Edman
+sequencer to a protein (fastf3) or DNA (tfastf3) database, using 
+the database sequences to de-convolve the peptide mixture.
+
+See fastf3.1
+
+>>August 11, 1998
+
+(no version change)
+
+Modified initfa.c so that using '-n' on the fastx/fasty command line
+would not cause problems.
+
+Changed labeling of query sequence length for fastx/fasty from 'aa' to 'nt'.
+
+>>August 18, 1998
+
+(no version change)
+
+Modified complib.c, comp_thr.c scaleswn.c, to report E()-value for only
+one related sequence if -z 3 is used.
+
+>>August 23, 1998
+
+ -->v31t11
+
+Some serious problems with prss3 have been corrected:
+
+(1) use dropnsw.c rather than dropgsw.c for more accurate low scores
+
+(2) modify estimation program; use scaleswe.c rather than scaleswn.c.
+    scaleswe.c has some improvements for estimation by moments and can
+    use MLE as well as mu/var (-z 3).
+
+(3) add p() estimate.
+
+(4) correct bugs in nrand48, which caused bad sequences for llgetaa.c
+
+(5) -Z number works properly for prss3 and other programs (fixed histogram).
+
+(6) a new program, ssearch3e, is available that uses the same scaling
+    routines as prss3 (scaleswe.c). prss3 will save the random
+    sequences it generates when the -r file option is given; the
+    sequences are in file_rlib.  ssearch3e (or ssearch3 or fasta) can
+    then do a search on exactly the same sequences that were used by prss3.
+
+A bug reading GCG format compressed DNA databases was fixed.
+
+Fixed a bug that caused query sequence not to be displayed with -m 10.
+
+Simple optimization in dropnfa.c improves performance 10%.
+
+>>Sept. 1, 1998
+
+(no version change)
+
+Modified nxgetaa.c to recognize "ACGTX" as nucleotides.
+
+>>Sept. 7, 1998
+
+ --> v31t12
+
+Added -z 11 - 15, which use shuffled sequences, rather than real
+sequences to calculate statistical estimates.  Because a shuffled
+sequence score is calculated for each sequence score, the search
+process takes twice as long.  In this first version, codons are not
+preserved during shuffles, so tfasta/x/y shuffles may not be as
+informative as they should be.
+
+Also fix a problem with prss3 shuffles.
+
+>>Sept. 14, 1998
+
+ (no version change; previous version not released)
+
+Corrected bugs in tfastx3/tfasty3 caused by using the -3 option with
+or without -i.  With the bug fixes; "-3" and "-3 -i" work as expected;
+"-3" gives the forward three frames, while "-3 -i" gives the reverse
+three frames.
+
+In addition, tfasta3/tfasta3_t was upgraded to perform the same way
+that tfastx/y3 does - i.e. a search with "-i -3" searches only frames
+4,5, and 6, while "-3" searches only frames 1, 2, and 3.
+
+>>Sept. 29, 1998
+
+ --> v31t13
+
+Corrected bugs in dropfx.c that were corrected in fasta30 last May,
+but lingered in fasta31.  Also included code to ensure that tfastx/y
+alignments against long introns would not overrun the alignment
+buffer.  Instead of overrunning the buffer, the message: ***aligment
+truncated *** is displayed.
+

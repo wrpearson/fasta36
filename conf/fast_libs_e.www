@@ -1,0 +1,23 @@
+PIR1 Annotated (rel. 66) $0A${SLIB2}/blast/pir1.lseg
+Swissprot (NCBI)$0Q${SLIB2}/blast/swissprot.lseg
+NCBI Refseq NP only$0P${SLIB2}/blast/refseq_np.lseg
+NCBI Refseq proteins$0S${SLIB2}/blast/refseq_protein.lseg
+NCBI PDB structures$0D${SLIB2}/blast/pdbaa.lseg
+NCBI NR non-redundant$0N${SLIB2}/blast/nr.lseg
+Human/Refseq proteins$0H${SLIB2}/genomes/hum_refseq.lseg
+Mouse/Refseq proteins$0M${SLIB2}/genomes/mus_refseq.lseg
+Rat/Refseq proteins$0R${SLIB2}/genomes/rat_refseq.lseg
+Drosophila/RefSeq proteins$0F${SLIB2}/genomes/d_melanogaster.lseg
+C. elegans/RefSeq proteins$0W${SLIB2}/genomes/c_elegans.lseg
+Arabidopsis/RefSeq proteins$0L${SLIB2}/genomes/a_thaliana.lseg
+Yeast (S. cerevisiae)${SLIB2}/genomes/s_cerevisiae.lseg
+E. coli proteins$0E${SLIB2}/genomes/ecoli_k12.lseg
+GB170.0 Primate$1P@${RDLIB2}/gb_asn/gbpri.nam
+GB170.0 Rodent$1R@${RDLIB2}/gb_asn/gbrod.nam
+GB170.0 other Mammal$1M@${RDLIB2}/gb_asn/gbmam.nam
+GB170.0 verteBrates$1B@${RDLIB2}/gb_asn/gbvrt.nam
+GB170.0 Invertebrates$1I@${RDLIB2}/gb_asn/gbinv.nam
+GB170.0 Bacteria$1T@${RDLIB2}/gb_asn/gbbct.nam
+GB170.0 pLants$1L@${RDLIB2}/gb_asn/gbpln.nam
+GB171.0 Viral$1V@${RDLIB2}/gb_asn/gbvrl.nam
+GB171.0 Phage$1G@${RDLIB2}/gb_asn/gbphg.nam

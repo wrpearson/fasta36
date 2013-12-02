@@ -1,0 +1,178 @@
+\begin{longtable}{p{0.75 in}p{5.25 in}}
+\multicolumn{2}{c}{\textbf{FASTA version history (cont.)}} \\
+\hline\\[-1.0ex]
+% \textbf{Date} & {\bf Improvements} \\[0.5ex] \hline \\[-1.5ex]
+\endhead
+\multicolumn{2}{l}{{\Large {\bf B FASTA version history}}} \\[2 ex]
+\hline\\[-1.0ex]
+% {\bf Date} & {\bf Improvements} \\[0.5ex] \hline \\[-1.5ex]
+\endfirsthead
+\hline\\
+& \\
+\endfoot
+\hline\\
+& \\
+\endlastfoot
+
+\multicolumn{2}{c}{ \FASTA v33, Oct, 1999 -- Dec, 2000 } \\[1 ex]
+\hline \\[-0.5 ex]
+
+Oct 1999 & Add support for NCBI Blast2.0 formatted libraries, and
+memory mapped databases.  \FASTA now reads both \texttt{BLAST1.4} and
+\texttt{BLAST2.0} formatted databases. (version 3.2t08)\\ & Include
+Maximum Likelihood Estimates for Lambda and K ( -z 2) \\
+
+ & Include a new strategy for searching with low
+complexity regions.  The \texttt{pseg} program can produce libraries
+with low complexity regions as lower case characters, which can be
+ignored during the initial \texttt{FASTA}/\texttt{SSEARCH} scan, but are considered when
+producing the final alignments. (3.3t01)\\
+
+ & Change output to report bit scores, which are also  used by BLAST. \\
+
+Mar 2000 & Another new statistics option, -z 6, uses Mott's
+approach \cite{mot921} for calculating a
+composition dependent Lambda for each sequence. (3.3t05) \\
+
+Dec 2000 & Automatically change the gap penalties when alternate
+(known) scoring matrices are used using Reese and Pearson gap
+penalties \cite{wrp022}. First implementation to read from MySQL
+databases. \\ May 2001 & change all \FASTA gap penalties from
+first-residue, additional residue to the gap-open, gap-extend values
+used by BLAST. \\[0.5ex]
+
+\hline \\[-0.5 ex]
+\multicolumn{2}{c}{ \FASTA v34, Jan, 2001 -- Jan, 2007 } \\[1 ex]
+\hline \\[-0.5 ex]
+
+Jun 2002 & Modify statistical estimation strategy to sample all the
+sequences in the database, not just the first 60,000. (3.4t11) \\
+
+Jan 2003 & Implementation of vector-accelerated (Altivec) code for
+Smith-Waterman ({\tt SSEARCH}) and banded Smith-Waterman (\FASTA)
+using the Rognes and Seebug \cite{rog003} algorithm.  This code was
+removed in Sept, 2003, because of possible conflict with a patent
+application, but was restored using a different algorithm in
+Nov. 2004. \\
+
+Jun 2003 & Provide \texttt{PSI-SEARCH} --- an implementation of
+\texttt{SSEARCH} that can search with \texttt{PSI-BLAST} PSSM profile
+files.  \texttt{PSI-SEARCH} estimates statistical significance from
+the distribution of actual alignment scores; thus the estimates are
+much more reliable than \texttt{PSI-BLAST} estimates.  Also, change
+the similarity display to work with profiles. (3.4t22) \\
+
+July 2003 & Provide ASN.1 definition line parsing for \texttt{BLAST}
+{\tt formatdb} v.4 libraries.  Restructure the programs to use a table-driven
+approach to parameter setting.   Two tables now define the algorithm,
+query sequence type, library type, scoring matrix, and gap penalties for
+all programs.  \\
+
+Sept 2003 & A new option {\tt -V} for annotating alignments
+provided. Designed for highlighting post-translational modifications
+with {\tt fasts}, it can also be used to highlight active sites and
+other conserved residues. (3.4t23) \\
+
+Dec 2003 & Addition of {\tt -U} option for RNA sequence
+comparison. {\tt G:A} matches score like {\tt G:G} matches to account
+for {\tt G:U} basepairs.  Change default {\it ktup} for short query
+sequences.  Increase band-width for DNA banded final alignments. \\
+
+July 2004 & Allow searching of \texttt{Postgres}, as well as
+\texttt{MySQL} database queries. \\
+
+Nov 2004 & (\texttt{fa34t24}) Incorporation of Erik Lindahl "anti-diagonal" Altivec
+implementation of \cite{woz974} for Smith-Waterman only.  Altivec
+{\tt ssearch34} is now faster than {\tt fasta34} for query sequences $<$ 250 amino acids. \\
+
+Jan 2005 & Change {\tt FASTS} to accommodate very large numbers of
+peptides ($>$100) for full coverage on long proteins \\
+
+Jun. 2006 & (\texttt{fa34t26}) Incorporation of Smith-Waterman
+algorithm for the SSE2 vector instructions written by Michael Farrar
+\cite{farrar2007}.  The SSE code speeds up Smith-Waterman 8 --
+16-fold. \\[1.0 ex]
+
+\hline \\[-0.5 ex]
+\multicolumn{2}{c}{ \FASTA v35, March, 2007 -- March, 2010 } \\[1 ex]
+\hline \\[-0.5 ex]
+
+Mar. 2007 & fasta v35 -- Accurate shuffle-based $E()$-values for all searches and alignments; statistics from searches against small libraries are supplemented with shuffled alignments.\\[1 ex]
+
+ & More efficient threading strategies on multi-core computers, for 12X speedup on 16-core machines.\\[1 ex]
+
+ & Inclusion of \texttt{lalign} (\texttt{SIM}) local domain alignments. \texttt{lalign} alignments now have accurate shuffle-based $E()$-values.\\[1 ex]
+
+Apr. 2007 & Introduction of \texttt{ggsearch}, for global alignment searches, and \texttt{glsearch}, for searches with scores that are global in the query and local in the library.  \texttt{ggsearch} and \texttt{glsearch} calculate $E()$-values using the normal distribution.  Both programs can search with \texttt{PSI-BLAST} PSSMs.\\[1 ex]
+
+Dec. 2007 & Efficient strategy for searching subsets of databases (lists of GI or accession numbers) \\[1 ex]
+
+Feb. 2008 & Annotations in either query or library sequences can be highlighted in the alignment, and the state of annotated residues is compactly summarized with \texttt{-m 9c}. \\[1 ex]
+
+Oct. 2008 & Modification \texttt{lsim4.c} (\texttt{lalign35}) provided by Xiaoqui Huang to ensure
+that self-alignments do not cross the identity diagonal. \\[1ex]
+%\pagebreak
+\hline \\[-0.5 ex]
+\multicolumn{2}{c}{ \FASTA v36, March, 2010 -- } \\[1 ex]
+\hline \\[-0.5 ex]
+
+Mar. 2010 & \FASTA v36 displays all significant alignments between
+query and library sequence.  BLAST has always displayed multiple
+high-scoring alignments (HSPs) between the query and library sequence;
+previous versions of the FASTA programs displayed only the best
+alignment, even when other high-scoring alignments were present.\\[1
+  ex]
+
+&  New statistical options, \texttt{-z 21, 22, 26}, provide a second $E2()$-value
+estimate based on shuffles of the highest scoring sequences. \\[1 ex]
+
+  &  Improved performance using statistics-based thresholds for
+  gap-joining and band-optimization in the heuristic FASTA local
+  alignment programs, increasing speed 2 - 3X. \\[1 ex]
+
+  &  Greater flexibility in specifying combinations of library files
+  and subsets of libraries.  \FASTA v36
+  programs can include indirect files of library names inside of
+  indirect files of library names. \\[1 ex]
+
+  & \FASTA36 programs are fully threaded, both for
+  searches, and for alignments.  The programs routinely run 12 - 15X
+  faster on 8-core machines with "hyperthreading" (effectively 16 cores).
+  \\[1 ex]
+
+ & \texttt{-z 21} .. \texttt{26} E2() statistical estimates from
+  shuffled best scores.\\[1.0ex]
+
+Sep. 2010 & \texttt{-m 8}, \texttt{-m 8C} BLAST tabular output. \\[1.0ex]
+
+Nov, 2010 & Variable scoring matrices (\texttt{-m ?BP62}).\\[1.0ex]
+
+Dec, 2010 & (\texttt{fasta-36.3.1}) SSE2 vectorized \texttt{ggsearch36}, \texttt{glsearch36} (Michael Farrar).\\[1.0ex]
+
+Jan, 2011 & (\texttt{fasta-36.3.2}) MPI versions implemented and tested.\\[1ex]
+
+Feb, 2011 & Introduce \texttt{-m B}, \texttt{-m BB} BLAST-like output.\\[1.0ex]
+
+Mar, 2011 & (\texttt{fasta-36.3.4}) Program is no longer interactive by
+default. \texttt{fasta36 -h} and \texttt{fasta36 -help} provide
+common/complete options, with many defaults. \texttt{doc/fasta\_guide.pdf} available.\\[1.0ex]
+
+May, 2011 & (\texttt{fasta-36.3.5}) Introduce (1) \texttt{-e
+  expand.sh} scripts to extend the effective size of the database
+searched, based on significant hits; (2) \texttt{-m "F\# output.file"}
+to send different output formats to different files; and (3)
+\texttt{-X} expanded options, \texttt{-o} replaces the old \texttt{-X}
+and \texttt{-Xo} replaces \texttt{-o}. \\[1.0ex]
+
+Jan, 2012 & Include \texttt{.fastq} files as library type 7 \\[1.0ex]
+
+May, 2012 & allow reverse-complement alignments with \texttt{ggsearch} and \texttt{glsearch} \\[1.0ex]
+
+Jun, 2012 & Introduce \texttt{-V !script.pl} driven alignments, and variant scoring.\\[1.0ex]
+
+Aug, 2012 & Introduce \texttt{-V !ann\_feats.pl} sub-alignment (region-based) scoring.\\[1.0ex]
+
+Apr, 2013 & Extend \texttt{ENV} options to introduce a domain-plotting option for FASTA web sites.\\[1.0ex]
+
+\hline
+\end{longtable}

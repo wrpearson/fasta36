@@ -1,0 +1,69 @@
+# makefile for fasta3, fasta3_t.  Use makefile.pvm for pvcompxx.
+# this file works for Mac OS X (PPC)
+#
+# this file supports mmap()'ed databases in BLAST2 format use -DUSE_MMAP
+# for mmap()ed BLAST2 format.
+
+# the -DDEBUG option provides additional debugging information, particularly
+# with -D on the command line.
+
+# use -DBIG_LIB64 to generate 64-bit offsets in map_db .xin files
+
+SHELL=/bin/bash
+
+# in my hands, gcc-4.0 is about 40% slower than gcc-3.3 on the Altivec code
+CC= gcc -g -O3 -arch ppc -falign-loops=32 -O3 -maltivec -mpim-altivec -force_cpusubtype_ALL 
+# -pg -finstrument-functions  -lSaturn
+
+#CC= gcc-3.3 -g -falign-loops=32 -O3 -mcpu=7450 -faltivec
+#CC= gcc-3.3 -g -DDEBUG -mcpu=7450 -faltivec
+#CC= cc -g -Wall -pedantic -faltivec
+#
+# standard line for normal searching
+CFLAGS= -DSHOW_HELP -DSHOWSIM -DM10_CONS -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=2 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"fasta.bioch.virginia.edu/fasta_www2"' -DUSE_MMAP -DUSE_FSEEKO -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DBIG_LIB64 -DMAX_MEMK=2*1024*1024
+
+# -DSUPERFAMNUM -DSFCHAR="'|'"
+
+# add for MySQL support
+# -I/usr/local/mysql/include -DMYSQL_DB
+
+HFLAGS= -o
+NFLAGS= -o
+
+THR_SUBS = pthr_subs2
+THR_LIBS =
+THR_CC =
+
+# for IBM with current pthreads
+#CC= xlc_r -v -g
+#THR_SUBS = ibm_pthr_subs2
+#THR_LIBS = -lpthreads
+#THR_CC =
+
+
+BIN = ../bin
+# diectory for universal binary process
+UDIR = $(BIN)/ppc
+
+#XDIR = ${HOME}/bin
+#XDIR = /home/slib/bin/MACOSX/
+#XDIR = /Users/seqprg/bin
+XDIR = /seqprg/bin
+#XDIR = ./ppc
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# Altivec acceleration
+#
+DROPGSW_O = $(DROPGSW_ALT_O)
+DROPLAL_O = $(DROPLAL_ALT_O)
+DROPGNW_O = $(DROPGNW_NA_O)
+DROPLNW_O = $(DROPLNW_NA_O)
+
+# provide mysql function
+#include ../make/Makefile36m.common_sql
+
+# no mysql
+include ../make/Makefile36m.common

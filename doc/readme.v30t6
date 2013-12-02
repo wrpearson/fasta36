@@ -1,0 +1,74 @@
+
+>>August 24, 1996
+
+New programs - tfastx3, tfastx3_t, compare a protein sequence to
+forward and reverse translations of a DNA sequence database.  An excellent
+replacement for tfasta3.
+
+Sun multiprocessing - change in thr_create() to use all CPU's if available.
+
+GCG formats - now can search with simple GCG-format query sequences and
+results with GCG format Swissprot and Genpept are more readable.
+
+>>August 26, 1996
+
+Fixed bugs in tfastx3(_t) and fastx3(_t) including an ancient problem
+with aatran().  Less redundancy in gcg_ranlib().
+
+
+>>August 31, 1996
+
+Included support for BLOSUM62 (-s BL62) as per documentation.
+
+Rearranged Makefile's so that they would make everything in one pass.
+
+>>September 6, 1996
+
+Corrected yet another problem with the fastx/tfastx code.
+
+Noticed that searching without optimized scores gave no optimized
+scores on the final list of scores - fixed this.
+
+The pvm version now does alignments - not thoroughly tested.
+
+>>September 13, 1996
+
+Fixed display of best scores to stdout.
+
+Fixed problem with alignments when -o flag used.
+
+pvcompfa/pvcompsw have now been tested on DEC Alpha, Solaris X86, and
+SGI PVM implementations.  Several bugs were corrected.
+
+>>September 18, 1996
+
+Fixed bug selectbestz() that caused core dumps in pvcomplib.c
+(changes to pvcomplib.c, comp_thr.c, complib.c).
+
+>>September 23, 1996
+
+Corrected showalign.c/pvm_showalign.c addressing bug found and fixed
+by Erik Wallin. (erikw@biokemi.su.se).
+
+>>October 15, 1996
+
+Corrected bug so alternative scoring matrices are used.
+
+>>October 22, 1996
+
+Remove singularities from regression routine.
+
+-z 0 now means no statistics (same as -z -1).
+
+No longer show alignment for 0 score.
+
+>>October 26, 1996
+
+Fix problem with -b, -d when Z-values disabled.
+
+>>November 1, 1996
+
+Altschul-Gish statistical estimates (-z 3) now work properly.
+
+Fix problem with mean_var==0.0.
+

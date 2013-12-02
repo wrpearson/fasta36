@@ -1,0 +1,33 @@
+#!/bin/sh
+#PBS -l nodes=4:ppn=4
+#PBS -l mem=16GB
+#PBS -l walltime=1:00:00
+
+echo ""
+echo "starting FASTA36" `date` "on" `hostname`
+echo `uname -a`
+echo ""
+if [ ! -d ${TEST_DIR}/test/mpi_results ]; then
+  mkdir ${TEST_DIR}/test/mpi_results
+fi
+echo "starting fasta36_mpi - DNA" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasta36_mpi -S -q ${TEST_DIR}/seq/dna_test_s.nlib %R 4 >${TEST_DIR}/test/mpi_results/test_nlib.ok4_mpi
+echo "done"
+echo "starting tfastxy36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfastx36_mpi -m 9c -q -i -3 ${TEST_DIR}/seq/prot_test_s.lseg %p >${TEST_DIR}/test/mpi_results/test_plib.tx2_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfasty36_mpi -q -i -3 -N 5000 ${TEST_DIR}/seq/prot_test_s.lseg %p >${TEST_DIR}/test/mpi_results/test_plib.ty2_mpi
+echo "done"
+echo "starting fastf36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fastf36_mpi -q ${TEST_DIR}/seq/m1r.aa q >${TEST_DIR}/test/mpi_results/test_mf.ff_mpi
+echo "done"
+echo "starting tfastf36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfastf36_mpi -q ${TEST_DIR}/seq/m1r.aa %r >${TEST_DIR}/test/mpi_results/test_mf.tf_mpir
+echo "done"
+echo "starting fasts36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasts36_mpi -q -V '*?@' ${TEST_DIR}/seq/ngts.aa q >${TEST_DIR}/test/mpi_results/test_m1.fs1_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasts36_mpi -q ${TEST_DIR}/seq/ngt.aa q >${TEST_DIR}/test/mpi_results/test_m1.fs_mpi
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/fasts36_mpi -q -n ${TEST_DIR}/seq/mgstm1.nts m >${TEST_DIR}/test/mpi_results/test_m1.nfs_mpi
+echo "done"
+echo "starting tfasts36_mpi" `date`
+mpiexec -comm mpich2-pmi ${TEST_DIR}/bin/tfasts36_mpi -q ${TEST_DIR}/seq/n0.aa %r >${TEST_DIR}/test/mpi_results/test_m1.ts_r
+echo "done" `date`
