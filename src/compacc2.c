@@ -2968,14 +2968,6 @@ buf_do_work(unsigned char **aa0,  int n0,
 
     lib_buf2_rp->is_valid_stat = 0;
 
-    if (lib_buf2_dp->seq->n1 < ppst->n1_low ||
-	lib_buf2_dp->seq->n1 > ppst->n1_high ) {
-      /* tells save_best() there is no stats score here -- not
-	 necessary as -BIGNUM indicates no score */
-      lib_buf2_dp->stats_idx = -1;
-      goto next_seq;
-    }
-
 #ifdef DEBUG
     if (check_seq_range(lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1,
 			ppst->nsqx, "buf_do_work()")) {
@@ -3121,16 +3113,6 @@ buf_qshuf_work(unsigned char *aa0s,  int n0,
     rrst.score[0] = rrst.score[1] = rrst.score[2] = -BIGNUM;
     rrst.valid_stat = 0;
 
-    if (lib_buf2_dp->seq->n1 < ppst->n1_low ||
-	lib_buf2_dp->seq->n1 > ppst->n1_high ) {
-      lib_buf2_dp++;
-      lib_buf2_rp++;
-      tq_best_rp = NULL;
-      tq_best = -BIGNUM;
-      tq_escore = 1000.0;
-      continue;
-    }
-
     do_work (aa0s, n0,
 	     lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1,
 	     lib_buf2_dp->frame, ppst, qf_str, 1, 0,
@@ -3200,8 +3182,7 @@ buf_shuf_work(unsigned char **aa0,  int n0, unsigned char *aa1s, struct buf_head
       lib_buf2_rp->r_rst.score[2] = -BIGNUM;
     lib_buf2_rp->r_rst.valid_stat = lib_buf2_rp->is_valid_stat = 0;
 
-    if ((lib_buf2_dp->stats_idx < 0) || lib_buf2_dp->seq->n1 < ppst->n1_low ||
-	lib_buf2_dp->seq->n1 > ppst->n1_high ) {
+    if (lib_buf2_dp->stats_idx < 0) {
       lib_buf2_dp++;
       lib_buf2_rp++;
       tr_best_rp = NULL;

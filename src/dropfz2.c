@@ -324,7 +324,7 @@ pre_com(const unsigned char *aa0, int n0, unsigned char *aa0v) {
 static void
 pre_com_r(const unsigned char *aa0, int n0, unsigned char *aa0v) {
   int dnav, i, ir;
-  dnav = (3-hnt[aa0[n0-1]]<<2) + 3-hnt[aa0[n0-2]];
+  dnav = ((3-hnt[aa0[n0-1]])<<2) + 3-hnt[aa0[n0-2]];
   for (i=2, ir=n0-3; i<n0; i++,ir--) {
     dnav = ((dnav<<2)+3-hnt[aa0[ir]])&255; 
     if (aa0[ir] == NT_N || aa0[ir+1]==NT_N || aa0[ir+2] == NT_N)  {
