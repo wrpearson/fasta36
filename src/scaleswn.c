@@ -2850,7 +2850,7 @@ scale_scores(struct beststr **bptr, int nbest, struct db_str db,
   else {
     for (i=0; i<nbest; i++) {
       zscore = find_z(bptr[i]->rst.score[ppst->score_ix], bptr[i]->rst.escore,
-		       bptr[i]->seq->n1,bptr[i]->rst.comp,rs);
+		      bptr[i]->seq->n1,bptr[i]->rst.comp,rs);
       bptr[i]->zscore = zscore;
       bptr[i]->rst.escore
 	=zs_to_E(zscore,bptr[i]->seq->n1,ppst->dnaseq, ppst->zdb_size,db);

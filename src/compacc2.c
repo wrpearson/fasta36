@@ -2281,6 +2281,8 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
            process_hist() and update all the zscores
        (c) reset everything for next sequence
 
+   (3) must ensure that -BIGNUM are never in best[]
+
 */
 
 #include "thr_buf_structs.h"
@@ -2635,8 +2637,12 @@ save_best2(struct buf_head *lib_bhead_p,
     lib_buf2_rp = lib_bhead_p->buf2_res;
     buf2_cnt = lib_bhead_p->hdr.buf2_cnt;
     while (buf2_cnt--) { /* count down the number of results */
+      
       rbuf_rp = lib_buf2_rp++;	/* step through the results buffer */
       rbuf_dp = lib_buf2_dp++;	/* step through the data buffer */
+
+      /* perhaps should use explicit flag to indicate no score */
+      if (rbuf_rp->rst.score[0] == -BIGNUM) continue;
 
       fprintf(fdata,
 	      "%-12s %6d %d %.5f %.5f %4d %4d %4d %2d %2d %4d %4d %4d %2d %2d %5d %8lld\n",
@@ -2659,6 +2665,8 @@ save_best2(struct buf_head *lib_bhead_p,
     rbuf_rp = lib_buf2_rp++;
     rbuf_dp = lib_buf2_dp++;
 
+    /* perhaps should use explicit flag to indicate no score */
+    if (rbuf_rp->rst.score[0] == -BIGNUM) continue;
 
     /* i_score: current raw sorting score */
     i_score = rbuf_rp->rst.score[sc_ix];
