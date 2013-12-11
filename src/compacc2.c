@@ -3015,7 +3015,9 @@ buf_do_work(unsigned char **aa0,  int n0,
       t_escore = 1000.0;
     }
 
+#ifdef DEBUG
   next_seq:
+#endif
     lib_buf2_dp++;
     lib_buf2_rp++;
   }

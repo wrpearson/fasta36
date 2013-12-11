@@ -2423,7 +2423,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
       aa1ptr = aa1;
     }
 
-next_seq:
+next_lib:
     n1=GETLIB(aa1ptr, maxt, getlib_info->libstr, getlib_info->n_libstr,
 	      &(current_mseq_p->lseek), &getlib_info->lcont, m_file_p, &(current_seq_p->l_off));
 
@@ -2437,7 +2437,7 @@ next_seq:
     }
 
     if (n1 < ppst->n1_low || n1 > ppst->n1_high) {
-      goto next_seq;
+      goto next_lib;
     }
 
     old_seq_p = current_seq_p;
