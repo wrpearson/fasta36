@@ -1,0 +1,17 @@
+
+22-Jan-2014
+
+fasta36/doc/INSTALL
+
+To compile the FASTA programs, change to the fasta36/src directory:
+
+  cd ~/fasta36/src
+
+and type:
+
+  make -f ../make/Makefile.linux64_sse2 all
+
+The file fasta36/make/README gives more information about the
+different Makefiles available. The code is routinely compiled and
+tested under Linux (64-bit, sse2) and MacOS X (64-bit, sse2).
+

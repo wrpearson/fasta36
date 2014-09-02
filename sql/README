@@ -1,0 +1,26 @@
+
+22-Jan-2014
+
+fasta36/sql
+
+================
+Perl and SQL for creating and searching mySQL and pgSQL sequence
+databases.
+
+See A. J. Mackey and W. R. Pearson (2004) "Using SQL databases for
+sequence similarity searching and analysis" Current Protocols in
+Bioinformatics L. Stein, Ed. Wiley, New York, pp 9.4.1-9.4.25
+
+create_seq_demo.sql
+mysql_demo1.sql   -- SQL file for fasta36 format 16 to search seqdb_demo databse
+mysql_demo_pv.sql -- SQL file for searching 50000 Swissprot sequences using database format 16 (mysql)
+		     fasta36 ../seq/mgstm1.aa "../sql/myql_demo_pv.sql 16"
+nr_to_sql.pl	  -- perl script to create mysql seqdb_demo sequence database
+pirpsd.sql        -- SQL file for fasta36 format 16 to search custom PIR database (obsolete)
+psql_demo1.sql    -- pgSQL version of mysql_demo1.sql
+psql_demo_pv.sql  -- pgSQL version of mysql_demo_pv.sql
+
+================
+alternate expansion strategy
+
+join_up50.pl      -- more sophisticated way to generate expanded sequences using SQL

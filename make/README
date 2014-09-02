@@ -1,0 +1,44 @@
+
+22-Jan-2014
+
+fasta36/Make
+
+================
+Makefiles for different Unix/Linux/MacOS configurations
+
+****************
+These make files are designed to be run from the ../src directory, e.g.
+
+cd ~/fasta36/src
+make -f ../make/Makfile.linux64_sse2 all
+****************
+
+While several different architectures are specified here, the files
+that are used the most are:
+
+Makefile.linux64_sse2 -- standard Linux(64-bit) Makefile
+
+ -- now equivalent to Makefile.linux64 and Makefile.linux.  For
+    non-sse2 compiles, use Makefile.linux64_nosse2
+
+Makefile.linux_icc_sse2 -- Linux (64-bit) with Intel icc compiler
+
+Makefile.os_x86_64 -- standard MacOS (64-bit) Makefile (also sse2)
+
+Makfile.nmk_ics -- Windows 32-bit with Intel icc compiler
+
+================
+
+Most of the other Makefiles have not been tested for months or years.
+
+================================================================
+
+The major Makefiles above include other makefiles, including
+Makefile36m.common, Makefile.pcom_t, Makefile.fcom to compile and link
+the appropriate programs.
+
+The Windows Makefile.nmk_icl uses Makefile.nm_fcom and Makefile.nm_pcom
+
+The windows environment requires Microsoft nmake.
+
+================================================================

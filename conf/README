@@ -1,0 +1,33 @@
+
+22-Jan-2014
+
+fasta36/conf
+
+================
+
+Files that allow FASTA programs to find libraries using abbreviations.
+
+For example, if the fast_libs_e.www has the line:
+
+Swissprot (NCBI)$0Q${SLIB2}/fa_dbs/swissprot.lseg
+
+and export SLIB2=/slib2
+
+then:
+
+fasta36 ../seq/mgstm1.aa q
+
+is equivalent to:
+
+fasta36 ../seq/mgstm1.aa /slib2/fa_dbs/swissprot.lseg
+
+================
+
+fastlibs -- the original library abbreviation file
+
+fast_new -- allows abbreviations longer than one letter by using "+abbrev+"
+  NBRF PIR1 Annotated Protein Database (rel 56)$0+pir1+/slib2/fa_dbs/pir1.lseg
+
+fast_libs_e.www -- use environment variables in library file name
+
+(+long+ abbreviations and ${SLIB2} environment variables can be combined)

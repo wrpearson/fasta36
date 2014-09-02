@@ -1,0 +1,38 @@
+
+22-Jan-2014
+
+fasta36/scripts
+
+Perl scripts for annotating sequences and expanding libraries
+
+-- Sequence alignment annotation
+
+All of the "ann_*.pl" scripts are used to annotate query or library
+sequences using the -V option.  See ../test/test2V.pl for examples.
+
+ann_feats2ipr.pl -- generate Uniprot sites, Interpro domains, from a mySQL database
+ann_feats2l.pl -- generate Uniprot sites, domains from a mySQL database
+
+ann_feats_up_www2.pl -- generate Uniprot sites, domains from an EBI web server that converts Uniprot DAS to gff3.
+ann_feats_up_www.pl -- generate Uniprot sites, domains from a Uniprot gff web server (less information than ann_feats_www2.pl)
+
+ann_pdb_cath.pl -- generate CATH domains using PDB accessions from a mySQL database
+
+ann_pfam.pl -- generate Pfam domains using local Pfam mySQL database
+ann_pfam_www.pl -- use Pfam Website, and XML::Twig, to get Pfam domain info.
+
+-- Library expansion
+
+expand_uniref50.pl -- allows search of uniref50 to be expanded
+expand_links.pl -- script to take hits from a smaller library and expand to complete library
+links2sql.pl -- create links for expand_links.pl
+
+exp_up_ensg.pl -- expand uniprot sequences to include Ensembl splice variants
+
+-- Plot local alignments (.lav files)
+
+lav2plt.pl    -- used to produce postscript or svg plots of "lalign36 -m 11" lav output files
+color_defs.pl -- used by lav2plt.pl to produce domain colors
+lavplt_ps.pl  -- used by lav2plt.pl --dev ps
+lavplt_svg.pl -- used by lav2plt.pl --dev svg
+

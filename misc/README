@@ -1,0 +1,14 @@
+
+22-Jan-2014
+
+fasta36/misc
+
+Perl scripts for simple tasks
+
+parse_m9.pl -- parse -m 9 output to produce tab-delimited files with tab-delimited:
+	     query_acc, query_len, lib_acc, lib_len, score, bits, evalue, f_id, f_sim, alen, and start/stop coordinates
+
+res2R.pl    -- convert fasta36 -R raw.results files into something 'R' can digest
+
+shuffle_embed.pl -- take a sequence and embed it into a shuffled version of itself
+
