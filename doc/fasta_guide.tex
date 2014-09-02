@@ -14,8 +14,8 @@
 \addtolength{\topmargin}{-0.75in}
 \addtolength{\textheight}{1.5in}
 
-%% $Id: fasta_guide.tex 1173 2013-06-06 16:57:02Z wrp $
-%% Version: $Revision: 1173 $
+%% $Id: fasta_guide.tex 1270 2014-07-29 23:24:42Z wrp $
+%% Version: $Revision: 1270 $
 
 \lhead{\CURRENT}
 \rhead{\today}
@@ -179,9 +179,9 @@ gives a brief description of the programs.
 
 In addition, there are several programs included. \texttt{map\_db} is
 used to index FASTA format sequence databases for more efficient
-scanning. \texttt{lav2ps} and \texttt{lav2svg} plot the \texttt{.lav}
+scanning. \texttt{scripts/lav2plt.pl} can plot the \texttt{.lav}
 files produced by \texttt{lalign -m 11} as postscript
-(\texttt{lav2ps}) or SVG (\texttt{lav2svg}) output.
+(\texttt{lav2plt.pl --dev ps}) or SVG (\texttt{lav2plt.pl --dev svg}) output.
 
 \section{Using the FASTA Package}
 \subsection{Introduction/Overview}
@@ -348,9 +348,9 @@ use the options but prompt for the necessary files .
 \subsection{Interpreting the results}
 
 Fig. \ref{ssearch_run} shows the output from a typical FASTA program
-( \texttt{ssearch36}).  The output file can be
+(\texttt{ssearch36}).  The output file can be
 viewed as four parts: (a) the initial command line and description of
-the query sequence used (mgstm1.aa, 218 aa) and library (PIR1, 13,351
+the query sequence used (mgstm1.aa, 218 aa) and library (PIR1, 13,143
 entries); (b) a description of the search statistics, algorithm
 (Smith-Waterman, SSE2 accelerated), and search parameters (BLOSUM50
 matrix, gap penalties: -10 to open a gap, -2 for each residue in a
@@ -375,7 +375,7 @@ would be labeled \texttt{opt}, for the \emph{opt}imized -- banded
 Smith-Waterman -- score), (iii) the \emph{bit} score, and (iv) the
 expectation (E()), or statistical significance, of the alignment
 score.  The E()-value depends on the size of the database searched, in
-this case, 13,351 sequences, so the database size is given at the top
+this case, 13,143 sequences, so the database size is given at the top
 of the list.
 
 The bit score is equivalent to a BLAST bit score; together with the
@@ -522,7 +522,7 @@ practical to examine all the statistically significant alignments in
 large-scale searches. The \texttt{-m 9} and \texttt{-m 8} options
 present summaries of each alignment (alignment boundaries, percent
 identity, and other information) in a much more compact form.  In
-addition, \texttt{-m 8c} or \texttt{-m 8C} (see options below) provide
+addition, \texttt{-m 9c} or \texttt{-m 9C} (see options below) provide
 a detailed encoding of the alignment, that allows it to be
 reconstructed. For large-scale searches, we routinely use \texttt{-m
   8} with the \texttt{-d 0} option, which sets the number of 
@@ -776,15 +776,27 @@ provides the alignment encoding in CIGAR format:
 \begin{footnotesize}
 \texttt{28M9D13M2I10M1I3M1D5M}
 \end{footnotesize}.
+
+(June, 2014) The \texttt{-m 9c/C} option has been extended to
+\texttt{-m 9d/D}, which encodes the positions of mismatches as well as
+insertions and deletions.  For the example above, the \texttt{-m 9d}
+encoding would be:
+\begin{footnotesize}
+\texttt{=1x1=2x4=2x1=2x7=3-9=1x2=1x4=2x1=1x1+2x1=1x1=1x3=1x2+1=3-1x1=1x2=1}
+\end{footnotesize}
+while \texttt{-m 9D} would be:
+\begin{footnotesize}
+\texttt{1M1X2M4X2M1X2M7X3M9D1M2X1M4X2M1X1M1X2I1X1M1X1M3X1M2X1I3M1D1X1M2X1M}
+\end{footnotesize}
 \item[\texttt{-m 10}]
 a parseable format for use with other programs.
 \item[\texttt{-m 11}]
 Provide \texttt{lav}-like output (used by \texttt{lalign}) for graphical output.
 \begin{quote}
-\texttt{lalign36 -m 11 mchu.aa mchu.aa | lav2ps > mchu\_laln.ps}
+\texttt{lalign36 -m 11 mchu.aa mchu.aa | lav2plt.pl --dev ps  > mchu\_laln.ps}
 \end{quote}
 Produces a postscript plot of the local alignments.  Likewise,
-\texttt{lav2svg} produces SVG output.
+\texttt{lav2plt.pl --dev svg} produces SVG output.
 
 \item[\texttt{-m BB}] Format output to mimic BLAST format.  \texttt{-m
   B} formats alignments to look like BLAST alignments (Query/Sbjct),
@@ -1177,6 +1189,13 @@ A number of rarely used options are now only available as extended options:
 \item[\texttt{XB}] (Previously \texttt{-B}.)  Show the z-score, rather
   than the bit-score in the list of best scores (rarely used, provided
   for backward compatibility).
+
+\item[\texttt{XI}] Modify rounding used in percent identity/percent
+  similarity display to ensure that sequences that have a mismatch are
+  not shown as 100.0\% identical.  Without this option, a single
+  mismatch in a 10,000 residue alignment would be shown as 100.0\%
+  identical; with this option, it would be shown as 99.9\%
+  identical.
 
 \item[\texttt{Xo}] (\texttt{fasta36}, \texttt{[t]fast[x/y]36} only)
   (Previously \texttt{-o}.) Turn off the default \texttt{opt} score

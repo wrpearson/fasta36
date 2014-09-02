@@ -1,7 +1,7 @@
 /* Concurrent read version */
 
-/* $Id: defs.h 1176 2013-06-13 08:40:25Z wrp $ */
-/* $Revision: 1176 $  */
+/* $Id: defs.h 1261 2014-06-11 19:38:36Z wrp $ */
+/* $Revision: 1261 $  */
 
 #ifdef SUNOS
 #include <sys/stdtypes.h>
@@ -164,5 +164,6 @@
 #define SHOW_CODE_ID	1	/* identity only */
 #define SHOW_CODE_ALIGN 2	/* encoded alignment */
 #define SHOW_CODE_CIGAR 3	/* encoded alignment */
-#define SHOW_CODE_MASK  7	/* use higher bits for annotation format */
+#define SHOW_CODE_MASK  3	/* use higher bits for annotation format */
+#define SHOW_CODE_EXT   4	/* encode identity, mismatch state */
 #define SHOW_ANNOT_FULL 8	/* show full-length annot in calc_code */

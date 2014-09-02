@@ -1,5 +1,5 @@
 
-  $Id: readme.v36 1240 2013-11-08 21:04:46Z wrp $
+  $Id: readme.v36 1291 2014-08-28 18:32:58Z wrp $
   $Revision: 55 $
 
 Version 3.6 of the FASTA programs is a significant update over version
@@ -8,6 +8,124 @@ the strategies for ensuring accurate statistics), but it allows for
 multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
+
+>>Aug. 28, 2014	[re-released as fasta-36.3.6f]
+[ncbl2_mlib.c]
+The code used to parse blastfmtdb sequence description lines has not
+kept up with NCBI's use of ASN.1 in sequence descriptions.  This code
+has been updated, and now works properly with the protein and DNA
+sequence databases.
+
+[comp_lib9.c]
+Fixed a seg-fault that occurred when an open-file error occurred.
+
+>>Aug. 22, 2014	[released as fasta-36.3.6f]
+[mshowbest.c]
+Change alignment summary display for lalign to not show identical
+alignment score unless '-J' option used.  Add "The best non-identical
+alignments" when no "-J"
+
+[ann_pfam_www.pl] Fix bugs.
+
+[ncbl2_mlib.c]
+modified to read NCBI ambiguity codes in
+blastdbfmt/formatdb nucleotide databases.  Not extensively tested.`
+
+>>Aug. 20, 2014
+[compacc2.c, cal_cons.c, dropfx.c, dropfz2.c]
+Modify sub-alignment score report to calculate bit-score by dividing
+total alignment bit score by sub-alignment raw score divided by total
+alignment raw score.  This produces a bit score that is much more
+sensible than the previous strategy, which calculated a z-score from
+the sub-alignment.
+
+>>Aug. 18, 2014
+[compacc2.c, cal_cons.c]
+Undo removal of '[]' from aa0a/aa1a (they are required to visualize
+domain boundaries in alignment).  cal_cons.c now users PSSMs when they
+are available.
+
+>>Aug. 8, 2014
+[comp_lib9.c, compacc2.c]
+Move the call to get query annotations via scripts out of compacc2.c
+and into comp_lib9.c.
+
+>>July 29,2014
+[comp_lib9.c, mshowbest.c, mshowalign2.c]
+Enable high scoring alignment display (like high scoring sequences)
+with lalign36, when -m 9 (-m 9c/d/C/D) option is provided, or with -m
+8.  This allows lalign36 to provide a compact, tabular list of
+non-overlapping local alignments.
+
+>>June 30, 2014
+[pssm_asn_subs.c]
+Update the code for parsing ASN.1 binary PSSM files produced by
+psiblast+. The new code reads more of the optional fields in
+pssm_intermediate_data().  The fields are not used, but broke the
+earlier parser.
+
+>>June 11, 2014
+[cal_cons.c, initfa.c, dropfx.c, dropfz2.c]
+Extend the match/mismatch encoding provided by -m 9c and -m 9C with -m
+9d and -m 9D.  The -m 9d/D options provide mismatch locations as well
+as insertion/deletion locations.  For -m 9d, the list of codes has
+expanded from '=\/*' to '=\/*x'; for -m 9D, 'MDIMX'.  Current
+implementation works for all programs except [t]fast[fms].  Updated
+version strings to June, 2014.
+
+>>May 28, 2014
+[mshowalign2.c, mshowbest.c, initfa.c, structs.h]
+Add the command line option -XI.  Changes the calculation of percent
+identity to ensure that a single mismatch in a long sequence with >
+99.9\% identity is displayed as 99.9% (0.999) identity, rather than
+100.0% identity. Without this option, a single mismatch in 10,000
+residues displays 100% identity, with the option, 99.9% identity is
+displayed (even though the identity is 99.99%).
+
+[cal_consf.c]
+Fix the false error message "code begins with 0" in cal_consf.c.
+
+>>Feb. 12, 2014
+[compacc2.c]
+When providing "sequence length" to annotation scripts, add offsets.
+Also modify scripts to allow sequence lengths to increase.
+
+>>Jan. 28, 2014  (re-released as fasta-36.3.6d/Jan 2014)
+[dropfs2.c, calconsf.c, tatstats.c]
+The coordinate fix for fasts36/fastm36 (Dec 18, 2013) broke some
+fasts/fastm alignments. The alignment code has been reverted to the
+"classic" code that has been used for more than 10 years.  However,
+that code always marked the first aligned residue as 1, even when the
+first part of the query did not align.  The initial coordinate offset
+has been fixed; the coordinate is now the position in the first
+aligned fragment.  This may be confusing, because with fasts, the
+first aligned fragment may not be the first fragment in the query
+list.  The coordinate provided always provides the offset from the
+beginning of the first fragment in the alignment, not the first
+fragment in the list.  This fix required changes to the definition of
+calc_astruct(), which required changes to build_ares.c, mshowalign.c,
+calc_cons.c, dropfx.c, and dropfz2.c.
+
+>>Jan. 24, 2014
+[mshowalign2.c]
+Add checks to assumption that '>gi|12345' is an NCBI library entry.
+[nmgetlib.c]
+Fix for nmgetlib.c with -DMYSQL_DB
+
+Some cleanup of old Makefiles.
+
+>>Jan. 1, 2014
+[url_subs.c]
+Fix off by one in domain coordinates in display_domains().
+
+>>Dec. 18, 2013
+[dropfs2.c, cal_consf.c]
+Fix problem with alignment display when query sequence is much longer than library sequence.
+
+>>Dec. 11, 2013
+[compacc2.c]
+Modified save_best2() to correctly exclude sequences outside
+-M n1_low-n1_high limits.
 
 >>Nov. 8, 2013   (re-released as fasta-36.3.6d)
 [ncbl2_mlib.c]

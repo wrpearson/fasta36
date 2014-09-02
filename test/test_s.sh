@@ -3,14 +3,14 @@ echo ""
 echo "starting fasta36 - protein" `date` "on" `hostname`
 echo `uname -a`
 echo ""
-fasta36 -q -m 6 -Z 100000 mgstm1.aa:1-100 q > test_m1.ok2.html
-fasta36 -S -q -z 11 -O test_m1.ok2_p25 -s P250 mgstm1.aa:100-218 q
+fasta36 -q -m 6 -Z 100000 ../seq/mgstm1.aa:1-100 q > test_m1.ok2.html
+fasta36 -S -q -z 11 -O test_m1.ok2_p25 -s P250 ../seq/mgstm1.aa:100-218 q
 echo "done"
 echo "starting fastxy36" `date`
-fastx36 -m 9 -S -q mgtt2_x.seq q > test_t2.xk2
-fasty36 -S -q mgtt2_x.seq q > test_t2.yk2
-fastx36 -m 9 -S -q -z 2 mgstm1.esq a > test_m1.xk2z2
-fasty36 -S -q -z 2 mgstm1.esq a > test_m1.yk2z2
+fastx36 -m 9 -S -q ../seq/mgtt2_x.seq q > test_t2.xk2
+fasty36 -S -q ../seq/mgtt2_x.seq q > test_t2.yk2
+fastx36 -m 9 -S -q -z 2 ../seq/mgstm1.esq a > test_m1.xk2z2
+fasty36 -S -q -z 2 ../seq/mgstm1.esq a > test_m1.yk2z2
 echo "done"
 echo "starting fastxy36 rev" `date`
 fastx36 -m 9 -q -m 5 mgstm1.rev q > test_m1.xk2r

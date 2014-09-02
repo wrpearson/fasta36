@@ -1,5 +1,5 @@
-/* $Id: tatstats.h 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
+/* $Id: tatstats.h 1254 2014-01-29 16:03:40Z wrp $ */
+/* $Revision: 1254 $  */
 
 #ifndef MAXSQ
 #include "param.h"
@@ -71,6 +71,7 @@ struct f_struct {
   int aa0ix;
 #endif
   unsigned char *aa0t;	/* temp location for peptides */
+  int aa0t_off;		/* offset between aa0 and aa0t for correct coordinates */
   int *aa0ti;		/* temp index for peptides */
   int hmask;			/* hash constants */
   int *pamh1;			/* pam based array */

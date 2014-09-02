@@ -31,6 +31,7 @@ my $hostname = `/bin/hostname`;
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", 0, "web_user", "fasta_www");
 
 my ($neg_doms, $lav, $shelp, $help, $class) = (0, 0, 0, 0, 0);
+my ($min_nodom) = (10);
 
 GetOptions(
     "host=s" => \$host,
@@ -42,6 +43,7 @@ GetOptions(
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
+    "min_nodom=i" => \$min_nodom,
     "class" => \$class,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -64,7 +66,7 @@ my %domains = (NODOM=>0);
 my $domain_cnt = 0;
 
 my $get_offsets_pdb =  $dbh->prepare(<<EOSQL);
-SELECT res_beg, pdb_beg, sp_beg
+SELECT res_beg, pdb_beg, pdb_end, sp_beg, sp_end
 FROM pdb_chain_up
 WHERE pdb_acc=?
 ORDER BY res_beg
@@ -136,8 +138,11 @@ sub show_annots {
       $pdb_acc = $pdb_id . $pdb_chain;
     }
   }
-  elsif ($query =~ m/^sp\|/ || $query =~ m/^pdb\|/) {
+  elsif ($query =~ m/^sp\|/) {
     ($pdb, $pdb_acc) = split(/\|/,$query);
+  }
+  elsif  ($query =~ m/^pdb\|(\w{4})\|(\w)/) {
+    $pdb_acc = $1 . $2;
   }
   else {
     $pdb_acc = $query;
@@ -145,11 +150,23 @@ sub show_annots {
 
 # only get the first res_beg because it is used to calculate pdbaa_off @c:xxx
   $get_offsets_pdb->execute($pdb_acc);
-  my ($res_beg, $pdb_beg, $sp_beg) = $get_offsets_pdb->fetchrow_array();
+  my ($res_beg, $pdb_beg, $pdb_end, $sp_beg, $sp_end) = $get_offsets_pdb->fetchrow_array();
 
   $res_beg = 1 unless defined($res_beg);
   $pdb_beg = 1 unless defined($pdb_beg);
   $sp_beg = 1 unless defined($sp_beg);
+
+  if (defined($sp_end) && $sp_end > $seq_len) {$seq_len = $sp_end;}
+  if (defined($pdb_end) && $pdb_end > $seq_len) {$seq_len = $pdb_end;}
+
+  # unless ($seq_len > 1) {
+  #   if (defined($sp_end)) {
+  #     $seq_len = $sp_end;
+  #   }
+  #   elsif (defined($pdb_end)) {
+  #     $seq_len = $pdb_end;
+  #   }
+  # }
 
   $get_cathdoms_pdb->execute($pdb_acc);
   $annot_data{list} = get_cath_annots($lav, $get_cathdoms_pdb, $pdb_beg, $seq_len, $off_flag);
@@ -175,10 +192,12 @@ sub get_cath_annots {
       $row_href->{seq_end} = $row_href->{s_stop} - $sp_offset;
     }
 
-    $seq_length = $row_href->{seq_end} - $row_href->{seq_start} unless $seq_length;
-
-    $row_href->{seq_end} = $seq_length if ($row_href->{seq_end} > $seq_length);
-
+    if ($seq_length <= 1) {
+      $seq_length = $row_href->{seq_end};
+    }
+    else {
+      $row_href->{seq_end} = $seq_length if ($row_href->{seq_end} > $seq_length);
+    }
     push @cath_domains, $row_href
   }
 
@@ -197,8 +216,8 @@ sub get_cath_annots {
     my @ncath_domains;
     my $prev_dom={seq_end=>0};
     for my $cur_dom ( @cath_domains) {
-      my %new_dom = (seq_start=>$prev_dom->{seq_end}+1, seq_end => $cur_dom->{seq_start}-1, info=>'NODOM');
-      if ($new_dom{seq_end} > $new_dom{seq_start}) {
+      if ($cur_dom{seq_start} - $prev_dom{seq_end} > $min_nodom) {
+	my %new_dom = (seq_start=>$prev_dom->{seq_end}+1, seq_end => $cur_dom->{seq_start}-1, info=>'NODOM');
 	push @ncath_domains, \%new_dom;
       }
       push @ncath_domains, $cur_dom;
@@ -267,13 +286,17 @@ ann_feats.pl
 
  -h	short help
  --help include description
+
+ --lav  produce lav2plt.pl annotation format, only show domains/repeats
  --neg-doms,  -- report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
+ --min_nodom=10  -- minimum length between domains for NODOM
+
  --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_pdb_cath.pl> extracts domain information from the pfam26 msyql
+C<ann_pfam26.pl> extracts domain information from the pfam26 msyql
 database.  Currently, the program works with database sequence
 descriptions in one of two formats:
 
@@ -283,7 +306,7 @@ descriptions in one of two formats:
 
  >gi|1705556|sp|P54670.1|CAF1_DICDI
 
-C<ann_pdb_cath.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
+C<ann_pfam26.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam26> database to extract domain
 information on a protein.  For proteins that have multiple domains
 associated with the same overlapping region (domains overlap by more
@@ -292,8 +315,8 @@ annotation with the best C<domain_evalue_score>.  When domains overlap
 by less than 1/3 of the domain length, they are shortened to remove
 the overlap.
 
-C<ann_pdb_cath.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pdb_cath.pl> or C<-V "\!ann_pdb_cath.pl --neg"> option.
+C<ann_pfam26.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_pfam26.pl> or C<-V "\!ann_pfam26.pl --neg"> option.
 
 =head1 AUTHOR
 

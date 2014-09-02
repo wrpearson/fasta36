@@ -24,7 +24,7 @@ use DBI;
 use Getopt::Long;
 use Pod::Usage;
 
-use vars qw($host $db $a_table $port $user $pass);
+use vars qw($host $db $dom_db $a_table $port $user $pass);
 
 my %domains = ();
 my $domain_cnt = 0;
@@ -32,12 +32,13 @@ my $domain_cnt = 0;
 my $hostname = `/bin/hostname`;
 
 unless ($hostname =~ m/ebi/) {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
+  ($host, $db, $a_table, $port, $user, $pass)  = ("xdb", "uniprot", "annot2", 0, "web_user", "fasta_www");
 } else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $shelp, $help) = (0,0,0,0,0,0,0,0,0);
+my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc) = 
+    (0,0,0,0,0,0,0,0,0,0,0,0);
 
 GetOptions(
 	   "host=s" => \$host,
@@ -46,9 +47,13 @@ GetOptions(
 	   "password=s" => \$pass,
 	   "port=i" => \$port,
 	   "lav" => \$lav,
-	   "no_doms" => \$no_doms,
+	   "no_mod" => \$no_mod,
+	   "no-mod" => \$no_mod,
 	   "no-doms" => \$no_doms,
 	   "nodoms" => \$no_doms,
+           "dom_db=s" => \$dom_db,
+	   "dom_acc" => \$db_ref_acc,
+	   "dom-acc" => \$db_ref_acc,
 	   "neg" => \$neg_doms,
 	   "neg_doms" => \$neg_doms,
 	   "neg-doms" => \$neg_doms,
@@ -59,8 +64,8 @@ GetOptions(
 	   "no_label" => \$no_label,
 	   "no-label" => \$no_label,
 	   "nolabel" => \$no_label,
-	   "sstr" => \$sstr,
 	   "ipr" => \$use_ipr,
+	   "acc_comment" => \$acc_comment,
 	   "h|?" => \$shelp,
 	   "help" => \$help,
 	  );
@@ -97,17 +102,30 @@ if ($neg_doms) {
   $domains{'NODOM'}=0;
 }
 
+if ($no_mod) {
+  @feat_keys = qw(ACT_SITE BINDING SITE METAL);
+  @feat_text = ( "active site", "binding site", "site", "metal binding");
+  @feat_vals = ( '=','#','^','!');
+  delete($annot_types{'MOD_RES'});
+  delete($annot_types{'MUTAGEN'});
+  delete($annot_types{'VARIANT'});
+}
+
 my $get_ft2_sites_id = $dbh->prepare(qq(select acc, pos, end, label, value, len from features2 join $a_table using(acc) where id=? and label in ('ACT_SITE','MOD_RES','BINDING','SITE','METAL','VARIANT','MUTAGEN') order by pos));
 
 my $get_ft2_sites_acc = $dbh->prepare(qq(select acc, pos, end, label, value, len from features2 join $a_table using(acc) where acc=? and label in ('ACT_SITE','MOD_RES','BINDING','SITE','METAL','VARIANT','MUTAGEN') order by pos));
 
 my $get_ft2_sites_refacc= $dbh->prepare(qq(select ref_acc, pos, end, label, value, len from features2 join $a_table using(acc) where ref_acc=? and label in ('ACT_SITE','MOD_RES','BINDING','SITE','METAL','VARIANT','MUTAGEN') order by pos));
 
-my $get_ipr_doms_id = $dbh->prepare(qq(select acc, start, stop, ipr_acc, s_descr, len from prot2ipr_s join $a_table using(acc) join ipr_annot using(ipr_acc) where id=? order by start));
+my $get_ipr_doms_id = $dbh->prepare(qq(select acc, start, stop, ipr_acc, db_ref, s_descr, len from prot2ipr_s join $a_table using(acc) join ipr_annot using(ipr_acc) where id=? order by start));
 
-my $get_ipr_doms_acc = $dbh->prepare(qq(select acc, start, stop, ipr_acc, s_descr, len from prot2ipr_s join $a_table using(acc) join ipr_annot using(ipr_acc) where acc=? order by start));
+my $get_ipr_domdb_id = $dbh->prepare(qq(select acc, start, stop, ipr_acc, db_ref, s_descr, len from prot2ipr join $a_table using(acc) join ipr_annot using(ipr_acc) where dom_db='$dom_db' AND id=? order by start));
 
-my $get_ipr_doms_refacc = $dbh->prepare(qq(select ref_acc, start, stop, ipr_acc, s_descr, len from prot2ipr_s join $a_table using(acc) join ipr_annot using(ipr_acc) where ref_acc=? order by start));
+my $get_ipr_doms_acc = $dbh->prepare(qq(select acc, start, stop, ipr_acc, db_ref, s_descr, len from prot2ipr_s join $a_table using(acc) join ipr_annot using(ipr_acc) where acc=? order by start));
+
+my $get_ipr_doms_refacc = $dbh->prepare(qq(select ref_acc, start, stop, ipr_acc, db_ref, s_descr, len from prot2ipr_s join $a_table using(acc) join ipr_annot using(ipr_acc) where ref_acc=? order by start));
+
+my $get_ipr_domdb_acc = $dbh->prepare(qq(select acc, start, stop, ipr_acc, db_ref, s_descr, len from prot2ipr join $a_table using(acc) join ipr_annot using(ipr_acc) where dom_db='$dom_db' AND acc=? order by start));
 
 my $get_sites_sql = $get_ft2_sites_id;
 my $get_doms_sql = $get_ipr_doms_id;
@@ -142,10 +160,12 @@ if ($query !~ m/\|/ && open($ANN_F, $query)) {
   while (my $a_line = <$ANN_F>) {
     $a_line =~ s/^>//;
     chomp $a_line;
-    push @annots, show_annots($a_line, $get_annot_sub);
+    my $annots_ref = show_annots($a_line, $get_annot_sub);
+    push @annots, $annots_ref if ($annots_ref);
   }
 } else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+  my $annots_ref = show_annots("$query $seq_len", $get_annot_sub);
+  push @annots, $annots_ref if ($annots_ref);
 }
 
 for my $seq_annot (@annots) {
@@ -207,10 +227,20 @@ sub show_annots {
       $get_sites_sql->execute($id);
     }
     unless ($no_doms) {
-      $get_doms_sql = $get_ipr_doms_id;
+      if ($dom_db) {
+	$get_doms_sql = $get_ipr_domdb_id;
+      }
+      else {
+	$get_doms_sql = $get_ipr_doms_id;
+      }
+
       $get_doms_sql->execute($id);
     }
   } else {
+    unless ($acc) {
+      print STDERR "ann_feats2ipr.pl no acc: $annot_line\n";
+      return 0;
+    }
     $acc =~ s/\.\d+$//;
     if ($sdb eq 'ref') {
       unless ($no_feats) {
@@ -228,7 +258,12 @@ sub show_annots {
 	$get_sites_sql->execute($acc);
       }
       unless ($no_doms) {
-	$get_doms_sql = $get_ipr_doms_acc;
+	if ($dom_db) {
+	  $get_doms_sql = $get_ipr_domdb_acc;
+	}
+	else {
+	  $get_doms_sql = $get_ipr_doms_acc;
+	}
 	$get_doms_sql->execute($acc);
       }
     }
@@ -252,7 +287,8 @@ sub get_fasta_annots {
   # get sites
   unless ($no_feats) {
     while (($acc, $pos, $end, $label, $value, $len) = $get_sites_sql->fetchrow_array()) {
-      $seq_len = $len unless ($seq_len);
+      $seq_len = $len if ($len > $seq_len);
+      next unless $annot_types{$label};
       if ($label =~ m/VARIANT/) {
 	my ($aa_res, $comment) = split(/\(/,$value);
 	if ($comment) {	
@@ -287,12 +323,19 @@ sub get_fasta_annots {
   }
 
   unless ($no_doms) {
-    my ($ipr_acc, $s_descr) = ("","");
-    while (($acc, $pos, $end, $ipr_acc, $s_descr, $len) = $get_doms_sql->fetchrow_array()) {
-      $seq_len = $len unless ($seq_len);
+    my ($ipr_acc, $db_ref, $s_descr) = ("","","");
+    while (($acc, $pos, $end, $ipr_acc, $db_ref, $s_descr, $len) = $get_doms_sql->fetchrow_array()) {
+      $db_ref =~ s/G3DSA://;
+      $seq_len = $len unless ($seq_len > $len);
 
-      $value = domain_name($ipr_acc,$s_descr);
-      if ($use_ipr) {
+      $value = domain_name($ipr_acc, $s_descr);
+      if ($acc_comment) {
+	$value .= "{$ipr_acc}";
+      }
+      if ($db_ref_acc) {
+	$value = $db_ref;
+      }
+      elsif ($use_ipr) {
 	$value = $ipr_acc;
       }
 
@@ -341,7 +384,7 @@ sub get_lav_annots {
   my @feats = ();
 
   my %annot = ();
-  while (my ($acc, $pos, $end, $ipr_acc, $s_descr, $len) = $get_doms_sql->fetchrow_array()) {
+  while (my ($acc, $pos, $end, $ipr_acc, $db_ref, $s_descr, $len) = $get_doms_sql->fetchrow_array()) {
     #    $value = domain_name($label,$value);
     my $value = domain_name($ipr_acc,$s_descr);
     push @feats, [$pos, $end, $value];
@@ -390,8 +433,16 @@ ann_feats2.pl
 
  -h	short help
  --help include description
+
+ --acc_comment provide the InterPro accession in {IPR00123} brackets for links
+ --dom_db=G3DSA use a single domain database (e.g. PF, G3DSA, PS5) from InterPro
+ --dom_acc provide the domain accession, not the description, as the domain label
+ --neg, --neg_doms, --neg-doms label non-domain regions > 10 residues as "NODOM"
+ --ipr proide InterPro accession as label
  --no-doms  do not show domain boundaries (domains are always shown with --lav)
  --no-feats do not show feature (variants, active sites, phospho-sites)
+ --no-label do show feature key (==*phosphorylation, etc)
+
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
 
  --host, --user, --password, --port --db -- info for mysql database
@@ -422,7 +473,7 @@ for that sequence and returns them in a tab-delimited format:
  210	V	T	in dbSNP:rs449856.
 
 If features are provided, then a legend of feature symbols is provided
-as well:
+as well (disabled with C<--no-label>):
 
  =*:phosphorylation
  ==:active site

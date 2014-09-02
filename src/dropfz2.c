@@ -1,8 +1,8 @@
 
 /* copyright (c) 1998, 1999 William R. Pearson and the U. of Virginia */
 
-/*  $Id: dropfz2.c 1196 2013-07-19 20:18:21Z wrp $ */
-/* $Revision: 1196 $  */
+/*  $Id: dropfz2.c 1280 2014-08-21 00:47:55Z wrp $ */
+/* $Revision: 1280 $  */
 
 /* 18-Sept-2006 - removed static global variables for alignment */
 
@@ -38,9 +38,9 @@
 #endif
 
 #ifndef ALLOCN0
-static char *verstr="3.7 Jul 2011";
+static char *verstr="3.8 June 2014";
 #else
-static char *verstr="3.7an0 Jul 2011";
+static char *verstr="3.8an0 Jul 2014";
 #endif
 
 struct dstruct		/* diagonal structure for saving current run */
@@ -60,6 +60,38 @@ struct savestr
    int     start;		/* start of match in lib seq */
    int     stop;		/* end of match in lib seq */
 };
+
+struct update_code_str {
+  int p_op_idx;
+  int p_op_cnt;
+  int show_code;
+  int cigar_order;
+  int show_ext;
+  char *op_map;
+};
+
+#ifndef TFAST
+static char *ori_code = "-x/=\\+*";	/* FASTX */
+static char *cigar_code = "DXFMRI*";
+#else
+static char *ori_code = "+x/=\\-*";	/* TFASTX */
+static char *cigar_code = "IXFMRD*";
+#endif
+
+static struct update_code_str *
+init_update_data(int show_code);
+
+static void
+sprintf_code(char *tmp_str, struct update_code_str *, int op_idx, int op_cnt);
+
+static void 
+update_code(char *al_str, int al_str_max, 
+	    struct update_code_str *update_data, int op, 
+	    int sim_code, unsigned char sp0, unsigned char sp1);
+
+static void
+close_update_data(char *al_str, int al_str_max,
+		  struct update_code_str *update_data);
 
 void kpsort (struct savestr **v, int n);
 extern void *init_stack(int, int);
@@ -141,7 +173,6 @@ merge_ares_chains(struct a_res_str *cur_ares,
 		  struct a_res_str *tmpl_ares,
 		  int score_ix, const char *msg);
 
-static void update_code(char *al_str, int al_str_max, int op, int op_cnt, char *op_char, int show_code);
 extern void w_abort (char *p, char *p1);
 extern void aagetmap(char *to, int n);
 
@@ -2709,7 +2740,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0, char sp0, long i1, char sp1, char sym, 
 		      struct annot_entry **region0_p,
 		      struct annot_entry **region1_p,
-		      struct rstruct *rst, int n0, int n1,
+		      int score, double comp, int n0, int n1,
 		      void *pstat_void, int d_type);
 
 #define DP_FULL_FMT 1	/* Region: score: bits: id: ... */
@@ -2751,7 +2782,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
   /* variables for variant changes */
   char tmp_str[MAX_LSTR];
   int *annot_stack, annot_stack_n, annot_top=0;
-  char *sim_sym = aln_map_sym[5];
+  char *sim_sym = aln_map_sym[MX_ACC];
   struct annot_entry **s_annot1_arr_p, *region1_p, pre_annot1;
   struct annot_entry **s_annot0_arr_p, *region0_p, pre_annot0;
   struct annot_entry *this_annot_p;
@@ -2900,7 +2931,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1,
 			      sim_sym[*spa], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, DP_FULL_FMT);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
 	have_push_features = 0;
       }
 
@@ -2965,7 +2996,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1,
 			      sim_sym[*spa], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, DP_FULL_FMT);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
 	have_push_features = 0;
       }
 
@@ -3028,7 +3059,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1,
 			      sim_sym[*spa], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, DP_FULL_FMT);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
 	have_push_features = 0;
       }
 
@@ -3088,7 +3119,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1,
 			      sim_sym[*spa], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, DP_FULL_FMT);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
 	have_push_features = 0;
       }
 
@@ -3116,7 +3147,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1,
 			      sim_sym[*spa],&region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, DP_FULL_FMT);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
 	have_push_features = 0;
       }
     }
@@ -3152,7 +3183,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 }
 
 void
-calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p) {
+calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, struct f_struct *f_str) {
 
   aln_p->calc_last_set = 0;
 
@@ -3169,25 +3200,155 @@ calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p) {
 #endif
 }
 
-void
-update_code(char *al_str, int al_str_max, int op, int op_cnt, char *op_char, int show_code) {
+/* build an array of match/ins/del - length strings */
 
-  char tmp_cnt[20];
+/* modified 10-June-2014 to distinguish matches from mismatches, op=1
+   (previously unused) indicates an aligned non-identity */
 
-  if (show_code == SHOW_CODE_CIGAR) {
-    /* treat the same as other codes */
-    /* if (op==2 || op == 4) {sprintf(tmp_cnt,"%c",op_char[op]);}
-       else */
-    sprintf(tmp_cnt,"%d%c",op_cnt,op_char[op]);
+/* op_codes are:  0 - aa insertion
+   		  1 - (now) aligned non-identity
+   		  2 - -1 frameshift
+   		  3 - aligned identity
+   		  4 - +1 frameshift
+   		  5 - codon insertion
+*/
+
+static struct update_code_str *
+init_update_data(show_code) {
+
+  struct update_code_str *update_data_p;
+
+  if ((update_data_p = (struct update_code_str *)calloc(1,sizeof(struct update_code_str)))==NULL) {
+    fprintf(stderr,"*** error [%s:%d] - init_update_data(): cannot allocate update_code_str\n",
+	      __FILE__, __LINE__);
+    return NULL;
+  }
+
+  update_data_p->p_op_cnt = 0;
+  update_data_p->show_code = show_code;
+
+  if ((show_code & SHOW_CODE_MASK) == SHOW_CODE_CIGAR) {
+    update_data_p->op_map = cigar_code;
+    update_data_p->cigar_order = 1;
   }
   else {
-    sprintf(tmp_cnt,"%c%d",op_char[op],op_cnt);
+    update_data_p->op_map = ori_code;
+    update_data_p->cigar_order = 0;
   }
-  strncat(al_str,tmp_cnt,al_str_max-1);
-  al_str[al_str_max-1]='\0';
+
+  if ((show_code & SHOW_CODE_EXT) == SHOW_CODE_EXT) {
+    update_data_p->show_ext = 1;
+  }
+  else {
+    update_data_p->show_ext = 0;
+  }
+
+  return update_data_p;
 }
 
-/* build an array of match/ins/del - length strings */
+static void
+close_update_data(char *al_str, int al_str_max, 
+		  struct update_code_str *up_dp) {
+  char tmp_cnt[MAX_SSTR];
+
+  if (!up_dp) return;
+  sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
+  strncat(al_str,tmp_cnt,al_str_max);
+
+  free(up_dp);
+}
+
+/* update_indel_code() has been modified to work more correctly with
+   ggsearch/glsearch, which, because alignments can start with either
+   insertions or deletions, can produce an initial code of "0=".  When
+   that happens, it is ignored and no code is added.
+
+   *al_str - alignment string [al_str_max] - not dynamic
+   op -- encoded operation, currently 0=match, 1-delete, 2-insert, 3-term-match, 4-mismatch
+   op_cnt -- length of run
+   show_code -- SHOW_CODE_CIGAR uses cigar_code, otherwise legacy
+*/
+
+/* update_indel_code() is called for insertions and deletions
+   update_match_code() is called for every match
+*/
+
+static void
+sprintf_code(char *tmp_str, struct update_code_str *up_dp, int op_idx, int op_cnt) {
+
+  if (op_cnt == 0) return;
+
+  if (up_dp->cigar_order) {
+    sprintf(tmp_str,"%d%c",op_cnt,up_dp->op_map[op_idx]);
+  }
+  else {
+    sprintf(tmp_str,"%c%d",up_dp->op_map[op_idx],op_cnt);
+  }
+}
+
+static void
+update_code(char *al_str, int al_str_max, 
+	    struct update_code_str *up_dp, int op, 
+	    int sim_code,  unsigned char sp0, unsigned char sp1)
+{
+  char tmp_cnt[MAX_SSTR];
+
+  /* there are two kinds of "op's", one time and accumulating */
+  /* op == 2, 4 are one-time: */
+
+  switch (op) {
+  case 2:
+  case 4:
+    sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx,up_dp->p_op_cnt);
+    strncat(al_str,tmp_cnt,al_str_max);
+    sprintf_code(tmp_cnt,up_dp, op, 1);
+    strncat(al_str,tmp_cnt,al_str_max);
+    up_dp->p_op_cnt = 0;
+    break;
+  case 0:
+  case 5:
+    if (op == up_dp->p_op_idx) {
+      up_dp->p_op_cnt++;
+    }
+    else {
+      sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx,up_dp->p_op_cnt);
+      strncat(al_str,tmp_cnt,al_str_max);
+      up_dp->p_op_idx = op;
+      up_dp->p_op_cnt = 1;
+    }
+    break;
+  case 1:
+  case 3:
+    if (sp0 != '*' && sp1 != '*') {	/* default case, not termination */
+      if (up_dp->show_ext) {
+	if (sim_code != M_IDENT) { op = 1;}
+      }
+    }
+    else {	/* have a termination codon, output for !SHOW_CODE_CIGAR */
+      if (!up_dp->cigar_order) {
+	if (sp0 == '*' || sp1 == '*') { op = 6;}
+      }
+      else if (up_dp->show_ext && (sp0 != sp1)) { op = 1;}
+    }
+
+    if (up_dp->p_op_cnt == 0) {
+      up_dp->p_op_idx = op;
+      up_dp->p_op_cnt = 1;
+    }
+    else if (op != up_dp->p_op_idx) {
+      sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx,up_dp->p_op_cnt);
+      strncat(al_str,tmp_cnt,al_str_max);
+      up_dp->p_op_idx = op;
+      up_dp->p_op_cnt = 1;
+    }
+    else {
+      up_dp->p_op_cnt++;
+    }
+    break;
+  }
+  return;
+}
+
 int calc_code(const unsigned char *aa0, int n0,
 	      const unsigned char *aa1, int n1,
 	      struct a_struct *aln,
@@ -3207,8 +3368,8 @@ int calc_code(const unsigned char *aa0, int n0,
 {
   int i0, i1;
   int lenc, not_c, ngap_d, ngap_p, nfs;
-  int op, op_cnt;
   char sp0, sp1;
+  struct update_code_str *update_data_p;
   char op_char[10], ann_ch0, ann_ch1;
   unsigned char aap;
   const unsigned char *ap0, *ap1, *ap1a;
@@ -3229,7 +3390,7 @@ int calc_code(const unsigned char *aa0, int n0,
   
   *score_delta = 0;
 
-  show_code = (display_code & SHOW_CODE_MASK);
+  show_code = (display_code & SHOW_CODE_MASK + SHOW_CODE_EXT);
   annot_fmt = 2;
   if (display_code & SHOW_ANNOT_FULL) {
     annot_fmt = 1;
@@ -3240,12 +3401,6 @@ int calc_code(const unsigned char *aa0, int n0,
 
   /* don't fill in the ends */
 #ifndef TFAST
-  if (show_code == SHOW_CODE_CIGAR) {
-    strncpy(op_char,"D FMRI*",sizeof(op_char));
-  }
-  else {
-    strncpy(op_char,"- /=\\+*",sizeof(op_char));
-  }
   ap0 = f_str->aa0v;		/* computed codons -> ap0*/
   ap1 = aa1;			/* protein sequence -> ap1 */
   aln->smin1 = a_res->min0;	/* start in protein sequence */
@@ -3257,13 +3412,6 @@ int calc_code(const unsigned char *aa0, int n0,
   have_ann = (ann_arr[0] != '\0' && aa1a != NULL);
   ap1a = aa1a;
 #else	/* TFASTYZ */
-  if (show_code == SHOW_CODE_CIGAR) {
-    strncpy(op_char,"I FMRD*",sizeof(op_char));
-  }
-  else {
-    strncpy(op_char,"+ /=\\-*",sizeof(op_char));
-  }
-
   if (aln->frame == 0) { pre_com(aa1, n1, f_str->aa1v);}
   else { pre_com_r(aa1, n1, f_str->aa1v);}
 
@@ -3285,8 +3433,7 @@ int calc_code(const unsigned char *aa0, int n0,
 /* now get the middle */
 
   lenc = not_c = aln->nident = aln->nmismatch = aln->nsim = aln->npos = ngap_d = ngap_p = nfs = 0;
-  op_cnt = 0;
-  op = 3;
+  update_data_p = init_update_data(show_code);
 
   i0 = a_res->min1-3;	/* start of codon sequence */
   i1 = a_res->min0;	/* start of protein sequence */
@@ -3320,11 +3467,8 @@ int calc_code(const unsigned char *aa0, int n0,
   while (rp < rpmax ) {
     switch (*rp++) {
     case 0:		/* insert in 0 */
-      if (op == 0) op_cnt++;
-      else {
-	update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char,show_code);
-	op = 0; op_cnt = 1;
-      }
+      sim_code = 5; /* indel code */
+      update_code(al_str, al_str_n-strlen(al_str), update_data_p, 0, sim_code,'-','-');
 
       if (s_annot1_arr_p) {
 	if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos) {
@@ -3347,7 +3491,7 @@ int calc_code(const unsigned char *aa0, int n0,
 				i0_offset+seq_pos(i0,aln->qlrev,0), sp0,
 				i1_offset+seq_pos(i1,aln->llrev,0), sp1,
 				sim_sym[sim_code], &region0_p, &region1_p,
-				&(a_res->rst), n0, n1, pstat_void, annot_fmt);
+				a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	  have_push_features = 0;
 	}
       }
@@ -3358,10 +3502,7 @@ int calc_code(const unsigned char *aa0, int n0,
       break;
 
     case 2:			/* -1 frame shift */
-      update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
-      op = 2; op_cnt = 1;
-      update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
-      op = 3; op_cnt = 1;
+      update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, sim_code,'-','-');
 
       nfs++;
       i0 += 2;
@@ -3421,7 +3562,7 @@ int calc_code(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), sp0, 
 			      i1_offset+seq_pos(i1,aln->llrev,0), sp1,
 			      sim_sym[sim_code], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
 
@@ -3464,29 +3605,6 @@ int calc_code(const unsigned char *aa0, int n0,
 	if (sim_code == M_IDENT) {region1_p->n_ident++;}
       }
 
-      if (op == 3 || op == 6) {
-	if (show_code == SHOW_CODE_CIGAR) {
-	  op_cnt++;
-	}
-	else {
-	  if (sp0 != '*' && sp1 != '*') {
-	    if (op == 6 ) {
-	      update_code(al_str, al_str_n-strlen(al_str),op, op_cnt,op_char,show_code);
-	      op_cnt = 1; op = 3;
-	    }
-	    else {op_cnt++;}
-	  }
-	  else {
-	    update_code(al_str, al_str_n-strlen(al_str),op, op_cnt,op_char,show_code);
-	    op_cnt = 1; op = 6;
-	  }
-	}
-      }
-      else {
-	update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
-	op_cnt = 1; op = 3;
-      }
-
       /* check for an annotation */
       if (have_ann && !(ann_arr[ap1a[i1]] == ' ' || ann_arr[ap1a[i1]]=='[' || ann_arr[ap1a[i1]]==']')) {
 #ifndef TFAST
@@ -3506,19 +3624,20 @@ int calc_code(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), sp1,
 			      sim_sym[sim_code], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
       
+      update_code(al_str, al_str_n-strlen(al_str), update_data_p, 3, sim_code,sp0,sp1);
+
       i1++;
       lenc++;
       break;
 
     case 4:		/* +1 frame shift */
-      update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
-      op = 4; op_cnt = 1;
-      update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
-      op = 3; op_cnt = 1;
+      /* finish previous run */
+      update_code(al_str, al_str_n-strlen(al_str), update_data_p, 4, sim_code,'-','-');
+      /* mark frameshift */
 
       nfs++;
       i0 += 4;
@@ -3576,7 +3695,7 @@ int calc_code(const unsigned char *aa0, int n0,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), sp0,
 			      i1_offset+seq_pos(i1,aln->llrev,0), sp1,
 			      sim_sym[sim_code], &region0_p, &region1_p,
-			      &(a_res->rst), n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
 
@@ -3585,11 +3704,8 @@ int calc_code(const unsigned char *aa0, int n0,
       break;
 
     case 5:		/* insert in 1 */
-      if (op == 5) op_cnt++;
-      else {
-	update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
-	op = 5; op_cnt = 1;
-      }
+      sim_code = 5;
+      update_code(al_str, al_str_n-strlen(al_str), update_data_p, 5, sim_code,'-','-');
 
       i0 += 3;
       lenc++;
@@ -3598,7 +3714,7 @@ int calc_code(const unsigned char *aa0, int n0,
     }
   }
 
-  update_code(al_str, al_str_n-strlen(al_str),op, op_cnt, op_char, show_code);
+  close_update_data(al_str, al_str_n-strlen(al_str), update_data_p);
 
 #ifndef TFAST
   aln->amax0 = i0+3;	/* end of codon sequence */
@@ -3637,7 +3753,7 @@ int calc_code(const unsigned char *aa0, int n0,
 			    i0_offset+a_res->max0-1, sp0,
 			    i1_offset+a_res->max1-1, sp1,
 			    sim_sym[sim_code], &region0_p, &region1_p,
-			    &(a_res->rst), n0, n1, pstat_void, annot_fmt);
+			    a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
     }
 
     if (!annot_stack) free_stack(annot_stack);

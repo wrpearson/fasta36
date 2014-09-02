@@ -33,6 +33,7 @@ else {
 }
 
 my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0);
+my ($min_nodom) = (0);
 
 GetOptions(
     "host=s" => \$host,
@@ -48,6 +49,8 @@ GetOptions(
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
     "negdoms" => \$neg_doms,
+    "min_nodom=i" => \$min_nodom,
+    "min-nodom=i" => \$min_nodom,
     "no_feats" => \$no_feats,
     "no-feats" => \$no_feats,
     "nofeats" => \$no_feats,
@@ -235,7 +238,7 @@ sub get_fasta_annots {
   my @sites = ();	# sites with one position
 
   while (($acc, $pos, $end, $label, $value, $len) = $get_annots_sql->fetchrow_array()) {
-    $seq_len = $len unless ($seq_len);
+    $seq_len = $len if ($len > $seq_len);
     if ($annot_types->{$label}) {
       if ($label =~ m/VARIANT/) {
 	my ($aa_res, $comment) = split(/\(/,$value);
@@ -293,12 +296,12 @@ sub get_fasta_annots {
   if ($neg_doms) {
     my $last_end = 0;
     for my $feat ( @feats2 ) {
-      if ($feat->[0] - $last_end > 10) {
+      if ($feat->[0] - $last_end > $min_nodom) {
 	push @n_feats2, [$last_end+1, "-", $feat->[0]-1, "NODOM"];
       }
       $last_end = $feat->[2];
     }
-    if ($seq_len - $last_end > 10) {
+    if ($seq_len - $last_end > $min_nodom) {
       push @n_feats2, [$last_end+1, "-", $seq_len, "NODOM"];
     }
   }
@@ -380,7 +383,9 @@ ann_feats2l.pl
  --no-doms  do not show domain boundaries (domains are always shown with --lav)
  --no-feats do not show feature (variants, active sites, phospho-sites)
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
-
+ --neg-doms,  -- report domains between annotated domains as NODOM
+                 (also --neg, --neg_doms)
+ --min_nodom=10  minimum non-domain length to produce NODOM
  --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION

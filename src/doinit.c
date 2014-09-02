@@ -3,8 +3,8 @@
 /* copyright (c) 1996, 1997, 1998  William R. Pearson and the U. of Virginia */
 
 
-/*  $Id: doinit.c 1188 2013-07-05 17:01:11Z wrp $ */
-/* $Revision: 1188 $  */
+/*  $Id: doinit.c 1267 2014-07-29 13:50:40Z wrp $ */
+/* $Revision: 1267 $  */
 
 /* this file performs general initializations of search parameters
 
@@ -273,6 +273,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    m_msp->ashow_set = 0;
    m_msp->nmlen = DEF_NMLEN;
    m_msp->z_bits = 1;
+   m_msp->tot_ident = 0;
    m_msp->mshow_set = 0;
    m_msp->mshow_min = 0;
    m_msp->aln.llen = 60;
@@ -303,6 +304,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    m_msp->ann_flg = 0;
    memset(m_msp->ann_arr,'\0',MAX_FN);
    m_msp->ann_arr_def[0] = NULL;
+   m_msp->ann_arr_def[1] = NULL;
    m_msp->annot0_sname[0]='\0';
    m_msp->annot1_sname[0]='\0';
    m_msp->annot_p = NULL;
@@ -833,7 +835,9 @@ parse_markx(char *optarg, struct markx_str *this) {
   }
   if (itmp==9) {
     if (ctmp=='c') {this->show_code = SHOW_CODE_ALIGN;}
+    else if (ctmp=='d') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
     else if (ctmp=='C') {this->show_code = SHOW_CODE_CIGAR;}
+    else if (ctmp=='D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
     else if (ctmp=='i') {this->show_code = SHOW_CODE_ID;}
   }
   if (itmp > 6 && itmp != 11 && itmp != 10 && itmp != 9 && itmp != 8) itmp = 0;

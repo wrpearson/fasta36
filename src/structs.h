@@ -1,6 +1,6 @@
 
-/* $Id: structs.h 1054 2012-09-04 18:24:02Z wrp $ */
-/* $Revision: 1054 $  */
+/* $Id: structs.h 1259 2014-05-28 19:28:06Z wrp $ */
+/* $Revision: 1259 $  */
 
 #include "rstruct.h"
 
@@ -146,6 +146,7 @@ struct mngmsg 		/* Message from host to manager */
   int srelv;		/* number of scores to show in showbest */
   int arelv;		/* number of scores to show at alignment */
   int z_bits;		/* z_bits==1: show bit score, ==0 show z-score */
+  int tot_ident;	/* tot_ident=1 -> no mismatches for 100% identity */
   char alab[3][24];	/* labels for alignment scores */
   int nohist;		/* no histogram option */
   int do_showbest;	/* do not showbest() */

@@ -1,6 +1,6 @@
 
-/*  $Id: nmgetlib.c 1232 2013-10-04 12:47:54Z wrp $ */
-/* $Revision: 1232 $  */
+/*  $Id: nmgetlib.c 1251 2014-01-24 21:34:05Z wrp $ */
+/* $Revision: 1251 $  */
 
 /*	May, June 1987	- modified for rapid read of database
 
@@ -477,6 +477,12 @@ struct lmf_str *
       om_fptr->lpos = 0;
       return om_fptr;
     }
+#ifdef MYSQL_DB
+    /* if this is a mysql database - use it and return */
+    else if (om_fptr->lb_type == MYSQL_LIB) {
+      return om_fptr;
+    }
+#endif
     else {
       closelib(last_m_fptr,1);
     }
@@ -484,12 +490,6 @@ struct lmf_str *
 
   last_m_fptr = om_fptr;
 
-#ifdef MYSQL_DB
-  /* if this is a mysql database - use it and return */
-  else if (om_fptr->lb_type == MYSQL_LIB) {
-    return om_fptr;
-  }
-#endif
 
   /* data is available, but file is closed or not memory mapped, open it */
   /* no longer check to memory map - because we could not do it before */

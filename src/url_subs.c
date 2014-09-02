@@ -2,8 +2,8 @@
 /* copyright (c) 1998, 1999 William R. Pearson and the
    U. of Virginia */
 
-/*  $Id: url_subs.c 1224 2013-09-12 18:57:15Z wrp $ */
-/* $Revision: 1224 $  */
+/*  $Id: url_subs.c 1246 2014-01-01 14:49:09Z wrp $ */
+/* $Revision: 1246 $  */
 
 /* 30 Dec 2004 - modify REF_URL to accomodate current Entrez */
 
@@ -318,7 +318,7 @@ char *display_domains(char target, struct annot_entry *domain_arr_p, int n_domai
 
   for (i=0; i<n_domains; i++) {
     sprintf(line, "%cDomain:\t%ld-%ld\t%s\n",
-	    target, domain_arr_p[i].pos, domain_arr_p[i].end, domain_arr_p[i].comment);
+	    target, domain_arr_p[i].pos+1, domain_arr_p[i].end+1, domain_arr_p[i].comment);
     if (strlen(domain_s) + strlen(line)+1 > n_domain_s) {
       n_domain_s += n_domain_s/2;
       domain_s = realloc(domain_s, n_domain_s);

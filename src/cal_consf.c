@@ -2,8 +2,8 @@
 
 /* copyright (c) 1998, 1999, 2007 by William R. Pearson and the University of Virginia */
 
-/*  $Id: cal_consf.c 1196 2013-07-19 20:18:21Z wrp $ */
-/* $Revision: 1196 $  */
+/*  $Id: cal_consf.c 1263 2014-06-25 10:40:39Z wrp $ */
+/* $Revision: 1263 $  */
 
 /* removed from dropfs2.c, dropff2.c April, 2007 */
 
@@ -63,9 +63,9 @@ calc_cons_a(const unsigned char *aa0, int n0,
   nn1 = f_str->n10;
 #endif
 
-  aln->amin0 = a_res->min0;
+  aln->amin0 = a_res->min0 + f_str->aa0t_off;
+  aln->amax0 = a_res->max0 + f_str->aa0t_off;;
   aln->amin1 = a_res->min1;
-  aln->amax0 = a_res->max0;
   aln->amax1 = a_res->max1;
   aln->calc_last_set = 1;
 
@@ -212,7 +212,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       len_gap++;
       lenc++;
     }
-  }
+  }	/* end alignment while() */
 
   if (have_ann) {*sp0a = *sp1a = '\0';}
   *spa = '\0';
@@ -274,18 +274,21 @@ calc_cons_a(const unsigned char *aa0, int n0,
     if (ntmp > 0) memset(seqc1a+mins+lenc+nn1-a_res->max1,' ',ntmp);
     */
   }
+
+  aln->smin0 = f_str->aa0t_off;
+
   return mins+lenc+nd;
 }
 
 void
-calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p) {
+calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, struct f_struct *f_str) {
 
   /* we do not pay attention to aln_p->calc_last_set, because all the
      functions (calc_astruct, calc_cons_a, calc_code) use exactly the same
      assignment */
 
-  aln_p->amin0 = a_res_p->min0;
-  aln_p->amax0 = a_res_p->max0;
+  aln_p->amin0 = a_res_p->min0 + f_str->aa0t_off;
+  aln_p->amax0 = a_res_p->max0 + f_str->aa0t_off;
   aln_p->amin1 = a_res_p->min1;
   aln_p->amax1 = a_res_p->max1;
 }
@@ -367,8 +370,8 @@ calc_code(const unsigned char *aa0, const int n0,
   tmp_cnt[0]='\0';
   
 #if defined(FASTS) || defined(FASTM)
-  o_fnum = f_str->aa0ti[i0];
-  if (aa0a) aa0ap = &aa0a[f_str->nmoff[o_fnum]+i0];
+  o_fnum = f_str->aa0ti[i0]+1;
+  if (aa0a) { aa0ap = &aa0a[f_str->nmoff[o_fnum]+i0]; }
 #endif
 
   while (i0 < a_res->max0 || i1 < a_res->max1) {
@@ -471,6 +474,8 @@ update_code(char *al_str, int al_str_max, int op, int op_cnt, int fnum, int show
   char cigar_char[4]={"MDI"};
   char tmp_cnt[20];
 
+  if (op_cnt == 0) return;
+
   if (show_code == SHOW_CODE_CIGAR) {
     sprintf(tmp_cnt,"%d%c",op_cnt,cigar_char[op]);
   }
@@ -513,9 +518,9 @@ calc_id(const unsigned char *aa0, int n0,
   nn1 = f_str->n10;
 #endif
 
-  aln->amin0 = a_res->min0;
+  aln->amin0 = a_res->min0 + f_str->aa0t_off;
+  aln->amax0 = a_res->max0 + f_str->aa0t_off;
   aln->amin1 = a_res->min1;
-  aln->amax0 = a_res->max0;
   aln->amax1 = a_res->max1;
   aln->calc_last_set = 1;
 

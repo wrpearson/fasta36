@@ -1,7 +1,7 @@
 /* copyright (c) 1998, 1999 William R. Pearson and the U. of Virginia */
 
-/*   $Id: dropfs2.c 1226 2013-09-24 17:44:08Z wrp $ */
-/* $Revision: 1226 $  */
+/*   $Id: dropfs2.c 1254 2014-01-29 16:03:40Z wrp $ */
+/* $Revision: 1254 $  */
 
 /* changed to return 2.0, rather than -1.0, for failure */
 
@@ -1557,6 +1557,9 @@ int sconn_a (unsigned char *aa0, int n0,
    a_res->min1 = start->vp->start;
    a_res->min0 = 0;
 
+   sx=start->vp->start-start->vp->dp+f_str->noff;
+   f_str->aa0t_off = sx - f_str->aa0b[sx];
+
    for (sj = start; sj != NULL; sj = sj->prev ) {
      doff = (int)(aa0p-aa0) - (sj->vp->start-sj->vp->dp+f_str->noff);
      
@@ -1588,6 +1591,7 @@ int sconn_a (unsigned char *aa0, int n0,
      a_res->max1 = sj->vp->stop+1;
      a_res->max0 = a_res->max1 - sj->vp->dp + f_str->noff;
    }
+   *aa0p = '\0';	/* be sure to terminate the string */
 
    /*
    fprintf(stderr,"(%3d - %3d):(%3d - %3d)\n",

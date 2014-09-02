@@ -1,7 +1,7 @@
 /* scaleswn.c */
 
-/*  $Id: scaleswn.c 1217 2013-08-09 18:16:54Z wrp $ */
-/* $Revision: 1217 $  */
+/*  $Id: scaleswn.c 1245 2013-12-18 18:19:38Z wrp $ */
+/* $Revision: 1245 $  */
 
 /* as of 24 Sept, 2000 - scaleswn uses no global variables */
 
@@ -644,8 +644,10 @@ proc_hist_a(struct stat_str *sptr, int nstats, struct score_count_s s_info,
     pu->r_u.ag.H = H;
   }
   else {
+#ifdef DEBUG
     fprintf(stderr,"Parameters not available for: %s: %d/%d\n",
 	    ppst->pam_name,t_gdelval-t_ggapval,t_ggapval);
+#endif
 
     return proc_hist_n(sptr, nstats, s_info, ppst, histp, do_trim, pu);
   }
@@ -2850,7 +2852,7 @@ scale_scores(struct beststr **bptr, int nbest, struct db_str db,
   else {
     for (i=0; i<nbest; i++) {
       zscore = find_z(bptr[i]->rst.score[ppst->score_ix], bptr[i]->rst.escore,
-		      bptr[i]->seq->n1,bptr[i]->rst.comp,rs);
+		       bptr[i]->seq->n1,bptr[i]->rst.comp,rs);
       bptr[i]->zscore = zscore;
       bptr[i]->rst.escore
 	=zs_to_E(zscore,bptr[i]->seq->n1,ppst->dnaseq, ppst->zdb_size,db);

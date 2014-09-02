@@ -26,7 +26,7 @@ LSHOWALIGN = lshowalign
 MWH = mw.h 
 MWHP = mw.h
 
-SPROGS = fasta36 ssearch36 lalign36 fasts36 fastx36 tfastx36 fasty36 tfasty36 tfasts36 fastm36 tfastm36 fastf36 tfastf36 glsearch36 ggsearch36 lav2ps lav2svg
+SPROGS = fasta36 ssearch36 lalign36 fasts36 fastx36 tfastx36 fasty36 tfasty36 tfasts36 fastm36 tfastm36 fastf36 tfastf36 glsearch36 ggsearch36
 
 APROGS = map_db
 

@@ -20,12 +20,36 @@ font-size: 12px; font-family: sans-serif; text-decoration:none; background-color
 <div class=fasta>
 <h2>ChangeLog - FASTA v36</h2>
 <pre><small>
- $Id: changes_v36.html 1192 2013-07-05 19:56:40Z wrp $
+ $Id: changes_v36.html 1289 2014-08-26 14:21:45Z wrp $
  $Revision: 210 $
 </small>
 </pre>
 <hr>
-<h2>Latest updates - FASTA version 36.3.6 (July, 2013)</h2>
+<h2>Latest updates - FASTA version 36.3.6f (August, 2014)</h2>
+<p>
+FASTA version 36.3.6f extends previous versions in several ways:
+<ol>
+<li>
+There is a new command line option, <tt>-XI</tt>, that causes the
+alignment programs to report 100% identity only when there are no
+mismatches.  In previous versions, one mismatch in 10,000 would round
+up to 100.0% identity; with <tt>-XI</tt>, the identity will be
+reported as 99.9%.
+<li>
+The option to provide alignment encodings (-m 9c, or -m 9C forCIGAR
+strings) has been extended to provide mis-match information in the
+alignment encoding using the -m 9d (classic FASTA alignment encoding)
+or -m 9D (CIGAR string).  For protein alignments, which are often <
+40% identity, enabling mismatch encoding produces very long CIGAR
+strings.
+<li>
+Provide more scripts for annotating proteins using either UniProt or
+Pfam web resources.
+</ol>
+<p>
+Additional bug fixes are documented in <tt>fasta-36.3.6f/doc/readme.v36</tt>
+<p>
+<h2>Updates - FASTA version 36.3.6 (July, 2013)</h2>
 <p>
 FASTA version 36.3.6 provides two new features:
 <ol>

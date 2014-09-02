@@ -1,8 +1,8 @@
 /* copyright (c) 1996, 1997, 1998, 1999 William R. Pearson and the
    U. of Virginia */
 
-/*  $Id: compacc2.c 1229 2013-09-27 16:25:02Z wrp $ */
-/* $Revision: 1229 $  */
+/*  $Id: compacc2.c 1280 2014-08-21 00:47:55Z wrp $ */
+/* $Revision: 1280 $  */
 
 /* Concurrent read version */
 
@@ -501,16 +501,17 @@ print_header2(FILE *fd, int qlib, char *info_qlabel, unsigned char **aa0,
     fprintf(fd,"%3d>>>%s%s\n", qlib,
 	   m_msp->qtitle,
 	   (m_msp->revcomp ? " (reverse complement)" : tmp_str));
+
     /* check for annotation */
     if (m_msp->ann_flg && m_msp->aa0a != NULL) {
       fprintf(fd,"Annotation: ");
       for (j=0; j<m_msp->n0; j++) {
 	if (m_msp->aa0a[j] && m_msp->ann_arr[m_msp->aa0a[j]] != ' ' ) {
 	  fprintf(fd,"|%ld:%c%c",
-		 j+m_msp->q_off,m_msp->ann_arr[m_msp->aa0a[j]],ppst->sq[aa0[0][j]]);
+		  j+m_msp->q_off,m_msp->ann_arr[m_msp->aa0a[j]],ppst->sq[aa0[0][j]]);
 	}
       }
-      fprintf(fd,"\n");
+    fprintf(fd,"\n");
     }
 
     fprintf(fd,"Library: %s%s\n", m_msp->ltitle,info_lib_range_p);
@@ -1054,6 +1055,9 @@ pre_load_best(unsigned char *aa1save, int maxn,
     }
   }
 
+  /* here, we are getting query annots after all the bptr[]s have been processed */
+  /* moved to comp_lib9.c */
+  /*
   if (m_msp->annot0_sname[0]) {
     if (get_annot(m_msp->annot0_sname, m_msp, m_msp->qtitle, m_msp->q_offset+m_msp->q_off-1,m_msp->n0, &m_msp->annot_p, 0, debug) < 0) {
       fprintf(stderr,"*** error [%s:%d] - %s did not produce annotations\n",__FILE__, __LINE__, m_msp->annot0_sname);
@@ -1064,6 +1068,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
     }
     if (!m_msp->ann_arr[0]) {m_msp->ann_arr[0] = ' '; m_msp->ann_arr[1] = '\0';}
   }
+  */
 
   /* if we have an variant annotation script, execute it and capture the output */
   /* must do after bline is set */
@@ -1662,6 +1667,7 @@ int
 get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, int nbest,
 	       int target, int debug) {
   int i, status;
+  long l_offset;
   char tmp_line[MAX_STR];
   char annot_bline_file[MAX_STR];
   int annot_bline_fd;
@@ -1715,7 +1721,11 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
       if ((strlen(bestp_arr[i]->mseq->bline) > DESCR_OFFSET) &&
 	  (bp=strchr(bestp_arr[i]->mseq->bline+DESCR_OFFSET,' '))!=NULL) {*bp = '\0';}
       else {bp = NULL;}
-      fprintf(annot_fd,"%s\t%d\n",bestp_arr[i]->mseq->bline,bestp_arr[i]->seq->n1);
+      /* provide sequence length with offset, but only if offset is positive */
+      l_offset = bestp_arr[i]->seq->l_offset+bestp_arr[i]->seq->l_off -1;
+      if (l_offset < 0) { l_offset = 0;}
+      fprintf(annot_fd,"%s\t%ld\n",bestp_arr[i]->mseq->bline,
+	      l_offset + bestp_arr[i]->seq->n1);
       if (bp != NULL) *bp=' ';
       bestp_arr[i]->mseq->annot_req_flag = 1;
     }
@@ -1858,7 +1868,7 @@ void sort_annots(struct annot_entry **s_annot, int n_annot)
 {
   int gap, i, j, k;
   struct annot_entry *tmp;
-  double v;
+  int v;
   int incs[6] = { 112, 48, 21, 7, 3, 1 };
 
   for ( k = 0; k < 6; k++) {
@@ -2138,6 +2148,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
   char bline_descr[MAX_STR];
   char annot_data_file[MAX_LSTR];
   char annot_script[MAX_LSTR];
+  long q_offset;
 
   char *bp;
   FILE *annot_fd=NULL;		/* file for annot accessions */
@@ -2162,7 +2173,9 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
 	(bp=strchr(bline_descr+DESCR_OFFSET,' '))!=NULL) {*bp = '\0';}
     else {bp = NULL;}
 
-    sprintf(annot_script,"%s \"%s\" %d",sname+1, bline_descr,m_msp->n0);
+    q_offset = m_msp->q_offset + m_msp->q_off - 1;
+    if (q_offset < 0) { q_offset = 0;}
+    sprintf(annot_script,"%s \"%s\" %ld",sname+1, bline_descr,q_offset+m_msp->n0);
     annot_script[sizeof(annot_script)-1] = '\0';
 
     annot_fd = popen(annot_script,"r");
@@ -2248,8 +2261,8 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
   for (i=0; i < annot_p->n_annot; i++) {
     this_annot = &annot_p->annot_arr_p[i];
     /* skip VAR labels */
-    if (this_annot->label=='V') { continue; }
-    if (this_annot->label=='-') {
+    if (this_annot->label == 'V') { continue; }
+    if (this_annot->label == '-') {
       aa1a_tmp[this_annot->pos]=qascii['['] - NANN;
       aa1a_tmp[this_annot->end]=qascii[']'] - NANN;
       continue;
@@ -2968,6 +2981,14 @@ buf_do_work(unsigned char **aa0,  int n0,
 
     lib_buf2_rp->is_valid_stat = 0;
 
+    if (lib_buf2_dp->seq->n1 < ppst->n1_low ||
+	lib_buf2_dp->seq->n1 > ppst->n1_high ) {
+      /* tells save_best() there is no stats score here -- not
+	 necessary as -BIGNUM indicates no score */
+      lib_buf2_dp->stats_idx = -1;
+      goto next_seq;
+    }
+
 #ifdef DEBUG
     if (check_seq_range(lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1,
 			ppst->nsqx, "buf_do_work()")) {
@@ -3015,9 +3036,7 @@ buf_do_work(unsigned char **aa0,  int n0,
       t_escore = 1000.0;
     }
 
-#ifdef DEBUG
   next_seq:
-#endif
     lib_buf2_dp++;
     lib_buf2_rp++;
   }
@@ -3115,6 +3134,16 @@ buf_qshuf_work(unsigned char *aa0s,  int n0,
     rrst.score[0] = rrst.score[1] = rrst.score[2] = -BIGNUM;
     rrst.valid_stat = 0;
 
+    if (lib_buf2_dp->seq->n1 < ppst->n1_low ||
+	lib_buf2_dp->seq->n1 > ppst->n1_high ) {
+      lib_buf2_dp++;
+      lib_buf2_rp++;
+      tq_best_rp = NULL;
+      tq_best = -BIGNUM;
+      tq_escore = 1000.0;
+      continue;
+    }
+
     do_work (aa0s, n0,
 	     lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1,
 	     lib_buf2_dp->frame, ppst, qf_str, 1, 0,
@@ -3184,7 +3213,8 @@ buf_shuf_work(unsigned char **aa0,  int n0, unsigned char *aa1s, struct buf_head
       lib_buf2_rp->r_rst.score[2] = -BIGNUM;
     lib_buf2_rp->r_rst.valid_stat = lib_buf2_rp->is_valid_stat = 0;
 
-    if (lib_buf2_dp->stats_idx < 0) {
+    if ((lib_buf2_dp->stats_idx < 0) || lib_buf2_dp->seq->n1 < ppst->n1_low ||
+	lib_buf2_dp->seq->n1 > ppst->n1_high ) {
       lib_buf2_dp++;
       lib_buf2_rp++;
       tr_best_rp = NULL;
@@ -3787,6 +3817,8 @@ next_annot_match(int *itmp, int *pam2aa0v, long ip, long ia, char *sp1, char *sp
 
   if (ann_comment) *ann_comment = NULL;
 
+  /* count through the annotations at this position (long ip) */
+
   while (i_annot < n_annot && ip == annot_arr[i_annot]->pos) {
     if (annot_arr[i_annot]->label == 'V') { /* label == 'V' */
       v_tmp = pam2aa0v[annot_arr[i_annot]->value];
@@ -3799,6 +3831,20 @@ next_annot_match(int *itmp, int *pam2aa0v, long ip, long ia, char *sp1, char *sp
       }
     }
     else if (annot_arr[i_annot]->label == '[') {
+      /* region_p needs to point to a more sophisticated data
+	 structure that keeps track of all the current regions being
+	 updated
+
+	 to start, region_p could include a linked list and a pointer to
+	 the current left-most region, which would be used for ']'
+	 detection
+
+	 for efficiency, update the ->score only when a new
+	 (overlapping) region is started or stopped
+
+	 same for n_indent, n_aln
+      */
+
       if (region_p) {
 	memcpy(tmp_region_p, annot_arr[i_annot],sizeof(struct annot_entry));
         tmp_region_p->a_pos = ia;
@@ -3902,7 +3948,10 @@ seq_pos(int pos, int rev, int off) {
 }
 
 /* target = 0 (aa0), 1 (aa1)
-   d_type = display_type, 0 (long text), 1 (-m 9c code)
+
+   d_type = display_type (annot_fmt in cal_cons.c):
+            1 (long text),   d1_fmt = " Variant: %d%c%c%d%c : %c%d%c";
+            2 (-m 9c code)   sprintf(tmp_str, "|%c%c:%ld%c%c%ld%c",
 
    i0_pos/i1_pos have already been converted to reverse coordinate if necessary
 */
@@ -3960,15 +4009,18 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym,
 		      struct annot_entry **region0_p,
 		      struct annot_entry **region1_p,
-		      struct rstruct *rst, int n0, int n1,
+		      int tot_score, double comp, int n0, int n1,
 		      void *pstat_void, int d_type) {
   struct annot_entry *this_annot_p;
-  double lbits, zscore, lprob, lpercid;
+  double lbits, total_bits, zscore, lprob, lpercid;
   char *ann_comment, *bp;
   struct annot_entry *region_p;
   char tmp_lstr[MAX_LSTR], ctarget, tmp_sstr[MAX_SSTR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
+
+  zscore = find_z(tot_score, 1.0, n1, comp, pstat_void);
+  total_bits = zs_to_bit(zscore, n0, n1);
 
   while ((this_annot_p = (struct annot_entry *)pop_stack(annot_stack))!=NULL) {
 
@@ -4000,12 +4052,20 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 	dt2_fmt = "|RX:%d-%d:%d-%d:s=%d;b=%.1f;I=%.3f;Q=%.1f";
       }
 
-      zscore = find_z(region_p->score, 1.0, n1, rst->comp, pstat_void);
-      lbits = zs_to_bit(zscore, n0, n1);
-      lprob = zs_to_p(zscore);
+      if (region_p->score < 0) {
+	lbits = 0.0;
+	lprob = 1.0;
+      }
+      else {
+	lbits = total_bits * (double)region_p->score/tot_score;
+	zscore = find_z(region_p->score, 1.0, n1, comp, pstat_void);
+	lprob = zs_to_p(zscore);
+      }
+
       if (lprob > 0.99) lprob = 0.0;
       else if (lprob < 1e-300) lprob = 3000.0;
       else lprob = -10.0*log(lprob)/log(10.0);
+
       if (region_p->n_aln > 0) {
 	lpercid = ((double)region_p->n_ident)/(double)region_p->n_aln;
       }

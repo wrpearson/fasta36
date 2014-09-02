@@ -2,8 +2,8 @@
 /* copyright (c) 1996, 1997, 1998, 1999 William R. Pearson and the
    U. of Virginia */
 
-/*  $Id: mshowalign2.c 1226 2013-09-24 17:44:08Z wrp $ */
-/* $Revision: 1226 $  */
+/*  $Id: mshowalign2.c 1269 2014-07-29 21:24:25Z wrp $ */
+/* $Revision: 1269 $  */
 
 /* mshowalign.c - show sequence alignments in pvcomplib */
 
@@ -46,7 +46,7 @@ re_getlib(unsigned char *aa1, struct annot_str **annot_p,
 #include "drop_func.h"
 /* drop_func.c includes dyn_string.h */
 
-extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p);
+extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, void *f_str);
 
 extern void calc_coord(int n0, int n1, long qoffset, long loffset,
 		       struct a_struct *aln);
@@ -84,6 +84,9 @@ buf_align_seq(unsigned char **aa0, int n0,
 extern void 
 pre_load_best(unsigned char *aa1, int maxn,struct beststr **bbp_arr,
 	      int nbest, struct mngmsg *m_msp, int debug);
+
+float
+calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail);
 
 extern int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
 
@@ -167,7 +170,12 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
   qline_p = m_msp->qtitle;
   if (!strncmp(m_msp->qtitle,"gi|",3)) {
-    qline_p = strchr(qline_p+4,'|')+1;
+    qline_p = strchr(qline_p+4,'|');
+    /* check for additional '|'s associated with NCBI gi|12346|db|acc entry */
+    if (!qline_p || strchr(qline_p+1,'|')==NULL) {
+      qline_p = m_msp->qtitle;
+    }
+    else { qline_p += 1;}
   }
 
   memcpy(&l_aln, &(m_msp->aln),sizeof(struct a_struct));
@@ -185,7 +193,6 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   else {
     SAFE_STRNCPY(name0s,m_msp->tname,sizeof(name0s));
   }
-  name0s[sizeof(name0s)-1]='\0';
 
   if ((bp=strchr(name0s,' '))!=NULL) *bp='\0';
 
@@ -331,7 +338,9 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
     bline_p = bline;
     /* always remove "gi|" for alignments */
     if (!strncmp(bline,"gi|",3)) {
-      bline_p = strchr(bline+4,'|')+1;
+      bline_p = strchr(bline+4,'|');
+      if (!bline_p || !strchr(bline_p+1,'|')) {bline_p = bline;}
+      else bline_p += 1;
     }
 
     /* re-format bline */
@@ -359,7 +368,6 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
     /* name1 is used to label the display */
     /* bline_p does not have gi|12345, but could have pf26|12345 or sp|P09488 */
     SAFE_STRNCPY(name1,bline_p,sizeof(name1));
-    name1[sizeof(name1)-1] = '\0';
 
     if (!(m_msp->markx & MX_M10FORM)) name1[nml]='\0';
     if ((bp = strchr(name1,' '))!=NULL) *bp = '\0';
@@ -381,7 +389,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       SAFE_STRNCAT(l_name,tmp_str,sizeof(l_name)-strlen(l_name));
     }
 
-    if (m_msp->markx & MX_MBLAST) { SAFE_STRNCPY(name1,"Sbjct",sizeof(name1)-1);}
+    if (m_msp->markx & MX_MBLAST) { SAFE_STRNCPY(name1,"Sbjct",sizeof(name1));}
 
     if (!(m_msp->markx & MX_M10FORM)) name1[nml]='\0';
 
@@ -391,8 +399,8 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       SAFE_STRNCPY(link_name, l_name, sizeof(link_name));
       fprintf (fp,"<a name=\"%s\"><pre>",link_name);
     }
-    SAFE_STRNCPY(name0,name0s,nml);
-    if (m_msp->markx & MX_MBLAST) { SAFE_STRNCPY(name0,"Query",sizeof(name0)-1);}
+    SAFE_STRNCPY(name0,name0s,nml+1);
+    if (m_msp->markx & MX_MBLAST) { SAFE_STRNCPY(name0,"Query",sizeof(name0));}
     name0[nml]='\0';
 
     if (ppst->zsflag%10 == 6) {
@@ -440,7 +448,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       }
       else { seqc0a = seqc1a = NULL;}
 
-      calc_astruct(l_aln_p, cur_ares_p);
+      calc_astruct(l_aln_p, cur_ares_p, f_str[bbp->frame]);
 
       calc_coord(m_msp->n0,bbp->seq->n1,
 		 m_msp->q_offset+(m_msp->q_off-1)+(m_msp->sq0off-1),
@@ -466,8 +474,10 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 		     &score_delta,
 		     f_str[bbp->frame],m_msp->pstat_void,m_msp->show_code + SHOW_ANNOT_FULL);
 
-	if (lc > 0) percent = (100.0*(float)l_aln_p->nident)/(float)lc;
-	else percent = -1.00;
+	if (lc > 0) {
+	  percent = (100.0*(float)l_aln_p->nident)/(float)lc;
+	}
+	else { percent = -1.00; }
 
 	fprintf (fp, "a {\n");
 	if (annot_var_dyn->string[0]) {
@@ -509,15 +519,14 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       if (cur_ares_p->score_delta > 0) score_delta -= cur_ares_p->score_delta;
 
-      if (lc > 0) percent = (100.0*(float)l_aln_p->nident)/(float)lc;
-      else percent = -1.00;
+      percent = calc_fpercent_id(100.0, l_aln_p->nident,lc,m_msp->tot_ident, -1.0);
+
       ngap = l_aln_p->ngap_q + l_aln_p->ngap_l;
 #ifndef SHOWSIM
-      if (lc-ngap> 0) gpercent =(100.0*(float)l_aln_p->nident)/(float)(lc-ngap);
+      gpercent = calc_fpercent_id(100.0,l_aln_p->nident,lc-ngap,m_msp->tot_ident, -1.0);
 #else
-      if (lc > 0) gpercent =(100.0*(float)l_aln_p->nsim)/(float)lc;
+      gpercent = calc_fpercent_id(100.0,l_aln_p->nsim,lc,m_msp->tot_ident, -1.0);
 #endif
-      else gpercent = -1.00;
 
       lsw_score = cur_ares_p->sw_score + score_delta;
       if (first_line && !(m_msp->markx&MX_M11OUT )) {
@@ -869,7 +878,7 @@ do_lav(FILE *fp, struct a_struct *aln_p, char *seqc,
   seqc_p = seqc;
   
   while (*seqc_p) {
-    if (*seqc_p == '=') {
+    if (*seqc_p == '=') {	/* extend match in both sequences */
       len = strtol(seqc_p+1, &num_e, 10);
       cur_e0 = cur_b0 + len - 1;
       cur_e1 = cur_b1 + len - 1;
@@ -886,13 +895,13 @@ do_lav(FILE *fp, struct a_struct *aln_p, char *seqc,
       cur_b0 = cur_e0 + 1;
       cur_b1 = cur_e1 + 1;
     }
-    else if (*seqc_p == '+') {
-      len = strtol(seqc_p+1, &num_e, 10);
-      cur_b0 += len;
-    }
-    else {
+    else if (*seqc_p == '+') {	/* extend insertion in seq0  by incrementing seq1 */
       len = strtol(seqc_p+1, &num_e, 10);
       cur_b1 += len;
+    }
+    else {			/* extend insertion in seq1 by incrementing seq0 */
+      len = strtol(seqc_p+1, &num_e, 10);
+      cur_b0 += len;
     }
     seqc_p = num_e;
   }
@@ -933,4 +942,35 @@ void freeseq_ann(char **seqc0a, char **seqc1a)
     free(*seqc0a);
     *seqc0a = *seqc1a = NULL;
   }
+}
+
+#include <math.h>
+/* calculates percentages, optionally ensuring that 100% is completely
+   identical*/
+float calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail) {
+  float f_id, f_decimal;
+  int n_sig;
+
+  if (n_alen <= 0) { return fail;}
+
+  /*
+  n_sig = 3;
+  n_sig = tot_ident;
+  if (tot_ident==1) { n_sig = 3;}
+  */
+
+  f_id = (float)n_ident/(float)n_alen;
+
+  if (tot_ident && n_ident != n_alen) {
+    f_decimal = 0.999;
+    /*
+    if (n_sig == 4) {f_decimal = 0.9999;}
+    else if (n_sig == 3) { f_decimal = 0.999;}
+    else if (n_sig == 5) { f_decimal = 0.99999;}
+    else {f_decimal = 1.0 - powf(0.1, n_sig);}
+    */
+    if (f_id > f_decimal) f_id = f_decimal;
+  }
+
+  return scale*f_id;
 }

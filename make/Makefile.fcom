@@ -303,7 +303,7 @@ ncbl_lib.o : ncbl_lib.c ncbl_head.h
 	$(CC) $(THR_CC) $(CFLAGS) -c ncbl_lib.c
 
 ncbl2_mlib.o : ncbl2_mlib.c ncbl2_head.h mm_file.h
-	$(CC) $(THR_CC) $(CFLAGS) -c ncbl2_mlib.c
+	$(CC) $(THR_CC) $(CFLAGS) -c ncbl2_mlib.c -o ncbl2_mlib.o
 
 mysql_lib.o : mysql_lib.c mm_file.h
 	$(CC) $(THR_CC) $(CFLAGS) -c mysql_lib.c

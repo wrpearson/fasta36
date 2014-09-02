@@ -28,6 +28,7 @@ my $domain_cnt = 0;
 my $hostname = `/bin/hostname`;
 
 my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0);
+my ($min_nodom) = (10);
 
 GetOptions(
     "lav" => \$lav,
@@ -38,6 +39,7 @@ GetOptions(
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
     "negdoms" => \$neg_doms,
+    "min_nodom=i" => \$min_nodom,
     "no_feats" => \$no_feats,
     "no-feats" => \$no_feats,
     "nofeats" => \$no_feats,
@@ -62,7 +64,7 @@ my %feats_text = ();
 my %feats_label;
 @feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding', 'Site', '','');
 
-my @feat_vals = ( '=','*','#','^','!','V','V');
+my @feat_vals = ( '=','*','#','^','@','V','V');
 
 
 my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
@@ -157,22 +159,30 @@ sub lwp_annots {
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^(SP|TR):(\w+)\s(\w+)/) {
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
     $sdb = lc($1);
-    $id = $2;
-    $acc = $3;
+#    $id = $2;
+    $acc = $2;
+  }
+  elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
+    $sdb = lc($1);
+#    $id = $2;
+    $acc = $2;
   }
   else {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
 
-  $acc =~ s/\.\d+//;
+  $acc =~ s/\.\d+// if ($acc);
 
   $annot_data{list} = [];
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
     $lwp_features = get("$up_base/$acc/$gff_post");
+  }
+  elsif ($id && ($id =~ m/^\w+$/)) {
+    $lwp_features = get("$up_base/$id/$gff_post");
   }
 
   if ($lwp_features && ($lwp_features !~ /ERROR/)) {
@@ -201,8 +211,10 @@ sub gff2_annots {
   shift @gff_lines;	# ''
   $gff_line = shift @gff_lines;
   ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
+  $seq_len = $seq_end if ($seq_end > $seq_len);
 
   while ($gff_line = shift(@gff_lines)) {
+    next if ($gff_line =~ m/^#/);
     chomp($gff_line);
 
     my @gff_line_arr = split(/\t/,$gff_line);
@@ -293,12 +305,12 @@ sub gff2_annots {
   if ($neg_doms) {
     my $last_end = 0;
     for my $feat ( @feats2 ) {
-      if ($feat->[0] - $last_end > 10) {
+      if ($feat->[0] - $last_end > $min_nodom) {
 	push @n_feats2, [$last_end+1, "-", $feat->[0]-1, "NODOM"];
       }
       $last_end = $feat->[2];
     }
-    if ($seq_len - $last_end > 10) {
+    if ($seq_len - $last_end > $min_nodom) {
       push @n_feats2, [$last_end+1, "-", $seq_len, "NODOM"];
     }
   }
@@ -369,6 +381,10 @@ ann_feats_up_www2.pl
  --no-feats do not show feature (variants, active sites, phospho-sites)
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
 
+ --neg-doms,  -- report domains between annotated domains as NODOM
+                 (also --neg, --neg_doms)
+ --min_nodom=10  -- minimum length between domains for NODOM
+
  --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION
@@ -379,9 +395,8 @@ provided by http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
 This server provides GFF descriptions of Uniprot entries, with most of
 the information provided in UniProt feature tables.
 
-C<ann_feats_up_www2.pl> is an alternative to C<ann_feats2l.pl> and
-C<ann_feats2ipr.pl> that does not require a MySQL database with
-Uniprot Feature table information.
+C<ann_feats_up_www2.pl> is an alternative to C<ann_pfam.pl> and
+C<ann_pfam.pl> that does not require a local MySQL copy of Pfam.
 
 Given a command line argument that contains a sequence accession
 (P09488), the program looks up the features available for that

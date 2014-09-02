@@ -1,8 +1,8 @@
 
 /* copyright (c) 2010 William R. Pearson and the U. of Virginia */
 
-/* $Id: build_ares.c 1198 2013-07-19 21:58:19Z wrp $ */
-/* $Revision: 1198 $ */
+/* $Id: build_ares.c 1254 2014-01-29 16:03:40Z wrp $ */
+/* $Revision: 1254 $ */
 
 /* build_ares_code is called by showbest() (in threaded/serial code) or
    p2_workcomp in PCOMPLIB code to produce the cur_ares-> chain that
@@ -31,7 +31,7 @@
 extern void calc_coord(int n0, int n1, long qoffset, long loffset,
 		      struct a_struct *aln);
 
-extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p);
+extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, void *f_str);
 
 /* in build_ares_code, *aa1 is separate from *seq because *seq has
    permanent information about aa1, but aa1 may be temporary */
@@ -100,7 +100,7 @@ build_ares_code(unsigned char *aa0, int n0,
 
       if (seq_code != NULL) {
 
-	calc_astruct(aln_p, cur_ares_p);
+	calc_astruct(aln_p, cur_ares_p, f_str);
 
 	/* we need this for offset information for calc_code, but it is
 	 incomplete so we must do it again */

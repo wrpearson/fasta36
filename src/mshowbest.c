@@ -2,8 +2,8 @@
 /* copyright (c) 1996, 1997, 1998, 1999 William R. Pearson and the
    U. of Virginia */
 
-/* $Id: mshowbest.c 1136 2013-04-06 17:43:43Z wrp $ */
-/* $Revision: 1136 $  */
+/* $Id: mshowbest.c 1281 2014-08-21 17:32:06Z wrp $ */
+/* $Revision: 1281 $  */
 
 /* 2-April-2009 changes to simplify interactive display logic.  Coming
    into showbest(), things are interactive (quiet==0) or use
@@ -64,10 +64,12 @@ struct lmf_str *re_openlib(struct lmf_str *, int outtty);
 extern void calc_coord(int n0, int n1, long qoffset, long loffset,
 		      struct a_struct *aln);
 
+extern float
+calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail);
+
 extern int
 get_annot(char *sname, struct mngmsg *m_msp, char *bline, int n1, struct annot_str **annot_p,
  	  int target, int debug);
-extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p);
 extern double find_z(int score, double escore, int length, double comp,void *);
 extern double zs_to_E(double zs, int n1, int dnaseq, long db_size, struct db_str db);
 extern double zs_to_bit(double, int, int);
@@ -115,6 +117,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   int n1tot;
   char *bp, *bline_p;
   char rel_label[12];
+  char score_label[120];
   char tmp_str[20], *seq_code, *ann_code;
   int seq_code_len, ann_code_len;
   long loffset;		/* loffset is offset from beginning of real sequence */
@@ -129,10 +132,20 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct rstruct *rst_p;
   int gi_num;
   char html_pre_E[120], html_post_E[120];
+  int have_lalign = 0;
 
   struct lmf_str *m_fptr;
 
+  /* for lalign alignments, only show stuff when -m != 11 */
+
+  if (m_msp->markx & MX_M11OUT) return;
+  if (strcmp(m_msp->label,"ls-w")==0) {
+    have_lalign = 1;
+    if ((m_msp->markx & MX_M9SUMM) == 0) return;
+  }
+
   rel_label[0]='\0';
+  SAFE_STRNCPY(score_label,"scores", sizeof(score_label));
 
   quiet = m_msp->quiet;
 
@@ -175,6 +188,16 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
   memset(pad,' ',m_msp->aln.llen-(r_margin+6));
   pad[m_msp->aln.llen-(r_margin+12)]='\0';
+  if (have_lalign) {
+    if (ppst->show_ident) {
+      SAFE_STRNCPY(score_label,"alignments", sizeof(score_label));
+      pad[m_msp->aln.llen-(r_margin+16)]='\0';
+    }
+    else {
+      SAFE_STRNCPY(score_label,"non-identical alignments", sizeof(score_label));
+      pad[m_msp->aln.llen-(r_margin+30)]='\0';
+    }
+  }
 
   nshow = min(m_msp->nshow,nbest);
 
@@ -224,15 +247,15 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   else if (!(m_msp->markx & MX_M8OUT)) {
     if (ppst->zsflag >= 0) {
       if (m_msp->z_bits==1) {/* show bit score */
-	fprintf(fp,"\nThe best%s scores are:%s%s bits %sE(%ld)%s",
-		rel_label,pad,m_msp->label,html_pre_E,ppst->zdb_size,html_post_E);
+	fprintf(fp,"\nThe best%s %s are:%s%s bits %sE(%ld)%s",
+		rel_label,score_label,pad,m_msp->label,html_pre_E,ppst->zdb_size,html_post_E);
 	if (ppst->zsflag > 20) {
 	  fprintf(fp," E2()");
 	}
       }
       else {/* show z-score */
-	fprintf(fp,"\nThe best%s scores are:%s%s z-sc %sE(%ld)%s",
-		rel_label,pad,m_msp->label,html_pre_E,ppst->zdb_size,html_post_E);
+	fprintf(fp,"\nThe best%s %s are:%s%s z-sc %sE(%ld)%s",
+		rel_label,score_label,pad,m_msp->label,html_pre_E,ppst->zdb_size,html_post_E);
 	if (ppst->zsflag > 20) {
 	  fprintf(fp," E2()");
 	}
@@ -260,7 +283,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       fprintf(fp,"\n");
     }
     else {
-      fprintf(fp,"\nThe best%s scores are:%s%s",rel_label,pad,m_msp->label);
+      fprintf(fp,"\nThe best%s %s are:%s%s",rel_label,score_label,pad,m_msp->label);
       header_aux(fp);
       if (m_msp->markx & MX_M9SUMM) {
 	if (m_msp->show_code == SHOW_CODE_ID) {
@@ -420,7 +443,7 @@ l1:
 	 Otherwise, it comes from bbp->rst
       */
 
-      if (!first_line && cur_ares_p) {
+      if ((!first_line || (have_lalign && !ppst->show_ident)) && cur_ares_p ) {
 	rst_p = &cur_ares_p->rst;
       }
       else {
@@ -497,16 +520,14 @@ l1:
 	ann_code = cur_ares_p->ann_code;
 	ann_code_len = cur_ares_p->ann_code_n;
 
-	if (aln_p->lc > 0) percent = (100.0*(float)aln_p->nident)/(float)aln_p->lc;
-	else percent = -100.00;
+
+        percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
 
 	ngap = cur_ares_p->aln.ngap_q + cur_ares_p->aln.ngap_l;
 #ifndef SHOWSIM
-	if (aln_p->lc-ngap > 0) gpercent = (100.0*(float)aln_p->nident)/(float)(aln_p->lc-ngap);
-	else gpercent = -100.00;
+	gpercent = calc_fpercent_id(100.0, aln_p->nident, aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 #else
-	if (aln_p->lc-ngap > 0) gpercent = (100.0*(float)cur_ares_p->aln.nsim)/(float)(aln_p->lc);
-	else gpercent = -100.00;
+	gpercent = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
 #endif	/* SHOWSIM */
 
 	if (m_msp->show_code != SHOW_CODE_ID) {	/* show more complete info than just identity */

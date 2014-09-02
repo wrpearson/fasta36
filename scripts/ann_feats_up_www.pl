@@ -28,6 +28,7 @@ my $domain_cnt = 0;
 my $hostname = `/bin/hostname`;
 
 my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $shelp, $help) = (0,0,0,0,0,0,0);
+my ($min_nodom) = (10);
 
 GetOptions(
     "lav" => \$lav,
@@ -38,6 +39,7 @@ GetOptions(
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
     "negdoms" => \$neg_doms,
+    "min_nodom=i" => \$min_nodom,
     "no_feats" => \$no_feats,
     "no-feats" => \$no_feats,
     "nofeats" => \$no_feats,
@@ -181,6 +183,7 @@ sub gff2_annots {
   my $gff_line = shift @gff_lines; # skip ##gff
   $gff_line = shift @gff_lines;	# get sequence-region
   ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
+  $seq_len = $seq_end if ($seq_end > $seq_len);
 
   while ($gff_line = shift(@gff_lines)) {
     chomp($gff_line);
@@ -258,12 +261,12 @@ sub gff2_annots {
   if ($neg_doms) {
     my $last_end = 0;
     for my $feat ( @feats2 ) {
-      if ($feat->[0] - $last_end > 10) {
+      if ($feat->[0] - $last_end > $min_nodom) {
 	push @n_feats2, [$last_end+1, "-", $feat->[0]-1, "NODOM"];
       }
       $last_end = $feat->[2];
     }
-    if ($seq_len - $last_end > 10) {
+    if ($seq_len - $last_end > $min_nodom) {
       push @n_feats2, [$last_end+1, "-", $seq_len, "NODOM"];
     }
   }
@@ -348,6 +351,10 @@ ann_feats_up_www.pl
  --no-doms  do not show domain boundaries (domains are always shown with --lav)
  --no-feats do not show feature (variants, active sites, phospho-sites)
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
+
+ --neg-doms,  -- report domains between annotated domains as NODOM
+                 (also --neg, --neg_doms)
+ --min_nodom=10  -- minimum length between domains for NODOM
 
  --host, --user, --password, --port --db -- info for mysql database
 

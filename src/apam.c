@@ -6,8 +6,8 @@
 	This version reads BLAST format (square) PAM files
 */
 
-/*  $Id: apam.c 1238 2013-11-01 20:30:59Z wrp $ */
-/* $Revision: 1238 $  */
+/*  $Id: apam.c 1281 2014-08-21 17:32:06Z wrp $ */
+/* $Revision: 1281 $  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,6 +75,16 @@ initpam (char *mfname, struct pstruct *ppst)
       return 0;
    }
 
+/* removed because redundant, and causes crash under MacOSX -- because copying on top of itself */
+/*
+   SAFE_STRNCPY (ppst->pamfile, mfname, MAX_FN);
+*/
+   SAFE_STRNCPY(ppst->pam_name, ppst->pamfile, MAX_FN);
+
+   if (ppst->pam_ms) {
+     SAFE_STRNCAT(ppst->pam_name,"-MS",MAX_FN-strlen(ppst->pam_name));
+   }
+
    /* 
       the size of the alphabet is determined in advance 
    */
@@ -110,6 +120,12 @@ initpam (char *mfname, struct pstruct *ppst)
    /* we no-longer re-initialize sascii[], we either use NCBIstdaa
       mapping for protein, or nascii for DNA */
 
+   /* 11-July-2014 -- need to check that alphabet is consistent with pascii */
+   /* 
+   for (i=0; i < l_nsq; i++) {
+   }
+   */
+
    /* check for 2D pam  - if not found, allocate it */
    if (!ppst->have_pam2) {
      alloc_pam (MAXSQ+1, MAXSQ+1, ppst);
@@ -128,6 +144,11 @@ initpam (char *mfname, struct pstruct *ppst)
    /*  read the scoring matrix values */
    for (iaa = 1; iaa < l_nsq; iaa++) {	/* read pam value line */
      p_i = pascii[l_sq[iaa]];
+     if (p_i > MAXSQ) {
+       fprintf(stderr,"*** error [%s:%d] - residue character %c out of range %d\n",
+	       __FILE__, __LINE__, l_sq[iaa], p_i);
+       p_i = pascii['X'];
+     }
      if (fgets(line,sizeof(line),fmat)==NULL) {
        fprintf (stderr," error reading pam line: %s\n",line);
        exit (1);
@@ -172,14 +193,6 @@ initpam (char *mfname, struct pstruct *ppst)
      ppst->pam2[0][p_j][p_j] = -1;
    }
 
-   strncpy (ppst->pamfile, mfname, MAX_FN);
-   ppst->pamfile[MAX_FN-1]='\0';
-   strncpy (ppst->pam_name, ppst->pamfile, MAX_FN);
-
-   if (ppst->pam_ms) {
-     strncat(ppst->pam_name,"-MS",MAX_FN-strlen(ppst->pam_name)-1);
-   }
-   ppst->pam_name[MAX_FN-1]='\0';
    fclose (fmat);
    return 1;
 }

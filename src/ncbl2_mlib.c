@@ -1,10 +1,20 @@
 /*	ncbl2_lib.c	functions to read ncbi-blast format files from
 			formatdb (blast2.0 format files)
-
-		copyright (c) 1999 William R. Pearson
 */
 
-/* $Name:  $ - $Id: ncbl2_mlib.c 1240 2013-11-08 21:04:46Z wrp $ */
+/* Updated 22-Aug-2014 to include 
+
+   ambiguity-decoding code from 
+
+     Ralf Jost, Dipl.-Inform.
+     Director, Technical Bioinformatics
+     Biomax Informatics AG
+     ralf.jost@biomax.com
+
+     using code from NCBI Blast distribution
+*/
+
+/* $Name:  $ - $Id: ncbl2_mlib.c 1291 2014-08-28 18:32:58Z wrp $ */
 
 /* to turn on mmap()ing for Blast2 files: */
 
@@ -233,6 +243,8 @@ int ncbl2_getlibn_o(unsigned char *, int, char *, int, fseek_t *, int *, struct 
 
 void newname(char *, char *, char *, int);
 void parse_pal(char *, char *, int *, int *, FILE *);
+
+int readMFILE (void *buffer, size_t size, int nitems, struct lmf_str *m_fd);
 
 void ncbl2_ranlib(char *, int, fseek_t, char *, struct lmf_str *m_fd);
 
@@ -1294,6 +1306,40 @@ ncbl2_getlibn(unsigned char *seq,
   char acc[MAX_FADL_ACC_LEN], title[MAX_UID], name[MAX_FADL_ACC_LEN];
 #endif
 
+  /* ambiguity code adapted from NCBI Blast sources by:
+
+     Ralf Jost, Dipl.-Inform.
+     Director, Technical Bioinformatics
+     Biomax Informatics AG
+     ralf.jost@biomax.com
+  */
+
+  int amb_lower = *lcont * maxs;
+  /*   int amb_upper = (*lcont + 1) * maxs - 1; */ /* not used */
+
+  unsigned long x;
+  unsigned long soff, eoff;
+  int index;
+
+  unsigned int amb_cnt = 0;
+  unsigned int large_amb = 0;
+
+  unsigned int start;
+  unsigned int end;
+  unsigned int amb_start;
+
+  const char str_2bit[] = "ACGT";
+  const char str_4bit[] = "-ACMGRSVTWYHKDBN";
+
+  unsigned int *amb_ptr = NULL;
+  long filepos = 0;
+  char *mmap_pos = NULL;
+
+  unsigned int i;
+  unsigned char res;
+  int row_len;
+  int j, position = 0;
+
   *l_off = 1;
 
   lib_cnt = m_fd->lpos;
@@ -1302,17 +1348,9 @@ ncbl2_getlibn(unsigned char *seq,
     if (lib_cnt >= m_fd->max_cnt) return (-1);
     c_len = m_fd->a_pos_arr[lib_cnt]- m_fd->s_pos_arr[lib_cnt];
     if (!m_fd->mm_flg) {
-      if (m_fd->bl_lib_pos != m_fd->s_pos_arr[lib_cnt]) { /* are we positioned to read? */
-	amb_cnt++;
-	if ((m_fd->s_pos_arr[lib_cnt]-m_fd->bl_lib_pos) < sizeof(tmp_amb)) {
-	  /* jump over amb_ray */
-	  fread(tmp_amb,(size_t)1,(size_t)(m_fd->s_pos_arr[lib_cnt]-m_fd->bl_lib_pos),m_fd->libf);
-	}
-	else {	/* fseek over amb_ray */
+      /* fseek over amb_ray */
 	  fseek(m_fd->libf,m_fd->s_pos_arr[lib_cnt],0);
-	}
-	m_fd->bl_lib_pos = m_fd->s_pos_arr[lib_cnt];
-      }
+	  m_fd->bl_lib_pos = m_fd->s_pos_arr[lib_cnt];
     }
     else m_fd->mmap_addr = m_fd->mmap_base + m_fd->s_pos_arr[lib_cnt];
 #if !defined(DEBUG) && !defined(PCOMPLIB)
@@ -1368,7 +1406,7 @@ ncbl2_getlibn(unsigned char *seq,
     else sptr = (unsigned char *)(m_fd->mmap_addr+seqcnt);
 
     *lcont = 0;		/* this is the last chunk */
-    lib_cnt++;		/* increment to the next sequence */
+    // lib_cnt++;		/* increment to the next sequence */
     /* the last byte is either '0' (no remainder) or the last 1-3 chars and the remainder */
     c_pad = *(sptr-1);
     c_pad &= 0x3;	/* get the last (low) 2 bits */
@@ -1470,6 +1508,118 @@ ncbl2_getlibn(unsigned char *seq,
     *--tptr = ((stmp >>= 2)&3)+1;
     *--tptr = ((stmp >>= 2)&3)+1;
   }
+
+  /*
+   * Ambiguity-Decoding code from 
+
+     Ralf Jost, Dipl.-Inform.
+     Director, Technical Bioinformatics
+     Biomax Informatics AG
+     ralf.jost@biomax.com
+
+     using code from NCBI Blast distribution
+   */
+
+  amb_start = m_fd->a_pos_arr[lib_cnt];
+  end = m_fd->s_pos_arr[lib_cnt + 1];
+
+  if (amb_start != end) {
+    if (!m_fd->mm_flg) {
+      filepos = ftell(m_fd->libf);
+      /* find the size of the ambiguity table */
+      if (fseek(m_fd->libf, amb_start, SEEK_SET) != 0) {
+	fprintf(stderr, "*** error [%s:%d] *** -- Seek amb start 0x%08x error %d\n", 
+		__FILE__, __LINE__, amb_start, ferror(m_fd->libf));
+      }
+      if (fread(&amb_cnt, sizeof(unsigned int), 1, m_fd->libf) != 1) {
+	fprintf(stderr, "*** error [%s:%d] *** -- Read amb count error %d\n", 
+		__FILE__, __LINE__, ferror(m_fd->libf));
+      }
+    } else {
+      mmap_pos = m_fd->mmap_addr;
+      m_fd->mmap_addr = m_fd->mmap_base + amb_start;
+      if (readMFILE((void *)&amb_cnt, sizeof(unsigned int), 1, m_fd) != 1) {
+	fprintf(stderr, "*** error [%s:%d] *** -- Read amb count error %d\n", 
+		__FILE__, __LINE__, ferror(m_fd->libf));
+      }
+    }
+
+    amb_cnt = bl2_uint4_cvt(amb_cnt);
+
+    /* if the most significant bit is set on the count, then each
+     * correction will take two entries in the table.  the layout
+     * is described below.
+     */
+    large_amb = amb_cnt >> 31;
+    amb_cnt = amb_cnt & 0x7fffffff;
+
+    /* allocate enough space for the ambiguity table */
+    amb_ptr = (unsigned int *) malloc(amb_cnt * sizeof(unsigned int));
+    if (amb_ptr == NULL) {
+      fprintf(stderr, "*** error [%s:%d] malloc amb table error size %ld\n",
+	      __FILE__, __LINE__, amb_cnt * sizeof(unsigned int));
+    }
+
+    /* read the table */
+    if (!m_fd->mm_flg) {
+      if (fread((unsigned char *) amb_ptr, sizeof(unsigned int), amb_cnt, m_fd->libf)
+	  != amb_cnt) {
+	fprintf(stderr, "*** error [%s:%d] *** -- Read amb table %d error %d\n", 
+		__FILE__, __LINE__, amb_cnt, ferror(m_fd->libf));
+      }
+    } else {
+      if (readMFILE((void *) amb_ptr, sizeof(unsigned int), amb_cnt, m_fd)
+	  != amb_cnt) {
+	fprintf(stderr, "*** error [%s:%d] *** -- Read amb table %d error %d\n", 
+		__FILE__, __LINE__, amb_cnt, ferror(m_fd->libf));
+      }
+    }
+
+    for (index=0; index < amb_cnt; index++) {
+      amb_ptr[index] = bl2_uint4_cvt(amb_ptr[index]);
+    }
+
+    for (i = 0; i < amb_cnt; i++) {
+
+      if (large_amb) {
+	res = (unsigned char) (amb_ptr[i] >> 28);
+	row_len = (int) (amb_ptr[i] >> 16) & 0xFFF;
+	position = amb_ptr[i + 1];
+      } else {
+	res = (unsigned char) (amb_ptr[i] >> 28);
+	row_len = (int) ((amb_ptr[i] >> 24) & 0xF);
+	position = amb_ptr[i] & 0xFFFFFF;
+      }
+      for (index = position, j = 0; j <= row_len; j++) {
+	if ((index + j >= amb_lower) && (index + j < amb_lower + 4 * seqcnt))
+	  seq[index + j - amb_lower] = nascii[str_4bit[res]];
+      }
+
+      if (large_amb)
+	i++;
+    }
+
+    if (amb_ptr != NULL)
+      free(amb_ptr);
+
+    if (!m_fd->mm_flg) {
+      fseek(m_fd->libf, filepos, SEEK_SET);
+    } else {
+      m_fd->mmap_addr = mmap_pos;
+    }
+  }
+
+  /*
+   * End of ambiguity-decoding.
+   */
+
+  if ( *lcont == 0)
+    lib_cnt++;
+
+
+
+
+
   /*
     for (sptr=seq; sptr < seq+seq_len; sptr++) {
     printf("%c",nt[*sptr]);
@@ -1752,7 +1902,7 @@ get_asn_int(unsigned char *abp, int *val) {
 
   v = 0;
   if (*abp++ != ASN_IS_INT) { /* check for int */
-    fprintf(stderr," int missing\n");
+    fprintf(stderr,"*** error [%s:%d] -- int missing\n",__FILE__, __LINE__);
   }
   else {
     v_len = *abp++;
@@ -1772,7 +1922,7 @@ get_asn_text(unsigned char *abp, char *text, int t_len) {
 
   text[0] = '\0';
   if (*abp++ != ASN_IS_STR) { /* check for str */
-    fprintf(stderr," str missing\n");
+    fprintf(stderr,"*** error [%s:%d] - str missing\n",__FILE__,__LINE__);
   }
   else {
     if ((tch = *abp++) > 128) {	/* string length is in next bytes */
@@ -1810,11 +1960,29 @@ get_asn_junk(unsigned char *abp) {
     else if ( *abp == ASN_IS_BOOL ) {abp = get_asn_int(abp, &tmp);}
     else if ( *abp == ASN_IS_INT ) {abp = get_asn_int(abp, &tmp);}
     else if ( *abp == ASN_IS_STR ) {abp = get_asn_text(abp, string, sizeof(string)-1);}
+    else { abp += 2;}
   }
 
   while (seq_cnt-- > 0) abp += 2;
   return abp;
 }
+
+#define ASN_FADL_TITLE 0xa0	/* \240 160 */
+#define ASN_FADL_SEQID 0xa1	/* \241 161 */
+#define ASN_FADL_TAXID 0xa2	/* \242 162 */
+#define ASN_FADL_MEMBERS 0xa3	/* \243 163 */
+#define ASN_FADL_LINKS 0xa4	/* \244 164 */
+#define ASN_FADL_OTHER 0xa5	/* \245 165 */
+#define ASN_FADL_GI    171
+
+#define ASN_FADL_TEXTSEQ_ID 0xa4  /* \244 164 */
+#define ASN_FADL_OTHERSEQ_ID 0xa5  /* \245 164 */
+
+/* from seq.asn::Textseq-id/Textannot-id */
+#define ASN_TEXTSEQ_ID_NAME 0xa0	/* \240 160 */
+#define ASN_TEXTSEQ_ID_ACC  0xa1	/* \241 161 */
+#define ASN_TEXTSEQ_ID_REL  0xa2	/* \242 162 */
+#define ASN_TEXTSEQ_ID_VER  0xa3	/* \243 163 */
 
 unsigned char *
 get_asn_textseq_id(unsigned char *abp, 
@@ -1830,16 +1998,16 @@ get_asn_textseq_id(unsigned char *abp,
 
   while (*abp) {
     switch (*abp) {
-    case 0xa0:
+    case ASN_TEXTSEQ_ID_NAME :
       abp = get_asn_text(abp+2, name, name_len);
       break;
-    case 0xa1:
+    case ASN_TEXTSEQ_ID_ACC :
       abp = get_asn_text(abp+2, acc, acc_len);
       break;
-    case 0xa2:
+    case ASN_TEXTSEQ_ID_REL :
       abp = get_asn_text(abp+2, release, sizeof(release));
       break;
-    case 0xa3:
+    case ASN_TEXTSEQ_ID_VER :
       abp = get_asn_int(abp+2, &version);
       sprintf(ver_str,".%d",version);
       break;
@@ -1863,7 +2031,7 @@ get_asn_local_id(unsigned char *abp, char *acc, size_t acc_len)
 
   while (seqcnt-- > 0) abp += 4;
   acc[acc_len-1]='\0';
-  return abp;	/* skip 2 NULL's */
+  return abp+2;	/* skip 2 NULL's */
 }
 
 unsigned char *
@@ -1875,7 +2043,7 @@ get_asn_dbtag(unsigned char *abp, char *name, size_t name_len, char *str, size_t
     abp = get_asn_text(abp+2, name, name_len);
   }
   else {
-    fprintf(stderr," missing dbtag:db %d %d\n",abp[0],abp[1]);
+    fprintf(stderr,"*** error [%s:%d] -  missing dbtag:db %d %d\n",__FILE__, __LINE__, abp[0],abp[1]);
     abp += 2;
   }
 
@@ -1883,36 +2051,90 @@ get_asn_dbtag(unsigned char *abp, char *name, size_t name_len, char *str, size_t
     abp += 2;
     abp += 2; /* skip over id */
     if (*abp == 2) abp = get_asn_int(abp,id_p);
-    else abp = get_asn_text(abp+2, str, str_len);
+    else abp = get_asn_text(abp, str, str_len);
   }
   else {
-    fprintf(stderr," missing dbtag:tag %2x %2x\n",abp[0],abp[1]);
+    fprintf(stderr,"*** error [%s:%d] - missing dbtag:tag %2x %2x\n",__FILE__, __LINE__, abp[0],abp[1]);
     abp += 2;
   }
   return abp+2;	/* skip 2 NULL's */
+}
+
+#define ASN_DATE_STR 0xa0
+#define ASN_DATE_STD 0xa1
+#define ASN_DATE_STD_YR 0xa0
+#define ASN_DATE_STD_MO 0xa1
+#define ASN_DATE_STD_DAY 0xa2
+
+unsigned char *
+get_asn_date_std(unsigned char *abp, char *date) {
+  int seq_cnt=0;
+  int year, month, day;
+
+  year = month = day = 0;
+  
+  while (*abp == ASN_SEQ) { abp+=2; seq_cnt++;}
+
+  while (*abp) {
+    switch (*abp) {
+    case ASN_DATE_STD_YR :
+      abp = get_asn_int(abp+2, &year);
+      break;
+    case ASN_DATE_STD_MO :
+      abp = get_asn_int(abp+2, &month);
+      break;
+    case ASN_DATE_STD_DAY :
+      abp = get_asn_int(abp+2, &day);
+      break;
+    default: 
+      fprintf(stderr, "*** error [%s:%d] - incorrect date-std code: %0x1 %0x1\n",
+	      __FILE__, __LINE__, abp[0], abp[1]);
+    }
+  }
+  sprintf(date, "%02d-%02d-%02d", year, month, day);
+
+  while (seq_cnt-- > 0) { abp += 4;}
+
+  return abp+2;
+}
+
+unsigned char *
+get_asn_date(unsigned char *abp, char *date, size_t date_len) {
+
+  if (*abp == ASN_DATE_STR) {
+    abp = get_asn_text(abp, date, date_len);
+  }
+  else if (*abp == ASN_DATE_STD) {
+    abp = get_asn_date_std(abp+2, date);
+  }
+  else {
+    fprintf(stderr, "*** error [%s:%d] - incorrect date code: %0x1 %0x1\n",
+	    __FILE__, __LINE__, abp[0], abp[1]);
+  }
+  return abp+2;
 }
 
 unsigned char *
 get_asn_pdb_id(unsigned char *abp, char *acc, size_t acc_len, char *chain, size_t chain_len)
 {
   int ichain, seq_cnt=0;
+  char dummy[40];
 
   if (*abp == ASN_SEQ) { abp += 2; seq_cnt++;}
 
   while (*abp) {
     switch (*abp) {
     case 0: abp += 2; break;
-    case 0xa0:	/* mol-id */
+    case 0xa0:	/* mol */
       abp = get_asn_text(abp+2, acc, 20);
       break;
-    case 0xa1:
+    case 0xa1:	/* chain */
       abp = get_asn_int(abp+2, &ichain);
       chain[0] = ichain;
       chain[1] = '\0';
       break;
-    case 0xa2:	/* ignore date - scan until NULL's */
-      while (*abp++) {}
-      abp += 2;		/* skip the NULL's */
+    case 0xa2:	/* release */
+      abp = get_asn_date(abp+2, dummy, sizeof(dummy));
       break;
     default: abp+=2;
     }
@@ -1922,14 +2144,15 @@ get_asn_pdb_id(unsigned char *abp, char *acc, size_t acc_len, char *chain, size_
 }
 
 unsigned char *
-get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len, char *name, size_t name_len)
+get_asn_seqid_ori(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len, char *name, size_t name_len)
 {
   int db_type, itmp, seq_cnt=0;
 
   *gi_p = 0;
 
   if (*abp != ASN_SEQ) {
-    fprintf(stderr, "seqid - missing SEQ 1: %2x %2x\n",abp[0], abp[1]);
+    fprintf(stderr, "*** error [%s:%d] - seqid - missing SEQ 1: %2x %2x\n",
+	    __FILE__, __LINE__, abp[0], abp[1]);
     return abp;
   }
   else { abp += 2; seq_cnt++;}
@@ -1948,7 +2171,7 @@ get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len,
 
   switch(db_type) {
   case 0: 
-    abp = get_asn_local_id(abp+2, acc, acc_len);
+    abp = get_asn_local_id(abp, acc, acc_len);
     break;
   case 1:
   case 2:
@@ -1968,12 +2191,12 @@ get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len,
   case 15:
   case 16:
   case 17:
-    abp = get_asn_textseq_id(abp+2,name,name_len, acc, acc_len);
+    abp = get_asn_textseq_id(abp,name,name_len, acc, acc_len);
     break;
   case 10:
     abp = get_asn_dbtag(abp+2,name,name_len, acc, acc_len, &itmp);
   case 14:
-    abp = get_asn_pdb_id(abp+2,acc,acc_len,name,name_len);
+    abp = get_asn_pdb_id(abp,acc,acc_len,name,name_len);
     break;
   default: abp += 2;
   }
@@ -1982,12 +2205,133 @@ get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len,
   return abp; /* skip over 2 NULL's */
 }
 
-#define ASN_FADL_TITLE 0xa0
-#define ASN_FADL_SEQID 0xa1
-#define ASN_FADL_TAXID 0xa2
-#define ASN_FADL_MEMBERS 0xa3
-#define ASN_FADL_LINKS 0xa4
-#define ASN_FADL_OTHER 0xa5
+unsigned char *
+get_asn_db_info(unsigned char *abp, int db_type, int *gi_p, char *name, size_t name_len, char *acc, size_t acc_len) {
+  int seq_cnt = 0, itmp;
+
+  if (db_type == 11) {
+    abp = get_asn_int(abp, gi_p);
+    return abp;
+  }
+
+  while (*abp == ASN_SEQ) {abp += 2; seq_cnt++;}
+
+  switch(db_type) {
+  case 0: 
+    abp = get_asn_local_id(abp, acc, acc_len);
+    break;
+  case 1:
+  case 2:
+    abp = get_asn_int(abp,gi_p);
+    break;
+  case 11:
+    abp = get_asn_int(abp+2,gi_p);
+    break;
+  case 4:
+  case 5:
+  case 6:
+  case 7:
+  case 9:
+  case 12:
+  case 13:
+  case 15:
+  case 16:
+  case 17:
+    abp = get_asn_textseq_id(abp,name,name_len, acc, acc_len);
+    break;
+  case 10:
+    abp = get_asn_dbtag(abp,name,name_len, acc, acc_len, &itmp);
+    break;
+  case 14:
+    abp = get_asn_pdb_id(abp,acc,acc_len,name,name_len);
+    break;
+  default: abp += 2;
+  }
+  
+  while (seq_cnt-- > 0) { abp += 4;}
+  return abp; /* skip over 2 NULL's */
+}
+
+
+unsigned char *
+get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len, char *name, size_t name_len)
+{
+  int db_type, itmp, seq_cnt=0;
+
+  *gi_p = 0;
+
+  if (*abp != ASN_SEQ) {
+    fprintf(stderr, "*** error [%s:%d] - get_asn_seqid - missing SEQ 1: %2x %2x\n",
+	    __FILE__, __LINE__, abp[0], abp[1]);
+    return abp;
+  }
+  else { abp += 2; seq_cnt++;}
+
+  while (*abp) {
+    if (*abp == ASN_FADL_TEXTSEQ_ID) {
+      abp = get_asn_textseq_id(abp+2, name, name_len, acc, acc_len );
+    }
+    else if (*abp == ASN_FADL_OTHERSEQ_ID) {
+      abp = get_asn_textseq_id(abp+2, name, name_len, acc, acc_len );
+    }
+    else if ((db_type = (*abp & ASN_TYPE_MASK)) < 17) {
+      abp = get_asn_db_info(abp+2, db_type, gi_p, name, name_len, acc, acc_len);
+      *db = db_type;
+    }
+    else {
+      fprintf(stderr,"*** error [%s:%d] -- get_asn_seqid not TEXTSEQ/not GI: %2x %2x\n",
+	      __FILE__, __LINE__,abp[0], abp[1]);
+      return abp;
+    }
+  }
+  
+  while (seq_cnt-- > 0) { abp += 4;}
+  return abp; /* skip over 2 NULL's */
+}
+
+unsigned char *
+get_asn_seqid_other(unsigned char *abp, int *gi_p, char *acc, size_t acc_len, char *name, size_t name_len)
+{
+  int db_type, itmp, seq_cnt=0;
+
+  *gi_p = 0;
+  name[0] = acc[0] = '\0';
+
+  if (*abp != ASN_SEQ) {
+    fprintf(stderr, "*** error [%s:%d] - get_asn_seqid - missing SEQ 1: %2x %2x\n",
+	    __FILE__, __LINE__, abp[0], abp[1]);
+    return abp;
+  }
+  else { abp += 2; seq_cnt++;}
+
+  while (*abp) {
+    if (*abp == ASN_TEXTSEQ_ID_ACC) {
+      abp = get_asn_text(abp+2, acc, acc_len );
+    }
+    if (*abp == ASN_TEXTSEQ_ID_VER) {
+      abp = get_asn_text(abp+2, acc, acc_len );
+    }
+    else if (*abp == ASN_TEXTSEQ_ID_NAME) {
+      abp = get_asn_text(abp+2, name, name_len );
+    }
+    else if (*abp == ASN_IS_INT) {
+      abp = get_asn_int(abp, &itmp );
+    }
+    else {
+      fprintf(stderr,"*** error [%s:%d] -- get_asn_seqid not SEQID_ACC: %2x %2x\n",
+	      __FILE__, __LINE__,abp[0], abp[1]);
+      return abp;
+    }
+  }
+
+  if (*abp == ASN_FADL_GI) {
+    abp = get_asn_int(abp+2, gi_p);
+  }
+  
+  while (seq_cnt-- > 0) { abp += 4;}
+  return abp; /* skip over 2 NULL's */
+}
+
 
 unsigned char *
 parse_fastadl_asn(unsigned char *asn_buff, unsigned char *asn_max,
@@ -1995,7 +2339,7 @@ parse_fastadl_asn(unsigned char *asn_buff, unsigned char *asn_max,
 		  char *name, size_t name_len,
 		  char *title, size_t t_len, int *taxid_p) {
   unsigned char *abp;
-  int this_db;
+  int this_db, itmp;
   int seq_cnt = 0;
 
   acc[0] = name[0] = db[0] = title[0] = '\0';
@@ -2008,24 +2352,27 @@ parse_fastadl_asn(unsigned char *asn_buff, unsigned char *asn_max,
     }
     else if (*abp == ASN_FADL_SEQID ) {
       abp = get_asn_seqid(abp+2, gi_p, db, acc, acc_len, name, name_len);
-      if (*db > 17) *db = 0;
     }
     else if (*abp == ASN_FADL_TAXID ) {
       abp = get_asn_int(abp+2, taxid_p);
     }
     else if (*abp == ASN_FADL_MEMBERS) {
       abp = get_asn_junk(abp+2);
+      break;
     }
     else if (*abp == ASN_FADL_LINKS ) {
       abp = get_asn_junk(abp+2);
+      break;
     }
-    else if (*abp == ASN_FADL_OTHER ) {
-      abp = get_asn_junk(abp+2);
+    else if (*abp == ASN_FADL_OTHER ) { /* possibly here for seqid without name */
+      abp = get_asn_seqid_other(abp+2, gi_p, acc, acc_len, name, name_len);
     }
     else {
       /*       fprintf(stderr, " Error - missing ASN.1 %2x:%2x:%2x:%2x\n", 
 	       abp[-2],abp[-1],abp[0],abp[1]); */
-      abp += 2;
+      abp = get_asn_junk(abp);
+      /* something is broken, give up */
+      break;
     }
   }
   while (abp < asn_max && *abp == '\0'  ) abp++;
@@ -2056,5 +2403,23 @@ parse_pal(char *dname, char *msk_name,
     else if (strncmp(line, "MAXOID", 6)==0) {
       sscanf(line+7,"%d",max_oid);
     }
+  }
+}
+
+/* part of new ambiguity code */
+int readMFILE (void *buffer, size_t size, int nitems, struct lmf_str *m_fd) {
+  register size_t  diff, len;
+
+  if (m_fd == NULL)
+    return 0;
+
+  if (m_fd->mm_flg) {
+    len = size * nitems;
+    memcpy((void *) buffer, (void *) m_fd->mmap_addr, len);
+    m_fd->mmap_addr += len;
+    return nitems;
+  }
+  else {
+    return fread((unsigned char *)buffer, size, nitems, m_fd->libf);
   }
 }

@@ -1,7 +1,7 @@
 /*	initfa.c	*/
 
-/*  $Id: initfa.c 1240 2013-11-08 21:04:46Z wrp $ */
-/*  $Rev: 1240 $  */
+/*  $Id: initfa.c 1274 2014-08-07 18:30:56Z wrp $ */
+/*  $Rev: 1274 $  */
 
 /* copyright (c) 1996, 1997, 1998  William R. Pearson and the U. of Virginia */
 
@@ -403,13 +403,11 @@ struct opt_def_str f_options[] = {
 #if defined(FASTA)
   {'A', 0, "sw_align", "Smith-Waterman for final DNA alignment, band alignment for protein\n      default is band-alignment for DNA, Smith-Waterman for protein", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
-#ifndef LALIGN
   {'b', 1, "num_descriptions", "high scores reported (limited by -E by default)", 
    "high scores reported (limited by -E by default);\n      =<int> forces <int> results;", 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'d', 1, "num_alignments", "number of alignments shown (limited by -E by default)", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #if defined(FASTA) || defined(FASTX) || defined(FASTY)
   {'c', 1, "opt_join", "expected fraction for band-optimization, joining", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
-#endif
 #endif
   {'E', 1, "evalue", "E()-value threshold", "E()-value,E()-repeat threshold", 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'f', 1, "gapopen", "gap-open penalty", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -488,9 +486,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.6 Dec, 2013 MPI";
+char *verstr="36.3.6 Aug., 2014 MPI";
 #else
-char *verstr="36.3.6 Dec, 2013";
+char *verstr="36.3.6 Aug., 2014";
 #endif
 
 static int mktup=3;
@@ -549,7 +547,7 @@ void h_init (struct pstruct *ppst, struct mngmsg *m_msp, char *info_pgm_abbr)
     exit(1);
   }
 
-  strncpy(info_pgm_abbr,pgm_def.info_pgm_abbr,MAX_SSTR);
+  SAFE_STRNCPY(info_pgm_abbr,pgm_def.info_pgm_abbr,MAX_SSTR);
   iprompt0 = pgm_def.iprompt0;
   refstr = pgm_def.ref_str;
   prog_func = pgm_def.prog_func;
@@ -584,7 +582,7 @@ void h_init (struct pstruct *ppst, struct mngmsg *m_msp, char *info_pgm_abbr)
 #endif
 
   /* initialize a pam matrix */
-  strncpy(ppst->pamfile,pgm_def.smstr,MAX_FN);
+  SAFE_STRNCPY(ppst->pamfile,pgm_def.smstr,MAX_FN);
   standard_pam(ppst->pamfile,ppst,del_set,gap_set);
   ppst->have_pam2 = 0;
 
@@ -870,20 +868,20 @@ f_initenv (struct mngmsg *m_msp, struct pstruct *ppst, unsigned char **aa0) {
 
   m_msp->last_calc_flg=0;
 
-  strncpy(m_msp->f_id0,m_msg_def.f_id0,sizeof(m_msp->f_id0));
-  strncpy(m_msp->f_id1,m_msg_def.f_id1,sizeof(m_msp->f_id1));
-  strncpy (m_msp->label, m_msg_def.label, sizeof(m_msp->label));
-  strncpy(m_msp->alabel, m_msg_def.alabel, sizeof(m_msp->alabel));
+  SAFE_STRNCPY(m_msp->f_id0,m_msg_def.f_id0,sizeof(m_msp->f_id0));
+  SAFE_STRNCPY(m_msp->f_id1,m_msg_def.f_id1,sizeof(m_msp->f_id1));
+  SAFE_STRNCPY (m_msp->label, m_msg_def.label, sizeof(m_msp->label));
+  SAFE_STRNCPY(m_msp->alabel, m_msg_def.alabel, sizeof(m_msp->alabel));
 
 #if !defined(SSEARCH) && !defined(GGSEARCH) && !defined(GLSEARCH) && !defined(LALIGN)
-  strncpy (m_msp->alab[0],"initn",20);
-  strncpy (m_msp->alab[1],"init1",20);
-  strncpy (m_msp->alab[2],"opt",20);
+  SAFE_STRNCPY (m_msp->alab[0],"initn",20);
+  SAFE_STRNCPY (m_msp->alab[1],"init1",20);
+  SAFE_STRNCPY (m_msp->alab[2],"opt",20);
 #else
 #if defined(SSEARCH) || defined(LALIGN)
-  strncpy (m_msp->alab[0],"s-w opt",20);
+  SAFE_STRNCPY (m_msp->alab[0],"s-w opt",20);
 #else
-  strncpy (m_msp->alab[0],"n-w opt",20);
+  SAFE_STRNCPY (m_msp->alab[0],"n-w opt",20);
 #endif
 #endif
 
@@ -1171,23 +1169,22 @@ f_getopt (char copt, char *optarg,
   case 'n':
     m_msg->qdnaseq = SEQT_DNA;
     re_ascii(qascii,nascii,strlen((char *)m_msg->ann_arr+1));
-    strncpy(m_msg->sqnam,"nt",4);
+    SAFE_STRNCPY(m_msg->sqnam,"nt",4);
     prot2dna = 1;
     break;
   case 'o':
   case 'p':
     m_msg->qdnaseq = SEQT_PROT;
     ppst->dnaseq = SEQT_PROT;
-    strncpy(m_msg->sqnam,"aa",4);
+    SAFE_STRNCPY(m_msg->sqnam,"aa",4);
     break;
   case 'P':
-    strncpy(ppst->pgpfile,optarg,MAX_FN);
+    SAFE_STRNCPY(ppst->pgpfile,optarg,MAX_FN);
     if ((bp=strchr(ppst->pgpfile,' '))!=NULL) {
       *bp='\0';
       ppst->pgpfile_type = atoi(bp+1);
     }
     else ppst->pgpfile_type = 0;
-    ppst->pgpfile[MAX_FN-1]='\0';
     ppst->pam_pssm = 1;
     break;
   case 'r':
@@ -1195,11 +1192,11 @@ f_getopt (char copt, char *optarg,
     ppst->pam_set = 0;
     ppst->p_d_set = 1;
 
-    strncpy(ppst->pam_name, "DNA", 4);
+    SAFE_STRNCPY(ppst->pam_name, "DNA", 4);
     if (ppst->dnaseq != SEQT_RNA) ppst->dnaseq = SEQT_DNA;
     if (ppst->p_d_mat > 0 && ppst->p_d_mis < 0) {
       ppst->p_d_set = 1;
-      strncpy(ppst->pamfile,optarg,40);
+      SAFE_STRNCPY(ppst->pamfile,optarg,40);
     }
     break;
     /* modified Sept, 2011, to recognize that a scoring matrix
@@ -1210,15 +1207,14 @@ f_getopt (char copt, char *optarg,
       optarg++;
     }
     if (*optarg == '\0') break;
-    strncpy (ppst->pamfile, optarg, 120);
-    ppst->pamfile[120-1]='\0';
+    SAFE_STRNCPY (ppst->pamfile, optarg, MAX_FN);
     dnaseq_save = ppst->dnaseq;
     /* check for default abbreviation */
     if (!standard_pam(ppst->pamfile,ppst,del_set, gap_set)) {
       /* check/load matrix file */
       if (!initpam (ppst->pamfile, ppst)) {
 	/* matrix file failed, use default matrix */
-	strncpy(ppst->pamfile,pgm_def_arr[pgm_id].smstr,MAX_FN);
+	SAFE_STRNCPY(ppst->pamfile,pgm_def_arr[pgm_id].smstr,MAX_FN);
       }
     }
     ppst->pam_set=1;
@@ -1226,7 +1222,7 @@ f_getopt (char copt, char *optarg,
     if (ppst->dnaseq != dnaseq_save && ppst->dnaseq >= SEQT_DNA) {
       m_msg->qdnaseq = SEQT_DNA;
       re_ascii(qascii,nascii,strlen((char *)m_msg->ann_arr+1));
-      strncpy(m_msg->sqnam,"nt",4);
+      SAFE_STRNCPY(m_msg->sqnam,"nt",4);
       prot2dna = 1;
     }
     break;
@@ -1244,7 +1240,7 @@ f_getopt (char copt, char *optarg,
   case 'U':
     m_msg->qdnaseq = SEQT_RNA;
     memcpy(qascii,nascii,sizeof(qascii));
-    strncpy(m_msg->sqnam,"nt",4);
+    SAFE_STRNCPY(m_msg->sqnam,"nt",4);
     nt[nascii['T']]='U';
     prot2dna=1;
     break;
@@ -1272,7 +1268,7 @@ f_getopt (char copt, char *optarg,
   }
 }
 
-static char my_opts[] = "1BM:ox:y:N:";
+static char my_opts[] = "1BIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1293,6 +1289,14 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
     }
     break;
   case 'B': m_msp->z_bits = 0; break;
+  case 'I': 
+    m_msp->tot_ident = 1;
+    /*
+    l_arg = 0;
+    sscanf(the_arg,"%ld",&l_arg);
+    if (l_arg > 0) m_msp->tot_ident = l_arg;
+    */
+    break;
   case 'M':
     c_arg = '\0';
     sscanf(the_arg,"%ld%c",&l_arg,&c_arg);
@@ -1347,9 +1351,9 @@ f_lastenv (struct mngmsg *m_msg, struct pstruct *ppst)
   char save_str[MAX_SSTR];
 
 #if !defined(FASTM) && !defined(FASTS) && !defined(FASTF)
-  strncpy(save_str,"*",sizeof(save_str));
+  SAFE_STRNCPY(save_str,"*",sizeof(save_str));
 #else
-  strncpy(save_str,",",sizeof(save_str));
+  SAFE_STRNCPY(save_str,",",sizeof(save_str));
 #endif
 
   if (m_msg->qdnaseq == SEQT_UNK) {
@@ -1614,8 +1618,8 @@ DNA sequence library.  Do not use a DNA query/scoring matrix.\n",prog_func);
 
       if (!sw_flag_set) {
 	ppst->sw_flag = 0;
-	strncpy(m_msg->f_id1,"bs",sizeof(m_msg->f_id1));
-	strncpy(m_msg->alabel, align_label[1], sizeof(m_msg->alabel));
+	SAFE_STRNCPY(m_msg->f_id1,"bs",sizeof(m_msg->f_id1));
+	SAFE_STRNCPY(m_msg->alabel, align_label[1], sizeof(m_msg->alabel));
       }
 
       /* largest ktup */
@@ -1642,15 +1646,15 @@ DNA sequence library.  Do not use a DNA query/scoring matrix.\n",prog_func);
 	mk_n_pam(npam,nnt,ppst->p_d_mat,ppst->p_d_mis);
 #if !defined(FASTS) && !defined(FASTM)
       else if (ppst->pamfile[0]=='\0' || strncmp(ppst->pamfile,"BL50",4)==0) {
-	strncpy (ppst->pamfile, "+5/-4", sizeof(ppst->pamfile));
-	strncpy(ppst->pamfile_save, ppst->pamfile, sizeof(ppst->pamfile_save));
-	strncpy (ppst->pam_name, "+5/-4", sizeof(ppst->pamfile));
+	SAFE_STRNCPY (ppst->pamfile, "+5/-4", sizeof(ppst->pamfile));
+	SAFE_STRNCPY(ppst->pamfile_save, ppst->pamfile, sizeof(ppst->pamfile_save));
+	SAFE_STRNCPY (ppst->pam_name, "+5/-4", sizeof(ppst->pamfile));
       }
 #else
       else if (strncmp(ppst->pamfile,"MD20",4)==0) {
-	strncpy (ppst->pamfile, "+2/-2", sizeof(ppst->pamfile));
-	strncpy (ppst->pam_name, "+2/-2", sizeof(ppst->pam_name));
-	strncpy(ppst->pamfile_save, ppst->pamfile, sizeof(ppst->pamfile_save));
+	SAFE_STRNCPY (ppst->pamfile, "+2/-2", sizeof(ppst->pamfile));
+	SAFE_STRNCPY (ppst->pam_name, "+2/-2", sizeof(ppst->pam_name));
+	SAFE_STRNCPY(ppst->pamfile_save, ppst->pamfile, sizeof(ppst->pamfile_save));
 	ppst->p_d_mat = +2;
 	ppst->p_d_mis = -2;
       	mk_n_pam(npam,nnt,ppst->p_d_mat,ppst->p_d_mis);
@@ -1659,8 +1663,8 @@ DNA sequence library.  Do not use a DNA query/scoring matrix.\n",prog_func);
       pam = npam;
     }
 
-    strncpy (m_msg->sqnam, "nt",sizeof(m_msg->sqnam));
-    strncpy (m_msg->sqtype, "DNA",sizeof(m_msg->sqtype));
+    SAFE_STRNCPY (m_msg->sqnam, "nt",sizeof(m_msg->sqnam));
+    SAFE_STRNCPY (m_msg->sqtype, "DNA",sizeof(m_msg->sqtype));
   }	/* end DNA reset */
 
   else {  /* other parameters for protein comparison */
@@ -1674,7 +1678,7 @@ DNA sequence library.  Do not use a DNA query/scoring matrix.\n",prog_func);
     if (!subs_set) {ppst->gsubs = pgm_def_arr[pgm_id].hshift;}
   }
 
-  strncpy(ppst->pamfile_save, ppst->pamfile, 120);
+  SAFE_STRNCPY(ppst->pamfile_save, ppst->pamfile, 120);
 }
 
 /* query_parm()	this function asks for any additional parameters
@@ -1740,7 +1744,7 @@ last_init (struct mngmsg *m_msg, struct pstruct *ppst)
   pgm_id = ppst->pgm_id;
 
 #ifdef LALIGN
-  m_msg->do_showbest = 0;
+  m_msg->do_showbest = 1;
   m_msg->quiet = 1;
 #endif
 
@@ -1785,12 +1789,12 @@ last_init (struct mngmsg *m_msg, struct pstruct *ppst)
      }
 
      if (ppst->sw_flag) {
-       strncpy(m_msg->f_id1,"sw",sizeof(m_msg->f_id1));
-       strncpy(m_msg->alabel, align_label[0], sizeof(m_msg->alabel));
+       SAFE_STRNCPY(m_msg->f_id1,"sw",sizeof(m_msg->f_id1));
+       SAFE_STRNCPY(m_msg->alabel, align_label[0], sizeof(m_msg->alabel));
      }
      else {
-       strncpy(m_msg->f_id1,"bs",sizeof(m_msg->f_id1));
-       strncpy(m_msg->alabel, align_label[1], sizeof(m_msg->alabel));
+       SAFE_STRNCPY(m_msg->f_id1,"bs",sizeof(m_msg->f_id1));
+       SAFE_STRNCPY(m_msg->alabel, align_label[1], sizeof(m_msg->alabel));
      }
    }
 
@@ -1854,7 +1858,7 @@ last_init (struct mngmsg *m_msg, struct pstruct *ppst)
    if (pgm_def_arr[ppst->pgm_id].ktup > 0) {
      if (ppst->param_u.fa.iniflag) {
        ppst->score_ix = 1;
-       strncpy (m_msg->label, "initn init1", sizeof(m_msg->label));
+       SAFE_STRNCPY (m_msg->label, "initn init1", sizeof(m_msg->label));
      }
      else if (ppst->param_u.fa.optflag) {
        ppst->score_ix = 2;
@@ -2507,8 +2511,8 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
   }
 
   if (strncmp(matrix, "BLOSUM62", 8)== 0 && !ppst->pam_set) {
-    strncpy(ppst->pamfile, "BL62", 120);
-    strncpy(ppst->pamfile_save, ppst->pamfile, 120);
+    SAFE_STRNCPY(ppst->pamfile, "BL62", 120);
+    SAFE_STRNCPY(ppst->pamfile_save, ppst->pamfile, 120);
     standard_pam(ppst->pamfile,ppst,del_set, gap_set);
     if (!ppst->have_pam2) {
      alloc_pam (MAXSQ, MAXSQ, ppst);
@@ -2570,7 +2574,7 @@ last_params(unsigned char *aa0, int n0,
 
   /* reset the PAMFILE to the original value */
   if (strncmp(ppst->pamfile, ppst->pamfile_save,120)!=0) {
-    strncpy(ppst->pamfile, ppst->pamfile_save, 120);
+    SAFE_STRNCPY(ppst->pamfile, ppst->pamfile_save, 120);
     standard_pam(ppst->pamfile,ppst,del_set, gap_set);
     init_pam2(ppst);
     init_pamx(ppst);

@@ -1,8 +1,8 @@
 /* copyright (c) 1996, 1997, 1998, 1999, 2002  William R. Pearson and the
    U. of Virginia */
 
-/*  $Id: comp_lib9.c 1235 2013-10-11 18:55:54Z wrp $ */
-/*  $Revision: 1235 $  */
+/*  $Id: comp_lib9.c 1291 2014-08-28 18:32:58Z wrp $ */
+/*  $Revision: 1291 $  */
 
 /*
  * Jan 17, 2007 - remove #ifdef PRSS - begin better statistics in place
@@ -114,7 +114,7 @@ void init_aa0(unsigned char **aa0, int n0, int nm0,
 	      void *my_rand_state);
 
 extern int ann_scan(unsigned char *, int, unsigned char **, int);
-extern int get_annot(char *sname, struct mngmsg *m_msp, char *bline, int n1,
+extern int get_annot(char *sname, struct mngmsg *m_msp, char *bline, long q_offset, int n1,
 		     struct annot_str **annot_p, int target, int debug);
 extern int scanseq(unsigned char *seq, int n, char *str);
 extern void re_ascii(int *qascii, int *sascii, int max_ann_arr);
@@ -931,7 +931,13 @@ main (int argc, char *argv[])
     if (leng > sizeof(m_msg.qtitle)-20) leng -= 20;
 
     if (!(m_msg.markx & MX_MBLAST2)) {
-      sprintf(tmp_str," - %d %s", m_msg.n0, m_msg.sqnam);
+      if (m_msg.nm0 <= 1) {
+	sprintf(tmp_str," - %d %s", m_msg.n0, m_msg.sqnam);
+      }
+      else {
+	sprintf(tmp_str," - %d %s in %d fragments", m_msg.n0 - (m_msg.nm0-1), m_msg.sqnam, m_msg.nm0);
+      }
+
       if (strlen(tmp_str) + leng + 1> sizeof(m_msg.qtitle)) {
 	leng = sizeof(m_msg.qtitle) - strlen(tmp_str) - 1;
 	SAFE_STRNCAT((m_msg.qtitle+leng), tmp_str, sizeof(m_msg.qtitle));
@@ -1192,6 +1198,18 @@ main (int argc, char *argv[])
     /* **************************************************************** */
 
     tscan = s_time();
+
+    /* get query annotations here, before print_header2() */
+    if (m_msg.annot0_sname[0]) {
+      if (get_annot(m_msg.annot0_sname, &m_msg, m_msg.qtitle, m_msg.q_offset+m_msg.q_off-1,m_msg.n0, &m_msg.annot_p, 0, pst.debug_lib) < 0) {
+	fprintf(stderr,"*** error [%s:%d] - %s did not produce annotations\n",__FILE__, __LINE__, m_msg.annot0_sname);
+	m_msg.annot0_sname[0] = '\0';
+      }
+      if (m_msg.annot_p && m_msg.annot_p->n_annot > 0) {
+	m_msg.aa0a = m_msg.annot_p->aa1_ann;
+      }
+      if (!m_msg.ann_arr[0]) {m_msg.ann_arr[0] = ' '; m_msg.ann_arr[1] = '\0';}
+    }
 
     /* header2 print Query:, Annotation:, Library: */
     print_header2(stdout, qlib, info_qlabel, aa0, &m_msg, &pst, info_lib_range_p);
@@ -1530,28 +1548,26 @@ main (int argc, char *argv[])
     /* **************************************************************** */
     print_header3(stdout, qlib, &m_msg, &pst);
 
-    if (m_msg.do_showbest) {	    /* for LALIGN do_showbest==0 */
-      showbest(stdout, aa0, aa1save, maxn, &bestp_arr[m_msg.nskip], nbest-m_msg.nskip,
-	       qtt.entries, &m_msg, &pst,m_msg.db, info_gstring2p, f_str);
+    showbest(stdout, aa0, aa1save, maxn, &bestp_arr[m_msg.nskip], nbest-m_msg.nskip,
+	     qtt.entries, &m_msg, &pst,m_msg.db, info_gstring2p, f_str);
 
-      m_msp_to_markx(&markx_save, &m_msg);
-      t_quiet = m_msg.quiet;
-      m_msg.quiet = -1;	/* should guarantee 1..m_msg.nshow shown */
+    m_msp_to_markx(&markx_save, &m_msg);
+    t_quiet = m_msg.quiet;
+    m_msg.quiet = -1;	/* should guarantee 1..m_msg.nshow shown */
 
-      /* set copies of showbest to alternative files */
-      for (cur_markx = m_msg.markx_list; cur_markx; cur_markx = cur_markx->next) {
-	if (cur_markx->out_fd == NULL) continue;
-	markx_to_m_msp(&m_msg, cur_markx);
-	if (!(m_msg.markx & (MX_MBLAST2+MX_M8OUT)) && 
-	    (m_msg.annot1_sname[0] || m_msg.annot0_sname[0])) 
-	  print_annot_header(cur_markx->out_fd, &m_msg);
-	print_header3(cur_markx->out_fd, qlib, &m_msg, &pst);
-	showbest(cur_markx->out_fd, aa0, aa1save, maxn, &bestp_arr[m_msg.nskip], nbest-m_msg.nskip,
-		 qtt.entries, &m_msg, &pst, m_msg.db, info_gstring2p, f_str);
-      }
-      m_msg.quiet = t_quiet;
-      markx_to_m_msp(&m_msg, &markx_save);
+    /* set copies of showbest to alternative files */
+    for (cur_markx = m_msg.markx_list; cur_markx; cur_markx = cur_markx->next) {
+      if (cur_markx->out_fd == NULL) continue;
+      markx_to_m_msp(&m_msg, cur_markx);
+      if (!(m_msg.markx & (MX_MBLAST2+MX_M8OUT)) && 
+	  (m_msg.annot1_sname[0] || m_msg.annot0_sname[0])) 
+	print_annot_header(cur_markx->out_fd, &m_msg);
+      print_header3(cur_markx->out_fd, qlib, &m_msg, &pst);
+      showbest(cur_markx->out_fd, aa0, aa1save, maxn, &bestp_arr[m_msg.nskip], nbest-m_msg.nskip,
+	       qtt.entries, &m_msg, &pst, m_msg.db, info_gstring2p, f_str);
     }
+    m_msg.quiet = t_quiet;
+    markx_to_m_msp(&m_msg, &markx_save);
 
     /* m_msg.ashow can be -1 or > 0 to show results */
     if (m_msg.nshow > 0 && m_msg.ashow != 0) {
@@ -1604,11 +1620,18 @@ main (int argc, char *argv[])
 
   end_l:
 
+    if (m_msg.nshow==0 &&  m_msg.markx & MX_M8COMMENT) {
+      fprintf(outfd,"# %d hits found\n",m_msg.nshow);
+    }
+
     /* print >>><<< for correct -m 9 */
     print_header4a(outfd, &m_msg);
     for (cur_markx = m_msg.markx_list; cur_markx; cur_markx=cur_markx->next) {
       if (cur_markx->out_fd == NULL) continue;
       if (cur_markx->out_fd == outfd) continue;
+      if (m_msg.nshow==0 &&  cur_markx->markx & MX_M8COMMENT) {
+        fprintf(cur_markx->out_fd,"# %d hits found\n",m_msg.nshow);
+      }
       print_header4a(cur_markx->out_fd, &m_msg);
     }
 
@@ -2298,6 +2321,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
 
   /* check to see if a library is open; if not get one and open it */
   if (getlib_info->lib_list_p->m_file_p == NULL) {
+  next_lib:
     cur_lib_p = getlib_info->lib_list_p;
     if ((cur_lib_p->m_file_p = 
 	 open_lib(cur_lib_p, m_msp->ldb_info.ldnaseq, lascii, !m_msp->quiet))
@@ -2306,6 +2330,9 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
       getlib_info->lib_list_p = getlib_info->lib_list_p->next;
       if (getlib_info->lib_list_p == NULL) {
 	goto return_null;
+      }
+      else {
+	goto next_lib;
       }
     }
     /* these values must be reset for new databases, but otherwise
@@ -2423,7 +2450,6 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
       aa1ptr = aa1;
     }
 
-next_lib:
     n1=GETLIB(aa1ptr, maxt, getlib_info->libstr, getlib_info->n_libstr,
 	      &(current_mseq_p->lseek), &getlib_info->lcont, m_file_p, &(current_seq_p->l_off));
 
@@ -2434,10 +2460,6 @@ next_lib:
       /* reduce the seqr_chain count */
       end_seqr_chain(my_seqr_chain);
       return my_seqr_chain;
-    }
-
-    if (n1 < ppst->n1_low || n1 > ppst->n1_high) {
-      goto next_lib;
     }
 
     old_seq_p = current_seq_p;
