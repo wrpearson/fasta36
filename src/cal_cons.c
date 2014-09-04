@@ -70,11 +70,12 @@ extern int
 align_type(int score, char sp0, char sp1, int nt_align, struct a_struct *aln, int pam_x_id_sim);
 
 extern int
-next_annot_match(int *itmp, int *pam2aa0v, long ip, long ia, 
-		 char *sp1, char *sp1a, const unsigned char *sq,
-		 int i_annot, int n_annot, struct annot_entry **s_annot_arr, char **ann_comment,
+next_annot_match(int *itmp, int *pam2aa0v, 
+		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
+		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
-		 struct annot_entry **region_p, struct annot_entry *tmp_region_p, int init_score);
+		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct dom_entry_str **left_domain,
+		 int *left_domain_end, int init_score);
 
 extern void
 comment_var(long i0, char sp0, long i1, char sp1, char o_sp1, char sim_char,
@@ -84,8 +85,6 @@ comment_var(long i0, char sp0, long i1, char sp1, char o_sp1, char sim_char,
 void
 display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym, 
-		      struct annot_entry **region0_p,
-		      struct annot_entry **region1_p,
 		      int score, double comp, int n0, int n1,
 		      void *pstat_void, int d_type);
 
@@ -122,13 +121,21 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   /* variables for variant changes */
   int *aa0_pam2_p;
   char *sim_sym = aln_map_sym[5];
-  struct annot_entry **s_annot0_arr_p, *region0_p, tmp_annot0;
-  struct annot_entry **s_annot1_arr_p, *region1_p, tmp_annot1;
+  struct annot_entry **s_annot0_arr_p;
+  struct dom_entry_str *region0_p, tmp_annot0;
+  struct annot_entry **s_annot1_arr_p;
+  struct dom_entry_str *region1_p, tmp_annot1;
+
   char *ann_comment;
   int i0_annot, i1_annot;	/* i0_annot, i1_annot, count through
 				   the list of annotations */
+  int i0_left_end, i1_left_end; /* left-most coordinate of domain end */
+
   int v_delta, v_tmp;
+  int d1_score, d1_ident, d1_alen;
+  int d0_score, d0_ident, d0_alen;
   int have_push_features;
+  struct dom_entry_str *left_domain_list1, *left_domain_list0;
 
   /* variables for handling coordinate offsets */
   long q_offset, l_offset;
@@ -245,23 +252,29 @@ int calc_cons_a(const unsigned char *aa0, int n0,
     if ((annot1_p && annot1_p->n_annot>0) || (annot0_p && annot0_p->n_annot > 0)) {annot_stack = init_stack(64,64);}
     if (annot1_p && annot1_p->n_annot > 0) {
       s_annot1_arr_p = annot1_p->s_annot_arr_p;
-      while (i1_annot < annot1_p->n_annot && s_annot1_arr_p[i1_annot]->pos < i1 + l_offset) {
+      d1_score = d1_ident = d1_alen = 0;
+
+      while (i1_annot < annot1_p->n_annot) {
+	if (s_annot1_arr_p[i1_annot]->pos >= i1 + l_offset) {break;}
+	if (s_annot1_arr_p[i1_annot]->end < i1 + l_offset) {continue;}
+
 	if (s_annot1_arr_p[i1_annot]->label == '[') {
-	  memcpy(&tmp_annot1,s_annot1_arr_p[i1_annot], sizeof(struct annot_entry));
-	  tmp_annot1.a_pos = a_res->min0 + q_offset;
-	  tmp_annot1.pos = a_res->min1 + l_offset;
-	  region1_p = &tmp_annot1;
-	  region1_p->score = region1_p->n_aln = region1_p->n_ident = 0;
+	  i1_annot = next_annot_match(&itmp, aa0_pam2_p,
+				      l_offset+seq_pos(i1,aln->llrev,0), q_offset + seq_pos(i0,aln->qlrev,0),
+				      sp1, sp1a, sq, 
+				      i1_annot, annot1_p->n_annot, s_annot1_arr_p,
+				      &ann_comment, annot_stack, &have_push_features, &v_delta,
+				      &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
 	}
-	else if (s_annot1_arr_p[i1_annot]->label == ']') {
-	  region1_p = NULL;
-	}
-	i1_annot++;
+	else { i1_annot++; }
       }
     }
 
+    /*
     if (annot0_p && annot0_p->n_annot>0) {
       s_annot0_arr_p = annot0_p->s_annot_arr_p;
+
+      d0_score = d0_nident = d0_alen = 0;
 
       while (i0_annot < annot0_p->n_annot && s_annot0_arr_p[i0_annot]->pos < i0 + q_offset) {
 	if (s_annot0_arr_p[i0_annot]->label == '[') {
@@ -269,7 +282,6 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	  tmp_annot0.pos = a_res->min0 + q_offset;
 	  tmp_annot0.a_pos = a_res->min1 + l_offset;
 	  region0_p = &tmp_annot0;
-	  region0_p->score = region0_p->n_aln = region0_p->n_ident = 0;
 	}
 	else if (s_annot0_arr_p[i0_annot]->label == ']') {
 	  region0_p = NULL;
@@ -277,8 +289,8 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	i0_annot++;
       }
     }
+    */
   }
-
   while (i0 < a_res->max0 || i1 < a_res->max1) {
     /* match/mismatch (aligned residues */
     /* here, op is the "current" encoding, and *rp is the next one */
@@ -286,12 +298,8 @@ int calc_cons_a(const unsigned char *aa0, int n0,
       op = *rp++;
       lenc++;
 
-      if (ppst->pam_pssm) {
-	aa0_pam2_p = ppst->pam2p[0][i0];
-      }
-      else {
-	aa0_pam2_p = ppst->pam2[0][aa0[i0]];
-      }
+      if (ppst->pam_pssm) {aa0_pam2_p = ppst->pam2p[0][i0];}
+      else {aa0_pam2_p = ppst->pam2[0][aa0[i0]];}
 
       itmp=aa0_pam2_p[aa1p[i1]];
 
@@ -304,12 +312,13 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	if (aa0a) {*sp0a = ann_arr[aa0a[i0]];}
 	if (aa1a) {*sp1a = ann_arr[aa1a[i1]];}
 	if (s_annot1_arr_p) {
-	  if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos) {
+	  if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos || i1+l_offset == i1_left_end) {
+
 	    i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
 					q_offset + seq_pos(i0,aln->qlrev,0), sp1, sp1a, sq, 
 					i1_annot, annot1_p->n_annot, s_annot1_arr_p,
 					&ann_comment, annot_stack, &have_push_features, &v_delta,
-					&region1_p, &tmp_annot1,0);
+					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
 
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa1p[i1]] != *sp1) {
@@ -321,18 +330,18 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 			  annot_var_dyn, 1, 1);
 	    }
 	  }
-	  if (region1_p) {
-	    region1_p->score += itmp;
-	  }
+	  d1_score += itmp;
 	}
 
 	if (s_annot0_arr_p) {
 	  if (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos) {
+	/*
 	    i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1p[i1]], q_offset+seq_pos(i0,aln->qlrev,0),
 					l_offset+seq_pos(i1,aln->llrev,0), sp0, sp0a, sq, 
 					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					&ann_comment, annot_stack, &have_push_features, &v_delta,
-					&region0_p, &tmp_annot0, 0);
+						&region0_p, &tmp_annot0, 0);
+	*/
 
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa0[i0]] != *sp0) {
@@ -353,14 +362,11 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 
       *spa = align_type(itmp, *sp0, *sp1, ppst->nt_align, aln, ppst->pam_x_id_sim);
 
-      if (region1_p) {
-	region1_p->n_aln++;
-	if (*spa == M_IDENT) {region1_p->n_ident++;}
-      }
-
-      if (region0_p) {
-	region0_p->n_aln++;
-	if (*spa == M_IDENT) {region0_p->n_ident++;}
+      d1_alen++;
+      d0_alen++;
+      if (*spa == M_IDENT) {
+	d1_ident++;
+	d0_ident++;
       }
 
       /* now we have done all the ?modified identity checks, display
@@ -369,7 +375,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	display_push_features(annot_stack, annot_var_dyn,
 			      q_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 			      l_offset+seq_pos(i1,aln->llrev,0), *sp1,
-			      sim_sym[*spa], &region0_p, &region1_p,
+			      sim_sym[*spa],
 			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1,
 			      pstat_void, DP_FULL_FMT);
 	have_push_features = 0;
@@ -383,12 +389,12 @@ int calc_cons_a(const unsigned char *aa0, int n0,
       if (op==0) {
 	op = *rp++;
 	if (seqc_score) *i_spa = ppst->gdelval;
-	if (annot1_p && region1_p) { region1_p->score +=  ppst->gdelval;}
-	if (annot0_p && region0_p) { region0_p->score +=  ppst->gdelval;}
+	if (s_annot1_arr_p) {d1_score +=  ppst->gdelval;}
+	if (s_annot0_arr_p) {d0_score +=  ppst->gdelval;}
       }
       if (seqc_score) *i_spa++ += ppst->ggapval;
-      if (s_annot1_arr_p && region1_p) { region1_p->score +=  ppst->ggapval; region1_p->n_aln++;}
-      if (s_annot0_arr_p && region0_p) { region0_p->score +=  ppst->ggapval; region0_p->n_aln++;}
+      if (s_annot1_arr_p) { d1_score +=  ppst->ggapval; d1_alen++;}
+      if (s_annot0_arr_p) { d0_score +=  ppst->ggapval; d0_alen++;}
 
       if (op>0) {	/* insertion in aa0 */
 	*sp1 = sq[aa1p[i1]];
@@ -405,7 +411,8 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 					  q_offset+seq_pos(i0,aln->qlrev,0), sp1, sp1a, sq, 
 					  i1_annot, annot1_p->n_annot, s_annot1_arr_p,
 					  &ann_comment, annot_stack, &have_push_features, &v_delta,
-					  &region1_p, &tmp_annot1, ppst->ggapval+ppst->gdelval);
+					  &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+					  ppst->ggapval+ppst->gdelval);
 	    }
 	  }
 
@@ -413,7 +420,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	    display_push_features(annot_stack, annot_var_dyn,
 				  q_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 				  l_offset+seq_pos(i1,aln->llrev,0), *sp1,
-				  sim_sym[*spa], &region0_p, &region1_p,
+				  sim_sym[*spa],
 				  a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1,
 				  pstat_void, DP_FULL_FMT);
 	    have_push_features = 0;
@@ -443,7 +450,9 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 					  l_offset+seq_pos(i1,aln->llrev,0), sp0, sp0a, sq, 
 					  i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					  &ann_comment, annot_stack, &have_push_features, &v_delta,
-					  &region0_p, &tmp_annot0, ppst->ggapval+ppst->gdelval);
+					  &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+					  ppst->ggapval+ppst->gdelval);
+
 	    }
 	  }
 
@@ -451,7 +460,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	    display_push_features(annot_stack, annot_var_dyn,
 				  q_offset+seq_pos(i0,aln->qlrev,0), *sp0,
 				  l_offset+seq_pos(i1,aln->llrev,0), *sp1,
-				  sim_sym[*spa], &region0_p, &region1_p,
+				  sim_sym[*spa],
 				  a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
 	    have_push_features = 0;
 	  }
@@ -502,7 +511,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
       display_push_features(annot_stack, annot_var_dyn,
 			    a_res->max0-1 + q_offset, *sp0, 
 			    a_res->max1-1 + l_offset, *sp1,
-			    sim_sym[*spa], &region0_p, &region1_p,
+			    sim_sym[*spa],
 			    a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, DP_FULL_FMT);
     }
   }
@@ -756,9 +765,15 @@ int calc_code(const unsigned char *aa0, int n0,
   /* variables for variant changes, regions */
   int *aa0_pam2_p;
   void *annot_stack;
-  struct annot_entry **s_annot0_arr_p, *region0_p, tmp_annot0;
-  struct annot_entry **s_annot1_arr_p, *region1_p, tmp_annot1;
+  struct annot_entry **s_annot0_arr_p;
+  struct dom_entry_str *region0_p, tmp_annot0;
+  struct annot_entry **s_annot1_arr_p;
+  struct dom_entry_str *region1_p, tmp_annot1;
   int  i0_annot, i1_annot, v_delta, v_tmp;
+  int i1_left_end, i0_left_end;
+  int d1_score, d1_ident, d1_alen;
+  int d0_score, d0_ident, d0_alen;
+  struct dom_entry_str *left_domain_list1, *left_domain_list0;
   int have_push_features;
   long q_offset, l_offset;
 
@@ -815,7 +830,7 @@ int calc_code(const unsigned char *aa0, int n0,
 	  tmp_annot1.pos = a_res->min1 + l_offset;
 	  tmp_annot1.a_pos = a_res->min0 + q_offset;
 	  region1_p = &tmp_annot1;
-	  region1_p->score = region1_p->n_ident = region1_p->n_aln = 0;
+	  d1_score = d1_ident = d1_alen = 0;
 	}
 	else if (s_annot1_arr_p[i1_annot]->label == ']') {
 	  region1_p = NULL;
@@ -832,7 +847,7 @@ int calc_code(const unsigned char *aa0, int n0,
 	  tmp_annot0.pos = a_res->min0 + q_offset;
 	  tmp_annot0.a_pos = a_res->min1 + l_offset;
 	  region0_p = &tmp_annot0;
-	  region0_p->score = region0_p->n_ident = region0_p->n_aln = 0;
+	  d0_score = d0_ident = d0_alen = 0;
 	}
 	else if (s_annot0_arr_p[i0_annot]->label == ']') {
 	  region0_p = NULL;
@@ -869,12 +884,14 @@ int calc_code(const unsigned char *aa0, int n0,
 
       /* variant annot1_p annotations can cause substitution */
       if (s_annot1_arr_p) {
-	if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos) {
+	if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos || i1+l_offset == i1_left_end) {
+
 	  i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
 				      q_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				      i1_annot, annot1_p->n_annot, s_annot1_arr_p,
 				      NULL, annot_stack, &have_push_features, &v_delta,
-				      &region1_p, &tmp_annot1, 0);
+				      &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
+
 	}
 
 	if (sq[aa1c] != sp1) {
@@ -889,11 +906,13 @@ int calc_code(const unsigned char *aa0, int n0,
 
       if (s_annot0_arr_p) {
 	if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos) {
+	  /*
 	  i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1c], q_offset+seq_pos(i0,aln->qlrev,0),
 				      l_offset+seq_pos(i1,aln->llrev,0), &sp0, NULL, sq,
 				      i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 				      NULL, annot_stack, &have_push_features, &v_delta,
 				      &region0_p, &tmp_annot0, 0);
+	  */
 	}
 
 	/* check for sequence change from variant */
@@ -910,13 +929,13 @@ int calc_code(const unsigned char *aa0, int n0,
       sim_code = align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim);
 
       if (region0_p) {
-	region0_p->n_aln++;
-	if (sim_code == M_IDENT) {region0_p->n_ident++;}
+	d0_alen++;
+	if (sim_code == M_IDENT) {d0_ident++;}
       }
 
       if (region1_p) {
-	region1_p->n_aln++;
-	if (sim_code == M_IDENT) {region1_p->n_ident++;}
+	d1_alen++;
+	if (sim_code == M_IDENT) {d1_ident++;}
       }
 
       update_code(al_str, al_str_n-strlen(al_str), update_data_p, op, sim_code, sp0, sp1);
@@ -957,7 +976,7 @@ int calc_code(const unsigned char *aa0, int n0,
 	  display_push_features(annot_stack, ann_code_dyn,
 				q_offset+seq_pos(i0,aln->qlrev,0), sp0,
 				l_offset+seq_pos(i1,aln->llrev,0), sp1,
-				sim_sym[sim_code], &region0_p, &region1_p,
+				sim_sym[sim_code], 
 				a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	  have_push_features = 0;
 	}
@@ -967,15 +986,14 @@ int calc_code(const unsigned char *aa0, int n0,
     else {	/* not in match run, in a gap */
       if (op == 0) {
 	/* at a transition from match (previous) to indel (current) */
-	if (region1_p) {region1_p->score += ppst->gdelval;}
-	if (region0_p) {region0_p->score += ppst->gdelval;}
+	d1_score += ppst->gdelval;
+	d0_score += ppst->gdelval;
 	op = *rp++;
       }
-      if (region1_p) {region1_p->score += ppst->ggapval; region1_p->n_aln++;}
-      if (region0_p) {region0_p->score += ppst->ggapval; region0_p->n_aln++;}
+      d1_score += ppst->ggapval; d1_alen++;
+      d0_score += ppst->ggapval; d0_alen++;
 
       if (op > 0) {
-
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, sim_code,'-','-');
 
 	if (s_annot1_arr_p) {
@@ -984,13 +1002,13 @@ int calc_code(const unsigned char *aa0, int n0,
 					q_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq, 
 					i1_annot, annot1_p->n_annot, s_annot1_arr_p,
 					NULL, annot_stack, &have_push_features, &v_delta,
-					&region1_p, &tmp_annot1, ppst->ggapval+ppst->gdelval);
+					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
 
 	    if (have_push_features) {
 	      display_push_features(annot_stack, ann_code_dyn,
 				    q_offset+seq_pos(i0,aln->qlrev,0), sp0,
 				    l_offset+seq_pos(i1,aln->llrev,0), sp1,
-				    sim_sym[sim_code], &region0_p, &region1_p,
+				    sim_sym[sim_code],
 				    a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	      have_push_features = 0;
 	    }
@@ -1004,17 +1022,18 @@ int calc_code(const unsigned char *aa0, int n0,
 
 	if (s_annot0_arr_p) {
 	  if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos) {
+	    /*
 	    i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1c], q_offset+seq_pos(i0,aln->qlrev,0),
 					l_offset+seq_pos(i1,aln->llrev,0), &sp0, NULL, sq, 
 					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					NULL, annot_stack, &have_push_features, &v_delta,
 					&region0_p, &tmp_annot0,ppst->ggapval+ppst->gdelval);
-
+	    */
 	    if (have_push_features) {
 	      display_push_features(annot_stack, ann_code_dyn,
 				    q_offset+seq_pos(i0,aln->qlrev,0), sp0,
 				    l_offset+seq_pos(i1,aln->llrev,0), sp1,
-				    sim_sym[sim_code], &region0_p, &region1_p,
+				    sim_sym[sim_code],
 				    a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	      have_push_features = 0;
 	    }
@@ -1059,7 +1078,7 @@ int calc_code(const unsigned char *aa0, int n0,
       display_push_features(annot_stack, ann_code_dyn,
 			    q_offset+a_res->max0-1, sp0,
 			    l_offset+a_res->max1-1, sp1,
-			    sim_sym[sim_code], &region0_p, &region1_p,
+			    sim_sym[sim_code],
 			    a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
     }
   }
@@ -1091,10 +1110,16 @@ int calc_id(const unsigned char *aa0, int n0,
 
   /* variables for variant changes */
   int *aa0_pam2_p;
-  struct annot_entry **s_annot0_arr_p, *region0_p;
-  struct annot_entry **s_annot1_arr_p, *region1_p;
+  struct annot_entry **s_annot0_arr_p;
+  struct annot_entry **s_annot1_arr_p;
   int  itmp, i0_annot, i1_annot, v_delta, v_tmp;
   long q_offset, l_offset;
+  int i1_left_end, i0_left_end;
+  int d1_score, d1_ident, d1_alen;
+  int d0_score, d0_ident, d0_alen;
+  struct dom_entry_str *left_domain_list1, *left_domain_list0;
+
+  left_domain_list1 = left_domain_list0 = NULL;
   
   *score_delta = 0;
   
@@ -1128,6 +1153,9 @@ int calc_id(const unsigned char *aa0, int n0,
   v_delta = 0;
   i0_annot = i1_annot = 0;
 
+  d1_score = d1_ident = d1_alen = 0;
+  d0_score = d0_ident = d0_alen = 0;
+
   if (annot1_p && annot1_p->n_annot > 0) s_annot1_arr_p = annot1_p->s_annot_arr_p;
   else s_annot1_arr_p = NULL;
   if (annot0_p && annot0_p->n_annot > 0) s_annot0_arr_p = annot0_p->s_annot_arr_p;
@@ -1151,11 +1179,12 @@ int calc_id(const unsigned char *aa0, int n0,
       sp0 = sq[aa0[i0]];
       sp1 = sq[aa1p[i1]];
 
-      if (s_annot1_arr_p && i1 + l_offset == s_annot1_arr_p[i1_annot]->pos) {
+      if (s_annot1_arr_p && (i1 + l_offset == s_annot1_arr_p[i1_annot]->pos || i1+l_offset == i1_left_end)) {
 	i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
 				    q_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				    i1_annot, annot1_p->n_annot, s_annot1_arr_p,
-				    NULL, NULL, NULL, &v_delta, NULL, NULL, itmp);
+				    NULL, NULL, NULL, &v_delta, 
+				    &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, itmp);
 
 	/* must be out of the loop to capture the last value */
 	if (sq[aa1p[i1]] != sp1) {
@@ -1166,11 +1195,12 @@ int calc_id(const unsigned char *aa0, int n0,
       }
 
       if (s_annot0_arr_p && i0 + q_offset == s_annot0_arr_p[i0_annot]->pos) {
+	/*
 	i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1[i1]], q_offset+seq_pos(i0,aln->qlrev,0),
 				    l_offset+seq_pos(i1,aln->llrev,0), &sp0, NULL, sq,
 				    i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 				    NULL, NULL, NULL, &v_delta, NULL, NULL, itmp);
-
+	*/
 	/* must be out of the loop to capture the last value */
 	if (sq[aa0[i0]] != sp0) {
 	  sprintf(tmp_str,"q%c%d%c;",sq[aa0[i0]],i0+1,sp0);
@@ -1180,7 +1210,12 @@ int calc_id(const unsigned char *aa0, int n0,
       }
 
       /* updates nident, nsim, npos */
-      align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim);
+      d1_alen++;
+      d0_alen++;
+      if (align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim) == M_IDENT) {
+	d1_ident++;
+	d0_ident++;
+      }
 
       i0++; i1++;
     }

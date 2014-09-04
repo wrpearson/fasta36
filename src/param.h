@@ -157,32 +157,18 @@ struct annot_entry {
   unsigned char value;	/* must be amino acid residue, binary encoded */
   char *comment;
   int target;	 /* 0 for query/ 1 for library */
-  long a_pos;	/* position of aligned residue */
-  int score;	/* score of current region */
-  int n_ident;	/* count for percent id */
-  int n_aln; 	/* align len for percent id */
-  struct annot_entry *start;
-};
-
-/* feature_str keeps information on "rich" annotations, position, type, value */
-struct feature_str {
-  int pos;
-  char label;	/* currently -V *#%!@ symbols, plus 'V' for variant */
-  unsigned char value;	/* must be amino acid residue, binary encoded */
-  char *comment;
 };
 
 /* domain_str keeps information on "rich" annotations, position, type, value */
-struct domain_str {
-  int start;
-  int end;
-  char label;	/* currently -V *#%!@ symbols, plus 'V' for variant */
-  unsigned char value;	/* must be amino acid residue, binary encoded */
-  char *comment;
-  int target;	 /* 0 for query/ 1 for library */
-  int a_start;	/* position of aligned residue */
-  int a_end;	/* position of aligned residue */
+struct dom_entry_str {
+  struct annot_entry *annot_p;
+  struct dom_entry_str *next;
+  long pos;	/* annotation position */
+  long a_pos;	/* aligned annotation position */
+  long end_pos;	/* domain annotation end */
   int score;	/* score of current region */
+  int n_ident;	/* count for percent id */
+  int n_alen; 	/* align len for percent id */
 };
 
 /* seq_record has the data required to do a calculation */

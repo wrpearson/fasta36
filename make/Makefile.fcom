@@ -75,14 +75,14 @@ init_tfy.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
 htime.o : htime.c
 	$(CC) $(THR_CC) $(CFLAGS) -c htime.c
 
-compacc2_t.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR  -DCOMP_MLIB -c compacc2.c -o compacc2_t.o
+compacc2_t.o : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR  -DCOMP_MLIB -c compacc2e.c -o compacc2_t.o
 
-compacc2_s.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c compacc2.c -o compacc2_s.o
+compacc2_s.o : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c compacc2e.c -o compacc2_s.o
 
-compacc2_p.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -DMPI_SRCB -c compacc2.c -o compacc2_p.o
+compacc2_p.o : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DMPI_SRCB -c compacc2e.c -o compacc2_p.o
 
 compacc.o : compacc.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
 	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -c compacc.c -o compacc.o
