@@ -149,6 +149,8 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   *score_delta = 0;
   i0_left_end = i1_left_end = -1;
   left_domain_list0 = left_domain_list1 = NULL;
+  d1_score = d1_ident = d1_alen = 0;
+  d0_score = d0_ident = d0_alen = 0;
 
   NULL_dyn_string(annot_var_dyn);
   have_ann = (seqc0a != NULL); 
@@ -261,11 +263,10 @@ int calc_cons_a(const unsigned char *aa0, int n0,
     if ((annot1_p && annot1_p->n_annot>0) || (annot0_p && annot0_p->n_annot > 0)) {annot_stack = init_stack(64,64);}
     if (annot1_p && annot1_p->n_annot > 0) {
       s_annot1_arr_p = annot1_p->s_annot_arr_p;
-      d1_score = d1_ident = d1_alen = 0;
 
       while (i1_annot < annot1_p->n_annot) {
 	if (s_annot1_arr_p[i1_annot]->pos >= i1 + l_offset) {break;}
-	if (s_annot1_arr_p[i1_annot]->end < i1 + l_offset) {continue;}
+	if (s_annot1_arr_p[i1_annot]->end < i1 + l_offset) {i1_annot++; continue;}
 
 	if (s_annot1_arr_p[i1_annot]->label == '-') {
 	  i1_annot = next_annot_match(&itmp, aa0_pam2_p,
@@ -282,11 +283,10 @@ int calc_cons_a(const unsigned char *aa0, int n0,
     if (annot0_p && annot0_p->n_annot>0) {
       s_annot0_arr_p = annot0_p->s_annot_arr_p;
 
-      d0_score = d0_ident = d0_alen = 0;
 
       while (i0_annot < annot0_p->n_annot && s_annot0_arr_p[i0_annot]->pos < i0 + q_offset) {
 	if (s_annot0_arr_p[i0_annot]->pos >= i0 + q_offset) {break;}
-	if (s_annot0_arr_p[i0_annot]->end < i0 + q_offset) {continue;}
+	if (s_annot0_arr_p[i0_annot]->end < i0 + q_offset) {i0_annot++; continue;}
 
 	if (s_annot0_arr_p[i0_annot]->label == '-') {
 	  i0_annot = next_annot_match(&itmp, aa0_pam2_p,
@@ -1116,6 +1116,7 @@ int calc_id(const unsigned char *aa0, int n0,
   int d1_score, d1_ident, d1_alen;
   int d0_score, d0_ident, d0_alen;
   struct dom_entry_str *left_domain_list1, *left_domain_list0;
+  struct dom_entry_str *this_dom, *next_dom;
 
   left_domain_list1 = left_domain_list0 = NULL;
   
@@ -1231,5 +1232,24 @@ int calc_id(const unsigned char *aa0, int n0,
     }
   }
   *score_delta = v_delta;
+
+  if (left_domain_list1) {
+    this_dom = left_domain_list1;
+    while (this_dom) {
+      next_dom = this_dom->next;
+      free(this_dom);
+      this_dom = next_dom;
+    }
+  }
+
+  if (left_domain_list0) {
+    this_dom = left_domain_list0;
+    while (this_dom) {
+      next_dom = this_dom->next;
+      free(this_dom);
+      this_dom = next_dom;
+    }
+  }
+
   return lenc;
 }

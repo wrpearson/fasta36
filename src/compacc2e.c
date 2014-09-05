@@ -3787,12 +3787,12 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features,
     push_stack(annot_stack, this_dom);
   }
 
-  *left_domain_p = this_dom;	/* next domain end to right */
-
-  if (*left_domain_p) {
-    *left_end_p = (*left_domain_p)->end_pos;
+  if (this_dom) {
+    *left_end_p = this_dom->end_pos;
   }
   else {*left_end_p = -1;}
+
+  *left_domain_p = this_dom;
 }
 
 /*
