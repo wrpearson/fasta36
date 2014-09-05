@@ -1960,6 +1960,18 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 	 those are different */
       tmp_ann_entry_arr[n_annot].value = lascii[tmp_ann_entry_arr[n_annot].value];
     }
+    else if (ctmp_label == '-') {
+      i_ann = add_annot_char(m_msp->ann_arr, '[');
+      if (i_ann > 0) {
+	qascii['['] = NANN + i_ann;
+	m_msp->ann_arr_def[i_ann] = NULL;
+      }
+      i_ann = add_annot_char(m_msp->ann_arr, ']');
+      if (i_ann > 0) {
+	qascii[']'] = NANN + i_ann;
+	m_msp->ann_arr_def[i_ann] = NULL;
+      }
+    }
     else if (ctmp_label == '[') {
       i_ann = add_annot_char(m_msp->ann_arr, ctmp_label);
       if (i_ann > 0) {
@@ -3755,6 +3767,34 @@ void free_dyn_string(struct dyn_string_str *dyn_string) {
 
 #include "a_mark.h"
 
+void
+close_annot_match (int ia, void *annot_stack, int *have_push_features,
+		   int *d_score_p, int *d_ident_p, int *d_alen_p,
+		   struct dom_entry_str **left_domain_p,
+		   int *left_end_p, int init_score) {
+
+  struct dom_entry_str *this_dom, *prev_dom, *left_dom;
+
+
+  for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
+    if (ia > 0 && this_dom->pos > ia) {
+      break;
+    }
+    this_dom->score += *d_score_p;
+    this_dom->n_ident += *d_ident_p;
+    this_dom->n_alen += *d_alen_p;
+    if (have_push_features) *have_push_features = 1;
+    push_stack(annot_stack, this_dom);
+  }
+
+  *left_domain_p = this_dom;	/* next domain end to right */
+
+  if (*left_domain_p) {
+    *left_end_p = (*left_domain_p)->end_pos;
+  }
+  else {*left_end_p = -1;}
+}
+
 /*
    *itmp has the current alignment score, if *annot_arr[i_annot].label='V',
      this can be increased (total increase in *v_delta)
@@ -3780,8 +3820,8 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
-		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct dom_entry_str **left_domain,
-		 int *left_domain_end_p, int init_score)  {
+		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct dom_entry_str **left_domain_p,
+		 int *left_end_p, int init_score)  {
 
   int v_tmp;
   int new_left_domain_end;
@@ -3789,31 +3829,19 @@ next_annot_match(int *itmp, int *pam2aa0v,
 
   if (ann_comment) *ann_comment = NULL;
 
-  if (*left_domain) {
-    *left_domain_end_p = (*left_domain)->end_pos;
+  if (*left_domain_p) {
+    *left_end_p = (*left_domain_p)->end_pos;
   }
 
   /* count through the annotations at this position (long ip) */
-  while ((i_annot < n_annot && ip == annot_arr[i_annot]->pos) || ip == *left_domain_end_p) {
+  while ((i_annot < n_annot && ip >= annot_arr[i_annot]->pos) || ip == *left_end_p) {
 
-    if (ip == *left_domain_end_p) { /* do this first before starting any new domains */
-
-      left_dom = *left_domain;
-      for (this_dom = left_dom; this_dom; this_dom = this_dom->next) {
-	this_dom->score += *d_score_p;
-	this_dom->n_ident += *d_ident_p;
-	this_dom->n_alen += *d_alen_p;
-	*d_ident_p = *d_alen_p = 0;
-	*d_score_p = init_score;
-      }
-
-      if (have_push_features) *have_push_features = 1;
-      push_stack(annot_stack, left_dom);
-      *left_domain = left_dom->next;	/* this should take care of multiple stops at same site */
-      if (*left_domain) {
-	*left_domain_end_p = (*left_domain)->end_pos;
-      }
-      else {*left_domain_end_p = -1;}
+    if (ip == *left_end_p) { /* do this first before starting any new domains */
+      close_annot_match(ip, annot_stack, have_push_features, 
+			d_score_p, d_ident_p, d_alen_p,
+			left_domain_p, left_end_p, init_score);
+      *d_ident_p = *d_alen_p = 0;
+      *d_score_p = init_score;
     }
     else if (annot_arr[i_annot]->label == 'V') { /* label == 'V' */
       v_tmp = pam2aa0v[annot_arr[i_annot]->value];
@@ -3827,7 +3855,7 @@ next_annot_match(int *itmp, int *pam2aa0v,
     }
     else if (annot_arr[i_annot]->label == '-') {
       /* if this is the first domain, initialize domain_end_links */
-      if (*left_domain==NULL) {
+      if (*left_domain_p==NULL) {
 	/* allocate a new dom_entry_str to keep locations, scores */
 	if ((this_dom = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
 	  fprintf(stderr,"*** error [%s:%d] - cannot allocate new dom_entry_str\n", __FILE__, __LINE__);
@@ -3840,13 +3868,13 @@ next_annot_match(int *itmp, int *pam2aa0v,
 	this_dom->n_ident = this_dom->n_alen = 0;
 	this_dom->pos = ip;
 	this_dom->a_pos = ia;
-	*left_domain_end_p = this_dom->end_pos = annot_arr[i_annot]->end;
-	*left_domain = this_dom;
+	*left_end_p = this_dom->end_pos = annot_arr[i_annot]->end;
+	*left_domain_p = this_dom;
       }
       else { /* we already have a domain list - update scores for "live" domains and insert new domain */
 	new_left_domain_end = annot_arr[i_annot]->end;
 	prev_dom = NULL;
-	for (this_dom = *left_domain; this_dom; this_dom = this_dom->next) {
+	for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
 	  this_dom->score += *d_score_p;
 	  this_dom->n_ident += *d_ident_p;
 	  this_dom->n_alen += *d_alen_p;
@@ -3883,12 +3911,12 @@ next_annot_match(int *itmp, int *pam2aa0v,
 	  }
 	  else {
 	    /* place at start of list */
-	    this_dom->next = *left_domain;
-	    *left_domain = this_dom;
+	    this_dom->next = *left_domain_p;
+	    *left_domain_p = this_dom;
 	  }
 	}
       } /* done with domain insertion/ domain_end update */
-      *left_domain_end_p = (*left_domain)->end_pos;
+      *left_end_p = (*left_domain_p)->end_pos;
       i_annot++;
     }/* all done with '[' */
     else if (annot_stack) {
@@ -3898,6 +3926,10 @@ next_annot_match(int *itmp, int *pam2aa0v,
   }
   return i_annot;
 }
+
+
+
+
 
 /* returns M_NEG, M_ZERO, M_POS, M_IDENT, M_DEL (a_mark.h)
    updates *aln->nsim, npos, nident, nmismatch

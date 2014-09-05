@@ -78,6 +78,12 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 int *left_domain_end, int init_score);
 
 extern void
+close_annot_match (int ia, void *annot_stack, int *have_push_features,
+		   int *d_score_p, int *d_ident_p, int *d_alen_p,
+		   struct dom_entry_str **left_domain_p,
+		   int *left_end_p, int init_score);
+
+extern void
 comment_var(long i0, char sp0, long i1, char sp1, char o_sp1, char sim_char,
 	    const char *ann_comment, struct dyn_string_str *annot_var_dyn,
 	    int target, int d_type);
@@ -141,6 +147,9 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   long q_offset, l_offset;
 
   *score_delta = 0;
+  i0_left_end = i1_left_end = -1;
+  left_domain_list0 = left_domain_list1 = NULL;
+
   NULL_dyn_string(annot_var_dyn);
   have_ann = (seqc0a != NULL); 
 
@@ -171,7 +180,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 #ifndef LCAL_CONS
   /* will we show all the start ?*/
   if (min(a_res->min0,a_res->min1)<aln->llen || aln->showall==1)
-    if (a_res->min0>=a_res->min1) {              /* aa0 extends more to left */
+    if (a_res->min0 >= a_res->min1) {              /* aa0 extends more to left */
       smins=0;
       if (aln->showall==1) mins = a_res->min0;
       else mins = min(a_res->min0,aln->llcntx);
@@ -258,7 +267,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	if (s_annot1_arr_p[i1_annot]->pos >= i1 + l_offset) {break;}
 	if (s_annot1_arr_p[i1_annot]->end < i1 + l_offset) {continue;}
 
-	if (s_annot1_arr_p[i1_annot]->label == '[') {
+	if (s_annot1_arr_p[i1_annot]->label == '-') {
 	  i1_annot = next_annot_match(&itmp, aa0_pam2_p,
 				      l_offset+seq_pos(i1,aln->llrev,0), q_offset + seq_pos(i0,aln->qlrev,0),
 				      sp1, sp1a, sq, 
@@ -270,26 +279,26 @@ int calc_cons_a(const unsigned char *aa0, int n0,
       }
     }
 
-    /*
     if (annot0_p && annot0_p->n_annot>0) {
       s_annot0_arr_p = annot0_p->s_annot_arr_p;
 
-      d0_score = d0_nident = d0_alen = 0;
+      d0_score = d0_ident = d0_alen = 0;
 
       while (i0_annot < annot0_p->n_annot && s_annot0_arr_p[i0_annot]->pos < i0 + q_offset) {
-	if (s_annot0_arr_p[i0_annot]->label == '[') {
-	  memcpy(&tmp_annot0,s_annot0_arr_p[i0_annot], sizeof(struct annot_entry));
-	  tmp_annot0.pos = a_res->min0 + q_offset;
-	  tmp_annot0.a_pos = a_res->min1 + l_offset;
-	  region0_p = &tmp_annot0;
+	if (s_annot0_arr_p[i0_annot]->pos >= i0 + q_offset) {break;}
+	if (s_annot0_arr_p[i0_annot]->end < i0 + q_offset) {continue;}
+
+	if (s_annot0_arr_p[i0_annot]->label == '-') {
+	  i0_annot = next_annot_match(&itmp, aa0_pam2_p,
+				      q_offset+seq_pos(i0,aln->qlrev,0), l_offset + seq_pos(i1,aln->llrev,0),
+				      sp0, sp0a, sq, 
+				      i0_annot, annot0_p->n_annot, s_annot0_arr_p,
+				      &ann_comment, annot_stack, &have_push_features, &v_delta,
+				      &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
 	}
-	else if (s_annot0_arr_p[i0_annot]->label == ']') {
-	  region0_p = NULL;
-	}
-	i0_annot++;
+	else { i0_annot++; }
       }
     }
-    */
   }
   while (i0 < a_res->max0 || i1 < a_res->max1) {
     /* match/mismatch (aligned residues */
@@ -334,7 +343,14 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	}
 
 	if (s_annot0_arr_p) {
-	  if (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos) {
+	  if (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos || i0 + q_offset == i0_left_end) {
+
+	    i0_annot = next_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0),
+					l_offset + seq_pos(i1,aln->llrev,0), sp0, sp0a, sq, 
+					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
+					&ann_comment, annot_stack, &have_push_features, &v_delta,
+					&d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
+
 	/*
 	    i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1p[i1]], q_offset+seq_pos(i0,aln->qlrev,0),
 					l_offset+seq_pos(i1,aln->llrev,0), sp0, sp0a, sq, 
@@ -342,6 +358,8 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 					&ann_comment, annot_stack, &have_push_features, &v_delta,
 						&region0_p, &tmp_annot0, 0);
 	*/
+
+
 
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa0[i0]] != *sp0) {
@@ -406,7 +424,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	  if (aa1a) *sp1a = ann_arr[aa1a[i1]];
 	  else *sp1a = ' ';
 	  if (s_annot1_arr_p) {
-	    if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos) {
+	    if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos || i1+l_offset == i1_left_end) {
 	      i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
 					  q_offset+seq_pos(i0,aln->qlrev,0), sp1, sp1a, sq, 
 					  i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -445,12 +463,12 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	  if (aa0a) *sp0a = ann_arr[aa0a[i0]];
 	  else *sp0a = ' ';
 	  if (s_annot0_arr_p) {
-	    if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos) {
+	    if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos || i0+q_offset == i0_left_end) {
 	      i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1[i1]], q_offset+seq_pos(i0,aln->qlrev,0),
 					  l_offset+seq_pos(i1,aln->llrev,0), sp0, sp0a, sq, 
 					  i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					  &ann_comment, annot_stack, &have_push_features, &v_delta,
-					  &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+					  &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end,
 					  ppst->ggapval+ppst->gdelval);
 
 	    }
@@ -483,28 +501,17 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   if (have_ann) {
     *sp0a = *sp1a = '\0';
     have_push_features = 0;
-    if (annot1_p) {
-      /* also check for regions after alignment */
-      while (i1_annot < annot1_p->n_annot && s_annot1_arr_p[i1_annot]->pos < n1 + l_offset) {
-	if (s_annot1_arr_p[i1_annot]->label == '[') break;
-	if (s_annot1_arr_p[i1_annot]->label == ']') {
-	  push_stack(annot_stack, s_annot1_arr_p[i1_annot]);
-	  have_push_features = 1;
-	}
-	i1_annot++;
-      }
+    /* check for left ends after alignment */
+    if (annot1_p && i1_left_end > 0) {
+      close_annot_match(-1, annot_stack, &have_push_features,
+			&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+			0);
     }
 
-    if (annot0_p) {
-      /* also check for regions after alignment */
-      while (i0_annot < annot0_p->n_annot && s_annot0_arr_p[i0_annot]->pos < n0 + q_offset) {
-	if (s_annot0_arr_p[i0_annot]->label == '[') break;
-	if (s_annot0_arr_p[i0_annot]->label == ']') {
-	  push_stack(annot_stack, s_annot0_arr_p[i0_annot]);
-	  have_push_features = 1;
-	}
-	i0_annot++;
-      }
+    if (annot0_p && i0_left_end > 0) {
+      close_annot_match(-1, annot_stack, &have_push_features,
+			&d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end,
+			0);
     }
 
     if (have_push_features) {
@@ -769,8 +776,8 @@ int calc_code(const unsigned char *aa0, int n0,
   struct dom_entry_str *region0_p, tmp_annot0;
   struct annot_entry **s_annot1_arr_p;
   struct dom_entry_str *region1_p, tmp_annot1;
-  int  i0_annot, i1_annot, v_delta, v_tmp;
-  int i1_left_end, i0_left_end;
+  int i0_annot, i1_annot, v_delta, v_tmp;
+  int i0_left_end, i1_left_end;
   int d1_score, d1_ident, d1_alen;
   int d0_score, d0_ident, d0_alen;
   struct dom_entry_str *left_domain_list1, *left_domain_list0;
@@ -778,6 +785,8 @@ int calc_code(const unsigned char *aa0, int n0,
   long q_offset, l_offset;
 
   *score_delta = 0;
+  i0_left_end = i1_left_end = -1;
+  left_domain_list0 = left_domain_list1 = NULL;
 
   show_code = (display_code & (SHOW_CODE_MASK+SHOW_CODE_EXT));	/* see defs.h; SHOW_CODE_ALIGN=2,_CIGAR=3,_CIGAR_EXT=4 */
   annot_fmt = 2;
@@ -1050,28 +1059,17 @@ int calc_code(const unsigned char *aa0, int n0,
 
   if (have_ann) {
     have_push_features = 0;
-    if (s_annot1_arr_p) {
-      /* also check for regions after alignment */
-      while (i1_annot < annot1_p->n_annot && s_annot1_arr_p[i1_annot]->pos < l_offset+n1) {
-	if (s_annot1_arr_p[i1_annot]->label == '[') break;
-	if (s_annot1_arr_p[i1_annot]->label == ']') {
-	  push_stack(annot_stack, s_annot1_arr_p[i1_annot]);
-	  have_push_features = 1;
-	}
-	i1_annot++;
-      }
-    }
+    /* also check for regions after alignment */
 
-    if (s_annot0_arr_p) {
-      /* also check for regions after alignment */
-      while (i0_annot < annot0_p->n_annot && s_annot0_arr_p[i0_annot]->pos < q_offset+n0) {
-	if (s_annot0_arr_p[i0_annot]->label == '[') break;
-	if (s_annot0_arr_p[i0_annot]->label == ']') {
-	  push_stack(annot_stack, s_annot0_arr_p[i0_annot]);
-	  have_push_features = 1;
-	}
-	i0_annot++;
-      }
+    if (s_annot1_arr_p && i1_left_end > 0) {
+      close_annot_match(-1, annot_stack, &have_push_features,
+			&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+			0);
+    }
+    if (s_annot0_arr_p && i0_left_end > 0) {
+      close_annot_match(-1, annot_stack, &have_push_features,
+			&d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end,
+			0);
     }
 
     if (have_push_features) {
@@ -1114,7 +1112,7 @@ int calc_id(const unsigned char *aa0, int n0,
   struct annot_entry **s_annot1_arr_p;
   int  itmp, i0_annot, i1_annot, v_delta, v_tmp;
   long q_offset, l_offset;
-  int i1_left_end, i0_left_end;
+  int i0_left_end, i1_left_end;
   int d1_score, d1_ident, d1_alen;
   int d0_score, d0_ident, d0_alen;
   struct dom_entry_str *left_domain_list1, *left_domain_list0;
@@ -1122,6 +1120,8 @@ int calc_id(const unsigned char *aa0, int n0,
   left_domain_list1 = left_domain_list0 = NULL;
   
   *score_delta = 0;
+  i0_left_end = i1_left_end = -1;
+  left_domain_list0 = left_domain_list1 = NULL;
   
   NULL_dyn_string(annot_var_dyn);
 
@@ -1194,14 +1194,15 @@ int calc_id(const unsigned char *aa0, int n0,
 	}
       }
 
-      if (s_annot0_arr_p && i0 + q_offset == s_annot0_arr_p[i0_annot]->pos) {
-	/*
-	i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1[i1]], q_offset+seq_pos(i0,aln->qlrev,0),
+      if (s_annot0_arr_p && (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos || i0+q_offset == i0_left_end)) {
+	i0_annot = next_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0),
 				    l_offset+seq_pos(i1,aln->llrev,0), &sp0, NULL, sq,
 				    i0_annot, annot0_p->n_annot, s_annot0_arr_p,
-				    NULL, NULL, NULL, &v_delta, NULL, NULL, itmp);
-	*/
-	/* must be out of the loop to capture the last value */
+				    NULL, NULL, NULL, &v_delta, 
+				    &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, itmp);
+
+
+
 	if (sq[aa0[i0]] != sp0) {
 	  sprintf(tmp_str,"q%c%d%c;",sq[aa0[i0]],i0+1,sp0);
 	  /*  SAFE_STRNCAT(annot_var_s,tmp_str,n_annot_var_s); */
