@@ -3775,9 +3775,8 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features,
 
   struct dom_entry_str *this_dom, *prev_dom, *left_dom;
 
-
   for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
-    if (ia > 0 && this_dom->pos > ia) {
+    if (ia > 0 && this_dom->end_pos > ia) {
       break;
     }
     this_dom->score += *d_score_p;
@@ -3825,13 +3824,14 @@ next_annot_match(int *itmp, int *pam2aa0v,
 
   int v_tmp;
   int new_left_domain_end;
-  struct dom_entry_str *this_dom, *prev_dom, *left_dom;
+  struct dom_entry_str *this_dom, *prev_dom, *new_dom;
 
   if (ann_comment) *ann_comment = NULL;
 
   if (*left_domain_p) {
     *left_end_p = (*left_domain_p)->end_pos;
   }
+  else { this_dom = NULL;}
 
   /* count through the annotations at this position (long ip) */
   while ((i_annot < n_annot && ip >= annot_arr[i_annot]->pos) || ip == *left_end_p) {
@@ -3855,7 +3855,7 @@ next_annot_match(int *itmp, int *pam2aa0v,
     }
     else if (annot_arr[i_annot]->label == '-') {
       /* if this is the first domain, initialize domain_end_links */
-      if (*left_domain_p==NULL) {
+      if ( *left_domain_p==NULL) {
 	/* allocate a new dom_entry_str to keep locations, scores */
 	if ((this_dom = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
 	  fprintf(stderr,"*** error [%s:%d] - cannot allocate new dom_entry_str\n", __FILE__, __LINE__);
@@ -3873,19 +3873,30 @@ next_annot_match(int *itmp, int *pam2aa0v,
       }
       else { /* we already have a domain list - update scores for "live" domains and insert new domain */
 	new_left_domain_end = annot_arr[i_annot]->end;
-	prev_dom = NULL;
+	new_dom = prev_dom = NULL;
+	
+	/* this loop tries to do two things:
+	   (1) update the scores for all the currently active domains
+	   (2) find the place to insert the new domain
+	*/
+
 	for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
+	  /* here we update the scores */
 	  this_dom->score += *d_score_p;
 	  this_dom->n_ident += *d_ident_p;
 	  this_dom->n_alen += *d_alen_p;
-	  *d_ident_p = *d_alen_p = 0;
-	  *d_score_p = init_score;
 
-	  if (this_dom->end_pos < new_left_domain_end) {
-	    left_dom = prev_dom;
+	  /* then we check for an insertion location */
+	  if (this_dom->end_pos > new_left_domain_end) {
+	    /* this_dom is beyond the new_left_domain_end, so link it to the previous domain */
+	    new_dom = prev_dom;
 	  }
 	  prev_dom = this_dom;
 	}
+	/* all the scores are updated and new_dom is NULL (for beginning/end) or insertion location */
+
+	*d_ident_p = *d_alen_p = 0;
+	*d_score_p = init_score;
 
 	/* allocate a new dom_entry_str to keep locations, scores */
 	if ((this_dom = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
@@ -3901,9 +3912,9 @@ next_annot_match(int *itmp, int *pam2aa0v,
 	this_dom->a_pos = ia;
 	this_dom->end_pos = annot_arr[i_annot]->end;
 
-	if (left_dom) {	/* left_dom is null if it is first */
-	  this_dom->next = left_dom->next;
-	  left_dom->next = this_dom;
+	if (new_dom) {	/* left_dom is null if it is first/last */
+	  this_dom->next = new_dom->next;
+	  new_dom->next = this_dom;
 	}
 	else { /* left_dom is NULL for start OR end, prev_dom has end of list */
 	  if (prev_dom->end_pos < new_left_domain_end) { /* goes into the end of the list */

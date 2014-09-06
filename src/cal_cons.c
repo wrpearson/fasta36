@@ -371,9 +371,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 			  annot_var_dyn, 0, 1);
 	    }
 	  }
-	  if (region0_p) { 
-	    region0_p->score += itmp;
-	  }
+	  d0_score += itmp;
 	}
 	sp0a++; sp1a++;
       }
@@ -910,7 +908,7 @@ int calc_code(const unsigned char *aa0, int n0,
 		      sq[aa1c], sim_sym[t_spa], NULL,
 		      ann_code_dyn, 1, annot_fmt);
 	}
-	if (region1_p) { region1_p->score += itmp;}
+	d1_score += itmp;
       }
 
       if (s_annot0_arr_p) {
@@ -932,19 +930,14 @@ int calc_code(const unsigned char *aa0, int n0,
 		      sq[aa0c], sim_sym[t_spa], NULL,
 		      ann_code_dyn, 0, annot_fmt);
 	}
-	if (region0_p) { region0_p->score += itmp;}
+	d0_score += itmp;
       }
 
-      sim_code = align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim);
-
-      if (region0_p) {
-	d0_alen++;
-	if (sim_code == M_IDENT) {d0_ident++;}
-      }
-
-      if (region1_p) {
-	d1_alen++;
-	if (sim_code == M_IDENT) {d1_ident++;}
+      d0_alen++;
+      d1_alen++;
+      if (align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim) == M_IDENT) {
+	d0_ident++;
+	d1_ident++;
       }
 
       update_code(al_str, al_str_n-strlen(al_str), update_data_p, op, sim_code, sp0, sp1);
@@ -1193,6 +1186,7 @@ int calc_id(const unsigned char *aa0, int n0,
 	  /*   SAFE_STRNCAT(annot_var_s,tmp_str,n_annot_var_s); */
 	  dyn_strcat(annot_var_dyn, tmp_str);
 	}
+	d1_score += itmp;
       }
 
       if (s_annot0_arr_p && (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos || i0+q_offset == i0_left_end)) {
@@ -1209,14 +1203,15 @@ int calc_id(const unsigned char *aa0, int n0,
 	  /*  SAFE_STRNCAT(annot_var_s,tmp_str,n_annot_var_s); */
 	  dyn_strcat(annot_var_dyn, tmp_str);
 	}
+	d0_score += itmp;
       }
 
       /* updates nident, nsim, npos */
-      d1_alen++;
       d0_alen++;
+      d1_alen++;
       if (align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim) == M_IDENT) {
-	d1_ident++;
 	d0_ident++;
+	d1_ident++;
       }
 
       i0++; i1++;
