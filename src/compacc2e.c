@@ -3824,7 +3824,7 @@ next_annot_match(int *itmp, int *pam2aa0v,
 
   int v_tmp;
   int new_left_domain_end;
-  struct dom_entry_str *this_dom, *prev_dom, *new_dom;
+  struct dom_entry_str *new_dom_feat, *this_dom, *prev_dom, *new_dom;
 
   if (ann_comment) *ann_comment = NULL;
 
@@ -3842,97 +3842,91 @@ next_annot_match(int *itmp, int *pam2aa0v,
 			left_domain_p, left_end_p, init_score);
       *d_ident_p = *d_alen_p = 0;
       *d_score_p = init_score;
+      continue;
     }
-    else if (annot_arr[i_annot]->label == 'V') { /* label == 'V' */
-      v_tmp = pam2aa0v[annot_arr[i_annot]->value];
-      if (v_tmp > *itmp) {
-	*v_delta += (v_tmp- *itmp);
-	*itmp = v_tmp;
-	*sp1 = sq[annot_arr[i_annot]->value];
-	if (sp1a) *sp1a = 'V';
-	if (ann_comment) *ann_comment = annot_arr[i_annot]->comment;
+    else {
+      if ((new_dom_feat = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
+	fprintf(stderr,"*** error [%s:%d] - cannot allocate new dom_entry_str\n", __FILE__, __LINE__);
+	exit(1);
       }
-    }
-    else if (annot_arr[i_annot]->label == '-') {
-      /* if this is the first domain, initialize domain_end_links */
-      if ( *left_domain_p==NULL) {
-	/* allocate a new dom_entry_str to keep locations, scores */
-	if ((this_dom = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
-	  fprintf(stderr,"*** error [%s:%d] - cannot allocate new dom_entry_str\n", __FILE__, __LINE__);
-	  exit(1);
-	}
 
-	/* initialize this dom_entry */
-	this_dom->annot_p = annot_arr[i_annot];
-	this_dom->score = init_score;
-	this_dom->n_ident = this_dom->n_alen = 0;
-	this_dom->pos = ip;
-	this_dom->a_pos = ia;
-	*left_end_p = this_dom->end_pos = annot_arr[i_annot]->end;
-	*left_domain_p = this_dom;
+      new_dom_feat->annot_p = annot_arr[i_annot];
+      new_dom_feat->pos = ip;
+      new_dom_feat->a_pos = ia;
+
+      if (annot_arr[i_annot]->label == 'V') { /* label == 'V' */
+	v_tmp = pam2aa0v[annot_arr[i_annot]->value];
+	if (v_tmp > *itmp) {
+	  *v_delta += (v_tmp- *itmp);
+	  *itmp = v_tmp;
+	  *sp1 = sq[annot_arr[i_annot]->value];
+	  if (sp1a) *sp1a = 'V';
+	  if (ann_comment) *ann_comment = annot_arr[i_annot]->comment;
+	}
       }
-      else { /* we already have a domain list - update scores for "live" domains and insert new domain */
-	new_left_domain_end = annot_arr[i_annot]->end;
-	new_dom = prev_dom = NULL;
+      else if (annot_arr[i_annot]->label == '-') {
+	/* if this is the first domain, initialize domain_end_links */
+	if ( *left_domain_p==NULL) {
+	  /* initialize this dom_entry */
+	  new_dom_feat->score = init_score;
+	  new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
+	  *left_end_p = new_dom_feat->end_pos = annot_arr[i_annot]->end;
+	  *left_domain_p = new_dom_feat;
+	}
+	else { /* we already have a domain list - update scores for "live" domains and insert new domain */
+	  new_left_domain_end = annot_arr[i_annot]->end;
+	  new_dom = prev_dom = NULL;
 	
-	/* this loop tries to do two things:
-	   (1) update the scores for all the currently active domains
-	   (2) find the place to insert the new domain
-	*/
+	  /* this loop tries to do two things:
+	     (1) update the scores for all the currently active domains
+	     (2) find the place to insert the new domain
+	  */
 
-	for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
-	  /* here we update the scores */
-	  this_dom->score += *d_score_p;
-	  this_dom->n_ident += *d_ident_p;
-	  this_dom->n_alen += *d_alen_p;
+	  for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
+	    /* here we update the scores */
+	    this_dom->score += *d_score_p;
+	    this_dom->n_ident += *d_ident_p;
+	    this_dom->n_alen += *d_alen_p;
 
-	  /* then we check for an insertion location */
-	  if (this_dom->end_pos > new_left_domain_end) {
-	    /* this_dom is beyond the new_left_domain_end, so link it to the previous domain */
-	    new_dom = prev_dom;
+	    /* then we check for an insertion location */
+	    if (this_dom->end_pos > new_left_domain_end) {
+	      /* this_dom is beyond the new_left_domain_end, so link it to the previous domain */
+	      new_dom = prev_dom;
+	    }
+	    prev_dom = this_dom;
 	  }
-	  prev_dom = this_dom;
-	}
-	/* all the scores are updated and new_dom is NULL (for beginning/end) or insertion location */
+	  /* all the scores are updated and new_dom is NULL (for beginning/end) or insertion location */
 
-	*d_ident_p = *d_alen_p = 0;
-	*d_score_p = init_score;
+	  *d_ident_p = *d_alen_p = 0;
+	  *d_score_p = init_score;
 
-	/* allocate a new dom_entry_str to keep locations, scores */
-	if ((this_dom = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
-	  fprintf(stderr,"*** error [%s:%d] - cannot allocate new dom_entry_str\n", __FILE__, __LINE__);
-	  exit(1);
-	}
+	  /* initialize this dom_entry */
+	  new_dom_feat->score = init_score;
+	  new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
+	  new_dom_feat->end_pos = annot_arr[i_annot]->end;
 
-	/* initialize this dom_entry */
-	this_dom->annot_p = annot_arr[i_annot];
-	this_dom->score = init_score;
-	this_dom->n_ident = this_dom->n_alen = 0;
-	this_dom->pos = ip;
-	this_dom->a_pos = ia;
-	this_dom->end_pos = annot_arr[i_annot]->end;
-
-	if (new_dom) {	/* left_dom is null if it is first/last */
-	  this_dom->next = new_dom->next;
-	  new_dom->next = this_dom;
-	}
-	else { /* left_dom is NULL for start OR end, prev_dom has end of list */
-	  if (prev_dom->end_pos < new_left_domain_end) { /* goes into the end of the list */
-	    prev_dom->next = this_dom;
+	  if (new_dom) {	/* left_dom is null if it is first/last */
+	    new_dom_feat->next = new_dom->next;
+	    new_dom->next = new_dom_feat;
 	  }
-	  else {
-	    /* place at start of list */
-	    this_dom->next = *left_domain_p;
-	    *left_domain_p = this_dom;
+	  else { /* left_dom is NULL for start OR end, prev_dom has end of list */
+	    if (prev_dom->end_pos < new_left_domain_end) { /* goes into the end of the list */
+	      prev_dom->next = new_dom_feat;
+	    }
+	    else {
+	      /* place at start of list */
+	      new_dom_feat->next = *left_domain_p;
+	      *left_domain_p = new_dom_feat;
+	    }
 	  }
-	}
-      } /* done with domain insertion/ domain_end update */
-      *left_end_p = (*left_domain_p)->end_pos;
+	} /* done with domain insertion/ domain_end update */
+	*left_end_p = (*left_domain_p)->end_pos;
+      }/* all done with '[' */
+      else if (annot_stack) {	/* not [-]V -- residue feature */
+	if (have_push_features) *have_push_features = 1;
+	push_stack(annot_stack, new_dom_feat);
+      }
       i_annot++;
-    }/* all done with '[' */
-    else if (annot_stack) {
-      if (have_push_features) *have_push_features = 1;
-      push_stack(annot_stack, annot_arr[i_annot]);
     }
   }
   return i_annot;
