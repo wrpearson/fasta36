@@ -74,13 +74,13 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
-		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct dom_entry_str **left_domain,
+		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain,
 		 int *left_domain_end, int init_score);
 
 extern void
 close_annot_match (int ia, void *annot_stack, int *have_push_features,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
-		   struct dom_entry_str **left_domain_p,
+		   struct domfeat_link **left_domain_p,
 		   int *left_end_p, int init_score);
 
 extern void
@@ -128,9 +128,9 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   int *aa0_pam2_p;
   char *sim_sym = aln_map_sym[5];
   struct annot_entry **s_annot0_arr_p;
-  struct dom_entry_str *region0_p, tmp_annot0;
+  struct domfeat_link *region0_p, tmp_annot0;
   struct annot_entry **s_annot1_arr_p;
-  struct dom_entry_str *region1_p, tmp_annot1;
+  struct domfeat_link *region1_p, tmp_annot1;
 
   char *ann_comment;
   int i0_annot, i1_annot;	/* i0_annot, i1_annot, count through
@@ -141,7 +141,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   int d1_score, d1_ident, d1_alen;
   int d0_score, d0_ident, d0_alen;
   int have_push_features;
-  struct dom_entry_str *left_domain_list1, *left_domain_list0;
+  struct domfeat_link *left_domain_list1, *left_domain_list0;
 
   /* variables for handling coordinate offsets */
   long q_offset, l_offset;
@@ -771,14 +771,14 @@ int calc_code(const unsigned char *aa0, int n0,
   int *aa0_pam2_p;
   void *annot_stack;
   struct annot_entry **s_annot0_arr_p;
-  struct dom_entry_str *region0_p, tmp_annot0;
+  struct domfeat_link *region0_p, tmp_annot0;
   struct annot_entry **s_annot1_arr_p;
-  struct dom_entry_str *region1_p, tmp_annot1;
+  struct domfeat_link *region1_p, tmp_annot1;
   int i0_annot, i1_annot, v_delta, v_tmp;
   int i0_left_end, i1_left_end;
   int d1_score, d1_ident, d1_alen;
   int d0_score, d0_ident, d0_alen;
-  struct dom_entry_str *left_domain_list1, *left_domain_list0;
+  struct domfeat_link *left_domain_list1, *left_domain_list0;
   int have_push_features;
   long q_offset, l_offset;
 
@@ -1108,8 +1108,8 @@ int calc_id(const unsigned char *aa0, int n0,
   int i0_left_end, i1_left_end;
   int d1_score, d1_ident, d1_alen;
   int d0_score, d0_ident, d0_alen;
-  struct dom_entry_str *left_domain_list1, *left_domain_list0;
-  struct dom_entry_str *this_dom, *next_dom;
+  struct domfeat_link *left_domain_list1, *left_domain_list0;
+  struct domfeat_link *this_dom, *next_dom;
 
   left_domain_list1 = left_domain_list0 = NULL;
   

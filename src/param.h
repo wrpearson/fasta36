@@ -147,6 +147,7 @@ struct annot_str {
   struct annot_entry *annot_arr_p;	/* array[n_annot] of annot_entry's for all annotations */
   struct annot_entry **s_annot_arr_p;	/* sorted version of annots */
   struct annot_entry *domain_arr_p;	/* array[n_domains] of annot_entry's for domains */
+  struct domfeat_link *links_head;
 };
 
 /* ann_str keeps information on "rich" annotations, position, type, value */
@@ -157,12 +158,13 @@ struct annot_entry {
   unsigned char value;	/* must be amino acid residue, binary encoded */
   char *comment;
   int target;	 /* 0 for query/ 1 for library */
+  struct domfeat_link *link;
 };
 
 /* domain_str keeps information on "rich" annotations, position, type, value */
-struct dom_entry_str {
+struct domfeat_link {
   struct annot_entry *annot_p;
-  struct dom_entry_str *next;
+  struct domfeat_link *next;
   long pos;	/* annotation position */
   long a_pos;	/* aligned annotation position */
   long end_pos;	/* domain annotation end */

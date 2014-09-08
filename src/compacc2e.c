@@ -1891,10 +1891,12 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 		 struct annot_mstr *mtmp_annot_p, struct mngmsg *m_msp, int target) {
 
   char ctmp_label, ctmp_value, tmp_comment[MAX_STR], annot_acc[MAX_STR];
+  struct domfeat_link *domfeats_head, *domfeats_current;
   char *bp;
   int f_pos, f_end;
   int i_ann, l_doms, r_doms;
   int n_annot = 0;
+  int last_left_bracket = -1;
 
   struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr, *tmp_domain_entry_arr;
 
@@ -1940,13 +1942,24 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       continue;
     }
 
-    tmp_ann_entry_arr[n_annot].pos = f_pos;
-    tmp_ann_entry_arr[n_annot].end = f_end;
-    tmp_ann_entry_arr[n_annot].label=ctmp_label;
-    tmp_ann_entry_arr[n_annot].value=ctmp_value;
-    tmp_ann_entry_arr[n_annot].comment = NULL;
-    tmp_ann_entry_arr[n_annot].target = target;
-    /*     tmp_ann_entry_arr[n_annot].start = NULL; */
+    if (ctmp_label != ']') {
+      tmp_ann_entry_arr[n_annot].pos = f_pos;
+      tmp_ann_entry_arr[n_annot].end = f_end;
+      tmp_ann_entry_arr[n_annot].label=ctmp_label;
+      tmp_ann_entry_arr[n_annot].value=ctmp_value;
+      tmp_ann_entry_arr[n_annot].comment = NULL;
+      tmp_ann_entry_arr[n_annot].target = target;
+    }
+    else {
+      if (last_left_bracket < 0) {
+	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry() - ']' without '[': %s\n",
+		__FILE__,__LINE__, tmp_line);
+	continue;
+      }
+      tmp_ann_entry_arr[last_left_bracket].end = f_pos;
+      tmp_ann_entry_arr[last_left_bracket].label = '-';
+      last_left_bracket = -1;
+    }
 
     if (tmp_comment[0]) {
       if ((tmp_ann_entry_arr[n_annot].comment=(char *)calloc(strlen(tmp_comment)+1,sizeof(char)))!=NULL) {
@@ -1973,6 +1986,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       }
     }
     else if (ctmp_label == '[') {
+      last_left_bracket = n_annot;
       i_ann = add_annot_char(m_msp->ann_arr, ctmp_label);
       if (i_ann > 0) {
 	qascii[ctmp_label] = NANN + i_ann;
@@ -1995,55 +2009,40 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 
  next_bline:
   if (n_annot) {  /* if we have annotations, save them and set tmp_ann_entry_arr = NULL */
-    tmp_ann_entry_arr = (struct annot_entry *)realloc(tmp_ann_entry_arr, (n_annot+1)*sizeof(struct annot_entry));
 
+    /* check for unpaired '['; unpaired ']' was checked earlier */
+    for (i_ann=0; i_ann < n_annot; i_ann++) {
+      if (tmp_ann_entry_arr[i_ann].label == '[') {
+	fprintf(stderr,"*** error [%s:%d] - unpaired '[' %d:%s\n",
+		__FILE__,__LINE__, i_ann, tmp_ann_entry_arr[i_ann].comment);
+	return NULL;
+      }
+    }
+
+    /* everything is paired properly */
+    /* re-allocate to exact space */
+    tmp_ann_entry_arr = (struct annot_entry *)realloc(tmp_ann_entry_arr, (n_annot)*sizeof(struct annot_entry));
+
+    /* provide sorted array */
     if ((s_tmp_ann_entry_arr = (struct annot_entry **)calloc((n_annot+1),sizeof(struct annot_entry *)))==NULL) {
       fprintf(stderr,"*** error [%s:%d] - cannot alloc s_tmp_ann_entry_arr[%d]",
 	      __FILE__,__LINE__, n_annot+1);
-      exit(1);
+      return NULL;
     }
 
-    /* pair every domain start/stop */
-    /* (1) count number of domains/check for consistency */
-    l_doms = r_doms = 0;
-    for (i_ann=0; i_ann < n_annot; i_ann++) {
-      if (tmp_ann_entry_arr[i_ann].label == '[') l_doms++;
-      if (tmp_ann_entry_arr[i_ann].label == ']') r_doms++;
-    }
-    if (l_doms != r_doms) {
-      fprintf(stderr,"*** error [%s:%d] - unpaired domains: %s %d != %d\n",
-	      __FILE__,__LINE__, annot_acc, l_doms, r_doms);
-#ifdef DEBUG      
-      for (i_ann=0; i_ann < n_annot; i_ann++) {
-	if (tmp_ann_entry_arr[i_ann].label == '[') 
-	  fprintf(stderr, "%ld %c %s\n",tmp_ann_entry_arr[i_ann].pos,tmp_ann_entry_arr[i_ann].label,tmp_ann_entry_arr[i_ann].comment);
-	if (tmp_ann_entry_arr[i_ann].label == ']')
-	  fprintf(stderr, "%ld %c\n",tmp_ann_entry_arr[i_ann].pos,tmp_ann_entry_arr[i_ann].label);
-      }
-#endif
-    }
-    else if (l_doms > 0) {
-      if ((tmp_domain_entry_arr = (struct annot_entry *)calloc((l_doms+1),sizeof(struct annot_entry)))==NULL) {
-	fprintf(stderr,"*** error [%s:%d] - cannot alloc s_tmp_ann_entry_arr[%d]",
-		__FILE__,__LINE__, l_doms+1);
-      }
-      else {
-	l_doms = 0;
-	for (i_ann=0; i_ann < n_annot+1; i_ann++) {
-	  if (tmp_ann_entry_arr[i_ann].label == '[') {
-	    tmp_domain_entry_arr[l_doms].pos = tmp_ann_entry_arr[i_ann].pos;
-	    tmp_domain_entry_arr[l_doms].label = '-';
-	    tmp_domain_entry_arr[l_doms].comment = tmp_ann_entry_arr[i_ann].comment;
-	  }
-	  else if (tmp_ann_entry_arr[i_ann].label == ']') {
-	    tmp_domain_entry_arr[l_doms].end = tmp_ann_entry_arr[i_ann].pos;
-	    l_doms++;
-	  }
-	}      
-      }
+    /* allocate list linkers for left_domains */
+    if ((domfeats_head = (struct domfeat_link *)calloc((n_annot+1), sizeof(struct domfeat_link)))==NULL) {
+      fprintf(stderr,"*** error [%s:%d] - cannot alloc domfeats_head[%d]",
+	      __FILE__,__LINE__, n_annot);
+      return NULL;
     }
 
+    domfeats_current = domfeats_head;
     for (i_ann=0; i_ann < n_annot+1; i_ann++) {
+      domfeats_current->next = NULL;
+      tmp_ann_entry_arr[i_ann].link = domfeats_current;
+      domfeats_current++;
+
       s_tmp_ann_entry_arr[i_ann] = &tmp_ann_entry_arr[i_ann];
     }
 
@@ -2055,6 +2054,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       annot_p->s_annot_arr_p = s_tmp_ann_entry_arr;
       annot_p->n_annot = n_annot;
       annot_p->n_domains = l_doms;
+      annot_p->links_head = domfeats_head;
       if (l_doms > 0) {
 	annot_p->domain_arr_p = tmp_domain_entry_arr;
       }
@@ -3770,10 +3770,10 @@ void free_dyn_string(struct dyn_string_str *dyn_string) {
 void
 close_annot_match (int ia, void *annot_stack, int *have_push_features,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
-		   struct dom_entry_str **left_domain_p,
+		   struct domfeat_link **left_domain_p,
 		   int *left_end_p, int init_score) {
 
-  struct dom_entry_str *this_dom, *prev_dom, *left_dom;
+  struct domfeat_link *this_dom, *prev_dom, *left_dom;
 
   for (this_dom = *left_domain_p; this_dom; this_dom = this_dom->next) {
     if (ia > 0 && this_dom->end_pos > ia) {
@@ -3819,12 +3819,12 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
-		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct dom_entry_str **left_domain_p,
+		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain_p,
 		 int *left_end_p, int init_score)  {
 
   int v_tmp;
   int new_left_domain_end;
-  struct dom_entry_str *new_dom_feat, *this_dom, *prev_dom, *new_dom;
+  struct domfeat_link *new_dom_feat, *this_dom, *prev_dom, *new_dom;
 
   if (ann_comment) *ann_comment = NULL;
 
@@ -3845,14 +3845,23 @@ next_annot_match(int *itmp, int *pam2aa0v,
       continue;
     }
     else {
-      if ((new_dom_feat = (struct dom_entry_str *)calloc(1,sizeof(struct dom_entry_str)))==NULL) {
-	fprintf(stderr,"*** error [%s:%d] - cannot allocate new dom_entry_str\n", __FILE__, __LINE__);
-	exit(1);
+      /* use domain link that was allocated already */
+      if (annot_arr[i_annot]->link) {
+	new_dom_feat = annot_arr[i_annot]->link;
+	/* ensure initial values zero-ed out */
+	new_dom_feat->next = NULL;
+	new_dom_feat->score = 0;
+	new_dom_feat->n_ident = 0;
+	new_dom_feat->n_alen = 0;
+	new_dom_feat->annot_p = annot_arr[i_annot];
+	new_dom_feat->pos = ip;
+	new_dom_feat->a_pos = ia;
       }
-
-      new_dom_feat->annot_p = annot_arr[i_annot];
-      new_dom_feat->pos = ip;
-      new_dom_feat->a_pos = ia;
+      else {
+	fprintf(stderr,"*** error [%s:%d] -- annot_arr[%d/%d]->link is NULL\n",
+		__FILE__,__LINE__,i_annot, n_annot);
+	return n_annot;
+      }
 
       if (annot_arr[i_annot]->label == 'V') { /* label == 'V' */
 	v_tmp = pam2aa0v[annot_arr[i_annot]->value];
@@ -4079,10 +4088,10 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym,
 		      int tot_score, double comp, int n0, int n1,
 		      void *pstat_void, int d_type) {
-  struct dom_entry_str *this_dom_p;
+  struct domfeat_link *this_dom_p;
   double lbits, total_bits, zscore, lprob, lpercid;
   char *ann_comment, *bp;
-  struct dom_entry_str *domain_p;
+  struct domfeat_link *domain_p;
   char tmp_lstr[MAX_LSTR], ctarget, tmp_sstr[MAX_SSTR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
@@ -4090,7 +4099,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   zscore = find_z(tot_score, 1.0, n1, comp, pstat_void);
   total_bits = zs_to_bit(zscore, n0, n1);
 
-  while ((this_dom_p = (struct dom_entry_str *)pop_stack(annot_stack))!=NULL) {
+  while ((this_dom_p = (struct domfeat_link *)pop_stack(annot_stack))!=NULL) {
 
     if (this_dom_p->annot_p->label == '-') {
       if (this_dom_p->annot_p->target == 1) {
@@ -4145,7 +4154,6 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       }
       /* SAFE_STRNCAT(annot_var_s,tmp_lstr,n_annot_var_s); */
       dyn_strcat(annot_var_dyn, tmp_lstr);
-      free(this_dom_p);
     }
     else if ((ann_comment = this_dom_p->annot_p->comment)) {
       if (d_type == 1 ) {
