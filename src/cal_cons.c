@@ -260,6 +260,10 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   s_annot0_arr_p = s_annot1_arr_p = NULL;
   have_push_features=0;
   if (have_ann) {
+
+    if (ppst->pam_pssm) {aa0_pam2_p = ppst->pam2p[0][i0];}
+    else {aa0_pam2_p = ppst->pam2[0][aa0[i0]];}
+
     if ((annot1_p && annot1_p->n_annot>0) || (annot0_p && annot0_p->n_annot > 0)) {annot_stack = init_stack(64,64);}
     if (annot1_p && annot1_p->n_annot > 0) {
       s_annot1_arr_p = annot1_p->s_annot_arr_p;
@@ -1227,24 +1231,6 @@ int calc_id(const unsigned char *aa0, int n0,
     }
   }
   *score_delta = v_delta;
-
-  if (left_domain_list1) {
-    this_dom = left_domain_list1;
-    while (this_dom) {
-      next_dom = this_dom->next;
-      free(this_dom);
-      this_dom = next_dom;
-    }
-  }
-
-  if (left_domain_list0) {
-    this_dom = left_domain_list0;
-    while (this_dom) {
-      next_dom = this_dom->next;
-      free(this_dom);
-      this_dom = next_dom;
-    }
-  }
 
   return lenc;
 }

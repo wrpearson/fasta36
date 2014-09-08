@@ -1894,7 +1894,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   struct domfeat_link *domfeats_head, *domfeats_current;
   char *bp;
   int f_pos, f_end;
-  int i_ann, l_doms, r_doms;
+  int i_ann, l_doms;
   int n_annot = 0;
   int last_left_bracket = -1;
 
@@ -1905,6 +1905,8 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   if (init_tmp_annot(mtmp_annot_p, 32)==0) return NULL;
 
   tmp_ann_entry_arr = mtmp_annot_p->tmp_arr_p;
+
+  l_doms = 0;
 
   /* read through each annotation in file */
   while (fgets(tmp_line, n_tmp_line, annot_fd)!=NULL ) {
@@ -1974,6 +1976,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       tmp_ann_entry_arr[n_annot].value = lascii[tmp_ann_entry_arr[n_annot].value];
     }
     else if (ctmp_label == '-') {
+      l_doms++;
       i_ann = add_annot_char(m_msp->ann_arr, '[');
       if (i_ann > 0) {
 	qascii['['] = NANN + i_ann;
@@ -1986,6 +1989,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       }
     }
     else if (ctmp_label == '[') {
+      l_doms++;
       last_left_bracket = n_annot;
       i_ann = add_annot_char(m_msp->ann_arr, ctmp_label);
       if (i_ann > 0) {
@@ -2011,6 +2015,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   if (n_annot) {  /* if we have annotations, save them and set tmp_ann_entry_arr = NULL */
 
     /* check for unpaired '['; unpaired ']' was checked earlier */
+
     for (i_ann=0; i_ann < n_annot; i_ann++) {
       if (tmp_ann_entry_arr[i_ann].label == '[') {
 	fprintf(stderr,"*** error [%s:%d] - unpaired '[' %d:%s\n",
@@ -2021,7 +2026,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 
     /* everything is paired properly */
     /* re-allocate to exact space */
-    tmp_ann_entry_arr = (struct annot_entry *)realloc(tmp_ann_entry_arr, (n_annot)*sizeof(struct annot_entry));
+    tmp_ann_entry_arr = (struct annot_entry *)realloc(tmp_ann_entry_arr, (n_annot+1)*sizeof(struct annot_entry));
 
     /* provide sorted array */
     if ((s_tmp_ann_entry_arr = (struct annot_entry **)calloc((n_annot+1),sizeof(struct annot_entry *)))==NULL) {
@@ -3874,12 +3879,12 @@ next_annot_match(int *itmp, int *pam2aa0v,
 	}
       }
       else if (annot_arr[i_annot]->label == '-') {
-	/* if this is the first domain, initialize domain_end_links */
-	if ( *left_domain_p==NULL) {
-	  /* initialize this dom_entry */
-	  new_dom_feat->score = init_score;
-	  new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
-	  *left_end_p = new_dom_feat->end_pos = annot_arr[i_annot]->end;
+	/* initialize this dom_entry */
+	new_dom_feat->score = init_score;
+	new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
+	*left_end_p = new_dom_feat->end_pos = annot_arr[i_annot]->end;
+
+	if (*left_domain_p == NULL) {
 	  *left_domain_p = new_dom_feat;
 	}
 	else { /* we already have a domain list - update scores for "live" domains and insert new domain */
