@@ -2246,8 +2246,21 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
     /* skip VAR labels */
     if (this_annot->label == 'V') { continue; }
     if (this_annot->label == '-') {
-      aa1a_tmp[this_annot->pos]=qascii['['] - NANN;
-      aa1a_tmp[this_annot->end]=qascii[']'] - NANN;
+      if (this_annot->pos - offset >= 0) {aa1a_tmp[this_annot->pos-offset]=qascii['['] - NANN;}
+      else {
+	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%d:%d] out of range\n",
+		__FILE__, __LINE__, this_annot->pos - offset, 0);
+	aa1a_tmp[0] = qascii['['] - NANN;
+	this_annot->end = offset;
+      }
+      if (this_annot->end - offset < n1) {aa1a_tmp[this_annot->end-offset]=qascii[']'] - NANN;}
+      else {
+	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%d:%d] out of range\n",
+		__FILE__, __LINE__, this_annot->end - offset, n1);
+	
+	aa1a_tmp[n1-1] = qascii[']'] - NANN;
+	this_annot->end = offset+n1-1;
+      }
       continue;
     }
     if (strchr((char *)ann_arr, this_annot->label)==NULL) {continue;}
