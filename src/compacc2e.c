@@ -2248,14 +2248,14 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
     if (this_annot->label == '-') {
       if (this_annot->pos - offset >= 0) {aa1a_tmp[this_annot->pos-offset]=qascii['['] - NANN;}
       else {
-	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%d:%d] out of range\n",
+	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%ld:%d] out of range\n",
 		__FILE__, __LINE__, this_annot->pos - offset, 0);
 	aa1a_tmp[0] = qascii['['] - NANN;
 	this_annot->end = offset;
       }
       if (this_annot->end - offset < n1) {aa1a_tmp[this_annot->end-offset]=qascii[']'] - NANN;}
       else {
-	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%d:%d] out of range\n",
+	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%ld:%d] out of range\n",
 		__FILE__, __LINE__, this_annot->end - offset, n1);
 	
 	aa1a_tmp[n1-1] = qascii[']'] - NANN;
@@ -3789,7 +3789,7 @@ void
 close_annot_match (int ia, void *annot_stack, int *have_push_features,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
 		   struct domfeat_link **left_domain_p,
-		   int *left_end_p, int init_score) {
+		   long *left_end_p, int init_score) {
 
   struct domfeat_link *this_dom, *prev_dom, *left_dom;
 
@@ -3834,7 +3834,10 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features,
    currently, next_annot_match() is not called before alignment starts or after it ends
 */
 
-/* process_annot_match processes a single annot_p->pos == ip entry */
+/* process_annot_match processes a single annot_p->pos == ip entry,
+   returning 0 for a left_end == ip match (not using i_annot), or a 1
+   if an i_annot was consumed
+*/
 /* 
    within the alignment, next_annot_match() provides the while() loop to
    process several matches at the same location
@@ -3843,13 +3846,13 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features,
    process_annot_match()
 */
 
-void
+int
 process_annot_match(int *itmp, int *pam2aa0v, 
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		    struct annot_entry *annot_arr_p, char **ann_comment,
 		    void *annot_stack, int *have_push_features, int *v_delta,
 		    int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain_p,
-		    int *left_end_p, int init_score) {
+		    long *left_end_p, int init_score) {
   int v_tmp;
   int new_left_domain_end;
   struct domfeat_link *new_dom_feat, *this_dom, *prev_dom, *new_dom;
@@ -3864,7 +3867,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 		      left_domain_p, left_end_p, init_score);
     *d_ident_p = *d_alen_p = 0;
     *d_score_p = init_score;
-    return;
+    return 0;
   }
   else {
     /* use domain link that was allocated already */
@@ -3881,7 +3884,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
     }
     else {
       fprintf(stderr,"*** error [%s:%d] -- annot_arr->link is NULL\n",  __FILE__,__LINE__);
-      return;
+      return 1;
     }
 
     if (annot_arr_p->label == 'V') { /* label == 'V' */
@@ -3956,6 +3959,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
       if (have_push_features) *have_push_features = 1;
       push_stack(annot_stack, new_dom_feat);
     }
+    return 1;
   }
 }
 
@@ -3965,18 +3969,17 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
 		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain_p,
-		 int *left_end_p, int init_score)  {
+		 long *left_end_p, int init_score)  {
 
   if (ann_comment) *ann_comment = NULL;
 
   /* count through the annotations at this position (long ip) */
   while ((i_annot < n_annot && ip == annot_arr[i_annot]->pos) || ip == *left_end_p) {
-    process_annot_match(itmp, pam2aa0v, ip, ia, sp1, sp1a, sq,
-			annot_arr[i_annot], ann_comment,
-			annot_stack, have_push_features, v_delta,
-			d_score_p, d_ident_p, d_alen_p, left_domain_p,
-			left_end_p, init_score);
-    i_annot++;
+    i_annot += process_annot_match(itmp, pam2aa0v, ip, ia, sp1, sp1a, sq,
+				   annot_arr[i_annot], ann_comment,
+				   annot_stack, have_push_features, v_delta,
+				   d_score_p, d_ident_p, d_alen_p, left_domain_p,
+				   left_end_p, init_score);
   }
   return i_annot;
 }
