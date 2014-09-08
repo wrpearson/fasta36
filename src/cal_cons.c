@@ -69,6 +69,14 @@ extern void *free_stack(void *);
 extern int
 align_type(int score, char sp0, char sp1, int nt_align, struct a_struct *aln, int pam_x_id_sim);
 
+extern void
+process_annot_match(int *itmp, int *pam2aa0v, 
+		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
+		    struct annot_entry *annot_arr_p, char **ann_comment,
+		    void *annot_stack, int *have_push_features, int *v_delta,
+		    int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain_p,
+		    int *left_end_p, int init_score);
+
 extern int
 next_annot_match(int *itmp, int *pam2aa0v, 
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
@@ -260,10 +268,6 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   s_annot0_arr_p = s_annot1_arr_p = NULL;
   have_push_features=0;
   if (have_ann) {
-
-    if (ppst->pam_pssm) {aa0_pam2_p = ppst->pam2p[0][i0];}
-    else {aa0_pam2_p = ppst->pam2[0][aa0[i0]];}
-
     if ((annot1_p && annot1_p->n_annot>0) || (annot0_p && annot0_p->n_annot > 0)) {annot_stack = init_stack(64,64);}
     if (annot1_p && annot1_p->n_annot > 0) {
       s_annot1_arr_p = annot1_p->s_annot_arr_p;
@@ -273,14 +277,12 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	if (s_annot1_arr_p[i1_annot]->end < i1 + l_offset) {i1_annot++; continue;}
 
 	if (s_annot1_arr_p[i1_annot]->label == '-') {
-	  i1_annot = next_annot_match(&itmp, aa0_pam2_p,
-				      l_offset+seq_pos(i1,aln->llrev,0), q_offset + seq_pos(i0,aln->qlrev,0),
-				      sp1, sp1a, sq, 
-				      i1_annot, annot1_p->n_annot, s_annot1_arr_p,
-				      &ann_comment, annot_stack, &have_push_features, &v_delta,
-				      &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
+	  process_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0), q_offset + seq_pos(i0,aln->qlrev,0),
+			      sp1, sp1a, sq, s_annot1_arr_p[i1_annot],  &ann_comment, 
+			      annot_stack, &have_push_features, &v_delta,
+			      &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
 	}
-	else { i1_annot++; }
+	i1_annot++;
       }
     }
 
@@ -293,17 +295,16 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	if (s_annot0_arr_p[i0_annot]->end < i0 + q_offset) {i0_annot++; continue;}
 
 	if (s_annot0_arr_p[i0_annot]->label == '-') {
-	  i0_annot = next_annot_match(&itmp, aa0_pam2_p,
-				      q_offset+seq_pos(i0,aln->qlrev,0), l_offset + seq_pos(i1,aln->llrev,0),
-				      sp0, sp0a, sq, 
-				      i0_annot, annot0_p->n_annot, s_annot0_arr_p,
-				      &ann_comment, annot_stack, &have_push_features, &v_delta,
-				      &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
+	  process_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0), l_offset + seq_pos(i1,aln->llrev,0),
+			      sp0, sp0a, sq, s_annot0_arr_p[i0_annot], &ann_comment, 
+			      annot_stack, &have_push_features, &v_delta,
+			      &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
 	}
-	else { i0_annot++; }
+	i0_annot++;
       }
     }
   }
+
   while (i0 < a_res->max0 || i1 < a_res->max1) {
     /* match/mismatch (aligned residues */
     /* here, op is the "current" encoding, and *rp is the next one */
@@ -354,16 +355,6 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					&ann_comment, annot_stack, &have_push_features, &v_delta,
 					&d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
-
-	/*
-	    i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1p[i1]], q_offset+seq_pos(i0,aln->qlrev,0),
-					l_offset+seq_pos(i1,aln->llrev,0), sp0, sp0a, sq, 
-					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
-					&ann_comment, annot_stack, &have_push_features, &v_delta,
-						&region0_p, &tmp_annot0, 0);
-	*/
-
-
 
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa0[i0]] != *sp0) {
@@ -903,38 +894,37 @@ int calc_code(const unsigned char *aa0, int n0,
 				      NULL, annot_stack, &have_push_features, &v_delta,
 				      &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
 
+	  if (sq[aa1c] != sp1) {
+	    t_spa = align_type(itmp, sp0, sp1, ppst->nt_align, NULL, ppst->pam_x_id_sim);
+	    comment_var(q_offset+seq_pos(i0,aln->qlrev,0), sp0,
+			l_offset+seq_pos(i1,aln->llrev,0), sp1,
+			sq[aa1c], sim_sym[t_spa], NULL,
+			ann_code_dyn, 1, annot_fmt);
+	  }
+	  d1_score += itmp;
 	}
-
-	if (sq[aa1c] != sp1) {
-	  t_spa = align_type(itmp, sp0, sp1, ppst->nt_align, NULL, ppst->pam_x_id_sim);
-	  comment_var(q_offset+seq_pos(i0,aln->qlrev,0), sp0,
-		      l_offset+seq_pos(i1,aln->llrev,0), sp1,
-		      sq[aa1c], sim_sym[t_spa], NULL,
-		      ann_code_dyn, 1, annot_fmt);
-	}
-	d1_score += itmp;
       }
 
       if (s_annot0_arr_p) {
-	if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos) {
-	  /*
-	  i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1c], q_offset+seq_pos(i0,aln->qlrev,0),
+	if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos || i0+q_offset == i0_left_end) {
+
+	  i0_annot = next_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0),
 				      l_offset+seq_pos(i1,aln->llrev,0), &sp0, NULL, sq,
 				      i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 				      NULL, annot_stack, &have_push_features, &v_delta,
-				      &region0_p, &tmp_annot0, 0);
-	  */
-	}
+				      &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
 
-	/* check for sequence change from variant */
-	if (sq[aa0c] != sp0) {
-	  t_spa = align_type(itmp, sp0, sp1, ppst->nt_align, NULL, ppst->pam_x_id_sim);
-	  comment_var(q_offset+seq_pos(i0,aln->qlrev,0), sp0,
-		      l_offset+seq_pos(i1,aln->llrev,0), sp1,
-		      sq[aa0c], sim_sym[t_spa], NULL,
-		      ann_code_dyn, 0, annot_fmt);
+
+	  /* check for sequence change from variant */
+	  if (sq[aa0c] != sp0) {
+	    t_spa = align_type(itmp, sp0, sp1, ppst->nt_align, NULL, ppst->pam_x_id_sim);
+	    comment_var(q_offset+seq_pos(i0,aln->qlrev,0), sp0,
+			l_offset+seq_pos(i1,aln->llrev,0), sp1,
+			sq[aa0c], sim_sym[t_spa], NULL,
+			ann_code_dyn, 0, annot_fmt);
+	  }
+	  d0_score += itmp;
 	}
-	d0_score += itmp;
       }
 
       d0_alen++;
@@ -1003,7 +993,7 @@ int calc_code(const unsigned char *aa0, int n0,
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, sim_code,'-','-');
 
 	if (s_annot1_arr_p) {
-	  if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos) {
+	  if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos || i1+l_offset == i1_left_end) {
 	    i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
 					q_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq, 
 					i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -1027,14 +1017,14 @@ int calc_code(const unsigned char *aa0, int n0,
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 1, sim_code,'-','-');
 
 	if (s_annot0_arr_p) {
-	  if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos) {
-	    /*
-	    i0_annot = next_annot_match(&itmp, ppst->pam2[0][aa1c], q_offset+seq_pos(i0,aln->qlrev,0),
+	  if (i0+q_offset == s_annot0_arr_p[i0_annot]->pos || i0+q_offset == i0_left_end) {
+
+	    i0_annot = next_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0),
 					l_offset+seq_pos(i1,aln->llrev,0), &sp0, NULL, sq, 
 					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					NULL, annot_stack, &have_push_features, &v_delta,
-					&region0_p, &tmp_annot0,ppst->ggapval+ppst->gdelval);
-	    */
+					&d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end, 0);
+
 	    if (have_push_features) {
 	      display_push_features(annot_stack, ann_code_dyn,
 				    q_offset+seq_pos(i0,aln->qlrev,0), sp0,
