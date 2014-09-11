@@ -276,8 +276,6 @@ add_annot_code(int have_ann, char sp0, char sp1,
   }
 }
 
-
-
 /* calc_cons_u - combines calc_cons_a/calc_code/ calc_id */
 int
 calc_cons_u( /* inputs */
@@ -836,8 +834,6 @@ calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, struct f_struct 
   aln_p->amax1 = a_res_p->max1;
 }
 
-
-
 static struct update_code_str *
 init_update_data(show_code) {
 
@@ -852,8 +848,6 @@ init_update_data(show_code) {
   update_data_p->p_op_idx = -1;
   update_data_p->p_op_cnt = 0;
   update_data_p->show_code = show_code;
-
-
 
   if ((show_code & SHOW_CODE_MASK) == SHOW_CODE_CIGAR) {
     update_data_p->op_map = cigar_code;
