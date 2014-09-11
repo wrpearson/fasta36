@@ -535,7 +535,7 @@ calc_cons_u( /* inputs */
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa1p[i1]] != *sp1_p) {
 	      t_spa = align_type(itmp, *sp0_p, *sp1_p, ppst->nt_align, NULL, ppst->pam_x_id_sim);
-	      if (calc_func_mode == CALC_CONS) {
+	      if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
 		comment_var(q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			    l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
 			    sq[aa1p[i1]], sim_sym[t_spa], ann_comment,
@@ -581,6 +581,7 @@ calc_cons_u( /* inputs */
 	  d0_score += itmp;
 	}
 	if (calc_func_mode == CALC_CONS) {sp0a++; sp1a++;}
+	}
       }
 
       *spa_p = align_type(itmp, *sp0_p, *sp1_p, ppst->nt_align, aln, ppst->pam_x_id_sim);
@@ -595,9 +596,11 @@ calc_cons_u( /* inputs */
       if (calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, op, *spa_p, *sp0_p, *sp1_p);
       
-	add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a, *sp1a,
-		       q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
-		       sim_sym[*spa_p], annot_var_dyn);
+	if (have_ann) {
+	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a, *sp1a,
+			 q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
+			 sim_sym[*spa_p], annot_var_dyn);
+	}
       }
 
       /* now we have done all the ?modified identity checks, display
@@ -742,7 +745,6 @@ calc_cons_u( /* inputs */
 	  aln->ngap_l++;
 	}
       }
-    }
     }
   }
 
