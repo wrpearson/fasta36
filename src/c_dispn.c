@@ -37,7 +37,7 @@ void
 discons(FILE *fd, const struct mngmsg *m_msp, 
 	char *seqc0, char *seqc0a, 
 	char *seqc1, char *seqc1a,
-	char *seqca, int *seqc_score, int nc,
+	char *seqca, int *cumm_seq_score, int nc,
 	int n0, int n1, char *name0, char *name1, int nml,
 	struct a_struct *aln)
 {
@@ -203,11 +203,11 @@ discons(FILE *fd, const struct mngmsg *m_msp,
 	del1++;
       }
 
-      tot_score += seqc_score[ic];
+      tot_score += cumm_seq_score[ic];
       fprintf(fd,"%ld\t%ld\t%c\t%c\t%d\t%d\n",
 	      aln->q_offset+qlsgn*(ioff0-del0)*aln->llmult+qfx0,
 	      aln->l_offset+llsgn*(ioff1-del1)+lfx0,	      
-	      seqc0[ic], seqc1[ic], seqc_score[ic], tot_score);
+	      seqc0[ic], seqc1[ic], cumm_seq_score[ic], tot_score);
     }
     return;
   }

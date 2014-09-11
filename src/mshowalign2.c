@@ -61,7 +61,7 @@ void do_show(FILE *fp, int n0, int n1, int score,
 	     char *name0, char *name1, int nml, char *link_name,
 	     const struct mngmsg *m_msp, const struct pstruct *ppst,
 	     char *seqc0, char *seqc0a,  char *seqc1, char *seqc1a,
-	     char *seqca, int *seqc_score, int nc,
+	     char *seqca, int *cumm_seq_score, int nc,
 	     float percent, float gpercent, int lc,
 	     struct a_struct *aln, const char *annot_var_s,
 	     const struct annot_str *q_annot_p,
@@ -93,7 +93,7 @@ extern int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
 extern void discons(FILE *fd, const struct mngmsg *m_msg,
 		    char *seqc0, char *seqc0a,
 		    char *seqc1, char *seqc1a,
-		    char *seqca, int *seqc_score, int nc, 
+		    char *seqca, int *cumm_seq_score, int nc, 
 		    int n0, int n1, char *name0, char *name1, int nml,
 		    struct a_struct *aln);
 
@@ -148,7 +148,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   float percent, gpercent;
   /* strings, lengths for conventional alignment */
   char *seqc0, *seqc0a, *seqc1, *seqc1a, *seqca;
-  int *seqc_score;
+  int *cumm_seq_score;
   /* strings, lengths, for encoded alignment for MX10 */
   char *seq_code=NULL, *ann_code=NULL;
   int seq_code_len=0, ann_code_len=0;
@@ -436,10 +436,10 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       /* get space to put the sequence alignment consensus */
       initseq(&seqc0, &seqc1, &seqca, maxc);
-      seqc_score = NULL;
+      cumm_seq_score = NULL;
       if (m_msp->markx & MX_RES_ALIGN_SCORE) {
-	if ((seqc_score = (int *)calloc(maxc,sizeof(int)))==NULL) {
-	  fprintf(stderr,"***error*** [%s:%d] cannot allocate seqc_score[%d]\n",
+	if ((cumm_seq_score = (int *)calloc(maxc,sizeof(int)))==NULL) {
+	  fprintf(stderr,"***error*** [%s:%d] cannot allocate cumm_seq_score[%d]\n",
 		  __FILE__, __LINE__, (int)(maxc*sizeof(int)));
 	}
       }
@@ -507,7 +507,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       nc=calc_cons_a(aa0[bbp->frame],m_msp->n0, aa1, n1,
 		     &lc,l_aln_p, cur_ares_p, ppst, 
-		     seqc0, seqc1, seqca, seqc_score,
+		     seqc0, seqc1, seqca, cumm_seq_score,
 		     m_msp->ann_arr,
 		     m_msp->aa0a, m_msp->annot_p, seqc0a,
 		     aa1a,  bbp->seq->annot_p, seqc1a,
@@ -722,7 +722,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       do_show(fp, m_msp->n0, bbp->seq->n1, lsw_score, name0, name1, nml,
 	      link_name, 
-	      m_msp, ppst, seqc0, seqc0a, seqc1, seqc1a, seqca, seqc_score,
+	      m_msp, ppst, seqc0, seqc0a, seqc1, seqc1a, seqca, cumm_seq_score,
 	      nc, percent, gpercent, lc, l_aln_p, annot_var_dyn->string,
 	      m_msp->annot_p, bbp->seq->annot_p);
 
@@ -777,7 +777,7 @@ void do_show(FILE *fp, int n0,int n1, int score,
 	     char *name0, char *name1, int nml, char *link_name,
 	     const struct mngmsg *m_msp, const struct pstruct *ppst,
 	     char *seqc0, char *seqc0a,  char *seqc1, char *seqc1a,
-	     char *seqca, int *seqc_score, int nc,
+	     char *seqca, int *cumm_seq_score, int nc,
 	     float percent, float gpercent, int lc,
 	     struct a_struct *aln, const char *annot_var_s,
 	     const struct annot_str * q_annot_p,
@@ -801,7 +801,7 @@ void do_show(FILE *fp, int n0,int n1, int score,
 
     fprintf(fp,"; %s_overlap: %d\n",m_msp->f_id1,lc);
     discons(fp, m_msp,
-	    seqc0, seqc0a, seqc1, seqc1a, seqca, seqc_score, nc,
+	    seqc0, seqc0a, seqc1, seqc1a, seqca, cumm_seq_score, nc,
 	    n0, n1, name0, name1, nml, aln);
   }
   else  {
@@ -843,7 +843,7 @@ void do_show(FILE *fp, int n0,int n1, int score,
       fprintf(fp, "<!-- ALIGN_START \"%s\" -->",link_name);
     }
     discons(fp, m_msp,
-	    seqc0, seqc0a, seqc1, seqc1a, seqca, seqc_score, nc,
+	    seqc0, seqc0a, seqc1, seqc1a, seqca, cumm_seq_score, nc,
 	    n0, n1, name0, name1, nml, aln);
     if (m_msp->markx & MX_HTML) {fputs("<!-- ALIGN_STOP -->",fp);}
     fputc('\n',fp);

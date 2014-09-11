@@ -112,7 +112,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 		struct a_struct *aln,
 		struct a_res_str *a_res,
 		struct pstruct *ppst,
-		char *seqc0, char *seqc1, char *seqca, int *seqc_score,
+		char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 		const unsigned char *ann_arr,
 		const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a,
 		const unsigned char *aa1a, const struct annot_str *annot1_p, char *seqc1a,
@@ -242,7 +242,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
   /* now get the middle */
 
   spa = seqca+mins;
-  if (seqc_score) i_spa = seqc_score+mins;
+  if (cumm_seq_score) i_spa = cumm_seq_score+mins;
   sp0 = seqc0+mins;
   sp1 = seqc1+mins;
 
@@ -387,18 +387,18 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 	have_push_features = 0;
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
       i0++; i1++;
       sp0++; sp1++; spa++;
     }
     else {	/* indel */
       if (op==0) {
 	op = *rp++;
-	if (seqc_score) *i_spa = ppst->gdelval;
+	if (cumm_seq_score) *i_spa = ppst->gdelval;
 	d1_score +=  ppst->gdelval;
 	d0_score +=  ppst->gdelval;
       }
-      if (seqc_score) *i_spa++ += ppst->ggapval;
+      if (cumm_seq_score) *i_spa++ += ppst->ggapval;
       d1_score +=  ppst->ggapval; d1_alen++;
       d0_score +=  ppst->ggapval; d0_alen++;
 
@@ -916,7 +916,7 @@ int calc_code(const unsigned char *aa0, int n0,
 
       d0_alen++;
       d1_alen++;
-      if (align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim) == M_IDENT) {
+      if ((sim_code == align_type(itmp, sp0, sp1, ppst->nt_align, aln, ppst->pam_x_id_sim)) == M_IDENT) {
 	d0_ident++;
 	d1_ident++;
       }

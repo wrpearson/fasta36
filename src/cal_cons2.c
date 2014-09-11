@@ -428,7 +428,7 @@ calc_cons_u( /* inputs */
       annot_stack = init_stack(64,64);
       sp0a = &sp0a_c;
       sp1a = &sp1a_c;
-      have_push_features_p = NULL;
+      have_push_features_p = &have_push_features;
     }
 
     *score_delta = 0;

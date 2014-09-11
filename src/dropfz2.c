@@ -2756,7 +2756,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res,
 	    struct pstruct *ppst,
-	    char *seqc0, char *seqc1, char *seqca, int *seqc_score,
+	    char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a,
 	    const unsigned char *aa1a, const struct annot_str *annot1_p, char *seqc1a,
@@ -2845,7 +2845,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			   annotation */
 #endif
   spa = seqca;
-  i_spa = seqc_score;
+  i_spa = cumm_seq_score;
 
   rp = a_res->res;			/* start of alignment info */
   rpmax = &a_res->res[a_res->nres];	/* end of alignment info */
@@ -2924,7 +2924,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	if (*spa == M_IDENT) {region1_p->n_ident++;}
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
@@ -2945,7 +2945,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *sp0++ = '/';
       *sp1++ = '-';
       *spa++ = M_DEL;
-      if (seqc_score) *i_spa++ = ppst->gshift;
+      if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       if (have_ann) {*sp0a++ = *sp1a++ = ' ';}
       not_c++;
@@ -3000,7 +3000,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	have_push_features = 0;
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       i1++;
       sp0++; sp1++; spa++;
@@ -3015,7 +3015,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *sp0++ = '\\';
       *sp1++ = '-';
       *spa++ = M_DEL;
-      if (seqc_score) *i_spa++ = ppst->gshift;
+      if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       not_c++;
 
@@ -3052,7 +3052,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	if (*spa == M_IDENT) {region1_p->n_ident++;}
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
@@ -3077,13 +3077,13 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *spa++ = M_DEL;
       lenc++;
       ngap_p++;
-      if (seqc_score) *i_spa++ = ppst->gdelval;
+      if (cumm_seq_score) *i_spa++ = ppst->gdelval;
       break;
     case 0:		/* insertion in 1 */
       *sp0++ = '-';
       *sp1++ = sq[ap1[i1]];
       *spa++ = M_DEL;
-      if (seqc_score) {
+      if (cumm_seq_score) {
 	if (prev_match) *i_spa = ppst->gdelval;
 	*i_spa++ += ppst->gdelval;
       }

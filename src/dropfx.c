@@ -2776,7 +2776,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res, 
 	    struct pstruct *ppst,
-	    char *seqc0, char *seqc1, char *seqca, int *seqc_score,
+	    char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a,
 	    const unsigned char *aa1a, const struct annot_str *annot1_p, char *seqc1a,
@@ -2861,7 +2861,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			   annotation */
 #endif
   spa = seqca;
-  if (seqc_score) i_spa = seqc_score;
+  if (cumm_seq_score) i_spa = cumm_seq_score;
 
   rp = a_res->res;
   rpmax = &a_res->res[a_res->nres];
@@ -2881,8 +2881,8 @@ calc_cons_a(const unsigned char *aa0, int n0,
       s_annot1_arr_p = annot1_p->s_annot_arr_p;
 
       while (i1_annot < annot1_p->n_annot) {
-	if (s_annot1_arr_p[i1_annot]->pos >= i1 + i1_offset) {break;}
-	if (s_annot1_arr_p[i1_annot]->end < i1 + i1_offset) {i1_annot++; continue;}
+	if (s_annot1_arr_p[i1_annot]->pos >= i1+i1_offset) {break;}
+	if (s_annot1_arr_p[i1_annot]->end < i1+i1_offset) {i1_annot++; continue;}
 
 	if (s_annot1_arr_p[i1_annot]->label == '-') {
 	  process_annot_match(&itmp, NULL, i1_offset+seq_pos(i1,aln->llrev,0), i0_offset + seq_pos(i0,aln->qlrev,0),
@@ -2904,7 +2904,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *sp0++ = '-';
       *sp1++ = sq[ap1[i1]];
       *spa++ = M_DEL;
-      if (seqc_score) {
+      if (cumm_seq_score) {
 	if (prev_match) *i_spa = ppst->gdelval;
 	*i_spa++ += ppst->ggapval;
       }
@@ -2913,7 +2913,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	*sp0a = ' ';
 	*sp1a = ann_arr[ap1a[i1]];
 	if (s_annot1_arr_p) {
-	  if (i1 + i1_offset == s_annot1_arr_p[i1_annot]->pos || i1 + i1_offset == i1_left_end) {
+	  if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
 
 	    i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 					i0_offset+seq_pos(i0,aln->qlrev,0), sp1, sp1a, sq, 
@@ -2963,7 +2963,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *sp0 = sq[ap0[i0]];
       *sp1 = sq[ap1[i1]];
 
-      if (seqc_score) *i_spa++ = ppst->gshift;
+      if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       if (have_ann) {
 	have_push_features = 0;
@@ -2975,7 +2975,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	  /* coordiates are much more complex for next_annot_match,
 	     and comment_var, because they may need to be reversed */
 
-	  if (i1 + i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
+	  if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
 	    i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 					i0_offset+seq_pos(i0,aln->qlrev,0), sp1, sp1a, sq, 
 					i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -3012,7 +3012,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	have_push_features = 0;
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
       i0 += 3;
       i1++;
 
@@ -3054,7 +3054,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       d1_alen++;
       if (*spa == M_IDENT) {d1_ident++;}
   
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
@@ -3079,7 +3079,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       i0 += 1;
       *sp1++ = '-';
       *spa++ = M_DEL;
-      if (seqc_score) *i_spa++ = ppst->gshift;
+      if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       if (have_ann) {*sp1a++ = *sp0a++ = ' ';}
       not_c++;
@@ -3120,7 +3120,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       d1_alen++;
       if (*spa == M_IDENT) {d1_ident++;}
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       /* now we have done all the ?modified identity checks, display
 	 potential site annotations */
@@ -3144,7 +3144,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	*sp1a++ = *sp0a++ = ' ';
       }
 
-      if (seqc_score) {
+      if (cumm_seq_score) {
 	if (prev_match) *i_spa = ppst->gdelval;
 	*i_spa++ = ppst->ggapval;
       }
@@ -3509,8 +3509,8 @@ int calc_code(const unsigned char *aa0, int n0,
     if (annot1_p && annot1_p->n_annot > 0) {
       s_annot1_arr_p = annot1_p->s_annot_arr_p;
       while (i1_annot < annot1_p->n_annot) {
-	if (s_annot1_arr_p[i1_annot]->pos >= i1 + i1_offset) {break;}
-	if (s_annot1_arr_p[i1_annot]->end < i1 + i1_offset) {i1_annot++; continue;}
+	if (s_annot1_arr_p[i1_annot]->pos >= i1+i1_offset) {break;}
+	if (s_annot1_arr_p[i1_annot]->end < i1+i1_offset) {i1_annot++; continue;}
 
 	if (s_annot1_arr_p[i1_annot]->label == '-') {
 	  process_annot_match(&itmp, NULL, i1_offset+seq_pos(i1,aln->llrev,0), i0_offset + seq_pos(i0,aln->qlrev,0),
@@ -3585,7 +3585,7 @@ int calc_code(const unsigned char *aa0, int n0,
 
       /* variant annot_p annotations can cause substitution */
       if (s_annot1_arr_p) {
-	if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos) {
+	if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
 	  i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 				      i0_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				      i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -3656,7 +3656,7 @@ int calc_code(const unsigned char *aa0, int n0,
 
       /* variant annot1_p annotations can cause substitution */
       if (s_annot1_arr_p) {
-	if (i1 + i1_offset == s_annot1_arr_p[i1_annot]->pos) {
+	if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
 	  i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 				      i0_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				      i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -3725,7 +3725,7 @@ int calc_code(const unsigned char *aa0, int n0,
 
       /* variant annot1_p annotations can cause substitution */
       if (s_annot1_arr_p) {
-	if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos) {
+	if (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
 	  i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 				      i0_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				      i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -3976,7 +3976,7 @@ int calc_id(const unsigned char *aa0, int n0,
       sp0 = sq[ap0[i0]];
       sp1 = sq[ap1[i1]];
 
-      if (s_annot1_arr_p && i1+i1_offset == s_annot1_arr_p[i1_annot]->pos) {
+      if (s_annot1_arr_p && (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end)) {
 	i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 				    i0_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				    i1_annot, annot1_p->n_annot, s_annot1_arr_p,
@@ -4008,7 +4008,7 @@ int calc_id(const unsigned char *aa0, int n0,
       sp0 = sq[ap0[i0]];
       sp1 = sq[ap1[i1]];
 
-      if (s_annot1_arr_p && i1+i1_offset == s_annot1_arr_p[i1_annot]->pos) {
+      if (s_annot1_arr_p && (i1+i1_offset == s_annot1_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end)) {
 	i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], i1_offset+seq_pos(i1,aln->llrev,0),
 				    i0_offset+seq_pos(i0,aln->qlrev,0), &sp1, NULL, sq,
 				    i1_annot, annot1_p->n_annot, s_annot1_arr_p,
