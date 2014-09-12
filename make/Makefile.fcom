@@ -186,11 +186,11 @@ drop_tfm.o : dropfs2.c param.h rstruct.h defs.h drop_func.h dyn_string.h
 drop_tfa.o : dropnfa.c dropnfa.h upam.h param.h rstruct.h defs.h dyn_string.h
 	$(CC) $(THR_CC) $(CFLAGS) -c -DTFASTA dropnfa.c -o drop_tfa.o
 
-drop_fx.o : dropfx.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -c dropfx.c -o drop_fx.o
+drop_fx.o : dropfx2.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropfx2.c -o drop_fx.o
 
-drop_tfx.o : dropfx.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfx.c -o drop_tfx.o
+drop_tfx.o : dropfx2.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfx2.c -o drop_tfx.o
 
 drop_fz.o : dropfz2.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
 	$(CC) $(THR_CC) $(CFLAGS) -c dropfz2.c -o drop_fz.o
