@@ -3158,19 +3158,19 @@ calc_cons_u( /* inputs */
       d1_alen++;
       if (*spa_p == M_IDENT) {d1_ident++;}
 
-      if (have_ann && calc_func_mode == CALC_CODE) {
+      if (have_ann && have_push_features) {
+	if (calc_func_mode == CALC_CODE) {
 #ifndef TFAST
-	add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
+    	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
 		       i0_offset + seq_pos(i0,aln->qlrev,0), i1_offset+seq_pos(i1,aln->llrev,0),
 		       sim_sym[*spa_p], annot_var_dyn);
 #else
-	add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
+	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
 		       i0_offset + seq_pos(i1,aln->llrev,0), i1_offset+seq_pos(i0,aln->qlrev,0),
 		       sim_sym[*spa_p], annot_var_dyn);
 #endif
-      }
+	}
 
-      if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
@@ -3236,7 +3236,7 @@ calc_cons_u( /* inputs */
       if (calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 3, *spa_p, *sp0_p, *sp1_p);
       
-	if (have_ann) {
+	if (have_push_features) {
 #ifndef TFAST
 	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
 			 i0_offset + seq_pos(i0,aln->qlrev,0), i1_offset+seq_pos(i1,aln->llrev,0),

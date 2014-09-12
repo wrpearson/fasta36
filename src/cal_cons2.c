@@ -596,17 +596,16 @@ calc_cons_u( /* inputs */
 
       if (calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, op, *spa_p, *sp0_p, *sp1_p);
-      
-	if (have_ann) {
-	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
-			 q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
-			 sim_sym[*spa_p], annot_var_dyn);
-	}
       }
 
       /* now we have done all the ?modified identity checks, display
 	 potential site annotations */
       if (have_ann && have_push_features) {
+	if (calc_func_mode == CALC_CODE) {
+	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
+			 q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
+			 sim_sym[*spa_p], annot_var_dyn);
+	}
 	display_push_features(annot_stack, annot_var_dyn,
 			      q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
