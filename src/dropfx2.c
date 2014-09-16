@@ -3085,8 +3085,13 @@ calc_cons_u( /* inputs */
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
+#ifndef TFAST
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
+#else
+			      i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
+			      i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+#endif
 			      sim_sym[*spa_p], 
 			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
@@ -3191,8 +3196,13 @@ calc_cons_u( /* inputs */
 	}
 
 	display_push_features(annot_stack, annot_var_dyn,
+#ifndef TFAST
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
+#else
+			      i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
+			      i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+#endif
 			      sim_sym[*spa_p],
 			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
@@ -3276,8 +3286,13 @@ calc_cons_u( /* inputs */
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
+#ifndef TFAST
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
+#else
+			      i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
+			      i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+#endif
 			      sim_sym[*spa_p],
 			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
@@ -3335,8 +3350,8 @@ calc_cons_u( /* inputs */
 			    i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			    i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
 #else
-			    i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
-			    i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+			    i0_offset+seq_pos(i0,aln->llrev,0), *sp0_p,
+			    i1_offset+seq_pos(i1,aln->qlrev,0), *sp1_p,
 #endif
 			    sq[ap1[i1]], sim_sym[t_spa], ann_comment,
 			    annot_var_dyn, comment_target, annot_fmt);
@@ -3366,8 +3381,13 @@ calc_cons_u( /* inputs */
 	 potential site annotations */
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
+#ifndef TFAST
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
+#else
+			      i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
+			      i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+#endif
 			      sim_sym[*spa_p], 
 			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
@@ -3432,8 +3452,13 @@ calc_cons_u( /* inputs */
 
       if (have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
+#ifndef TFAST
 			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
+#else
+			      i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
+			      i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+#endif
 			      sim_sym[*spa_p], 
 			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
@@ -3471,8 +3496,13 @@ calc_cons_u( /* inputs */
 
     if (have_push_features) {
       display_push_features(annot_stack, annot_var_dyn,
-			    i0_offset + seq_pos(aln->amax0-1,aln->qlrev,0), *sp0_p, 
-			    i1_offset + seq_pos(aln->amax1-1,aln->llrev,0), *sp1_p,
+#ifndef TFAST
+			      i0_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
+			      i1_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
+#else
+			      i0_offset+seq_pos(i1,aln->llrev,0), *sp0_p,
+			      i1_offset+seq_pos(i0,aln->qlrev,0), *sp1_p,
+#endif
 			    sim_sym[*spa_p],
 			    a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
     }
