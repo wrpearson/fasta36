@@ -679,7 +679,6 @@ calc_cons_u( /* inputs */
 	      have_push_features = 0;
 	    }
 	    if (calc_func_mode == CALC_CONS) {
-	      spa_p++;
 	      sp1a_p++;
 	    }
 	  }

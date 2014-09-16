@@ -1898,6 +1898,9 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   int n_annot = 0;
   int last_left_bracket = -1;
 
+  int *t_ascii = lascii;	/* generally, annotation target is library */
+  if (target != 1) t_ascii = qascii;	/* for TFAST, target is only query */
+
   struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr, *tmp_domain_entry_arr;
 
   SAFE_STRNCPY(annot_acc, tmp_line, sizeof(annot_acc));
@@ -1952,7 +1955,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       tmp_ann_entry_arr[n_annot].comment = NULL;
       tmp_ann_entry_arr[n_annot].target = target;
     }
-    else {
+    else {	/* ctmp_label == ']' -- closing domain */
       if (last_left_bracket < 0) {
 	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry() - ']' without '[': %s\n",
 		__FILE__,__LINE__, tmp_line);
@@ -1970,17 +1973,15 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
     }
     if (ctmp_label== 'V') {
       /* map the .value from ascii to encoded residue */
-      /* this must be lascii, not qascii, because the script
-	 describes the library, not the query, and for FASTX/TFASTX,
-	 those are different */
-      tmp_ann_entry_arr[n_annot].value = lascii[tmp_ann_entry_arr[n_annot].value];
+      /* in general, it is lascii == qascii, but for TFAST, lascii != qascii */
+      tmp_ann_entry_arr[n_annot].value = t_ascii[tmp_ann_entry_arr[n_annot].value];
     }
     else if (ctmp_label == '-') {
       l_doms++;
       i_ann = add_annot_char(m_msp->ann_arr, '[');
       if (i_ann > 0) {
 	qascii['['] = NANN + i_ann;
-	m_msp->ann_arr_def[i_ann] = NULL;
+	m_msp->ann_arr_def[i_ann] = NULL;	/* set definition string NULL */
       }
       i_ann = add_annot_char(m_msp->ann_arr, ']');
       if (i_ann > 0) {
@@ -1993,16 +1994,17 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       last_left_bracket = n_annot;
       i_ann = add_annot_char(m_msp->ann_arr, ctmp_label);
       if (i_ann > 0) {
-	qascii[ctmp_label] = NANN + i_ann;
+	qascii['['] = NANN + i_ann;
 	m_msp->ann_arr_def[i_ann] = NULL;
       }
     }
     else if (ctmp_label == ']') {
       i_ann = add_annot_char(m_msp->ann_arr, ctmp_label);
       if (i_ann > 0) {
-	qascii[ctmp_label] = NANN + i_ann;
+	qascii[']'] = NANN + i_ann;
 	m_msp->ann_arr_def[i_ann] = NULL;
       }
+      continue;	/* no n_annot++, */
     }
     else if ((i_ann = add_annot_char(m_msp->ann_arr, ctmp_label)) > 0) {
       m_msp->ann_arr_def[i_ann] = NULL;
@@ -3870,7 +3872,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
     return 0;
   }
   else {
-    /* use domain link that was allocated already */
+    /* need new_dom_feat for either domain '-' or non-variant feature */
     if (annot_arr_p->link) {
       new_dom_feat = annot_arr_p->link;
       /* ensure initial values zero-ed out */
@@ -3898,6 +3900,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
       }
     }
     else if (annot_arr_p->label == '-') {
+
       /* initialize this dom_entry */
       new_dom_feat->score = init_score;
       new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
@@ -4084,12 +4087,12 @@ void comment_var (long i0_pos, char sp0, long i1_pos, char sp1, char o_sp1,
     if (target ==1) {
       d1_fmt = " Variant: %d%c%c%d%c : %c%d%c";
       sprintf(tmp_str,d1_fmt,
-	      i0_pos+1, sp0, sim_char, i1_pos+1,sp1, o_sp1,i1_pos+1,sp1);
+	      i0_pos+1, sp0, sim_char, i1_pos+1,sp1, o_sp1,(target?i1_pos+1:i0_pos+1),sp1);
     }
     else {
       d1_fmt = " qVariant: %d%c%c%d%c : %c%d%c";
       sprintf(tmp_str,d1_fmt,
-	      i0_pos+1, sp0, sim_char, i1_pos+1,sp1, o_sp1,i1_pos+1,sp0);
+	      i0_pos+1, sp0, sim_char, i1_pos+1,sp1, o_sp1,(target?i1_pos+1:i0_pos+1),sp0);
     }
 
     /* SAFE_STRNCAT(annot_var_s,tmp_str,n_annot_var_s); */
@@ -4122,6 +4125,14 @@ void comment_var (long i0_pos, char sp0, long i1_pos, char sp1, char o_sp1,
   }
 }
 
+/* display push features is designed to display both individual
+   residue features (active site, variant, modification site) and
+   domain boundaries.  Domain boundary information is displayed when
+   the domain is closed or the alignment boundary has been exceeded
+   (for open domains).  Thus, it uses the current site for the end,
+   and information domfeat_link information in annot_stack
+*/
+
 void
 display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym,
@@ -4130,7 +4141,6 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   struct domfeat_link *this_dom_p;
   double lbits, total_bits, zscore, lprob, lpercid;
   char *ann_comment, *bp;
-  struct domfeat_link *domain_p;
   char tmp_lstr[MAX_LSTR], ctarget, tmp_sstr[MAX_SSTR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
@@ -4172,8 +4182,11 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       else lpercid = -1.0;
 
       if (d_type == 1) {
-	if (this_dom_p->annot_p->target == 0) {dt1_fmt = " qRegion: %d-%d:%d-%d : score=%d; bits=%.1f; Id=%.3f; Q=%.1f :  %s\n";}
-	else {dt1_fmt = " Region: %d-%d:%d-%d : score=%d; bits=%.1f; Id=%.3f; Q=%.1f :  %s\n";}
+	if (this_dom_p->annot_p->target == 0) {
+	  dt1_fmt = " qRegion: %d-%d:%d-%d : score=%d; bits=%.1f; Id=%.3f; Q=%.1f :  %s\n";
+	} else {
+	  dt1_fmt = " Region: %d-%d:%d-%d : score=%d; bits=%.1f; Id=%.3f; Q=%.1f :  %s\n";
+	}
 	sprintf(tmp_lstr, dt1_fmt, q_min, i0_pos+1,
 		l_min, i1_pos+1, this_dom_p->score, lbits, lpercid, lprob,
 		(this_dom_p->annot_p->comment) ? this_dom_p->annot_p->comment : '\0');
