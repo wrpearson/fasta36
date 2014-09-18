@@ -143,10 +143,12 @@ sub push_match {
 }
 
 sub get_pfam_www {
-  my ($seq_id, $seq_length) = @_;
+  my ($acc, $seq_length) = @_;
 
-  if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
-  else {$url = "protein/$acc?output=xml"; }
+#  if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
+#  else {$url = "protein/$acc?output=xml"; }
+
+  $url = "protein/$acc?output=xml";
 
   my $res = get($loc . $url);
 
@@ -263,7 +265,7 @@ sub get_pfam_www {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info}, $seq_id );
+    $pf->{info} = domain_name($pf->{info}, $acc );
   }
 
   my @feats = ();
@@ -328,15 +330,15 @@ ann_feats.pl
 =head1 DESCRIPTION
 
 C<ann_pfam_www.pl> extracts domain information from the Pfam www site
-(pfam.sanger.ac.uk).  Currently, the program works with database
+(pfam.xfam.org).  Currently, the program works with database
 sequence descriptions in several formats:
 
  >gi|1705556|sp|P54670.1|CAF1_DICDI
  >sp|P09488|GSTM1_HUMAN
- >sp:CALM_HUMAN 
+ >SP:CALM_HUMAN 
 
 C<ann_pfam_www.pl> uses the Pfam RESTful WWW interface
-(C<pfam.sanger.ac.uk/help#tabview=10>) to download domain
+(C<pfam.xfam.org/help#tabview=10>) to download domain
 names/locations/score.  For proteins that have multiple domains
 associated with the same overlapping region (domains overlap by more
 than 1/3 of the domain length), C<auto_pfam.pl> selects the domain

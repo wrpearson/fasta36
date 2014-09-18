@@ -10,7 +10,8 @@
 # (3) return the tab delimited features
 #
 
-# this version only annotates sequences known to Pfam27:pfamseq:
+# this version only annotates sequences known to Pfam26:pfamseq:
+# >pf26|164|O57809|1A1D_PYRHO
 # and only provides domain information
 
 use strict;
@@ -25,7 +26,7 @@ my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam27", 0, "web_user", "fasta_www");
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $no_over, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0,0);
 my ($min_nodom) = (10);
 
 GetOptions(
@@ -35,6 +36,8 @@ GetOptions(
     "password=s" => \$pass,
     "port=i" => \$port,
     "lav" => \$lav,
+    "no-over" => \$no_over,
+    "no_over" => \$no_over,
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
@@ -215,7 +218,75 @@ sub get_pfam_annots {
     push @pf_domains, $row_href
   }
 
-  # no longer need to check on domain overlap.
+  # check for domain overlap, and resolve check for domain overlap
+  # (possibly more than 2 domains), choosing the domain with the best
+  # evalue
+
+  if($no_over && scalar(@pf_domains) > 1) {
+
+    my @tmp_domains = @pf_domains;
+    my @save_domains = ();
+
+    my $prev_dom = shift @tmp_domains;
+
+    while (my $curr_dom = shift @tmp_domains) {
+
+      my @overlap_domains = ($prev_dom);
+
+      my $diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
+      # check for overlap > domain_length/3
+
+      my ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
+      my $inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
+		       (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
+
+      my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+
+      while ($inclusion || ($diff > 0 && $diff > $longer_len/3)) {
+	push @overlap_domains, $curr_dom;
+	$curr_dom = shift @tmp_domains;
+	last unless $curr_dom;
+	$diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
+	($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
+	$longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+	$inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
+		      (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
+      }
+
+      # check for overlapping domains; >1 because $prev_dom is always there
+      if (scalar(@overlap_domains) > 1 ) {
+	# if $rpd2_fams, check for a chosen one
+	if ($rpd2_fams) {
+	  for my $dom (@overlap_domains) {
+	    if ($rpd2_clan_fams{$dom->{auto_pfamA}}) {
+	      $prev_dom = $dom;
+	      last;
+	    }
+	  }
+	}
+	else {
+	  @overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
+	  $prev_dom = $overlap_domains[0];
+	}
+      }
+
+      # $prev_dom should be the best of the overlaps, and we are no longer overlapping > dom_length/3
+      push @save_domains, $prev_dom;
+      $prev_dom = $curr_dom;
+    }
+    if ($prev_dom) {push @save_domains, $prev_dom;}
+
+    @pf_domains = @save_domains;
+
+    # now check for smaller overlaps
+    for (my $i=1; $i < scalar(@pf_domains); $i++) {
+      if ($pf_domains[$i-1]->{seq_end} >= $pf_domains[$i]->{seq_start}) {
+	my $overlap = $pf_domains[$i-1]->{seq_end} - $pf_domains[$i]->{seq_start};
+	$pf_domains[$i-1]->{seq_end} -= int($overlap/2);
+	$pf_domains[$i]->{seq_start} = $pf_domains[$i-1]->{seq_end}+1;
+      }
+    }
+  }
 
   if ($neg_doms) {
     my @npf_domains;
@@ -250,6 +321,7 @@ sub get_pfam_annots {
     }
     else {
       push @feats, [$d_ref->{seq_start}, '-', $d_ref->{seq_end},  $d_ref->{info} ];
+#      push @feats, [$d_ref->{seq_end}, ']', '-', ""];
     }
 
   }
@@ -285,35 +357,45 @@ ann_feats.pl
 
 =head1 SYNOPSIS
 
- ann_pfam.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_pfam_e.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
- --neg-doms,  -- report domains between annotated domains as NODOM
+ --no-over  : generate non-overlapping domains (equivalent to ann_pfam.pl)
+ --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
- --min_nodom=10  -- minimum length between domains for NODOM
+ --min_nodom=10  : minimum length between domains for NODOM
 
- --host, --user, --password, --port --db -- info for mysql database
+ --host, --user, --password, --port --db : info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_pfam_e.pl> extracts domain information from the pfam27 msyql
-database.  The program works with database sequence
-descriptions in several formats, including
+C<ann_pfam_e.pl> extracts domain information from the pfam26 msyql
+database.  Currently, the program works with database sequence
+descriptions in one of two formats:
 
- >gi|1705556|sp|P54670.1|CAF1_DICDI	 (standard NCBI SwissProt database)
+ Currently, the program works with database
+sequence descriptions in several formats:
 
- >SP:GSTM1_HUMAN P09488 (EBI Swissprot format)
+ >gi|1705556|sp|P54670.1|CAF1_DICDI
+ >sp|P09488|GSTM1_HUMAN
+ >sp:CALM_HUMAN 
 
 C<ann_pfam_e.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
-information on a protein.  Unlike C<ann_pfam.pl>, C<ann_pfam_e.pl>
-does not require that domains be non-overlapping.
+information on a protein. 
+
+If the "--no-over" option is set, overlapping domains are selected and
+edited to remove overlaps.  For proteins with multiple overlapping
+domains (domains overlap by more than 1/3 of the domain length),
+C<auto_pfam_e.pl> selects the domain annotation with the best
+C<domain_evalue_score>.  When domains overlap by less than 1/3 of the
+domain length, they are shortened to remove the overlap.
 
 C<ann_pfam_e.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam.pl> or C<-V "\!ann_pfam_e.pl --neg"> option.
+the C<-V \!ann_pfam_e.pl> or C<-V "\!ann_pfam_e.pl --neg"> option.
 
 =head1 AUTHOR
 
