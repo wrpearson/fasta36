@@ -9,6 +9,38 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Sept. 17, 2014 [new version, fasta-36.3.7]
+[compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
+
+The annotation domain scoring/plotting strategy has been extended to
+allow overlapping domains.  To accommodate overlapping domain
+annotations, the annotation file format (e.g. gstm1_human.annot) has
+been extended to accept the form:
+
+>sp|P09388|GSTM1_HUMAN
+1	-	88	Glutathione_S-Trfase_N :1
+7	V	F	Mutagen: Reduces catalytic activity 100- fold.
+90	-	208	Glutathione-S-Trfase_C-like :2
+108	V	Q	Mutagen: Reduces catalytic activity by half.
+
+where a "-" in the second field indicates that the first and third
+fields specify the beginning and end of the domain. In previous
+versions, a '[' specified the beginning of a domain, and a ']' on a
+later line specified the end of the domain. '[' and ']' on separate
+lines required that domains not overlap (so that the '[' and ']' could
+be paired).  fasta-36.3.7 will still read this format, but the "start -
+stop" format is both simpler and more flexible.
+
+Three new annotation scripts are available that use the new domain
+notation: ann_feats2ipr_e.pl, ann_feats_up_www2_e.pl, ann_pfam_e.pl,
+and ann_pfam_www_e.pl.  All four scripts will report overlapping
+domains.
+
+Overlapping domains also allows domain annotations from different
+sources to be combined (e.g. InterPro Pfam, Panther, and Superfamily
+domain annotations), as well as domain annotations of different types,
+e.g. Uniprot domain and secondary structure annotations.
+
 >>Aug. 28, 2014	[re-released as fasta-36.3.6f]
 [ncbl2_mlib.c]
 The code used to parse blastfmtdb sequence description lines has not

@@ -143,7 +143,7 @@ sub push_match {
 }
 
 sub get_pfam_www {
-  my ($seq_id, $seq_length) = @_;
+  my ($acc, $seq_length) = @_;
 
   if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
   else {$url = "protein/$acc?output=xml"; }
@@ -166,10 +166,6 @@ sub get_pfam_www {
   $seq_length = $pf_seq_length;
   @pf_domains = sort { $a->{start} <=> $b->{start} } @pf_domains;
 
-  # check for domain overlap, and resolve check for domain overlap
-  # (possibly more than 2 domains), choosing the domain with the best
-  # evalue
-
   for my $dom_ref (@pf_domains) {
     if ($pf_acc) {
       $dom_ref->{info} = $dom_ref->{accession};
@@ -179,66 +175,7 @@ sub get_pfam_www {
     }
   }
 
-  if(scalar(@pf_domains) > 1) {
-
-    my @tmp_domains = @pf_domains;
-    my @save_domains = ();
-
-    my $prev_dom = shift @tmp_domains;
-
-    while (my $curr_dom = shift @tmp_domains) {
-
-      my @overlap_domains = ($prev_dom);
-
-      my $diff = $prev_dom->{end} - $curr_dom->{start};
-      # check for overlap > domain_length/3
-
-      my ($prev_len, $cur_len) = ($prev_dom->{end}-$prev_dom->{start}+1, $curr_dom->{end}-$curr_dom->{start}+1);
-      my $inclusion = ((($curr_dom->{start} >= $prev_dom->{start}) && ($curr_dom->{end} <= $prev_dom->{end})) ||
-		       (($curr_dom->{start} <= $prev_dom->{start}) && ($curr_dom->{end} >= $prev_dom->{end})));
-
-      my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
-
-      while ($inclusion || ($diff > 0 && $diff > $longer_len/3)) {
-	push @overlap_domains, $curr_dom;
-	$curr_dom = shift @tmp_domains;
-	last unless $curr_dom;
-	$diff = $prev_dom->{end} - $curr_dom->{start};
-	($prev_len, $cur_len) = ($prev_dom->{end}-$prev_dom->{start}+1, $curr_dom->{end}-$curr_dom->{start}+1);
-	$longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
-	$inclusion = ((($curr_dom->{start} >= $prev_dom->{start}) && ($curr_dom->{end} <= $prev_dom->{end})) ||
-		      (($curr_dom->{start} <= $prev_dom->{start}) && ($curr_dom->{end} >= $prev_dom->{end})));
-      }
-
-      # check for overlapping domains; >1 because $prev_dom is always there
-      if (scalar(@overlap_domains) > 1 ) {
-	# if $rpd2_fams, check for a chosen one
-
-	for my $dom ( @overlap_domains) {
-	  $dom->{evalue} = 1.0 unless defined($dom->{evalue});
-	}
-
-	@overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
-	$prev_dom = $overlap_domains[0];
-      }
-
-      # $prev_dom should be the best of the overlaps, and we are no longer overlapping > dom_length/3
-      push @save_domains, $prev_dom;
-      $prev_dom = $curr_dom;
-    }
-    if ($prev_dom) {push @save_domains, $prev_dom;}
-
-    @pf_domains = @save_domains;
-
-    # now check for smaller overlaps
-    for (my $i=1; $i < scalar(@pf_domains); $i++) {
-      if ($pf_domains[$i-1]->{end} >= $pf_domains[$i]->{start}) {
-	my $overlap = $pf_domains[$i-1]->{end} - $pf_domains[$i]->{start};
-	$pf_domains[$i-1]->{end} -= int($overlap/2);
-	$pf_domains[$i]->{start} = $pf_domains[$i-1]->{end}+1;
-      }
-    }
-  }
+  # nolonger check for overlapping domains
 
   if ($neg_doms) {
     my @npf_domains;
@@ -263,7 +200,7 @@ sub get_pfam_www {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info}, $seq_id );
+    $pf->{info} = domain_name($pf->{info}, $acc );
   }
 
   my @feats = ();
@@ -272,8 +209,7 @@ sub get_pfam_www {
       push @feats, [$d_ref->{start}, $d_ref->{end}, $d_ref->{info}];
     }
     else {
-      push @feats, [$d_ref->{start}, '[', '-',  $d_ref->{info} ];
-      push @feats, [$d_ref->{end}, ']', '-', ""];
+      push @feats, [$d_ref->{start}, '-', $d_ref->{end},  $d_ref->{info} ];
     }
   }
 
@@ -337,19 +273,15 @@ sequence descriptions in several formats:
 
 C<ann_pfam_www.pl> uses the Pfam RESTful WWW interface
 (C<pfam.sanger.ac.uk/help#tabview=10>) to download domain
-names/locations/score.  For proteins that have multiple domains
-associated with the same overlapping region (domains overlap by more
-than 1/3 of the domain length), C<auto_pfam.pl> selects the domain
-annotation with the best C<domain_evalue_score>.  When domains overlap
-by less than 1/3 of the domain length, they are shortened to remove
-the overlap.
+names/locations/score.  Unlike C<ann_pfam.pl>, C<ann_pfam_e.pl>
+does not require that domains be non-overlapping.
 
-C<ann_feats_up_www2.pl> is an alternative to C<ann_pfam.pl> that does
- not require a MySQL instance with a Pfam database installation.
+C<ann_pfam_www_e.pl> is an alternative to C<ann_pfam_e.pl>
+that does not require a local MySQL instance with
+a Pfam database.
 
-C<ann_pfam_www.pl> is designed to be used by the B<FASTA> programs
-with the C<-V \!ann_pfam_www.pl> or C<-V "\!ann_pfam_www.pl --neg">
-option.
+C<ann_pfam_www_e.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_pfam_www_e.pl> or C<-V "\!ann_pfam_www_e.pl --neg"> option.
 
 =head1 AUTHOR
 

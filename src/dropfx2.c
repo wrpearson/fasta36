@@ -3071,8 +3071,7 @@ calc_cons_u( /* inputs */
 					i1_annot, annotp_p->n_annot, s_annotp_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
 					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
-					ppst->ggapval+ppst->gdelval
-					);
+					ppst->ggapval+ppst->gdelval);
 	  }
 
 	  if (prev_match) d1_score += ppst->gdelval;
@@ -3250,7 +3249,7 @@ calc_cons_u( /* inputs */
 			  annot_var_dyn, comment_target, annot_fmt);
 	      }
 	      else {
-		sprintf(tmp_str,"%c%d%c;",sq[aa0[i0]],i0+1,*sp0_p);
+		sprintf(tmp_str,"%c%d%c;",sq[ap1[i1]],i1+1,*sp1_p);
 		/*  SAFE_STRNCAT(annot_var_s,tmp_str,n_annot_var_s); */
 		dyn_strcat(annot_var_dyn, tmp_str);
 	      }
@@ -3376,7 +3375,6 @@ calc_cons_u( /* inputs */
 
       if (cumm_seq_score) *i_spa++ = itmp;
 
-
       /* now we have done all the ?modified identity checks, display
 	 potential site annotations */
       if (have_ann && have_push_features) {
@@ -3400,7 +3398,6 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 5:	/* codon insertion */
-
       if (calc_func_mode == CALC_CODE) {
 	*spa_p = 5;
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 5, *spa_p,'-','-');
@@ -3409,7 +3406,6 @@ calc_cons_u( /* inputs */
       if (have_ann && calc_func_mode == CALC_CONS) {
 	*sp1a_p++ = *sp0a_p++ = ' ';
       }
-
 
       if (cumm_seq_score) {
 	if (prev_match) *i_spa = ppst->gdelval;
