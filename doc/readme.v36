@@ -9,9 +9,13 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Sept. 19, 2014
+[dropfx2.c, dropfz3.c]
+Fixes to produce correct coordinates with forward and reverse
+complement [t]fast[x,y].
+
 >>Sept. 17, 2014 [new version, fasta-36.3.7]
 [compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
-
 The annotation domain scoring/plotting strategy has been extended to
 allow overlapping domains.  To accommodate overlapping domain
 annotations, the annotation file format (e.g. gstm1_human.annot) has
