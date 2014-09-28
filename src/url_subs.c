@@ -25,7 +25,7 @@
 
 extern int seq_pos(int pos, int rev, int off);
 
-char *display_domains(char, struct annot_entry *domain_arr_p, int n_domains);
+char *display_domains(char, struct annot_entry **s_annot_arr_p, int n_domains);
 char *web_encode(const char *);
 
 void encode_json_str(FILE *fp, const char *label, const char *value, int first) {
@@ -82,7 +82,7 @@ void encode_json_domains(FILE *fp, const char *label, const struct annot_str *an
   for (i=0; i < annot_p->n_domains; i++) {
     if (i != 0) fprintf(fp, ",\n");
     fprintf(fp, "  { \"start\":%ld, \"stop\":%ld, \"description\":\"%s\" }",
-	    annot_p->domain_arr_p[i].pos+1,annot_p->domain_arr_p[i].end+1,annot_p->domain_arr_p[i].comment);
+	    annot_p->s_annot_arr_p[i]->pos+1,annot_p->s_annot_arr_p[i]->end+1,annot_p->s_annot_arr_p[i]->comment);
   }
   fprintf(fp,"\n  ]");
 }
@@ -200,10 +200,10 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
     q_domain_s = l_domain_s = NULL;
 
     if (q_annot_p && q_annot_p->n_domains > 0 && 
-	(q_domain_s = display_domains('q',q_annot_p->domain_arr_p, q_annot_p->n_domains))!=NULL) {
+	(q_domain_s = display_domains('q',q_annot_p->s_annot_arr_p, q_annot_p->n_domains))!=NULL) {
     }
     if (l_annot_p && l_annot_p->n_domains > 0 && 
-	(l_domain_s = display_domains('l',l_annot_p->domain_arr_p, l_annot_p->n_domains))!=NULL) {
+	(l_domain_s = display_domains('l',l_annot_p->s_annot_arr_p, l_annot_p->n_domains))!=NULL) {
     }
 
     /* combine domain strings */
@@ -305,7 +305,7 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
   }
 }
 
-char *display_domains(char target, struct annot_entry *domain_arr_p, int n_domains) {
+char *display_domains(char target, struct annot_entry **annot_arr_p, int n_domains) {
   char *domain_s;
   char line[MAX_STR];
   int i, n_domain_s = MAX_LSTR;
@@ -318,7 +318,7 @@ char *display_domains(char target, struct annot_entry *domain_arr_p, int n_domai
 
   for (i=0; i<n_domains; i++) {
     sprintf(line, "%cDomain:\t%ld-%ld\t%s\n",
-	    target, domain_arr_p[i].pos+1, domain_arr_p[i].end+1, domain_arr_p[i].comment);
+	    target, annot_arr_p[i]->pos+1, annot_arr_p[i]->end+1, annot_arr_p[i]->comment);
     if (strlen(domain_s) + strlen(line)+1 > n_domain_s) {
       n_domain_s += n_domain_s/2;
       domain_s = realloc(domain_s, n_domain_s);
