@@ -146,7 +146,6 @@ struct annot_str {
   int n_domains; 	/* length of domain_arr_p array */
   struct annot_entry *annot_arr_p;	/* array[n_annot] of annot_entry's for all annotations */
   struct annot_entry **s_annot_arr_p;	/* sorted version of annots */
-  struct annot_entry *domain_arr_p;	/* array[n_domains] of annot_entry's for domains */
   struct domfeat_link *links_head;
 };
 

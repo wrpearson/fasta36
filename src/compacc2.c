@@ -1896,7 +1896,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   int i_ann, l_doms, r_doms;
   int n_annot = 0;
 
-  struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr, *tmp_domain_entry_arr;
+  struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr;
 
   SAFE_STRNCPY(annot_acc, tmp_line, sizeof(annot_acc));
 
@@ -2077,9 +2077,6 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       annot_p->s_annot_arr_p = s_tmp_ann_entry_arr;
       annot_p->n_annot = n_annot;
       annot_p->n_domains = l_doms;
-      if (l_doms > 0) {
-	annot_p->domain_arr_p = tmp_domain_entry_arr;
-      }
       /* set to NULL to re-initialize */
     }
   }
