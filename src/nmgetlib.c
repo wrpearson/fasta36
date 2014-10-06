@@ -1,10 +1,23 @@
+/*  copyright (c) 1987, 1988, 1989, 1992, 1995, 2000, 2014 William
+    R. Pearson and the University of Virginia */
+/*
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing,
+     software distributed under this License is distributed on an "AS
+     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+     express or implied.  See the License for the specific language
+     governing permissions and limitations under the License. 
+ */
 
 /*  $Id: nmgetlib.c 1251 2014-01-24 21:34:05Z wrp $ */
 /* $Revision: 1251 $  */
 
 /*	May, June 1987	- modified for rapid read of database
-
-	copyright (c) 1987,1988,1989,1992,1995,2000 William R. Pearson
 
 	revised (split) version of nmgetaa.c -> renamed nmgetlib.c
 

@@ -2,8 +2,6 @@
 /* $Id: last_thresh.c 808 2011-07-19 20:05:24Z wrp $ */
 /* $Revision: 808 $  */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,8 +1,21 @@
-/* copyright (c) 1996, 1997, 1998, 1999 William R. Pearson and the
+/* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
+   the U. of Virginia */
+/*
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
 
-   U. of Virginia */
+       http://www.apache.org/licenses/LICENSE-2.0
 
-/* modified to do more initialization of work_info here, rather than in main() */
+     Unless required by applicable law or agreed to in writing,
+     software distributed under this License is distributed on an "AS
+     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+     express or implied.  See the License for the specific language
+     governing permissions and limitations under the License. 
+ */
+
+/* modified to do more initialization of work_info here, rather than
+   in main() */
 
 /* $Id: pcomp_subs2.c 849 2011-10-21 20:09:55Z wrp $ */
 /* $Revision: 849 $  */

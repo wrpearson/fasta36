@@ -1,5 +1,19 @@
 
-/* pgsql_lib.c copyright (c) 2004 William R. Pearson */
+/* pgsql_lib.c copyright (c) 2004, 2014 William R. Pearson and the
+   University of Virginia*/
+/*
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing,
+     software distributed under this License is distributed on an "AS
+     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+     express or implied.  See the License for the specific language
+     governing permissions and limitations under the License. 
+ */
 
 /*  $Id: pgsql_lib.c 781 2011-06-20 10:31:40Z wrp $ */
 /* $Revision: 781 $  */

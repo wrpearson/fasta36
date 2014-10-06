@@ -1,14 +1,27 @@
 /* scaleswn.c */
 
+/* copyright (c) 1995, 1996, 2000 William R. Pearson and the
+   University of Virginia */
+/*
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing,
+     software distributed under this License is distributed on an "AS
+     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+     express or implied.  See the License for the specific language
+     governing permissions and limitations under the License. 
+ */
+
 /*  $Id: scaleswn.c 1245 2013-12-18 18:19:38Z wrp $ */
 /* $Revision: 1245 $  */
 
 /* as of 24 Sept, 2000 - scaleswn uses no global variables */
 
-/*
-	Provide statistical estimates using an extreme value distribution
-
-	copyright (c) 1995, 1996, 2000 William R. Pearson
+/* Provide statistical estimates using an extreme value distribution 
 
 	This code provides multiple methods for scaling sequence
 	similarity scores to correct for length effects.
