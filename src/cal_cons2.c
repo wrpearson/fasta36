@@ -327,7 +327,7 @@ calc_cons_u( /* inputs */
   int *rp;
   int smins, mins, ntmp;
   int have_ann;
-  void *annot_stack;
+  void *annot_stack = NULL;
   struct update_code_str *update_data_p;
 
   /* variables for variant changes */
