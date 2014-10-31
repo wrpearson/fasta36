@@ -121,6 +121,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 
 extern int seq_pos(int pos, int rev, int off);
 
+/* values of calc_func_mode */
 #define CALC_CONS 1
 #define CALC_CODE 2
 #define CALC_ID   3
