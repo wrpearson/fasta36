@@ -323,9 +323,10 @@ ann_feats.pl
  --help include description
 
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
- --neg-doms,  -- report domains between annotated domains as NODOM
+ --neg-doms  -- report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
  --min_nodom=10  -- minimum length between domains for NODOM
+ --pfacc  -- report pfamA_acc, not domain name
 
 =head1 DESCRIPTION
 

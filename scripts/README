@@ -11,14 +11,19 @@ All of the "ann_*.pl" scripts are used to annotate query or library
 sequences using the -V option.  See ../test/test2V.pl for examples.
 
 ann_feats2ipr.pl -- generate Uniprot sites, Interpro domains, from a mySQL database
+
 ann_feats2l.pl -- generate Uniprot sites, domains from a mySQL database
 
-ann_feats_up_www2.pl -- generate Uniprot sites, domains from an EBI web server that converts Uniprot DAS to gff3.
-ann_feats_up_www.pl -- generate Uniprot sites, domains from a Uniprot gff web server (less information than ann_feats_www2.pl)
+ann_feats_up_www2.pl -- generate Uniprot sites, domains from an EBI
+		     	web server that converts Uniprot DAS to gff3.
+
+ann_feats_up_www.pl -- generate Uniprot sites, domains from a Uniprot
+		       gff web server (less information than ann_feats_www2.pl)
 
 ann_pdb_cath.pl -- generate CATH domains using PDB accessions from a mySQL database
 
 ann_pfam.pl -- generate Pfam domains using local Pfam mySQL database
+
 ann_pfam_www.pl -- use Pfam Website, and XML::Twig, to get Pfam domain info.
 
 -- Library expansion

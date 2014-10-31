@@ -386,12 +386,16 @@ calc_cons_u( /* inputs */
 
   /* now get the middle */
   have_ann = 0;	/* default no annotation */
+  /* have_ann encodes which sequences are annotated */
+  if ((annot0_p && annot0_p->n_annot > 0) || (aa0a != NULL)) { have_ann |= 1;}
+  if ((annot1_p && annot1_p->n_annot > 0) || (aa1a != NULL)) { have_ann |= 2;}
+
   if (calc_func_mode == CALC_CONS) {
     spa_p = seqca+mins;	/* pointer to alignment symbol */
     if (cumm_seq_score) i_spa = cumm_seq_score+mins;	/* set index for cumm_seq_score */
     sp0_p = seqc0+mins;
     sp1_p = seqc1+mins;
-    have_ann = (seqc0a != NULL); 
+    /*     have_ann = (seqc0a != NULL);  */
     annot_fmt = DP_FULL_FMT;
   }
   else if (calc_func_mode == CALC_ID) {
@@ -399,18 +403,13 @@ calc_cons_u( /* inputs */
     sp0_p = &sp0_c;
     sp1_p = &sp1_c;
     /* does not require aa0a/aa1a, only for variants */
-    have_ann = ((annot1_p && annot1_p->n_annot > 0) || (annot0_p && annot0_p->n_annot > 0));
+    /*     have_ann = ((annot1_p && annot1_p->n_annot > 0) || (annot0_p && annot0_p->n_annot > 0)); */
     annot_fmt = 0;
   }
   else if (calc_func_mode == CALC_CODE) {
     spa_p = &spa_c;
     sp0_p = &sp0_c;
     sp1_p = &sp1_c;
-
-    have_ann = 0;
-    /* have_ann encodes number of sequences annotated */
-    if ((annot0_p && annot0_p->n_annot > 0) || (aa0a != NULL)) { have_ann |= 1;}
-    if ((annot1_p && annot1_p->n_annot > 0) || (aa1a != NULL)) { have_ann |= 2;}
 
     show_code = (display_code & (SHOW_CODE_MASK+SHOW_CODE_EXT));	/* see defs.h; SHOW_CODE_ALIGN=2,_CIGAR=3,_CIGAR_EXT=4 */
     annot_fmt = 2;
@@ -659,7 +658,7 @@ calc_cons_u( /* inputs */
 	d1_score +=  ppst->ggapval; d1_alen++;
 	d0_score +=  ppst->ggapval; d0_alen++;
 
-	if (op>0) {	/* insertion in aa0 */
+	if (op > 0) {	/* insertion in aa0 */
 	  if (calc_func_mode == CALC_CODE) {
 	    update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
 	  }
@@ -684,6 +683,12 @@ calc_cons_u( /* inputs */
 	      }
 	    }
 
+	    if (calc_func_mode == CALC_CODE) {
+	      add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
+			     q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
+			     '-', annot_var_dyn);
+	    }
+
 	    if (have_push_features) {
 	      display_push_features(annot_stack, annot_var_dyn,
 				    q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
@@ -694,6 +699,7 @@ calc_cons_u( /* inputs */
 	      have_push_features = 0;
 	    }
 	    if (calc_func_mode == CALC_CONS) {
+	      sp0a_p++;
 	      sp1a_p++;
 	    }
 	  }
@@ -730,6 +736,12 @@ calc_cons_u( /* inputs */
 					    ppst->ggapval+ppst->gdelval);
 
 	      }
+	    }
+
+	    if (calc_func_mode == CALC_CODE) {
+	      add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
+			     q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
+			     '-', annot_var_dyn);
 	    }
 
 	    if (have_push_features) {
