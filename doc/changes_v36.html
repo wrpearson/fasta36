@@ -25,7 +25,42 @@ font-size: 12px; font-family: sans-serif; text-decoration:none; background-color
 </small>
 </pre>
 <hr>
-<h2>Latest updates - FASTA version 36.3.6f (August, 2014)</h2>
+<h2>Latest Updates - FASTA version 36.3.7 (September, 2014)</h2>
+<ol>
+<li>Alignment sub-scoring scripts have been extended to allow
+overlapping domains.  This requires a modified annotation file format.
+  The "classic" format placed the beginning and end of a domain on different lines:
+<pre>
+    1   [    -     GST_N
+   88   ]    -
+   90   [    -     GST_C
+  208   ]    - 
+</pre>
+Since the closing "]" was associated with the previous "[", domains could not overlap.
+<p>
+The new format is:
+<pre>
+    1   -    88     GST_N
+   90   -   208    GST_C
+</pre>
+which allows annotations of the form:
+<pre>
+    1   -    88    GST_N
+   75   -   123    GST-middle
+   90   -   208    GST_C
+</pre>
+<p>
+  <li> New annotation scripts are available in
+  the <tt>fasta-36.3.7/scripts</tt> directory,
+  e.g. <tt>ann_pfam_www_e.pl</tt> (Pfam) and <tt>ann_up_www2_e.pl</tt>
+  (Uniprot) to support this new format.  If the domain annotations
+  provided by Pfam or Uniprot overlap, then overlapping domains are
+  provided.  The <tt>_e.pl</tt> new scripts can be directed to provide
+  non-overlapping domains, using the boundary averaging strategy in
+  the older scripts, by specifying the <tt>--no-over</tt> option.
+</ol>
+      
+<h2>Updates - FASTA version 36.3.6f (August, 2014)</h2>
 <p>
 FASTA version 36.3.6f extends previous versions in several ways:
 <ol>
