@@ -3024,7 +3024,7 @@ calc_cons_u( /* inputs */
       ann_comment = NULL;
       annot_stack = NULL;
     }
-    else if (calc_func_mode == CALC_CODE) {
+    else if (have_ann && calc_func_mode == CALC_CODE) {
       annot_stack = init_stack(64,64);
       have_push_features_p = &have_push_features;
     }
@@ -3118,7 +3118,7 @@ calc_cons_u( /* inputs */
 
       if (cumm_seq_score) *i_spa++ = itmp;
 
-      if (calc_func_mode == CALC_CODE) {
+      if (have_ann && calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 3, *spa_p, *sp0_p, *sp1_p);
 
 	if (have_ann && have_push_features) {
@@ -3153,7 +3153,7 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 2:		/* frame shift +2, then match */
-      if (calc_func_mode == CALC_CODE) {
+      if (have_ann && calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
       }
 
@@ -3234,7 +3234,7 @@ calc_cons_u( /* inputs */
       if (*spa_p == M_IDENT) {d1_ident++;}
 
       if (have_ann && have_push_features) {
-	if (calc_func_mode == CALC_CODE) {
+	if (have_ann && calc_func_mode == CALC_CODE) {
     	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
 #ifndef TFAST
 			 i0_offset+seq_pos(i0,aln->qlrev,0),
@@ -3265,7 +3265,7 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 4:		/* frame shift, -1, then match */
-      if (calc_func_mode == CALC_CODE) {
+      if (have_ann && calc_func_mode == CALC_CODE) {
         update_code(al_str, al_str_n-strlen(al_str), update_data_p, 4, *spa_p,'-','-');
       }
 
@@ -3358,7 +3358,7 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 5:		/* insertion in 0 */
-      if (calc_func_mode == CALC_CODE) {
+      if (have_ann && calc_func_mode == CALC_CODE) {
 	*spa_p = 5;
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 5, *spa_p,'-','-');
       }
@@ -3387,7 +3387,7 @@ calc_cons_u( /* inputs */
       if (calc_func_mode == CALC_CONS) {sp0_p++; sp1_p++; spa_p++;}
       break;
     case 0:		/* insertion in 1 */
-      if (calc_func_mode == CALC_CODE) {
+      if (have_ann && calc_func_mode == CALC_CODE) {
 	*spa_p = 5; /* indel code */
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 0, *spa_p,'-','-');
       }
@@ -3460,7 +3460,7 @@ calc_cons_u( /* inputs */
 
   /* done with alignment loop */
 
-  if (calc_func_mode == CALC_CODE) {
+  if (have_ann && calc_func_mode == CALC_CODE) {
     close_update_data(al_str, al_str_n-strlen(al_str), update_data_p);
   }
 

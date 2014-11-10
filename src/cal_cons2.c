@@ -492,6 +492,7 @@ calc_cons_u( /* inputs */
       }
     }
 
+    /* do not need have_ann here, because domain only */
     if (annot0_p && annot0_p->n_annot>0) {
       s_annot0_arr_p = annot0_p->s_annot_arr_p;
 
@@ -615,12 +616,13 @@ calc_cons_u( /* inputs */
 
       /* now we have done all the ?modified identity checks, display
 	 potential site annotations */
-      if (have_ann && have_push_features) {
-	if (calc_func_mode == CALC_CODE) {
+      if (have_ann && calc_func_mode == CALC_CODE) {
 	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
 			 q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
 			 sim_sym[*spa_p], annot_var_dyn);
-	}
+      }
+
+      if (have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
 			      q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
@@ -660,7 +662,7 @@ calc_cons_u( /* inputs */
 	d0_score +=  ppst->ggapval; d0_alen++;
 
 	if (op > 0) {	/* insertion in aa0 */
-	  if (calc_func_mode == CALC_CODE) {
+	  if (have_ann && calc_func_mode == CALC_CODE) {
 	    update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
 	  }
 
@@ -684,7 +686,7 @@ calc_cons_u( /* inputs */
 	      }
 	    }
 
-	    if (calc_func_mode == CALC_CODE) {
+	    if (have_ann && calc_func_mode == CALC_CODE) {
 	      add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
 			     q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
 			     '-', annot_var_dyn);
@@ -715,7 +717,7 @@ calc_cons_u( /* inputs */
 	  aln->ngap_q++;
 	}
 	else {		/* (op < 0),  insertion in aa1 */
-	  if (calc_func_mode == CALC_CODE) {
+	  if (have_ann && calc_func_mode == CALC_CODE) {
 	    update_code(al_str, al_str_n-strlen(al_str), update_data_p, 1, *spa_p,'-','-');
 	  }
 
@@ -774,7 +776,7 @@ calc_cons_u( /* inputs */
     }
   }
 
-  if (calc_func_mode == CALC_CODE) {
+  if (have_ann && calc_func_mode == CALC_CODE) {
     close_update_data(al_str, al_str_n-strlen(al_str), update_data_p);
   }
 
