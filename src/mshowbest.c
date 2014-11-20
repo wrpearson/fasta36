@@ -244,7 +244,9 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   /* display number of hits for -m 8C (Blast Tab-commented format) */
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
-    fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score\n");
+    fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    if (m_msp->show_code == SHOW_CODE_ALIGN || m_msp->show_code == SHOW_CODE_CIGAR) { fprintf(fp," aln_code");}
+    fprintf(fp,"\n");
     fprintf(fp,"# %d hits found\n",nshow);
   }
 
@@ -314,7 +316,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif	/* SHOWSIM */
 	}
       }
-      if (m_msp->show_code == SHOW_CODE_ALIGN) {	fprintf(fp," aln_code"); }
+      if (m_msp->show_code == SHOW_CODE_ALIGN) { fprintf(fp," aln_code"); }
       fprintf(fp,"\n");
     }
   }	/* !(m_msp->markx & MX_M8OUT) */
@@ -524,7 +526,7 @@ l1:
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db));
       }
 
-      if (m_msp->markx & MX_M9SUMM) {
+      if (m_msp->markx & MX_M9SUMM || m_msp->markx & MX_M8OUT) {
 	loffset = bbp->seq->l_offset;
 	l_off = bbp->seq->l_off;
 	aln_p = &cur_ares_p->aln;
@@ -578,13 +580,20 @@ l1:
 	    }
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
-	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f\n",
+	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
 		    percent,aln_p->lc,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
+	    if ((m_msp->show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN && seq_code_len > 0 && seq_code != NULL) {
+	      fprintf(fp,"\t%s",seq_code);
+	      if (ann_code_len > 0 && ann_code != NULL) {
+		fprintf(fp,"\t%s",ann_code);
+	      }
+	    }
+	    fprintf(fp,"\n");
 	  }
 	}
 	else {	/* !SHOW_CODE */

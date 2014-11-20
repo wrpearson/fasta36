@@ -21,7 +21,7 @@ use Pod::Usage;
 use LWP::Simple;
 use XML::Twig;
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help, $no_over) = (0, 0, 0, 0,0, 0,0,0,0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help, $no_over, $pfamB) = (0, 0, 0, 0,0, 0,0,0,0,0);
 my ($min_nodom) = (10);
 
 GetOptions(
@@ -32,7 +32,10 @@ GetOptions(
     "neg-doms" => \$neg_doms,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
+    "pfamB" => \$pfamB,
     "pfacc" => \$pf_acc,
+    "pfam_acc" => \$pf_acc,
+    "acc" => \$pf_acc,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -168,7 +171,13 @@ sub get_pfam_www {
   my $xml = $twig->parse($res);
 
   $seq_length = $pf_seq_length;
+
+
   @pf_domains = sort { $a->{start} <=> $b->{start} } @pf_domains;
+
+  unless ($pfamB) {
+    @pf_domains = grep { $_->{type} !~ m/Pfam-B/ } @pf_domains;
+  }
 
   # check for domain overlap, and resolve check for domain overlap
   # (possibly more than 2 domains), choosing the domain with the best

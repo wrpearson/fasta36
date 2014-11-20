@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \RequirePackage{helvet}
-\newcommand{\CURRENT}{fasta-36.3.6}
+\newcommand{\CURRENT}{fasta-36.3.7}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{cite}
 \usepackage{url}
@@ -97,6 +97,14 @@ fully threaded; both similarity scores and alignments can be
 calculated in parallel on multi-core hardware.  On multi-core
 machines, FASTA can be faster than BLAST while producing better
 alignments with more accurate statistical estimates.
+\item
+  A powerful annotation facility.  The FASTA programs can incorporate
+  functional site annotations, site variation, and domain-based
+  sub-alignment scoring using annotations from sequence libraries.
+  Scripts are available to download site and domain information from
+  Uniprot, and domain information from Pfam and CATH.  Domain
+  information can be used to sub-divide alignment scores to ensure
+  that the aligned domain is homologous.
 
 \end{enumerate}
 
@@ -145,12 +153,12 @@ Compare a protein sequence to a DNA sequence
 database, calculating similarities with frameshifts to the forward and
 reverse orientations  \cite{wrp971}.\\[1 ex]
 
-\texttt{fastf36/ tfastf36}&  &
+\texttt{fastf36/ tfastf36} &  &
 Compares an ordered peptide mixture, as would be obtained by
 Edman degradation of a CNBr cleavage of a protein, against a protein
 (\texttt{fastf}) or DNA (\texttt{tfastf}) database \cite{wrp021}.\\[1 ex]
 
-\texttt{fasts36/ tfasts36}&  &
+\texttt{fasts36/ tfasts36} &  &
 Compares set of short peptide fragments, as would be obtained
 from mass-spec. analysis of a protein, against a
 protein (\texttt{fasts}) or DNA (\texttt{tfasts}) database \cite{wrp021}.\\[1 ex]
@@ -525,12 +533,130 @@ identity, and other information) in a much more compact form.  In
 addition, \texttt{-m 9c} or \texttt{-m 9C} (see options below) provide
 a detailed encoding of the alignment, that allows it to be
 reconstructed. For large-scale searches, we routinely use \texttt{-m
-  8} with the \texttt{-d 0} option, which sets the number of 
+  8} with the \texttt{-d 0} option, which sets the number of
 alignments shown to 0 (thus none are shown).  Alternatively, the
 \texttt{-m 8} and \texttt{-m 8C} ouput options produce BLAST-format
 tabular results summaries (\texttt{-m 8C} provides commented tabular
-results).  \texttt{-m BB} produces an output that mimics BLAST output
+results).  \texttt{-m 8CC} adds an alignment CIGAR string and
+annotation string to the BLAST tabular format.
+\texttt{-m BB} produces an output that mimics BLAST output
 (with alignments).
+
+\subsubsection{Alignments with annotations}
+
+The command line \texttt{-V} option (described below) causes the FASTA
+programs to ``decorate'' its sequence alignments with annotation
+information, such as functional sites, variants, and domain-based
+sub-alignment scores.  For example, a comparison of the
+\texttt{seqs/gstm1\_human.vaa} sequence with SwissProt using the
+\texttt{scripts/ann\_feats\_up\_www2.pl} script:
+\begin{footnotesize}
+\begin{quote}
+\begin{verbatim}
+ssearch36 -m 9i -V \!../scripts/ann_feats_up_www2.pl ../seq/gstm1\_human.vaa /slib/swissprot.fa
+\end{verbatim}
+\end{quote}
+\end{footnotesize}
+Produces the following addtional output:
+\begin{footnotesize}
+\begin{verbatim}
+Annotation symbols:
+ = : Active site
+ * : Modified
+ # : Substrate binding
+ ^ : Metal binding
+ @ : Site
+
+The best scores are:                       s-w bits E(458668) %_id  %_sim  alen
+sp|P09488.3|GSTM1_HUMAN Glutathione ( 218) 1500 375.2 2.4e-103 1.000 1.000  218 |Var: K173N;S210T;
+sp|Q03013.3|GSTM4_HUMAN Glutathione ( 218) 1375 344.5 4.4e-94 0.904 0.963  218 |Var: S2P;A160V;L208V;Y209F;...
+sp|Q5R8E8.3|GSTM2_PONAB Glutathione ( 218) 1310 328.5 2.9e-89 0.862 0.959  218
+sp|Q9TSM5.3|GSTM1_MACFA Glutathione ( 218) 1308 328.0   4e-89 0.858 0.954  218
+sp|Q9TSM4.3|GSTM2_MACFA Glutathione ( 218) 1307 327.7 4.8e-89 0.862 0.954  218
+sp|P28161.2|GSTM2_HUMAN Glutathione ( 218) 1306 327.5 5.7e-89 0.853 0.959  218 |Var: S173N;
+sp|P46439.3|GSTM5_HUMAN Glutathione ( 218) 1305 327.2 6.7e-89 0.876 0.954  218 |Var: L179P;
+\end{verbatim}
+\end{footnotesize}
+This summary of high scoring hits shows one of the effects of
+annotation---substitution of variant residues to increase the score.
+In this case, the query sequence \texttt{gstm1\_human.vaa} is a known
+variant of the canonical \texttt{GSTM1\_HUMAN}/\texttt{P09488} UniProt
+sequence.  Without the \texttt{-V} annotation option,
+\texttt{gstm1\_human.vaa} would be 99\% identical to
+\texttt{GSTM1\_HUMAN}, but because UniProt documents the variant
+residues in the feature table, the \texttt{K173N} and \texttt{S210T}
+substutions are made in the library (subject) sequence, producing a
+perfect match.
+
+In addition to the variant substitution shown above, the alignments
+provide a more complete view of the annotations available on the
+library (subject) proteins.  Below is the report for the
+\texttt{GSTM4\_HUMAN} alignment:
+\begin{footnotesize}
+\begin{quote}
+\begin{verbatim}
+>>sp|Q03013.3|GSTM4_HUMAN Glutathione S-trans             (218 aa)
+ Variant: 2P=2P : S2P : UniProtKB FT ID: VAR_033979
+ Site:@ : 7Y=7Y : Site: Glutathione binding
+ Site:@ : 46W=46W : Site: Glutathione binding
+ Site:@ : 59N=59N : Site: Glutathione binding
+ Site:@ : 72Q=72Q : Site: Glutathione binding
+ Region: 2-88:2-88 : score=599; bits=150.1; Id=0.989; Q=415.2 :  GST N-terminal :1
+ Site:# : 116Y=116Y : Substrate binding: Substrate
+ Variant: 160V=160V : A160V : UniProtKB FT ID: VAR_033980
+ Variant: 208V=208V : L208V : UniProtKB FT ID: VAR_049487
+ Region: 90-208:90-208 : score=699; bits=175.1; Id=0.833; Q=489.3 :  GST C-terminal :2
+ Variant: 209F=209F : Y209F : UniProtKB FT ID: VAR_049488
+ Variant: 211K=211K : R211K : UniProtKB FT ID: VAR_049489
+ Variant: 212M=212M : V212M : UniProtKB FT ID: VAR_049490
+ s-w opt: 1375  Z-score: 1823.2  bits: 344.5 E(458668): 4.4e-94
+Smith-Waterman score: 1375; 90.4% identity (96.3% similar) in 218 aa overlap (1-218:1-218)
+\end{verbatim}
+\end{quote}
+\end{footnotesize}
+This report can be broken into three parts: (1) information on
+variants, described above, (2) information on annotated sites, and (3)
+information on annotated domains.  For each annotated site, the
+coordinate and amino-acid resdiue in the query and library (subject)
+sequence is shown, as well as the conservation state (\texttt{=} in
+all these examples).  For annotated domains, the overall alignment
+score is broken into pieces, based on the boundaries of the domains.
+In this case, the full alignment extends from residues 1--218,
+producing a raw Smith-Waterman score of 1375 and a bit score of
+344.5.  The GST N-terminal domain is annotated from residue 2--88 on
+\texttt{GSTM4\_HUMAN}, and the 2--88 region of the alignment produces
+a score of 599 and bit score of 150.1.  This region is 98.9\%
+identical, and the probability of that similarity score is
+$10^{-41.52}$ (the Qvalue score is $-10 log_{10} P$).  The
+alignment associated with GST C-terminal domain is slightly less well
+conserved (83.3\% identical), but longer, so it produces a higher
+Smith-Waterman score (699), bit score (175.1) and Q-value.
+
+Sub-alignment scores can be used to identify cases of alignment
+over-extension \cite{wrp136}, where an alignment extends well beyond
+the homologous domain.  In this case, the homologous region will
+produce the vast majority of the score, and the non-homologous
+over-extension will produce very little score.  For example, when
+\texttt{SRC8\_HUMAN} aligns with \texttt{LASP1\_MOUSE}, the alignment
+spans 200 residues, but only about 49 of those residues, an
+\texttt{SH3} domain, are homologous:
+
+\begin{footnotesize}
+\begin{quote}
+\begin{verbatim}
+>>sp|Q61792.1|LASP1_MOUSE LIM and SH3 domain protein 1;  LASP-1;              (263 aa)
+ Region: 369-398:66-95 : score=20; bits=13.7; Id=0.200; Q=0.0 :  Nebulin_repeat  InterPro
+ Region: 400-434:97-131 : score=-8; bits=8.7; Id=0.150; Q=0.0 :  Nebulin_repeat  InterPro
+ Region: 435-499:132-203 : score=13; bits=11.4; Id=0.197; Q=0.0 :  NODOM :0
+ Region: 499-547:204-261 : score=124; bits=47.8; Id=0.474; Q=92.1 :  SH3  InterPro
+ s-w opt: 148  Z-score: 253.4  bits: 55.6 E(459565): 1.2e-06
+Smith-Waterman score: 159; 26.3% identity (55.6% similar) in 205 aa overlap (369-547:66-261)
+\end{verbatim}
+\end{quote}
+\end{footnotesize}
+The 150 aligned residues outside the \texttt{SH3} homology produce
+less than 20\% of the alignment score, while spannign to
+non-homologous Nebulin repeat domains.
 
 \subsection{Program Options}
 
@@ -716,11 +842,17 @@ middle alignment line (\texttt{-m 0M}, \texttt{-m 1M}), or both
 addition, independent \texttt{-m} options can be combined. Thus, one
 can use \texttt{-m 1 -m 6 -m 9}.
 
-\item[\texttt{-m 8}]
-provides BLAST tabular format output (a tab delimited line with the
-query name, library name, percent identity, and other alignment
-information). ``\texttt{-m 8C}'' provides some additional information
-provided by the BLAST tabular format with comment lines.
+\item[\texttt{-m 8}] provides BLAST tabular format output (a tab
+  delimited line with the query name, library name, percent identity,
+  and other alignment information). ``\texttt{-m 8C}'' provides the
+  additional information provided by the BLAST tabular format with
+  comment lines.  BLAST tabular format has been extended to include
+  either a CIGAR string alignment encoding (\texttt{-m 8CC} with BLAST
+  comments, \texttt{-m 8XC} without comments) and, if available, an
+  annotation encoding matching FASTA \texttt{-m 9C} output. All the
+  \texttt{-m 9c/C/d/D} encodings are available with BLAST tabular
+  output using \texttt{-m 8C[c/C/d/D]}.
+
 \item[\texttt{-m 9}] display alignment coordinates and scores with the
   best score information.  \texttt{-m 9i} provides alignment length,
   percent identity, and percent similarity only. \texttt{ -m 9} extends
@@ -1163,11 +1295,37 @@ lines are taken as annotation definitions, similar to the
 will produce the same annotation descriptions as the
 \texttt{annot.defs} file.
 
-Scripts to produce annotations are available in the
-\texttt{../scripts/} directory as
-\texttt{../scripts/ann\_feats*.pl}. These scripts require a MySQL
-database that associates features or domains with sequence identifiers
-(accessions).
+Scripts to produce annotations are available in the \texttt{scripts/}
+directory as \texttt{scripts/ann\_feats*.pl}. Scripts with
+\texttt{www} in the name,
+e.g. \texttt{scripts/ann\_feats\_up\_www2.pl} and
+\texttt{scripts/ann\_pfam\_www.pl} download annotation information
+from Uniprot or Pfam web services, respectively.  Scripts lacking
+\texttt{www} require require a MySQL database that associates features
+or domains with sequence identifiers (accessions).  With \CURRENT,
+domain annotations are allows to overlap each other (which often
+happens in Pfam and UniProt); FASTA 36.3.6 did not support overlapping
+domains.  Scripts that can produce overlapping domain annotations have
+\texttt{\_e} in their names, but will produce non-overlapping domain
+annotations with the \texttt{--no-over} option. Thus:
+\texttt{scripts/ann\_pfam\_www\_e.pl --acc sp|P43553|ALR2\_YEAST}
+produces:
+\begin{quote}
+\begin{verbatim}
+>sp|P43553|ALR2_YEAST
+451  -  683   PF01544 :1
+667  -  799   PF01544 :1
+\end{verbatim}
+\end{quote}
+While \texttt{scripts/ann\_pfam\_www\_e.pl --acc --no-over
+  sp|P43553|ALR2\_YEAST} produces:
+\begin{quote}
+\begin{verbatim}
+>sp|P43553|ALR2_YEAST
+451  -  675  PF01544 :1
+676  -  799  PF01544 :1
+\end{verbatim}
+\end{quote}
 
 \item[\texttt{-w \#}] 
   Display width value ($<$200). Sets the approximate width of the
@@ -1756,6 +1914,13 @@ DNA & DNA & \texttt{fastm36} & & Ordered oligos \\[1.2 ex]
 \texttt{-s BP62} sets the same scoring matrix (BLOSUM62) and
 gap-penalties (-11/-1) as BLAST (FASTA uses BLOSUM50 by
 default). \texttt{-m BB} produces very BLAST-like output.
+
+In addition, the \texttt{-m 8} and \texttt{-m 8C} options provide
+BLAST tabular output, optionally with comments (\texttt{-m 8C}). This
+compact output is effective for analysis pipelines.  In addtion,
+\texttt{-m 8XC} (no comments) or \texttt{-m 8CC} provides two
+additional blast-tabular fields, a CIGAR alignment string and (if
+available), an annotation string.
 
 {\noindent}\textbf{When I search Genbank - the program reports:} \texttt{0 residues in 0
 sequences}?  This typically happens because the program does not

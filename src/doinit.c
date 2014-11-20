@@ -814,10 +814,10 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
 void
 parse_markx(char *optarg, struct markx_str *this) {
   int itmp;
-  char ctmp;
+  char ctmp, ctmp2;
 
   itmp = 0;
-  ctmp = '\0';
+  ctmp = ctmp2 = '\0';
 
   if (optarg[0] == 'B') {	/* BLAST alignment output */
     this->markx = MX_MBLAST;
@@ -833,7 +833,7 @@ parse_markx(char *optarg, struct markx_str *this) {
       return;
     }
     else if (optarg[1] == '8') {
-      sscanf(optarg,"%d%c",&itmp,&ctmp);
+      sscanf(optarg,"%d%c%c",&itmp,&ctmp,&ctmp2);
     }
     else {return;}		/* done with BLAST aligment output */
   }
@@ -844,7 +844,7 @@ parse_markx(char *optarg, struct markx_str *this) {
     return;
   }
   else {
-    sscanf(optarg,"%d%c",&itmp,&ctmp);
+    sscanf(optarg,"%d%c%c",&itmp,&ctmp,&ctmp2);
   }
   if (itmp==9) {
     if (ctmp=='c') {this->show_code = SHOW_CODE_ALIGN;}
@@ -860,6 +860,10 @@ parse_markx(char *optarg, struct markx_str *this) {
     this->std_output = 0;
     this->ashow = 0;
     if (ctmp=='C') { this->markx += MX_M8COMMENT;}
+    if (ctmp2 == 'c') { this->show_code = SHOW_CODE_ALIGN;}
+    else if (ctmp2 == 'd') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
+    else if (ctmp2 == 'C') {this->show_code = SHOW_CODE_CIGAR;}
+    else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
   }
 }
 
