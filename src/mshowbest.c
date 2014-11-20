@@ -557,7 +557,7 @@ l1:
 		     loffset + (l_off-1) + (m_msp->sq1off-1),
 		     aln_p);
 
-	  if (m_msp->markx & MX_HTML) fprintf(fp,"<!-- ");
+	  /* if (m_msp->markx & MX_HTML) fprintf(fp,"<!-- "); */
 	  /*            %_id  %_sim s-w alen an0  ax0  pn0  px0  an1  ax1  pn1  px1 gapq gapl fs  */
 	  /*                    alignment    min  max            min  max */
 	  /*                    sequence coordinate    min  max            min  max */
