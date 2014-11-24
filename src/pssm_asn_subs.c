@@ -1,7 +1,7 @@
-/*  $Id: pssm_asn_subs.c 1265 2014-06-30 16:13:49Z wrp $ */
+/* $Id: pssm_asn_subs.c 1265 2014-06-30 16:13:49Z wrp $ */
 /* $Revision: 1265 $  */
 
-/* copyright (C) 2005, 2014 by William R. Pearson and the U. of
+/* copyright (C) 2005, 2014 by William R. Pearson and The Rector & Vistors of the University of
    Virginia */
 
 /*

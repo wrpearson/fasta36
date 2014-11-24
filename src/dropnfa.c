@@ -1,6 +1,7 @@
+/* $Id: dropnfa.c $ */
 
-/* copyright (c) 1998, 1999, 2014 William R. Pearson and the U. of
-   Virginia */
+/* copyright (c) 1998, 1999, 2014 William R. Pearson and The Rector &
+   Vistors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,9 +15,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: dropnfa.c 1136 2013-04-06 17:43:43Z wrp $ */
-/* $Revision: 1136 $  */
 
 /* 17-Sept-2008 - modified for multiple non-overlapping alignments */
 

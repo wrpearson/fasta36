@@ -1,5 +1,7 @@
+/* getseq.c */
 
-/* copyright (c) 1987,1988,1989,1992,1995,2000, 2014 William R. Pearson */
+/* copyright (c) 1987,1988,1989,1992,1995,2000, 2014 William R. Pearson
+   and The Rectors and Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,8 +14,7 @@
      IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
- */
-
+*/
 
 /*	May, June 1987	- modified for rapid read of database 
 	This is one of three alternative files that can be used to

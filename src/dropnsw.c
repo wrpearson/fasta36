@@ -1,4 +1,7 @@
-/* copyright (c) 1994, 1995, 1996, 2014 William R. Pearson */
+/* $Id: dropnsw.c $ */
+
+/* copyright (c) 1994, 1995, 1996, 2014 William R. Pearson and the
+   Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,9 +15,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: dropnsw.c 1136 2013-04-06 17:43:43Z wrp $ */
-/* $Revision: 1136 $  */
 
 /*
   this is a slower version of dropgsw.c that implements the Smith-Waterman

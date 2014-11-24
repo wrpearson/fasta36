@@ -1,6 +1,8 @@
+/* $Id: last_tat.c 938 2012-06-04 16:15:06Z wrp $ */
+/* $Revision: 938 $  */
 
 /* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
-   the U. of Virginia */
+   The Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,9 +16,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: last_tat.c 938 2012-06-04 16:15:06Z wrp $ */
-/* $Revision: 938 $  */
 
 #include <stdio.h>
 #include <stdlib.h>

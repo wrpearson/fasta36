@@ -1,5 +1,10 @@
-/*  copyright (c) 1987, 1988, 1989, 1992, 1995, 2000, 2014 William
-    R. Pearson and the University of Virginia */
+/* $Id: nmgetlib.c 1251 2014-01-24 21:34:05Z wrp $ */
+/* $Revision: 1251 $  */
+
+/*  copyright (c) 1987, 1988, 1989, 1992, 1995, 2000, 2014 by 
+    William  R. Pearson and The Rector & Vistors of the University of
+    Virginia */
+
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,10 +17,7 @@
      IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
- */
-
-/*  $Id: nmgetlib.c 1251 2014-01-24 21:34:05Z wrp $ */
-/* $Revision: 1251 $  */
+*/
 
 /*	May, June 1987	- modified for rapid read of database
 

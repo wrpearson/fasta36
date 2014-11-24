@@ -1,6 +1,7 @@
+/* $Id: faatran.c $ */
 
 /* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
-   the U. of Virginia */
+   The Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,9 +15,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: faatran.c 829 2011-08-23 19:01:30Z wrp $ */
-/* $Revision: 829 $  */
 
 /*	aatran.c	translates from nt to aa, 1 char codes */
 /*	modified July 2, 1987 for all 6 frames */

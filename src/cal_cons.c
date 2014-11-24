@@ -1,8 +1,11 @@
 /* cal_cons.c - routines for printing translated alignments for
    fasta, ssearch, ggsearch, glsearch  */
 
+/* $Id: cal_cons.c 1280 2014-08-21 00:47:55Z wrp $ */
+/* $Revision: 1280 $  */
+
 /* copyright (c) 1998, 1999, 2007, 2014 by William R. Pearson and the
-   University of Virginia */
+   Rector & Visitors of the University of Virginia */
 
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +21,6 @@
      governing permissions and limitations under the License. 
  */
 
-/* $Id: cal_cons.c 1280 2014-08-21 00:47:55Z wrp $ */
-/* $Revision: 1280 $  */
 
 /* removed from dropgsw2.c, dropnfa.c April, 2007 */
 

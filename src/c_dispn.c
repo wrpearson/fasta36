@@ -1,6 +1,6 @@
 /*	dispn.c	associated subroutines for matching sequences */
 
-/*  $Id: c_dispn.c 1124 2013-03-13 20:24:57Z wrp $ */
+/* $Id: c_dispn.c 1124 2013-03-13 20:24:57Z wrp $ */
 /* $Revision: 1124 $  */
 
 #include <stdio.h>

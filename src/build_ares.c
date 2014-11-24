@@ -1,5 +1,7 @@
+/* $Id: build_ares.c $ */
 
-/* copyright (c) 2010, 2014 William R. Pearson and the U. of Virginia */
+/* copyright (c) 2010, 2014 William R. Pearson and The Rector &
+   Vistors of the University of Virginia */
 
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +16,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/* $Id: build_ares.c 1254 2014-01-29 16:03:40Z wrp $ */
-/* $Revision: 1254 $ */
 
 /* build_ares_code is called by showbest() (in threaded/serial code) or
    p2_workcomp in PCOMPLIB code to produce the cur_ares-> chain that

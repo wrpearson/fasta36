@@ -1,7 +1,6 @@
-/* this procedure implements Altschul's pre-calculated values for lambda, K */
+/* $Id: ag_stats.c $ */
 
-/*  $Id: ag_stats.c 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
+/* this procedure implements Altschul's pre-calculated values for lambda, K */
 
 #include <stdio.h>
 #include <stdlib.h>

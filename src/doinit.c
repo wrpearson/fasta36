@@ -1,6 +1,7 @@
 /*	doinit.c	general and function-specific initializations */
 
-/* copyright (c) 1996, 1997, 1998, 2014  William R. Pearson and the U. of Virginia */
+/* copyright (c) 1996, 1997, 1998, 2014 William R. Pearson and the
+   Rector & Vistors of the University of Virginia */
 
 /*
      Licensed under the Apache License, Version 2.0 (the "License");

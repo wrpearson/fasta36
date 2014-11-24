@@ -10,7 +10,6 @@
 /*  $Id:  */
 /* $Revision: 625 $  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef UNIX

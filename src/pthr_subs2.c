@@ -1,6 +1,6 @@
 
 /* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
-   the U. of Virginia */
+   The Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.

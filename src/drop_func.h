@@ -5,7 +5,7 @@
 
 /* functions provided by each of the drop files */
 
-/* Copyright (c) 2005 William R. Pearson and the University of Virginia */
+/* Copyright (c) 2005 William R. Pearson and The Rector & Vistors of the University of Virginia */
 
 
 #include "dyn_string.h"

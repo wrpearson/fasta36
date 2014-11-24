@@ -1,5 +1,7 @@
+/*  $Id: comp_lib9.c 1291 2014-08-28 18:32:58Z wrp $ */
+
 /* copyright (c) 1996, 1997, 1998, 1999, 2002, 2014 William R. Pearson
-   and the U. of Virginia */
+   and The Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,9 +15,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
 */
-
-/*  $Id: comp_lib9.c 1291 2014-08-28 18:32:58Z wrp $ */
-/*  $Revision: 1291 $  */
 
 /*
  * Jan 17, 2007 - remove #ifdef PRSS - begin better statistics in place

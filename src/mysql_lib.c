@@ -1,6 +1,9 @@
+/* $Id: mysql_lib.c 817 2011-08-02 03:54:02Z wrp $ */
+/* $Revision: 817 $  */
 
-/* mysql_lib.c copyright (c) 2000, 2014 William R. Pearson and the
-   University of Virginia*/
+/* mysql_lib.c copyright (c) 2000, 2014 William R. Pearson and The
+   Rector & Visitors of the University of Virginia */
+
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,9 +17,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: mysql_lib.c 817 2011-08-02 03:54:02Z wrp $ */
-/* $Revision: 817 $  */
 
 /* functions for opening, reading, seeking a mySQL database */
 

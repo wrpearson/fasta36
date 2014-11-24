@@ -1,6 +1,10 @@
 /* mmgetaa.c - functions for mmap()ed access to libraries */
 
-/* copyright (c) 1999, 2000, 2014 William R. Pearson */
+/* $Id: mmgetaa.c 1153 2013-05-20 13:29:29Z wrp $ */
+/* $Revision: 1153 $  */
+
+/* copyright (c) 1999, 2000, 2014 William  R. Pearson and The Rector &
+   Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -15,9 +19,6 @@
      governing permissions and limitations under the License. 
  */
 
-/*  $Id: mmgetaa.c 1153 2013-05-20 13:29:29Z wrp $ */
-/* $Revision: 1153 $  */
-
 /*
   This is one of two alternative files that can be used to
   read a database.  The two files are nmgetaa.c, and mmgetaa.c
@@ -29,7 +30,6 @@
   mapping is used. The decision to use memory mapping is made on
   a file-by-file basis.
 */
-
 
 #include <stdio.h>
 #include <stdlib.h>

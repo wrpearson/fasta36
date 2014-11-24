@@ -1,5 +1,5 @@
 /*
-  copyright (c) 1999, 2014 William R. Pearson and the University of
+  copyright (c) 1999, 2014 William R. Pearson and The Rector & Vistors of the University of
   Virginia
 */
 /*

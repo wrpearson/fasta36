@@ -1,6 +1,6 @@
 /* a_mark.h - symbols used to indicate match/mismatch alignment code */
 
-/* copyright (c) 2003 William R. Pearson and the U. of Virginia */
+/* copyright (c) 2003 William R. Pearson and The Rector & Vistors of the University of Virginia */
 /* 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.

@@ -1,7 +1,9 @@
 /* cal_consf.c - routines for printing translated alignments for [t]fast[sf] */
 
 /* copyright (c) 1998, 1999, 2007, 2014 by William R. Pearson and the
-   University of Virginia */
+   Rector & Visitors of the University of Virginia */
+
+/*  $Id: cal_consf.c 1263 2014-06-25 10:40:39Z wrp $ */
 
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +18,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: cal_consf.c 1263 2014-06-25 10:40:39Z wrp $ */
-/* $Revision: 1263 $  */
 
 /* removed from dropfs2.c, dropff2.c April, 2007 */
 

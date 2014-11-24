@@ -1,5 +1,7 @@
+/* $Id: llgetaa.c 625 2011-03-23 17:21:38Z wrp $ */
+
 /* copyright (c) 1996, 1997, 1998, 1999, 2007 William R. Pearson and
-   the U. of Virginia */
+   The Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,10 +14,7 @@
      IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
- */
-
-/*  $Id: llgetaa.c 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
+*/
 
 /*
    Feb, 1998 - version for prss 

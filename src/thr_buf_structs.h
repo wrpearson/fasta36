@@ -1,7 +1,7 @@
 
 /* thr_bufs.h - structures for passing buffers of sequences to threads */
 
-/* copyright (c) 2007 William R. Pearson and the U. of Virginia */
+/* copyright (c) 2007 William R. Pearson and The Rector & Vistors of the University of Virginia */
 
 /* $Id: thr_buf_structs.h 793 2011-07-03 00:03:55Z wrp $ */
 /* $Revision: 793 $  */

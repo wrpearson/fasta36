@@ -1,13 +1,29 @@
-/*	pam.c	19-June-86
-	copyright (c) 1987 William R. Pearson
+/* apam.c	19-June-86 */
+
+/* $Id: apam.c 1281 2014-08-21 17:32:06Z wrp $ */
+
+/* copyright (c) 1987, 2014 William R. Pearson and The Rector &
+   Vistors of the University of Virginia */
+
+/*
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing,
+     software distributed under this License is distributed on an "AS
+     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+     express or implied.  See the License for the specific language
+     governing permissions and limitations under the License. 
+*/
+/*
 	read in the alphabet and pam matrix data
 	designed for universal matcher
 
 	This version reads BLAST format (square) PAM files
 */
-
-/*  $Id: apam.c 1281 2014-08-21 17:32:06Z wrp $ */
-/* $Revision: 1281 $  */
 
 #include <stdio.h>
 #include <stdlib.h>

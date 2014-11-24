@@ -1,7 +1,9 @@
 /*	initfa.c	*/
+/*  $Id: initfa.c 1274 2014-08-07 18:30:56Z wrp $ */
 
 /* copyright (c) 1996, 1997, 1998, 2014 William R. Pearson and the
-   U. of Virginia */
+   Rector & Visitors of the University of Virginia */
+
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -15,9 +17,6 @@
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
  */
-
-/*  $Id: initfa.c 1274 2014-08-07 18:30:56Z wrp $ */
-/*  $Rev: 1274 $  */
 
 /* init??.c files provide function specific initializations */
 

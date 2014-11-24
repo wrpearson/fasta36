@@ -1,6 +1,9 @@
 /* list_db.c - report values from map_db.c  */
 
-/* copyright (c) 1999, 2014 William R. Pearson */
+/* $Id: list_db.c $ */
+
+/* copyright (c) 1999, 2014 William R. Pearson and The Rector &
+   Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,10 +16,7 @@
      IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
      express or implied.  See the License for the specific language
      governing permissions and limitations under the License. 
- */
-
-/* $Id: list_db.c 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
+*/
 
 /* format of the index file:
 
