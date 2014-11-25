@@ -1,5 +1,7 @@
 /* a_mark.h - symbols used to indicate match/mismatch alignment code */
 
+/* $Id: a_mark.h 1024 2012-08-07 18:08:45Z wrp $ */
+
 /* copyright (c) 2003 by William R. Pearson and The Rector & Vistors
    of the University of Virginia */
 
@@ -15,10 +17,6 @@
    express or implied.  See the License for the specific language
    governing permissions and limitations under the License. 
 */
-
-
-/* $Id: a_mark.h 1024 2012-08-07 18:08:45Z wrp $ */
-/* $Revision: 1024 $  */
 
 /* character types in aln_code strings */
 #define M_BLANK 0
