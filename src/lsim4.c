@@ -4,7 +4,7 @@
   derived from lsim2.c from Webb Miller
 */
 
-/*  $Id: lsim4.c 1070 2012-10-12 16:44:16Z wrp $ */
+/* $Id: lsim4.c 1070 2012-10-12 16:44:16Z wrp $ */
 /* $Revision: 1070 $  */
 
 /*  March 2007 - modified to avoid global references  */

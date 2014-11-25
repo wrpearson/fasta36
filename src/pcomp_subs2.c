@@ -1,5 +1,7 @@
-/* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
-   The Rector and Visitors of the University of Virginia */
+/* $Id: pcomp_subs2.c $ */
+
+/* copyright (c) 1996, 1997, 1998, 1999, 2014 by William R. Pearson and
+   The Rector & Visitors of the University of Virginia */
 
 /* Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,9 +18,6 @@
 
 /* modified to do more initialization of work_info here, rather than
    in main() */
-
-/* $Id: pcomp_subs2.c 849 2011-10-21 20:09:55Z wrp $ */
-/* $Revision: 849 $  */
 
 /* this file provides the same functions for PCOMPLIB as pthr_subs2.c does for COMP_THR */
 

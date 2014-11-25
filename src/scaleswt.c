@@ -1,24 +1,22 @@
-/*  $Id: scaleswt.c 714 2011-05-05 00:33:40Z wrp $ */
-/* $Revision: 714 $  */
+/* $Id: scaleswt.c 714 2011-05-05 00:33:40Z wrp $ */
+
+/* copyright (c) 1995, 1996, 2000, 2002, 2014 by William R. Pearson and The
+   Rectors & Visitors of the University of Virginia */
+
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* as of 24 Sept, 2000 - scaleswn uses no global variables */
-
-/*   copyright (c) 1995, 1996, 2000, 2002 William R. Pearson and the
-     University of Virginia */
-/*
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing,
-     software distributed under this License is distributed on an "AS
-     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
-     express or implied.  See the License for the specific language
-     governing permissions and limitations under the License. 
- */
-
 
 /* 
   This version is designed for fasts/f, which used Tatusov

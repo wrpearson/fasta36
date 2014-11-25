@@ -1,21 +1,20 @@
 /* $Id: build_ares.c $ */
 
-/* copyright (c) 2010, 2014 William R. Pearson and The Rector &
+/* copyright (c) 2010, 2014 by William R. Pearson and The Rector &
    Vistors of the University of Virginia */
 
-/*
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+   http://www.apache.org/licenses/LICENSE-2.0
 
-     Unless required by applicable law or agreed to in writing,
-     software distributed under this License is distributed on an "AS
-     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
-     express or implied.  See the License for the specific language
-     governing permissions and limitations under the License. 
- */
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* build_ares_code is called by showbest() (in threaded/serial code) or
    p2_workcomp in PCOMPLIB code to produce the cur_ares-> chain that

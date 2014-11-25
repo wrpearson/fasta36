@@ -1,5 +1,4 @@
 /* $Id: tatstats.h 1254 2014-01-29 16:03:40Z wrp $ */
-/* $Revision: 1254 $  */
 
 #ifndef MAXSQ
 #include "param.h"

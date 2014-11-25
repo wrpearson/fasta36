@@ -1,8 +1,6 @@
 /* tables of Altschul-Gish parameters */
 
 /* $Id: alt_parms.h 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
-
 
 /* first entry must be for (inf,inf) penalty */
 

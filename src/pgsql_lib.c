@@ -1,7 +1,6 @@
 /*  $Id: pgsql_lib.c 781 2011-06-20 10:31:40Z wrp $ */
-/* $Revision: 781 $  */
 
-/* pgsql_lib.c copyright (c) 2004, 2014 William R. Pearson and
+/* pgsql_lib.c copyright (c) 2004, 2014 by William R. Pearson and
    The Rector & Visitors of the University of Virginia */
 /*
      Licensed under the Apache License, Version 2.0 (the "License");

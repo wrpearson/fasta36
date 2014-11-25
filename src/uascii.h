@@ -3,7 +3,6 @@
 /*	modified 10-Mar-1987 for B, Z	*/
 
 /* $Id: uascii.h 989 2012-07-24 19:37:38Z wrp $ */
-/* $Revision: 989 $  */
 
 #define NA 123
 #define NANN 60	/* changed 24-July-2012 because NCBIstdaa_ext_n = 56 */

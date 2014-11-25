@@ -4,7 +4,7 @@
 /* $Id: ncbl_lib.c 625 2011-03-23 17:21:38Z wrp $ */
 /* $Revision: 625 $  */
 
-/* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
+/* copyright (c) 1996, 1997, 1998, 1999, 2014 by William R. Pearson and
    The Rector and Visitors of the University of Virginia */
 
 /* Licensed under the Apache License, Version 2.0 (the "License");

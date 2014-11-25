@@ -1,7 +1,6 @@
 /* $Id: mshowbest.c 1281 2014-08-21 17:32:06Z wrp $ */
-/* $Revision: 1281 $  */
 
-/* copyright (c) 1996, 1997, 1998, 1999, 2014 William R. Pearson and
+/* copyright (c) 1996, 1997, 1998, 1999, 2014 by William R. Pearson and
    The Rector and Visitors of the University of Virginia */
 
 /* Licensed under the Apache License, Version 2.0 (the "License"); you

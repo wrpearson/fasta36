@@ -1,6 +1,7 @@
-
 /* $Id: wm_align.c 1166 2013-05-30 01:05:55Z wrp $  */
-/* $Revision: 1166 $  */
+
+/* algorithms and code provided by Webb Miller, Penn State
+   University */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +32,7 @@ merge_ares_chains(struct a_res_str *cur_ares,
 		  struct a_res_str *tmp_ares,
 		  int score_ix,
 		  const char *msg);
+
 int
 sw_walign (int **pam2p, int n0,
 	   const unsigned char *aa1, int n1,

@@ -1,10 +1,8 @@
-
 /***************************************/
 /* thread global variable declarations */
 /***************************************/
 
 /* $Id: thr_bufs2.h 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
 
 #ifndef MAX_WORKERS
 #define MAX_WORKERS 2
