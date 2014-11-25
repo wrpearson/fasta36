@@ -533,7 +533,6 @@ l1:
 	ann_code = cur_ares_p->ann_code;
 	ann_code_len = cur_ares_p->ann_code_n;
 
-
         percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
 
 	ngap = cur_ares_p->aln.ngap_q + cur_ares_p->aln.ngap_l;

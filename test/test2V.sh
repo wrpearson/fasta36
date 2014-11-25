@@ -20,6 +20,7 @@ echo "done"
 echo "starting ssearch36" `date`
 ../bin/ssearch36 -V q\!../scripts/ann_pfam_e.pl -V \!../scripts/ann_pfam_e.pl -m 9c -S -z 22 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9cz22
 ../bin/ssearch36 -V q\!../scripts/ann_pfam_www_e.pl -V \!../scripts/ann_pfam_www_e.pl -m 9C -S -z 21 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9Cz21
+../bin/ssearch36 -V q\!../scripts/ann_pfam_www_e.pl -V \!../scripts/ann_pfam_www_e.pl -m 8CC -S  -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm8CC
 echo "done" `date`
 echo "starting ssearch36" `date`
 ../bin/ggsearch36 -V q\!../scripts/ann_feats_up_www2_e.pl -V \!../scripts/ann_feats_up_www2_e.pl -m 9c -S -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ggm9c

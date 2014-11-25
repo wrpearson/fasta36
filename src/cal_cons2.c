@@ -774,7 +774,7 @@ calc_cons_u( /* inputs */
     }
   }
 
-  if (have_ann && calc_func_mode == CALC_CODE) {
+  if (calc_func_mode == CALC_CODE) {
     close_update_data(al_str, al_str_n-strlen(al_str), update_data_p);
   }
 
