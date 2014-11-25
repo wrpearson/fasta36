@@ -9,6 +9,14 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov. 25, 2014
+[cal_cons.c, dropfx2.c, dropfz3.c]
+Fix problem that prevented -m 9c and -m 8CC unless annotations were
+present.
+
+Added approved copyright notice and Apache 2.0 license to
+appropriate files.
+
 >>Nov. 19, 2014
 [mshowbest.c]
 Add alignment (CIGAR) string and annotation string to BLAST tabular
