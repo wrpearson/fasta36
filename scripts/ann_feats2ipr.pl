@@ -50,7 +50,7 @@ my $hostname = `/bin/hostname`;
 
 unless ($hostname =~ m/ebi/) {
   ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
-  $host = 'localhost';
+#  $host = 'localhost';
 } else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
 }

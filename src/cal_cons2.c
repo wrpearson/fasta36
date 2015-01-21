@@ -660,7 +660,7 @@ calc_cons_u( /* inputs */
 	d0_score +=  ppst->ggapval; d0_alen++;
 
 	if (op > 0) {	/* insertion in aa0 */
-	  if (have_ann && calc_func_mode == CALC_CODE) {
+	  if (calc_func_mode == CALC_CODE) {
 	    update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
 	  }
 
@@ -715,7 +715,7 @@ calc_cons_u( /* inputs */
 	  aln->ngap_q++;
 	}
 	else {		/* (op < 0),  insertion in aa1 */
-	  if (have_ann && calc_func_mode == CALC_CODE) {
+	  if (calc_func_mode == CALC_CODE) {
 	    update_code(al_str, al_str_n-strlen(al_str), update_data_p, 1, *spa_p,'-','-');
 	  }
 

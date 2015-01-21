@@ -9,6 +9,15 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jan. 21, 2014
+[calc_cons2.c, dropfx2.c, dropfy3.c]
+Fix problems with -m 9c / -m 9C alignment encodings in version
+36.3.7. Apparently, the Nov. 25, 2014 fix was not committed properly.
+In addition, make certain that the query sequence is ALWAYS the
+reference sequence, particularly in translated alignments. As a
+result, the insertion/deletion codes are now reversed for fast[xy]36
+and tfast[xy]36.
+
 >>Jan. 6, 2014
 [data/VTML_*.mat]
 Provided scoring matrix files for the VTML_10,20,40,80,120,160,200

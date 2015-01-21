@@ -104,7 +104,7 @@ struct update_code_str {
   char *op_map;
 };
 
-#ifndef TFAST
+#ifdef TFAST
 static char *ori_code = "-x/=\\+*";	/* FASTX */
 static char *cigar_code = "DXFMRI*";
 #else
@@ -3063,7 +3063,7 @@ calc_cons_u( /* inputs */
     */
     switch (*rp++) {
     case 0: 	/* aa insertion */
-      if (have_ann && calc_func_mode == CALC_CODE) {
+      if (calc_func_mode == CALC_CODE) {
 	*spa_p = 5; /* indel code */
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 0, *spa_p,'-','-');
       }
@@ -3129,7 +3129,7 @@ calc_cons_u( /* inputs */
       ngap_d++;
       break;
     case 2:	/* -1 frameshift, which is treatead as an insertion/match for annotations */
-      if (have_ann && calc_func_mode == CALC_CODE) {
+      if (calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
       }
 
@@ -3309,7 +3309,7 @@ calc_cons_u( /* inputs */
   
       if (cumm_seq_score) *i_spa++ = itmp;
 
-      if (have_ann && calc_func_mode == CALC_CODE) {
+      if (calc_func_mode == CALC_CODE) {
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 3, *spa_p, *sp0_p, *sp1_p);
       
 	if (have_push_features) {
@@ -3346,7 +3346,7 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 4:	/* +1 frameshift */
-      if (have_ann && calc_func_mode == CALC_CODE) {
+      if (calc_func_mode == CALC_CODE) {
         update_code(al_str, al_str_n-strlen(al_str), update_data_p, 4, *spa_p,'-','-');
       }
 
@@ -3447,7 +3447,7 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 5:	/* codon insertion */
-      if (have_ann && calc_func_mode == CALC_CODE) {
+      if (calc_func_mode == CALC_CODE) {
 	*spa_p = 5;
 	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 5, *spa_p,'-','-');
       }
@@ -3637,19 +3637,15 @@ close_update_data(char *al_str, int al_str_max,
   free(up_dp);
 }
 
-/* update_indel_code() has been modified to work more correctly with
-   ggsearch/glsearch, which, because alignments can start with either
-   insertions or deletions, can produce an initial code of "0=".  When
-   that happens, it is ignored and no code is added.
+/* sprintf_code() generates the short alignment code string (max
+   length MAX_SSTR=32) which is later added on to the dynamic
+   alignment code string
 
-   *al_str - alignment string [al_str_max] - not dynamic
-   op -- encoded operation, currently 0=match, 1-delete, 2-insert, 3-term-match, 4-mismatch
-   op_cnt -- length of run
-   show_code -- SHOW_CODE_CIGAR uses cigar_code, otherwise legacy
-*/
+   tmp_str[MAX_STR=32] -- alignment encoding output
+   up_dp -- used to determine cigar_order and mapping
+   op_idx -- code type 
+   
 
-/* update_indel_code() is called for insertions and deletions
-   update_match_code() is called for every match
 */
 
 static void
@@ -3664,6 +3660,17 @@ sprintf_code(char *tmp_str, struct update_code_str *up_dp, int op_idx, int op_cn
     sprintf(tmp_str,"%c%d",up_dp->op_map[op_idx],op_cnt);
   }
 }
+
+/* update_indel_code() has been modified to work more correctly with
+   ggsearch/glsearch, which, because alignments can start with either
+   insertions or deletions, can produce an initial code of "0=".  When
+   that happens, it is ignored and no code is added.
+
+   *al_str - alignment string [al_str_max] - not dynamic
+   op -- encoded operation, currently 0=match, 1-delete, 2-insert, 3-term-match, 4-mismatch
+   op_cnt -- length of run
+   show_code -- SHOW_CODE_CIGAR uses cigar_code, otherwise legacy
+*/
 
 static void
 update_code(char *al_str, int al_str_max, 
