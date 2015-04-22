@@ -37,6 +37,7 @@ use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
 use XML::Twig;
+# use Data::Dumper;
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help, $no_over, $pfamB) = (0, 0, 0, 0,0, 0,0,0,0,0);
 my ($min_nodom) = (10);
@@ -70,10 +71,9 @@ my $url;
 
 my @pf_domains;
 my $pf_seq_length=0;
+my ($clan_acc, $clan_id) = ("","");
 
 my $get_annot_sub = \&get_pfam_annots;
-
-my $twig = new XML::Twig();
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
@@ -164,6 +164,13 @@ sub push_match {
     push @pf_domains, { %$attr_ref, %$loc_ref };
 }
 
+sub get_clan {
+    my ($t, $elt) = @_;
+    my $attr_ref = $elt->{att};
+#    print Dumper($attr_ref);
+    ($clan_acc, $clan_id) = ($attr_ref->{clan_acc},$attr_ref->{clan_id});
+}
+
 sub get_pfam_www {
   my ($acc, $seq_length) = @_;
 
@@ -176,7 +183,7 @@ sub get_pfam_www {
 
   @pf_domains = ();
 
-  my $twig = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
+  my $twig_fam = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
 #			    start_tag_handlers => {
 #						   'sequence' => \&get_length,
 #						  },
@@ -185,7 +192,7 @@ sub get_pfam_www {
 					      'sequence' => \&get_length,
 					     },
 			    pretty_print => 'indented');
-  my $xml = $twig->parse($res);
+  my $xml = $twig_fam->parse($res);
 
   $seq_length = $pf_seq_length;
 
@@ -317,6 +324,10 @@ sub get_pfam_www {
 # becomes "Cortactin"
 #
 
+# in addition, domain_name() looks up each domain name to see if it
+# has a clan, and, if different domains share the same clan, they get
+# the same colors.
+
 sub domain_name {
 
   my ($value, $seq_id) = @_;
@@ -326,10 +337,36 @@ sub domain_name {
     return "";
   }
 
+  ## ways to highlight the same domain:
+  # (1) for clans, substitute clan name for family name
+  # (2) for clans, use the same color for the same clan, but don't change the name
+  # (3) for clans, combine family name with clan name, but use colors based on clan
+
+  # return the clan name, identifier if a clan member
+  $url = "family/$value?output=xml";
+
+  my $res = get($loc . $url);
+
+  my $twig_clan = XML::Twig->new(twig_roots => {'clan_membership'=>1},
+			    twig_handlers => {
+					      'clan_membership' => \&get_clan,
+					     },
+			    pretty_print => 'indented');
+
+# make certain to reinitialize
+  ($clan_acc, $clan_id) = ("","");
+  my $xml = $twig_clan->parse($res);
+
+  if ($clan_acc) {
+    if ($pf_acc) { $value = $clan_acc; }
+    else { $value = "C_".$clan_id;}
+  }
+
   if (!defined($domains{$value})) {
     $domain_cnt++;
     $domains{$value} = $domain_cnt;
   }
+
   return $value;
 }
 
