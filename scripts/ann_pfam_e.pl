@@ -27,7 +27,7 @@
 # (3) return the tab delimited features
 #
 
-# this version only annotates sequences known to Pfam26:pfamseq:
+# this version only annotates sequences known to Pfam:pfamseq:
 # >pf26|164|O57809|1A1D_PYRHO
 # and only provides domain information
 
@@ -81,13 +81,14 @@ my $dbh = DBI->connect($connect,
 
 my %annot_types = ();
 my %domains = (NODOM=>0);
+my %domain_clan = ();
 my $domain_cnt = 0;
 
 my $get_annot_sub = \&get_pfam_annots;
 
-my $get_pfam26_acc = $dbh->prepare(<<EOSQL);
+my $get_pfam_acc = $dbh->prepare(<<EOSQL);
 
-SELECT seq_start, seq_end, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT seq_start, seq_end, auto_pfamA, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
 JOIN pfamA_reg_full_significant using(auto_pfamseq)
 JOIN pfamA USING (auto_pfamA)
@@ -97,17 +98,26 @@ ORDER BY seq_start
 
 EOSQL
 
-my $get_annots_sql = $get_pfam26_acc;
+my $get_annots_sql = $get_pfam_acc;
 
-my $get_pfam26_id = $dbh->prepare(<<EOSQL);
+my $get_pfam_id = $dbh->prepare(<<EOSQL);
 
-SELECT seq_start, seq_end, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT seq_start, seq_end, auto_pfamA, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
 JOIN pfamA_reg_full_significant using(auto_pfamseq)
 JOIN pfamA USING (auto_pfamA)
 WHERE in_full=1
 AND  pfamseq_id=?
 ORDER BY seq_start
+
+EOSQL
+
+my $get_pfam_clan = $dbh->prepare(<<EOSQL);
+
+SELECT clan_acc, clan_id
+FROM clans
+JOIN clan_membership using(auto_clan)
+WHERE auto_pfamA=?
 
 EOSQL
 
@@ -179,11 +189,11 @@ sub show_annots {
   my %annot_data = (seq_info=>$annot_line);
 
   $use_acc = 1;
-  $get_annots_sql = $get_pfam26_acc;
+  $get_annots_sql = $get_pfam_acc;
 
   if ($annot_line =~ m/^pf26\|/) {
     ($sdb, $gi, $acc, $id) = split(/\|/,$annot_line);
-    $dbh->do("use RPD2_pfam26");
+    $dbh->do("use RPD2_pfam");
   }
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
@@ -201,7 +211,7 @@ sub show_annots {
 
   # remove version number
   unless ($use_acc) {
-    $get_annots_sql = $get_pfam26_id;
+    $get_annots_sql = $get_pfam_id;
     $get_annots_sql->execute($id);
   }
   else {
@@ -328,7 +338,7 @@ sub get_pfam_annots {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info});
+    $pf->{info} = domain_name($pf->{info}, $pf->{auto_pfamA});
   }
 
   my @feats = ();
@@ -355,12 +365,40 @@ sub get_pfam_annots {
 
 sub domain_name {
 
-  my ($value) = @_;
+  my ($value, $auto_pfamA) = @_;
 
-  if (!defined($domains{$value})) {
-    $domain_cnt++;
-    $domains{$value} = $domain_cnt;
+  # check for clan:
+  if (!defined($domain_clan{$value})) {
+    ## only do this for new domains, old domains have known mappings
+
+    ## ways to highlight the same domain:
+    # (1) for clans, substitute clan name for family name
+    # (2) for clans, use the same color for the same clan, but don't change the name
+    # (3) for clans, combine family name with clan name, but use colors based on clan
+
+    $get_pfam_clan->execute($auto_pfamA);
+
+    my $pfam_clan_href=0;
+
+    if ($pfam_clan_href=$get_pfam_clan->fetchrow_hashref()) {
+      my ($clan_id, $clan_acc) = @{$pfam_clan_href}{qw(clan_id clan_acc)};
+      $domains{$value} = ++$domain_cnt;
+      $domain_clan{$value} = {clan_id => $clan_id,
+			      clan_acc => $clan_acc,
+			      domain_cnt => $domain_cnt};
+      if ($pf_acc) {$value = "C." . $clan_acc; }
+      else { $value = "C." . $clan_id; }
+    }
+    else {
+      $domain_clan{$value} = 0;
+      $domains{$value} = ++$domain_cnt;
+    }
   }
+  elsif ($domain_clan{$value}) {
+    if ($pf_acc) {$value = "C." . $domain_clan{$value}->{clan_acc};}
+    else { $value = "C." . $domain_clan{$value}->{clan_id}; }
+  }
+
   return $value;
 }
 
@@ -389,7 +427,7 @@ ann_feats.pl
 
 =head1 DESCRIPTION
 
-C<ann_pfam_e.pl> extracts domain information from the pfam26 msyql
+C<ann_pfam_e.pl> extracts domain information from the pfam msyql
 database.  Currently, the program works with database sequence
 descriptions in one of two formats:
 

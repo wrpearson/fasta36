@@ -64,6 +64,7 @@ pod2usage(1) unless @ARGV;
 
 my %annot_types = ();
 my %domains = (NODOM=>0);
+my %domain_clan = ();
 my $domain_cnt = 0;
 
 my $loc="http://pfam.xfam.org/";
@@ -337,34 +338,45 @@ sub domain_name {
     return "";
   }
 
-  ## ways to highlight the same domain:
-  # (1) for clans, substitute clan name for family name
-  # (2) for clans, use the same color for the same clan, but don't change the name
-  # (3) for clans, combine family name with clan name, but use colors based on clan
+  if (!defined($domain_clan{$value})) {
+    ## only do this for new domains, old domains have known mappings
 
-  # return the clan name, identifier if a clan member
-  $url = "family/$value?output=xml";
+    ## ways to highlight the same domain:
+    # (1) for clans, substitute clan name for family name
+    # (2) for clans, use the same color for the same clan, but don't change the name
+    # (3) for clans, combine family name with clan name, but use colors based on clan
 
-  my $res = get($loc . $url);
+    # return the clan name, identifier if a clan member
+    $url = "family/$value?output=xml";
 
-  my $twig_clan = XML::Twig->new(twig_roots => {'clan_membership'=>1},
-			    twig_handlers => {
-					      'clan_membership' => \&get_clan,
-					     },
-			    pretty_print => 'indented');
+    my $res = get($loc . $url);
 
-# make certain to reinitialize
-  ($clan_acc, $clan_id) = ("","");
-  my $xml = $twig_clan->parse($res);
+    my $twig_clan = XML::Twig->new(twig_roots => {'clan_membership'=>1},
+				   twig_handlers => {
+						     'clan_membership' => \&get_clan,
+						    },
+				   pretty_print => 'indented');
 
-  if ($clan_acc) {
-    if ($pf_acc) { $value = $clan_acc; }
-    else { $value = "C_".$clan_id;}
+    # make certain to reinitialize
+    ($clan_acc, $clan_id) = ("","");
+    my $xml = $twig_clan->parse($res);
+
+    if ($clan_acc) {
+      $domains{$value} = ++$domain_cnt;
+      $domain_clan{$value} = {clan_id => $clan_id,
+			      clan_acc => $clan_acc,
+			      domain_cnt => $domain_cnt};
+      if ($pf_acc) {$value = "C." . $clan_acc; }
+      else { $value = "C." . $clan_id; }
+    }
+    else {
+      $domain_clan{$value} = 0;
+      $domains{$value} = ++$domain_cnt;
+    }
   }
-
-  if (!defined($domains{$value})) {
-    $domain_cnt++;
-    $domains{$value} = $domain_cnt;
+  elsif ($domain_clan{$value}) {
+    if ($pf_acc) {$value = "C." . $domain_clan{$value}->{clan_acc};}
+    else { $value = "C." . $domain_clan{$value}->{clan_id}; }
   }
 
   return $value;
