@@ -64,7 +64,7 @@ pod2usage(1) unless @ARGV;
 
 my %annot_types = ();
 my %domains = (NODOM=>0);
-my %domain_clan = ();
+my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my $domain_cnt = 0;
 
 my $loc="http://pfam.xfam.org/";
@@ -362,19 +362,20 @@ sub domain_name {
     my $xml = $twig_clan->parse($res);
 
     if ($clan_acc) {
-      $domains{$value} = ++$domain_cnt;
+      $domain_cnt++;
       $domain_clan{$value} = {clan_id => $clan_id,
 			      clan_acc => $clan_acc,
 			      domain_cnt => $domain_cnt};
       if ($pf_acc) {$value = "C." . $clan_acc; }
       else { $value = "C." . $clan_id; }
+      $domains{$value} = $domain_cnt;
     }
     else {
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
     }
   }
-  elsif ($domain_clan{$value}) {
+  elsif ($domain_clan{$value} && $domain_clan{$value}->{clan_acc}) {
     if ($pf_acc) {$value = "C." . $domain_clan{$value}->{clan_acc};}
     else { $value = "C." . $domain_clan{$value}->{clan_id}; }
   }

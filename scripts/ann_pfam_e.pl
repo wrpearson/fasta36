@@ -81,7 +81,7 @@ my $dbh = DBI->connect($connect,
 
 my %annot_types = ();
 my %domains = (NODOM=>0);
-my %domain_clan = ();
+my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my $domain_cnt = 0;
 
 my $get_annot_sub = \&get_pfam_annots;
@@ -226,6 +226,8 @@ sub show_annots {
 
 sub get_pfam_annots {
   my ($get_annots, $seq_length) = @_;
+
+  $seq_length = 0 unless $seq_length;
 
   my @pf_domains = ();
 
@@ -382,19 +384,20 @@ sub domain_name {
 
     if ($pfam_clan_href=$get_pfam_clan->fetchrow_hashref()) {
       my ($clan_id, $clan_acc) = @{$pfam_clan_href}{qw(clan_id clan_acc)};
-      $domains{$value} = ++$domain_cnt;
+      $domain_cnt++;
       $domain_clan{$value} = {clan_id => $clan_id,
 			      clan_acc => $clan_acc,
 			      domain_cnt => $domain_cnt};
       if ($pf_acc) {$value = "C." . $clan_acc; }
       else { $value = "C." . $clan_id; }
+      $domains{$value} = $domain_cnt
     }
     else {
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
     }
   }
-  elsif ($domain_clan{$value}) {
+  elsif ($domain_clan{$value} && $domain_clan{$value}->{clan_acc}) {
     if ($pf_acc) {$value = "C." . $domain_clan{$value}->{clan_acc};}
     else { $value = "C." . $domain_clan{$value}->{clan_id}; }
   }
