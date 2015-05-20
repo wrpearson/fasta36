@@ -362,13 +362,20 @@ sub domain_name {
     my $xml = $twig_clan->parse($res);
 
     if ($clan_acc) {
-      $domain_cnt++;
+      my $c_value = "C." . $clan_id;
+      if ($pf_acc) {$c_value = "C." . $clan_acc;}
+
       $domain_clan{$value} = {clan_id => $clan_id,
-			      clan_acc => $clan_acc,
-			      domain_cnt => $domain_cnt};
-      if ($pf_acc) {$value = "C." . $clan_acc; }
-      else { $value = "C." . $clan_id; }
-      $domains{$value} = $domain_cnt;
+			      clan_acc => $clan_acc};
+
+      if ($domains{$c_value}) {
+	$domain_clan{$value}->{domain_cnt} =  $domains{$c_value};
+      }
+      else {
+	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
+	$value = $c_value;
+	$domains{$value} = $domain_cnt;
+      }
     }
     else {
       $domain_clan{$value} = 0;

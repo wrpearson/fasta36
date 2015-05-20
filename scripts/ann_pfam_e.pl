@@ -378,21 +378,31 @@ sub domain_name {
     # (2) for clans, use the same color for the same clan, but don't change the name
     # (3) for clans, combine family name with clan name, but use colors based on clan
 
+    # check to see if it's a clan
     $get_pfam_clan->execute($auto_pfamA);
 
     my $pfam_clan_href=0;
 
-    if ($pfam_clan_href=$get_pfam_clan->fetchrow_hashref()) {
+    if ($pfam_clan_href=$get_pfam_clan->fetchrow_hashref()) {  # is a clan
       my ($clan_id, $clan_acc) = @{$pfam_clan_href}{qw(clan_id clan_acc)};
-      $domain_cnt++;
+
+      # now check to see if we have seen this clan before (if so, do not increment $domain_cnt)
+      my $c_value = "C." . $clan_id;
+      if ($pf_acc) {$c_value = "C." . $clan_acc;}
+
       $domain_clan{$value} = {clan_id => $clan_id,
-			      clan_acc => $clan_acc,
-			      domain_cnt => $domain_cnt};
-      if ($pf_acc) {$value = "C." . $clan_acc; }
-      else { $value = "C." . $clan_id; }
-      $domains{$value} = $domain_cnt
+			      clan_acc => $clan_acc};
+
+      if ($domains{$c_value}) {
+	$domain_clan{$value}->{domain_cnt} =  $domains{$c_value};
+      }
+      else {
+	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
+	$value = $c_value;
+	$domains{$value} = $domain_cnt
+      }
     }
-    else {
+    else {			# not a clan
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
     }
