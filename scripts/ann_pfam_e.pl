@@ -43,7 +43,8 @@ my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam27", 0, "web_user", "fasta_www");
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0,0,0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $shelp, $help) = 
+  (0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
 my ($min_nodom) = (10);
 
 GetOptions(
@@ -53,6 +54,7 @@ GetOptions(
     "password=s" => \$pass,
     "port=i" => \$port,
     "lav" => \$lav,
+    "acc_comment" => \$acc_comment,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
     "no-clans" => \$no_clans,
@@ -84,6 +86,7 @@ my $dbh = DBI->connect($connect,
 my %annot_types = ();
 my %domains = (NODOM=>0);
 my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
+my @domain_list = (0);
 my $domain_cnt = 0;
 
 my $get_annot_sub = \&get_pfam_annots;
@@ -188,7 +191,11 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= " :".$domains{$annot->[-1]};
+      my ($a_name, $a_num) = ($annot->[-1],$domains{$annot->[-1]});
+      if ($acc_comment) {
+	$annot->[-1] .= "{$domain_list[$a_num]}";
+      }
+      $annot->[-1] .= " :".$a_num;
     }
     print join("\t",@$annot),"\n";
   }
@@ -364,7 +371,7 @@ sub get_pfam_annots {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info}, $pf->{auto_pfamA});
+    $pf->{info} = domain_name($pf->{info}, $pf->{auto_pfamA}, $pf->{pfamA_acc});
   }
 
   my @feats = ();
@@ -391,13 +398,14 @@ sub get_pfam_annots {
 
 sub domain_name {
 
-  my ($value, $auto_pfamA) = @_;
+  my ($value, $auto_pfamA, $pfamA_acc) = @_;
 
   # check for clan:
   if ($no_clans) {
     if (! defined($domains{$value})) {
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
+      push @domain_list, $pfamA_acc;
     }
   }
   elsif (!defined($domain_clan{$value})) {
@@ -430,12 +438,14 @@ sub domain_name {
       else {
 	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
 	$value = $c_value;
-	$domains{$value} = $domain_cnt
+	$domains{$value} = $domain_cnt;
+	push @domain_list, $pfamA_acc;
       }
     }
     else {			# not a clan
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
+      push @domain_list, $pfamA_acc;
     }
   }
   elsif ($domain_clan{$value} && $domain_clan{$value}->{clan_acc}) {

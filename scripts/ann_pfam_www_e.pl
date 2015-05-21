@@ -39,11 +39,13 @@ use LWP::Simple;
 use XML::Twig;
 # use Data::Dumper;
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_clans, $pf_acc, $shelp, $help, $no_over, $pfamB) = (0, 0, 0, 0,0, 0,0,0,0,0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_clans, $pf_acc, $shelp, $help, $no_over, $acc_comment, $pfamB) =
+  (0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
 my ($min_nodom) = (10);
 
 GetOptions(
     "lav" => \$lav,
+    "acc_comment" => \$acc_comment,
     "min_nodom=i" => \$min_nodom,
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
@@ -67,6 +69,7 @@ pod2usage(1) unless @ARGV;
 my %annot_types = ();
 my %domains = (NODOM=>0);
 my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
+my @domain_list = (0);
 my $domain_cnt = 0;
 
 my $loc="http://pfam.xfam.org/";
@@ -107,7 +110,11 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= " :".$domains{$annot->[-1]};
+      my ($a_name, $a_num) = ($annot->[-1],$domains{$annot->[-1]});
+      if ($acc_comment) {
+	$annot->[-1] .= "{$domain_list[$a_num]}";
+      }
+      $annot->[-1] .= " :".$domains{$a_name};
     }
     print join("\t",@$annot),"\n";
   }
@@ -303,7 +310,7 @@ sub get_pfam_www {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info}, $acc );
+    $pf->{info} = domain_name($pf->{info}, $acc, $pf->{accession});
   }
 
   my @feats = ();
@@ -333,7 +340,7 @@ sub get_pfam_www {
 
 sub domain_name {
 
-  my ($value, $seq_id) = @_;
+  my ($value, $seq_id, $pf_acc) = @_;
 
   unless (defined($value)) {
     warn "missing domain name for $seq_id";
@@ -344,6 +351,7 @@ sub domain_name {
     if (! defined($domains{$value})) {
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
+      push @domain_list, $pf_acc;
     }
   }
   elsif (!defined($domain_clan{$value})) {
@@ -378,17 +386,18 @@ sub domain_name {
 
       if ($domains{$c_value}) {
 	$domain_clan{$value}->{domain_cnt} =  $domains{$c_value};
-	$value = $c_value;
       }
       else {
 	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
 	$value = $c_value;
 	$domains{$value} = $domain_cnt;
+	push @domain_list, $pf_acc;
       }
     }
     else {
       $domain_clan{$value} = 0;
       $domains{$value} = ++$domain_cnt;
+      push @domain_list, $pf_acc;
     }
   }
   elsif ($domain_clan{$value} && $domain_clan{$value}->{clan_acc}) {
