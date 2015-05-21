@@ -9,11 +9,16 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Jan. 26, 2014	[ re-released as fasta-36.3.7a]
+>>May. 21, 2015
+[compacc2e.c]
+Add additional checks to ensure that annotations are within the
+sequence boundaries.
+
+>>Jan. 26, 2015	[ re-released as fasta-36.3.7a]
 [compacc2e.c]
 Fix problem with domain boundary calculations for subsets of sequences.
 
->>Jan. 21, 2014	[ released as fasta-36.3.7a]
+>>Jan. 21, 2015	[ released as fasta-36.3.7a]
 [calc_cons2.c, dropfx2.c, dropfy3.c]
 Fix problems with -m 9c / -m 9C alignment encodings in version
 36.3.7. Apparently, the Nov. 25, 2014 fix was not committed properly.
