@@ -42,6 +42,7 @@ use vars qw($host $db $port $user $pass);
 my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam27", 0, "web_user", "fasta_www");
+$host = 'xdb';
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $shelp, $help) = 
   (0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
@@ -274,7 +275,13 @@ sub get_pfam_annots {
       $row_href->{info} = $row_href->{pfamA_id};
     }
 
-    if ($row_href && $row_href->{length} > $seq_length) { $seq_length = $row_href->{length};}
+    if ($row_href && $row_href->{length} > $seq_length && $seq_length == 0) { $seq_length = $row_href->{length};}
+
+    next if ($row_href->{seq_start} >= $seq_length);
+    if ($row_href->{seq_end} > $seq_length) {
+	$row_href->{seq_end} = $seq_length;
+    }
+
     push @pf_domains, $row_href
   }
 

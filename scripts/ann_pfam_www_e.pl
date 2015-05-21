@@ -151,11 +151,11 @@ sub show_annots {
 
   # remove version number
   unless ($use_acc) {
-    $annot_data{list} = get_pfam_www($id);
+    $annot_data{list} = get_pfam_www($id, $seq_len);
   }
   else {
     $acc =~ s/\.\d+$//;
-    $annot_data{list} = get_pfam_www($acc);
+    $annot_data{list} = get_pfam_www($acc, $seq_len);
   }
 
   return \%annot_data;
@@ -204,8 +204,9 @@ sub get_pfam_www {
 			    pretty_print => 'indented');
   my $xml = $twig_fam->parse($res);
 
-  $seq_length = $pf_seq_length;
-
+  if (!$seq_length || $seq_length == 0) {
+      $seq_length = $pf_seq_length;
+  }
 
   @pf_domains = sort { $a->{start} <=> $b->{start} } @pf_domains;
 
@@ -217,13 +218,21 @@ sub get_pfam_www {
   # (possibly more than 2 domains), choosing the domain with the best
   # evalue
 
-  for my $dom_ref (@pf_domains) {
+  my @raw_pf_domains = @pf_domains;
+  @pf_domains = ();
+
+  for my $dom_ref (@raw_pf_domains) {
     if ($pf_acc) {
       $dom_ref->{info} = $dom_ref->{accession};
     }
     else {
       $dom_ref->{info} = $dom_ref->{id};
     }
+    next if ($dom_ref->{start} >= $seq_length);
+    if ($dom_ref->{end} >= $seq_length) {
+	$dom_ref->{end} = $seq_length;
+    }
+    push @pf_domains, $dom_ref;
   }
 
   if($no_over && scalar(@pf_domains) > 1) {
