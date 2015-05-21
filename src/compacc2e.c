@@ -2258,7 +2258,16 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
     /* skip VAR labels */
     if (this_annot->label == 'V') { continue; }
     if (this_annot->label == '-') {
-      if (this_annot->pos - offset >= 0) {aa1a_tmp[this_annot->pos-offset]=qascii['['] - NANN;}
+      if (this_annot->pos - offset >= 0) {
+	if (this_annot->pos - offset < n1) {
+	  aa1a_tmp[this_annot->pos-offset] = qascii['['] - NANN;
+	}
+	else {
+	  fprintf(stderr,"*** error [%s:%d] - attempt to write off end of aa1a_tmp[%d]: %ld -- %s\n",
+		  __FILE__,__LINE__, n1, this_annot->pos - offset, tmp_line);
+	  continue;
+	}
+      }
       else {
 	if (this_annot->end - offset < 0) continue;
 	/*
