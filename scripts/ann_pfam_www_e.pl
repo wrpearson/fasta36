@@ -39,7 +39,7 @@ use LWP::Simple;
 use XML::Twig;
 # use Data::Dumper;
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help, $no_over, $pfamB) = (0, 0, 0, 0,0, 0,0,0,0,0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_clans, $pf_acc, $shelp, $help, $no_over, $pfamB) = (0, 0, 0, 0,0, 0,0,0,0,0);
 my ($min_nodom) = (10);
 
 GetOptions(
@@ -50,6 +50,8 @@ GetOptions(
     "neg-doms" => \$neg_doms,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
+    "no-clans" => \$no_clans,
+    "no_clans" => \$no_clans,
     "pfamB" => \$pfamB,
     "pfacc" => \$pf_acc,
     "pfam_acc" => \$pf_acc,
@@ -338,7 +340,13 @@ sub domain_name {
     return "";
   }
 
-  if (!defined($domain_clan{$value})) {
+  if ($no_clans) {
+    if (! defined($domains{$value})) {
+      $domain_clan{$value} = 0;
+      $domains{$value} = ++$domain_cnt;
+    }
+  }
+  elsif (!defined($domain_clan{$value})) {
     ## only do this for new domains, old domains have known mappings
 
     ## ways to highlight the same domain:
@@ -370,6 +378,7 @@ sub domain_name {
 
       if ($domains{$c_value}) {
 	$domain_clan{$value}->{domain_cnt} =  $domains{$c_value};
+	$value = $c_value;
       }
       else {
 	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
@@ -411,6 +420,7 @@ ann_feats.pl
  --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
  --no-over  : generate non-overlapping domains (equivalent to ann_pfam_www.pl)
+ --no-clans : do not use clans with multiple families from same clan
  --min_nodom=10  : minimum length between domains for NODOM
 
 =head1 DESCRIPTION

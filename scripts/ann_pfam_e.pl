@@ -43,7 +43,7 @@ my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam27", 0, "web_user", "fasta_www");
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $no_over, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0,0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0,0,0);
 my ($min_nodom) = (10);
 
 GetOptions(
@@ -55,6 +55,8 @@ GetOptions(
     "lav" => \$lav,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
+    "no-clans" => \$no_clans,
+    "no_clans" => \$no_clans,
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
@@ -94,6 +96,21 @@ JOIN pfamA_reg_full_significant using(auto_pfamseq)
 JOIN pfamA USING (auto_pfamA)
 WHERE in_full = 1
 AND  pfamseq_acc=?
+ORDER BY seq_start
+
+EOSQL
+
+my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
+
+SELECT seq_start, seq_end, auto_pfamA, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+FROM pfamseq
+JOIN pfamA_reg_full_significant using(auto_pfamseq)
+JOIN pfamA USING (auto_pfamA)
+JOIN seqdb_demo2.annot as sa1 on(sa1.acc=pfamseq_acc and sa1.db='sp')
+JOIN seqdb_demo2.annot as sa2 using(prot_id)
+WHERE in_full = 1
+AND  sa2.acc=?
+AND  sa2.db='ref'
 ORDER BY seq_start
 
 EOSQL
@@ -197,9 +214,16 @@ sub show_annots {
   }
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
+    if ($sdb =~ m/ref/) {
+	$get_annots_sql = $get_pfam_refacc;
+    }
   }
   elsif ($annot_line =~ m/^sp\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  }
+  elsif ($annot_line =~ m/^ref\|/) {
+    ($sdb, $acc) = split(/\|/,$annot_line);
+    $get_annots_sql = $get_pfam_refacc;
   }
   elsif ($annot_line =~ m/^tr\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
@@ -370,7 +394,13 @@ sub domain_name {
   my ($value, $auto_pfamA) = @_;
 
   # check for clan:
-  if (!defined($domain_clan{$value})) {
+  if ($no_clans) {
+    if (! defined($domains{$value})) {
+      $domain_clan{$value} = 0;
+      $domains{$value} = ++$domain_cnt;
+    }
+  }
+  elsif (!defined($domain_clan{$value})) {
     ## only do this for new domains, old domains have known mappings
 
     ## ways to highlight the same domain:
@@ -395,6 +425,7 @@ sub domain_name {
 
       if ($domains{$c_value}) {
 	$domain_clan{$value}->{domain_cnt} =  $domains{$c_value};
+	$value = $c_value;
       }
       else {
 	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
@@ -432,6 +463,7 @@ ann_feats.pl
  -h	short help
  --help include description
  --no-over  : generate non-overlapping domains (equivalent to ann_pfam.pl)
+ --no-clans : do not use clans with multiple families from same clan
  --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
  --min_nodom=10  : minimum length between domains for NODOM
