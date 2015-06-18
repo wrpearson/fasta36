@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.7a Jan, 2015 MPI";
+char *verstr="36.3.7b Jun, 2015 MPI";
 #else
-char *verstr="36.3.7a Jan, 2015";
+char *verstr="36.3.7b Jun, 2015";
 #endif
 
 static int mktup=3;
@@ -1149,10 +1149,16 @@ f_getopt (char copt, char *optarg,
     shift_set = 1;
     break;
 #endif
-#ifdef LALIGN
   case 'J':
+#ifdef LALIGN
     ppst->show_ident=1;
+#else
+    ppst->show_ident=0;
+#endif
     break;
+
+
+#ifdef LALIGN
   case 'K':
     sscanf(optarg,"%d", &ppst->max_repeat);
     break;
