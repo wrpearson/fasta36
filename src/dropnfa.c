@@ -1358,7 +1358,7 @@ bd_malign (const unsigned char *aa0, int n0,
 
   do_fasta(aa0, n0, aa1, n1, ppst, f_str, &cur_ares->rst, &hoff,0, &s_info);
 
-  if (first_align || cur_ares->rst.score[score_ix]>=score_thresh) {
+  if (first_align || cur_ares->rst.score[score_ix]>score_thresh) {
     if (ppst->sw_flag) {
       /* hoff gives us a projection of the query on the library
 	 sequence, which can be used to limit the portions of the
@@ -1431,7 +1431,7 @@ bd_malign (const unsigned char *aa0, int n0,
 
   /* check to see if a variant is better */
 
-  if (!ppst->do_rep || cur_ares->rst.score[score_ix] < score_thresh) {return cur_ares;}
+  if (!ppst->do_rep || cur_ares->rst.score[score_ix] <= score_thresh) {return cur_ares;}
 
   if (cur_ares->min1 >= min_alen) { /* try the left  */
     /* allocate a_res */	
@@ -1498,7 +1498,7 @@ bd_malign (const unsigned char *aa0, int n0,
 	     tmpr_ares->rst.score[score_ix]);
     */
 
-    if (tmpr_ares->rst.score[score_ix] >= score_thresh) {
+    if (tmpr_ares->rst.score[score_ix] > score_thresh) {
       /* adjust the left boundary */
       for (this_ares = tmpr_ares; this_ares; this_ares = this_ares->next) {
 	this_ares->min1 += cur_ares->max1;
@@ -1517,7 +1517,7 @@ bd_malign (const unsigned char *aa0, int n0,
   }
   else {tmpr_ares = NULL;}
 
-  if (max_sub_score < score_thresh) return cur_ares;
+  if (max_sub_score <= score_thresh) return cur_ares;
 
   /*
     fprintf(stderr, "lr: %d l: %d r:%d\n",

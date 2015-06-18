@@ -198,7 +198,7 @@ nsw_malign (int ***pam2p, int pam_ix, int n0,
 	      pam2p[pam_ix], gdelval, ggapval,
 	      &nc, &cur_ares->rst.score[0]);
 
-  if (!do_rep || cur_ares->rst.score[score_ix] < score_thresh) { return cur_ares;}
+  if (!do_rep || cur_ares->rst.score[score_ix] <= score_thresh) { return cur_ares;}
 
   if (cur_ares->min1 >= min_alen) { /* try the left  */
     /* allocate a_res */
@@ -220,7 +220,7 @@ nsw_malign (int ***pam2p, int pam_ix, int n0,
     aa1[cur_ares->min1] = save_res;
     */
 
-    if (tmpl_ares->rst.score[score_ix] >= score_thresh) {
+    if (tmpl_ares->rst.score[score_ix] > score_thresh) {
       max_sub_score = tmpl_ares->rst.score[score_ix];
     }
     else {
@@ -255,7 +255,7 @@ nsw_malign (int ***pam2p, int pam_ix, int n0,
     aa1[cur_ares->max1-1] = save_res;
     */
 
-    if (tmpr_ares->rst.score[score_ix] >= score_thresh) {
+    if (tmpr_ares->rst.score[score_ix] > score_thresh) {
       /* adjust the left boundary */
       for (this_ares = tmpr_ares; this_ares; this_ares = this_ares->next) {
 	this_ares->min1 += cur_ares->max1;
@@ -275,9 +275,9 @@ nsw_malign (int ***pam2p, int pam_ix, int n0,
   else {tmpr_ares = NULL;}
 
   /* We have checked both left and right, and better score is in max_sub_score.
-     If both scores are < score_thresh, then forget it */
+     If both scores are <= score_thresh, then forget it */
 
-  if (max_sub_score < score_thresh) {
+  if (max_sub_score <= score_thresh) {
     if (tmpl_ares) {
       if (tmpl_ares->res) {free(tmpl_ares->res);}
       free(tmpl_ares);

@@ -9,6 +9,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jun. 18, 2015
+[dropfx.c, dropgsw.c, dropfx.c, dropfx2.c, dropfz3.c]
+Fix problem in do_walign.c with comparison to score_threshold during
+recursive alignment.
+
 >>May. 21, 2015
 [compacc2e.c]
 Add additional checks to ensure that annotations are within the
@@ -32,7 +37,7 @@ and tfast[xy]36.
 Provided scoring matrix files for the VTML_10,20,40,80,120,160,200
 matrices available internally.
 
->>Nov. 25, 2014	[ releaseed as fasta-36.3.7]
+>>Nov. 25, 2014	[ released as fasta-36.3.7]
 [cal_cons.c, dropfx2.c, dropfz3.c]
 Fix problem that prevented -m 9c and -m 8CC unless annotations were
 present.

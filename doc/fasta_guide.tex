@@ -412,13 +412,14 @@ scores \emph{cannot} be used to infer \emph{non-homology}.
 
 While percent identity is often used to characterize the quality of an
 alignment and the likelihood that it reflects homology, the E()-value
-is a much more reliable value.  Often sequences that share less than
-30\% identity will share very significant similarity (in the example
-above \texttt{mgstm1.aa} and \texttt{GSTA4\_RAT}, with E() $<$ 6.1E-07
-are 25.6\% identical).  The expectation value captures information
-about conservative replacements, identities, and alignment length to
-provide a \emph{single} value that captures the significance of the
-alignment.
+is a much more reliable value for homology infernence (once homology is
+established, the percent identity is much more useful for estimating
+evolutionary distance).  Often sequences that share less than 30\%
+identity will share very significant similarity (in the example above
+\texttt{mgstm1.aa} and \texttt{GSTA4\_RAT}, with E() $<$ 6.1E-07 are
+25.6\% identical).  The expectation value captures information about
+conservative replacements, identities, and alignment length to provide
+a \emph{single} value that captures the significance of the alignment.
 
 For protein searches, library sequences with E()-values $<$ 0.001 for
 searches of a 10,000 entry protein database are almost always

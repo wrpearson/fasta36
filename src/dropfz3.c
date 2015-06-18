@@ -2311,7 +2311,7 @@ fz_walign (const unsigned char *aa0, int n0,
   do_fastz (aa0, n0, f_str->aa1x, n10, f_str->aa1v, ppst, f_str, &a_res->rst, &hoff, 1, &s_info);
 #endif
 
-  if (a_res->rst.score[ppst->score_ix] < score_thresh) {
+  if (a_res->rst.score[ppst->score_ix] <= score_thresh) {
     a_res->sw_score = 0;
     a_res->n1 = n1;
     return;
@@ -2488,7 +2488,7 @@ fz_malign (const unsigned char *aa0, int n0,
      DNA, but n0 could be protein or DNA, depending on
      FASTY/TFASTY */
 
-  if (!ppst->do_rep || cur_ares->rst.score[ppst->score_ix] < score_thresh) { 
+  if (!ppst->do_rep || cur_ares->rst.score[ppst->score_ix] <= score_thresh) { 
     return cur_ares;
   }
 
@@ -2612,7 +2612,7 @@ fz_malign (const unsigned char *aa0, int n0,
     }
     else {tmpr_ares = NULL;}
 
-    if (max_sub_score < score_thresh) return cur_ares;
+    if (max_sub_score <= score_thresh) return cur_ares;
 
     cur_ares = merge_ares_chains(cur_ares, tmpl_ares, score_ix, "left");
     cur_ares = merge_ares_chains(cur_ares, tmpr_ares, score_ix, "right");

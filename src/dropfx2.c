@@ -2195,7 +2195,7 @@ fx_walign (const unsigned char *aa0, int n0,
 
   do_fastx(aa0, n0, xaa, n1, yaa, ppst, f_str, &a_res->rst, &hoff,1, &s_info);
 
-  if (a_res->rst.score[score_ix] < score_thresh) {
+  if (a_res->rst.score[score_ix] <= score_thresh) {
     a_res->sw_score = 0;
     a_res->n1 = n1;
     return;
@@ -2264,7 +2264,7 @@ fx_walign (const unsigned char *aa0, int n0,
   */
 #endif
 
-  if (a_res->rst.score[ppst->score_ix] < score_thresh) {
+  if (a_res->rst.score[ppst->score_ix] <= score_thresh) {
     a_res->sw_score = 0;
     a_res->n1 = n1;
     return;
@@ -2407,7 +2407,7 @@ fx_malign (const unsigned char *aa0, int n0,
      DNA, but n0 could be protein or DNA, depending on
      FASTX/TFASTX */
 
-  if (!ppst->do_rep || cur_ares->rst.score[ppst->score_ix] < score_thresh) {
+  if (!ppst->do_rep || cur_ares->rst.score[ppst->score_ix] <= score_thresh) {
 #ifdef TFAST
     free(--my_xaa);
 #endif
@@ -2513,7 +2513,7 @@ fx_malign (const unsigned char *aa0, int n0,
 #endif
 /*    yaa[cur_ares->max1] = save_res;*/
 
-    if (tmpr_ares->rst.score[ppst->score_ix] >= score_thresh) {
+    if (tmpr_ares->rst.score[ppst->score_ix] > score_thresh) {
       /* adjust the left boundary */
       for (this_ares = tmpr_ares; this_ares; this_ares = this_ares->next) {
 #ifdef TFAST
@@ -2541,7 +2541,7 @@ fx_malign (const unsigned char *aa0, int n0,
     free(--my_xaa);
 #endif
 
-  if (max_sub_score < score_thresh) {
+  if (max_sub_score <= score_thresh) {
     if (tmpl_ares) {
       if (tmpl_ares->res) free(tmpl_ares->res);
       free(tmpl_ares);
