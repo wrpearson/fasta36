@@ -158,14 +158,14 @@ init_work (unsigned char *aa0, int n0,
 
   /* initialize range of length appropriate */
 
-  if (ppst->n1_low == 0 ) {ppst->n1_low = (int)(0.75 * (float)n0 + 0.5);}
+  if (ppst->n1_low == 0 ) {
+    ppst->n1_low = (int)(0.75 * (float)n0 + 0.5);
+  }
 
 #if defined(GLOBAL_GLOBAL)
   if (ppst->n1_high == BIGNUM) {
     ppst->n1_high = (int)(1.33 * (float)n0 - 0.5);
   }
-#else
-  ppst->n1_high = BIGNUM;
 #endif
 
   /* allocate space for function globals */
