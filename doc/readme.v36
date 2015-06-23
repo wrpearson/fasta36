@@ -9,9 +9,13 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jun. 23, 2015 [released as fasta-36.3.7b]
+[dropnnw2.c]
+Fix problem where glsearch reset (ignored) the -M sequence limit.
+
 >>Jun. 18, 2015
 [dropfx.c, dropgsw.c, dropfx.c, dropfx2.c, dropfz3.c]
-Fix problem in do_walign.c with comparison to score_threshold during
+Fix problem in do_walign.c with comparison to score_thresh during
 recursive alignment.
 
 >>May. 21, 2015
