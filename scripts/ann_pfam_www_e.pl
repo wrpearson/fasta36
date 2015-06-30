@@ -39,9 +39,9 @@ use LWP::Simple;
 use XML::Twig;
 # use Data::Dumper;
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_clans, $pf_acc, $shelp, $help, $no_over, $acc_comment, $pfamB) =
-  (0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
-my ($min_nodom) = (10);
+my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc, $shelp, $help, $no_over, $acc_comment, $pfamB) =
+  (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+my ($min_nodom, $min_vdom) = (10, 10);
 
 GetOptions(
     "lav" => \$lav,
@@ -55,6 +55,8 @@ GetOptions(
     "no-clans" => \$no_clans,
     "no_clans" => \$no_clans,
     "pfamB" => \$pfamB,
+    "vdoms" => \$vdoms,
+    "v_doms" => \$vdoms,
     "pfacc" => \$pf_acc,
     "pfam_acc" => \$pf_acc,
     "acc" => \$pf_acc,
@@ -76,7 +78,8 @@ my $loc="http://pfam.xfam.org/";
 my $url;
 
 my @pf_domains;
-my $pf_seq_length=0;
+my %pfamA_fams = ();
+my ($pf_seq_length, $pf_model_length)=(0,0);
 my ($clan_acc, $clan_id) = ("","");
 
 my $get_annot_sub = \&get_pfam_annots;
@@ -110,11 +113,11 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      my ($a_name, $a_num) = ($annot->[-1],$domains{$annot->[-1]});
+      my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
       if ($acc_comment) {
 	$annot->[-1] .= "{$domain_list[$a_num]}";
       }
-      $annot->[-1] .= " :".$domains{$a_name};
+      $annot->[-1] = "$a_name :$a_num";
     }
     print join("\t",@$annot),"\n";
   }
@@ -174,6 +177,11 @@ sub push_match {
     push @pf_domains, { %$attr_ref, %$loc_ref };
 }
 
+sub get_model_length {
+    my ($t, $elt) = @_;
+    $pf_model_length = $elt->{att}->{model_length};
+}
+
 sub get_clan {
     my ($t, $elt) = @_;
     my $attr_ref = $elt->{att};
@@ -193,7 +201,7 @@ sub get_pfam_www {
 
   @pf_domains = ();
 
-  my $twig_fam = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
+  my $twig_dom = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
 #			    start_tag_handlers => {
 #						   'sequence' => \&get_length,
 #						  },
@@ -202,7 +210,7 @@ sub get_pfam_www {
 					      'sequence' => \&get_length,
 					     },
 			    pretty_print => 'indented');
-  my $xml = $twig_fam->parse($res);
+  my $xml = $twig_dom->parse($res);
 
   if (!$seq_length || $seq_length == 0) {
       $seq_length = $pf_seq_length;
@@ -212,6 +220,30 @@ sub get_pfam_www {
 
   unless ($pfamB) {
     @pf_domains = grep { $_->{type} !~ m/Pfam-B/ } @pf_domains;
+  }
+
+  # for virtual domains, also need information about the families
+  if ($vdoms) {
+    for my $curr_dom (@pf_domains) {
+      
+      my $acc = $curr_dom->{accession};
+      $url = "family/$acc?output=xml";
+
+      my $res = get($loc . $url);
+
+      my $twig_fam = XML::Twig->new(twig_roots => {hmm_details => 1, clan_membership=> 1},
+				    twig_handlers => {
+						      'hmm_details' => \&get_model_length,
+						      'clan_membership' => \&get_clan,
+						     },
+				    pretty_print => 'indented');
+
+      ($clan_acc, $clan_id) = ("","");
+      my $fam_xml = $twig_fam->parse($res);
+
+      $pfamA_fams{$acc} = { model_length => $pf_model_length, clan_acc=>$clan_acc, clan_id=>$clan_id};
+      $curr_dom->{model_length} = $pf_model_length;
+    }
   }
 
   # check for domain overlap, and resolve check for domain overlap
@@ -296,6 +328,82 @@ sub get_pfam_www {
     }
   }
 
+  # $vdoms -- virtual Pfam domains -- the equivalent of $neg_doms,
+  # but covering parts of a Pfam model that are not annotated.  split
+  # domains have been joined, so simply check beginning and end of
+  # each domain (but must also check for bounded-ness)
+  # only add when 10% or more is missing and missing length > $min_nodom
+
+  if ($vdoms) {
+      my @vpf_domains;
+
+      my $curr_dom = $pf_domains[0];
+
+      my $prev_dom={end=>0, accession=>''};
+      my $prev_dom_end = 0;
+      my $next_dom_start = $seq_length+1;
+
+      for (my $dom_ix=0; $dom_ix < scalar(@pf_domains); $dom_ix++ ) {
+	  $curr_dom = $pf_domains[$dom_ix];
+
+	  my $pfamA =  $curr_dom->{accession};
+
+	  # first, look left, is there a domain there (if there is,
+	  # it should be updated right
+
+	  # my $min_vdom = $curr_dom->{model_length} / 10;
+
+	  if ($prev_dom->{accession}) { # look for previous domain
+	      $prev_dom_end = $prev_dom->{end};
+	  }
+
+	  # there is a domain to the left, how much room is available?
+	  my $left_dom_len = min($curr_dom->{start}-$prev_dom_end-1, $curr_dom->{hmm_start}-1);
+	  if ( $left_dom_len > $min_vdom) {
+	      # there is room for a virtual domain
+	      my %new_dom = (start=> $curr_dom->{start}-$left_dom_len,
+			     end => $curr_dom->{start}-1,
+			     info=>'@'.$curr_dom->{accession},
+			     model_length=> $curr_dom->{model_length},
+			     hmm_end => $curr_dom->{hmm_start}-1,
+			     hmm_start => $left_dom_len,
+			     accession=>$pfamA,
+		  );
+	      push @vpf_domains, \%new_dom;
+	  }
+
+	  # save the current domain
+	  push @vpf_domains, $curr_dom;
+	  $prev_dom = $curr_dom;
+
+	  if ($dom_ix < $#pf_domains) { # there is a domain to the right
+	      # first, give all the extra space to the first domain (no splitting)
+	      $next_dom_start = $pf_domains[$dom_ix+1]->{start};
+	  }
+	  else {
+	      $next_dom_start = $seq_length;
+	  }
+
+	  # is there room for a virtual domain right
+
+	  my $right_dom_len = min($next_dom_start-$curr_dom->{end}-1, # space available 
+				  $curr_dom->{model_length}-$curr_dom->{hmm_end} # space needed
+	      );
+	  if ( $right_dom_len > $min_vdom) {
+	      my %new_dom = (start=> $curr_dom->{end}+1,
+			     end=> $curr_dom->{end}+$right_dom_len,
+			     info=>'@'.$pfamA,
+			     model_length => $curr_dom->{model_length},
+			     accession=> $pfamA,
+		  );
+	      push @vpf_domains, \%new_dom;
+	      $prev_dom = \%new_dom;
+	  }
+      }				# all done, check for last one
+    # @vpf_domains has both old @pf_domains and new virtural-domains
+    @pf_domains = @vpf_domains;
+  }
+
   if ($neg_doms) {
     my @npf_domains;
     my $prev_dom={end=>0};
@@ -350,6 +458,12 @@ sub get_pfam_www {
 sub domain_name {
 
   my ($value, $seq_id, $pf_acc) = @_;
+  my $is_virtual = 0;
+
+  if ($value =~ m/^@/) {
+    $is_virtual = 1;
+    $value =~ s/^@//;
+  }
 
   unless (defined($value)) {
     warn "missing domain name for $seq_id";
@@ -372,19 +486,25 @@ sub domain_name {
     # (3) for clans, combine family name with clan name, but use colors based on clan
 
     # return the clan name, identifier if a clan member
-    $url = "family/$value?output=xml";
+    if (!defined($pfamA_fams{$pf_acc})) {
 
-    my $res = get($loc . $url);
+      my $url = "family/$value?output=xml";
 
-    my $twig_clan = XML::Twig->new(twig_roots => {'clan_membership'=>1},
-				   twig_handlers => {
-						     'clan_membership' => \&get_clan,
-						    },
-				   pretty_print => 'indented');
+      my $res = get($loc . $url);
 
-    # make certain to reinitialize
-    ($clan_acc, $clan_id) = ("","");
-    my $xml = $twig_clan->parse($res);
+      my $twig_clan = XML::Twig->new(twig_roots => {'clan_membership'=>1},
+				     twig_handlers => {
+						       'clan_membership' => \&get_clan,
+						      },
+				     pretty_print => 'indented');
+
+      # make certain to reinitialize
+      ($clan_acc, $clan_id) = ("","");
+      my $xml = $twig_clan->parse($res);
+    }
+    else {
+      ($clan_acc, $clan_id) = @{$pfamA_fams{$pf_acc}}{qw(clan_acc clan_id)};
+    }
 
     if ($clan_acc) {
       my $c_value = "C." . $clan_id;
@@ -414,7 +534,32 @@ sub domain_name {
     else { $value = "C." . $domain_clan{$value}->{clan_id}; }
   }
 
+  if ($is_virtual) {
+    $domains{'@'.$value} = $domains{$value};
+    $value = '@'.$value;
+  }
   return $value;
+}
+
+sub domain_num {
+  my ($value, $number) = @_;
+  if ($value =~ m/^@/) {
+    $value =~ s/^@/v/;
+    $number = $number."v";
+  }
+  return ($value, $number);
+}
+
+sub min {
+  my ($arg1, $arg2) = @_;
+
+  return ($arg1 <= $arg2 ? $arg1 : $arg2);
+}
+
+sub max {
+  my ($arg1, $arg2) = @_;
+
+  return ($arg1 >= $arg2 ? $arg1 : $arg2);
 }
 
 __END__
