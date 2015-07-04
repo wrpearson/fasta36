@@ -267,6 +267,44 @@ sub get_pfam_www {
     push @pf_domains, $dom_ref;
   }
 
+  # before checking for domain overlap, check for "split-domains"
+  # (self-unbound) by looking for runs of the same domain that are
+  # ordered by hmm_start
+
+  if (scalar(@pf_domains) > 1) {
+    my @j_domains;		#joined domains
+    my @tmp_domains = @pf_domains;
+
+    my $prev_dom = shift(@tmp_domains);
+
+    for my $curr_dom (@tmp_domains) {
+      # to join domains:
+      # (1) the domains must be in order by hmm_start/end coordinates
+      # (3) joining the domains cannot make the total combination too long
+
+      # check for model and sequence consistency
+      if (($prev_dom->{pfamA_acc} eq $curr_dom->{pfamA_acc})  # same family
+	  && $prev_dom->{hmm_start} < $curr_dom->{hmm_start}  # model check
+	  && $prev_dom->{hmm_end} < $curr_dom->{hmm_end}
+
+	  && ($curr_dom->{hmm_start} > $prev_dom->{hmm_end} * 0.80   # limit overlap
+	      || $curr_dom->{hmm_start} <  $prev_dom->{hmm_end} * 1.25)
+	  && ((($curr_dom->{hmm_end} - $curr_dom->{hmm_start}+1)/$curr_dom->{model_length} +
+	       ($prev_dom->{hmm_end} - $prev_dom->{hmm_start}+1)/$prev_dom->{model_length}) < 1.33)
+	 ) {			# join them by updating $prev_dom
+	$prev_dom->{end} = $curr_dom->{end};
+	$prev_dom->{hmm_end} = $curr_dom->{hmm_end};
+	$prev_dom->{auto_pfamA_reg_full} = $prev_dom->{auto_pfamA_reg_full} . ";". $curr_dom->{auto_pfamA_reg_full};
+	$prev_dom->{evalue} = ($prev_dom->{evalue} < $curr_dom->{evalue} ? $prev_dom->{evalue} : $curr_dom->{evalue});
+      } else {
+	push @j_domains, $prev_dom;
+	$prev_dom = $curr_dom;
+      }
+    }
+    push @j_domains, $prev_dom;
+    @pf_domains = @j_domains;
+  }
+
   if($no_over && scalar(@pf_domains) > 1) {
 
     my @tmp_domains = @pf_domains;
