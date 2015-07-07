@@ -42,7 +42,7 @@ use vars qw($host $db $port $user $pass);
 my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam28", 0, "web_user", "fasta_www");
-$host = 'xdb';
+#$host = 'xdb';
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
 
