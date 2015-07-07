@@ -283,7 +283,7 @@ sub get_pfam_www {
       # (3) joining the domains cannot make the total combination too long
 
       # check for model and sequence consistency
-      if (($prev_dom->{pfamA_acc} eq $curr_dom->{pfamA_acc})  # same family
+      if (($prev_dom->{accession} eq $curr_dom->{accession})  # same family
 	  && $prev_dom->{hmm_start} < $curr_dom->{hmm_start}  # model check
 	  && $prev_dom->{hmm_end} < $curr_dom->{hmm_end}
 
