@@ -9,7 +9,7 @@
 
 SHELL=/bin/bash
 
-CC= icc -g -O3
+CC= icc -O3
 #CC = icc -g -DDEBUG
 
 #CC=gcc -Wall -pedantic -ansi -g -O

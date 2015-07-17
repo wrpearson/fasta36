@@ -1970,8 +1970,8 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
     }
     else {	/* ctmp_label == ']' -- closing domain */
       if (last_left_bracket < 0) {
-	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry() - ']' without '[': %s\n",
-		__FILE__,__LINE__, tmp_line);
+	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) - ']' without '[': %s\n",
+		__FILE__,__LINE__, annot_acc, tmp_line);
 	continue;
       }
       tmp_ann_entry_arr[last_left_bracket].end = f_pos;
@@ -2033,8 +2033,8 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 
     for (i_ann=0; i_ann < n_annot; i_ann++) {
       if (tmp_ann_entry_arr[i_ann].label == '[') {
-	fprintf(stderr,"*** error [%s:%d] - unpaired '[' %d:%s\n",
-		__FILE__,__LINE__, i_ann, tmp_ann_entry_arr[i_ann].comment);
+	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) -  unpaired '[' %d:%s\n",
+		__FILE__,__LINE__, annot_acc, i_ann, tmp_ann_entry_arr[i_ann].comment);
 	return NULL;
       }
     }
@@ -2045,15 +2045,15 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 
     /* provide sorted array */
     if ((s_tmp_ann_entry_arr = (struct annot_entry **)calloc((n_annot+1),sizeof(struct annot_entry *)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot alloc s_tmp_ann_entry_arr[%d]",
-	      __FILE__,__LINE__, n_annot+1);
+      fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) -  cannot alloc s_tmp_ann_entry_arr[%d]",
+	      __FILE__,__LINE__, annot_acc, n_annot+1);
       return NULL;
     }
 
     /* allocate list linkers for left_domains */
     if ((domfeats_head = (struct domfeat_link *)calloc((n_annot+1), sizeof(struct domfeat_link)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot alloc domfeats_head[%d]",
-	      __FILE__,__LINE__, n_annot);
+      fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) -  cannot alloc domfeats_head[%d]",
+	      __FILE__,__LINE__, annot_acc, n_annot);
       return NULL;
     }
 
@@ -2105,7 +2105,7 @@ add_annot_char(unsigned char *ann_arr, char ctmp_label) {
   if (strchr((char *)ann_arr,ctmp_label)==NULL) {
     /* check for room for another character */
     if (strlen((char *)ann_arr) >= MAX_FN) {
-      fprintf(stderr,"*** error [%s:%d] -  too many annotation characters: len(%s) + %c > %d\n",
+      fprintf(stderr,"*** error [%s:%d] -- add_annot_char - too many annotation characters: len(%s) + %c > %d\n",
 	      __FILE__, __LINE__, ann_arr, ctmp_label, MAX_FN-1);
       return 0;
     }
@@ -2180,7 +2180,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
     annot_fd=fopen(annot_data_file,"r");
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] - %s not script (!) or file (<)\n",__FILE__, __LINE__, sname);
+    fprintf(stderr,"*** error [%s:%d] -- get_annot() - %s not script (!) or file (<)\n",__FILE__, __LINE__, sname);
     goto no_annots;
   }
 
@@ -2194,7 +2194,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
     while (tmp_line[0] == '#' || tmp_line[0] == '=') {
       if (tmp_line[0] == '=') add_annot_def(m_msp, tmp_line+1,1);
       if (fgets(tmp_line, sizeof(tmp_line), annot_fd)==NULL) {
-	fprintf(stderr,"*** error [%s:%d] - premature annotation file end (%s)\n",
+	fprintf(stderr,"*** error [%s:%d] -- get_annot() -  premature annotation file end (%s)\n",
 		__FILE__,__LINE__, annot_data_file);
 	goto no_annots;
       }
@@ -2206,7 +2206,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
 
     /* strlen(&tmp_line[1])-1 to remove '>' and beginning and '\n' at end */
     if (tmp_line[0] != '>') {
-      fprintf(stderr,"*** error [%s:%d] - no %s description: [%s]\n",
+      fprintf(stderr,"*** error [%s:%d] -- get_annot() - no %s description: [%s]\n",
 	      __FILE__,__LINE__,annot_data_file, tmp_line);
       goto no_annots;
     }
@@ -2246,7 +2246,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
   char *bp;
 
   if ((aa1a_tmp = (unsigned char *)calloc(n1+2,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate aa1a_ann[%d] array\n",
+    fprintf(stderr,"*** error [%s:%d] -- s_annot_to_aa1a() - cannot allocate aa1a_ann[%d] array\n",
 	    __FILE__, __LINE__, n1);
     return;
   }
@@ -2263,7 +2263,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
 	  aa1a_tmp[this_annot->pos-offset] = qascii['['] - NANN;
 	}
 	else {
-	  fprintf(stderr,"*** error [%s:%d] - attempt to write off end of aa1a_tmp[%d]: %ld -- %s\n",
+	  fprintf(stderr,"*** error [%s:%d] -- s_annot_to_aa1a() - attempt to write off end of aa1a_tmp[%d]: %ld -- %s\n",
 		  __FILE__,__LINE__, n1, this_annot->pos - offset, tmp_line);
 	  continue;
 	}
@@ -2296,7 +2296,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
       }
     }
     else {
-      fprintf(stderr, "*** error [%s:%d] - this_annot->pos:[%ld - %ld] out of range: %d : %s\n",
+      fprintf(stderr, "*** error [%s:%d] -- s_annot_to_aa1() - athis_annot->pos:[%ld - %ld] out of range: %d : %s\n",
 	      __FILE__, __LINE__, this_annot->pos,offset, n1, tmp_line);
     }
   }
