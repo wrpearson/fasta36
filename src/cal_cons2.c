@@ -795,7 +795,7 @@ calc_cons_u( /* inputs */
   *score_delta = v_delta;
 
   *nc = lenc;
-  if (calc_func_mode == CALC_CONS) {
+  if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
     if (have_ann) {
       *sp0a_p = *sp1a_p = '\0';
       have_push_features = 0;
