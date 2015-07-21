@@ -132,6 +132,7 @@ extern void *init_stack(int, int);
 extern void push_stack(void *, void *);
 extern void *pop_stack(void *);
 extern void *free_stack(void *);
+extern struct domfeat_data * init_domfeat_data(const struct annot_str *annot_p);
 
 struct sx_s {int C1, C2, C3, I1, I2, I3, flag; };
 
@@ -2748,7 +2749,9 @@ process_annot_match(int *itmp, int *pam2aa0v,
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		    struct annot_entry *annot_arr_p, char **ann_comment,
 		    void *annot_stack, int *have_push_features, int *v_delta,
-		    int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain_p,
+		    int *d_score_p, int *d_ident_p, int *d_alen_p,
+		    struct domfeat_data **left_domain_head_p,
+		    struct domfeat_data *left_domain_p,
 		    long *left_end_p, int init_score);
 
 extern int
@@ -2756,13 +2759,15 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
-		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain,
+		 int *d_score_p, int *d_ident_p, int *d_alen_p,
+		 struct domfeat_data **left_domain_head_p,
+		 struct domfeat_data *left_domain_p,
 		 long *left_domain_end, int init_score);
 
 extern void
 close_annot_match (int ia, void *annot_stack, int *have_push_features,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
-		   struct domfeat_link **left_domain_p,
+		   struct domfeat_data **left_domain_p,
 		   long *left_end_p, int init_score);
 
 extern void
@@ -2872,7 +2877,7 @@ calc_cons_u( /* inputs */
   int show_code, annot_fmt, start_flag;
 
   int d1_score, d1_ident, d1_alen;
-  struct domfeat_link *left_domain_list1;
+  struct domfeat_data *left_domain_list1, *left_domain_head1;
 
   char *ann_comment;
 
@@ -3018,7 +3023,6 @@ calc_cons_u( /* inputs */
   have_push_features = prev_match = 0;
   if (have_ann) {
     if (calc_func_mode == CALC_CONS) {
-      annot_stack = init_stack(64,64);
       have_push_features_p = &have_push_features;
     }
     else if (calc_func_mode == CALC_ID) {
@@ -3027,12 +3031,14 @@ calc_cons_u( /* inputs */
       annot_stack = NULL;
     }
     else if (calc_func_mode == CALC_CODE) {
-      annot_stack = init_stack(64,64);
       have_push_features_p = &have_push_features;
     }
 
-    if (annotp_p && annotp_p->n_annot > 0) annot_stack = init_stack(64,64);
     if (annotp_p && annotp_p->n_annot > 0) {
+      annot_stack = init_stack(64,64);
+
+      left_domain_list1=init_domfeat_data(annotp_p);
+
       s_annotp_arr_p = annotp_p->s_annot_arr_p;
 
       while (i1_annot < annotp_p->n_annot) {
@@ -3050,7 +3056,8 @@ calc_cons_u( /* inputs */
 #endif
 			      sp1_p, sp1a_p, sq, s_annotp_arr_p[i1_annot],  &ann_comment, 
 			      annot_stack, have_push_features_p, &v_delta,
-			      &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end, 0);
+			      &d1_score, &d1_ident, &d1_alen, 
+			      &left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end, 0);
 	}
 	i1_annot++;
       }
@@ -3098,7 +3105,8 @@ calc_cons_u( /* inputs */
 					sp1_p, sp1a_p, sq, 
 					i1_annot, annotp_p->n_annot, s_annotp_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
-					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+					&d1_score, &d1_ident, &d1_alen,
+					&left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end,
 					ppst->ggapval+ppst->gdelval);
 	  }
 
@@ -3180,7 +3188,8 @@ calc_cons_u( /* inputs */
 					sp1_p, sp1a_p, sq, 
 					i1_annot, annotp_p->n_annot, s_annotp_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
-					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,0);
+					&d1_score, &d1_ident, &d1_alen,
+					&left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end,0);
 
 	    if (sq[ap1[i1]] != *sp1_p) {
 	      t_spa = align_type(itmp, *sp0_p, *sp1_p, 0, NULL, ppst->pam_x_id_sim);
@@ -3272,7 +3281,8 @@ calc_cons_u( /* inputs */
 					sp1_p, sp1a_p, sq, 
 					i1_annot, annotp_p->n_annot, s_annotp_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
-					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,0);
+					&d1_score, &d1_ident, &d1_alen, 
+					&left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end,0);
 
 	    if (sq[ap1[i1]] != *sp1_p) {
 	      t_spa = align_type(itmp, *sp0_p, *sp1_p, 0, NULL, ppst->pam_x_id_sim);
@@ -3388,7 +3398,8 @@ calc_cons_u( /* inputs */
 					sp1_p, sp1a_p, sq, 
 					i1_annot, annotp_p->n_annot, s_annotp_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
-					&d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,0);
+					&d1_score, &d1_ident, &d1_alen, 
+					&left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end,0);
 
 	    if (sq[ap1[i1]] != *sp1_p) {
 	      t_spa = align_type(itmp, *sp0_p, *sp1_p, 0, NULL, ppst->pam_x_id_sim);
@@ -3509,6 +3520,7 @@ calc_cons_u( /* inputs */
 	have_push_features = 0;
       }
     }
+    if (left_domain_list1) free(left_domain_list1);
     free_stack(annot_stack);
   }
   *spa_p = '\0';
