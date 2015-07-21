@@ -3111,7 +3111,7 @@ calc_cons_u( /* inputs */
 					i1_annot, annotp_p->n_annot, s_annotp_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
 					&d1_score, &d1_ident, &d1_alen,
-					&left_domain_head1, &left_domain_list1, &i1_left_end,
+					&left_domain_head1, left_domain_list1, &i1_left_end,
 					ppst->ggapval+ppst->gdelval);
 	  }
 
