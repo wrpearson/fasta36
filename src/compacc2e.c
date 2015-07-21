@@ -3829,12 +3829,10 @@ init_domfeat_data(const struct annot_str *annot_p) {
   }
 
   /* here we link potentially overlapping domains */
-  domfeats_current = domfeats_head;
-  for (i_ann=0; i_ann < annot_p->n_annot+1; i_ann++) {
-    domfeats_current->next = NULL;
-    domfeats_current->end_pos = -1;
-    domfeats_current->annot_entry_p = annot_p->annot_arr_p+i_ann;
-    domfeats_current++;
+  for (i_ann=0; i_ann < annot_p->n_annot; i_ann++) {
+    domfeats_head[i_ann].next = NULL;
+    domfeats_head[i_ann].end_pos = -1;
+    domfeats_head[i_ann].annot_entry_p = annot_p->annot_arr_p+i_ann;
   }
 
   return domfeats_head;
@@ -3912,7 +3910,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 		    long *left_end_p, int init_score) {
   int v_tmp;
   int new_left_domain_end;
-  struct domfeat_data *new_dom_feat, *this_dom, *prev_dom, *new_dom;
+  struct domfeat_data *this_dom, *prev_dom, *new_dom;
 
   if (*left_domain_head_p) {
     *left_end_p = (*left_domain_head_p)->end_pos;
@@ -3936,16 +3934,14 @@ process_annot_match(int *itmp, int *pam2aa0v,
   }
   else {
     /* need new_dom_feat for either domain '-' or non-variant feature */
-    if (left_domain_p) {
-      new_dom_feat = left_domain_p;
+    if (left_domain_p->annot_entry_p) {
       /* ensure initial values zero-ed out */
-      new_dom_feat->next = NULL;
-      new_dom_feat->score = 0;
-      new_dom_feat->n_ident = 0;
-      new_dom_feat->n_alen = 0;
-      new_dom_feat->annot_entry_p = annot_arr_p;
-      new_dom_feat->pos = ip;
-      new_dom_feat->a_pos = ia;
+      left_domain_p->next = NULL;
+      left_domain_p->score = 0;
+      left_domain_p->n_ident = 0;
+      left_domain_p->n_alen = 0;
+      left_domain_p->pos = ip;
+      left_domain_p->a_pos = ia;
     }
     else {
       fprintf(stderr,"*** error [%s:%d] -- annot_arr->link is NULL\n",  __FILE__,__LINE__);
@@ -3965,12 +3961,12 @@ process_annot_match(int *itmp, int *pam2aa0v,
     else if (annot_arr_p->label == '-') {
 
       /* initialize this dom_entry */
-      new_dom_feat->score = init_score;
-      new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
-      *left_end_p = new_dom_feat->end_pos = annot_arr_p->end;
+      left_domain_p->score = init_score;
+      left_domain_p->n_ident = left_domain_p->n_alen = 0;
+      *left_end_p = left_domain_p->end_pos = annot_arr_p->end;
 
       if (*left_domain_head_p == NULL) {
-	*left_domain_head_p = new_dom_feat;
+	*left_domain_head_p = left_domain_p;
       }
       else { /* we already have a domain list - update scores for "live" domains and insert new domain */
 	new_left_domain_end = annot_arr_p->end;
@@ -4000,22 +3996,22 @@ process_annot_match(int *itmp, int *pam2aa0v,
 	*d_score_p = init_score;
 
 	/* initialize this dom_entry */
-	new_dom_feat->score = init_score;
-	new_dom_feat->n_ident = new_dom_feat->n_alen = 0;
-	new_dom_feat->end_pos = annot_arr_p->end;
+	left_domain_p->score = init_score;
+	left_domain_p->n_ident = left_domain_p->n_alen = 0;
+	left_domain_p->end_pos = annot_arr_p->end;
 
 	if (new_dom) {	/* left_dom is null if it is first/last */
-	  new_dom_feat->next = new_dom->next;
-	  new_dom->next = new_dom_feat;
+	  left_domain_p->next = new_dom->next;
+	  new_dom->next = left_domain_p;
 	}
 	else { /* left_dom is NULL for start OR end, prev_dom has end of list */
 	  if (prev_dom->end_pos < new_left_domain_end) { /* goes into the end of the list */
-	    prev_dom->next = new_dom_feat;
+	    prev_dom->next = left_domain_p;
 	  }
 	  else {
 	    /* place at start of list */
-	    new_dom_feat->next = *left_domain_head_p;
-	    *left_domain_head_p = new_dom_feat;
+	    left_domain_p->next = *left_domain_head_p;
+	    *left_domain_head_p = left_domain_p;
 	  }
 	}
       } /* done with domain insertion/ domain_end update */
@@ -4023,7 +4019,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
     }/* all done with '[' */
     else if (annot_stack) {	/* not [-]V -- residue feature */
       if (have_push_features) *have_push_features = 1;
-      push_stack(annot_stack, new_dom_feat);
+      push_stack(annot_stack, left_domain_p);
     }
     return 1;
   }

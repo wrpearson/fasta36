@@ -432,6 +432,9 @@ calc_cons_u( /* inputs */
   have_push_features=0;
 
   if (have_ann) {  /* initialize annotation variables */
+    left_domain_head0 = left_domain_head1 = NULL;
+    left_domain_list0 = left_domain_list1 = NULL;
+
     if (calc_func_mode == CALC_CONS) {
       sp0a_p = seqc0a+mins;
       sp1a_p = seqc1a+mins;
@@ -455,8 +458,6 @@ calc_cons_u( /* inputs */
     *score_delta = 0;
     i0_left_end = i1_left_end = -1;
     NULL_dyn_string(annot_var_dyn);
-    left_domain_head0 = left_domain_head1 = NULL;
-    left_domain_list0 = left_domain_list1 = NULL;
   }
   /* always initialize, updated with no annotations */
   d1_score = d1_ident = d1_alen = 0;
@@ -477,12 +478,11 @@ calc_cons_u( /* inputs */
     i0_off = seq_pos(i0, aln->qlrev,0) + q_offset;
 
     if (annot1_p && annot1_p->n_annot > 0) {
-
-      left_domain_list1 = init_domfeat_data(annot1_p);
-
-      s_annot1_arr_p = annot1_p->s_annot_arr_p;
-
       if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
+
+	left_domain_list1 = init_domfeat_data(annot1_p);
+	s_annot1_arr_p = annot1_p->s_annot_arr_p;
+
 	while (i1_annot < annot1_p->n_annot) {
 	  if (s_annot1_arr_p[i1_annot]->pos >= i1_off) {break;}
 	  if (s_annot1_arr_p[i1_annot]->end < i1_off) {i1_annot++; continue;}
@@ -502,11 +502,11 @@ calc_cons_u( /* inputs */
     /* do not need have_ann here, because domain only */
     if (annot0_p && annot0_p->n_annot>0) {
 
-      left_domain_list0 = init_domfeat_data(annot0_p);
-
-      s_annot0_arr_p = annot0_p->s_annot_arr_p;
-
       if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
+
+	left_domain_list0 = init_domfeat_data(annot0_p);
+	s_annot0_arr_p = annot0_p->s_annot_arr_p;
+
 	while (i0_annot < annot0_p->n_annot) {
 	  if (s_annot0_arr_p[i0_annot]->pos >= i0_off) {break;}
 	  if (s_annot0_arr_p[i0_annot]->end < i0_off) {i0_annot++; continue;}
