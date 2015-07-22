@@ -76,6 +76,7 @@ extern void *init_stack(int, int);
 extern void push_stack(void *, void *);
 extern void *pop_stack(void *);
 extern void *free_stack(void *);
+extern struct domfeat_data * init_domfeat_data(const struct annot_str *annot_p);
 
 /* returns M_NEG, M_ZERO, M_POS, M_IDENT, M_DEL (a_mark.h)
    updates *aln->nsim, npos, nident, nmismatch */
@@ -85,9 +86,11 @@ align_type(int score, char sp0, char sp1, int nt_align, struct a_struct *aln, in
 extern void
 process_annot_match(int *itmp, int *pam2aa0v, 
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
-		    struct annot_entry *annot_arr_p, char **ann_comment,
+		    struct annot_entry *annot_arr_p, int n_domains, char **ann_comment,
 		    void *annot_stack, int *have_push_features, int *v_delta,
-		    int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain_p,
+		    int *d_score_p, int *d_ident_p, int *d_alen_p, 
+		    struct domfeat_data **left_domain_head_p,
+		    struct domfeat_data *left_domain_p,
 		    long *left_end_p, int init_score);
 
 extern int
@@ -95,13 +98,14 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features, int *v_delta,
-		 int *d_score_p, int *d_ident_p, int *d_alen_p, struct domfeat_link **left_domain,
+		 int *d_score_p, int *d_ident_p, int *d_alen_p,
+		  struct domfeat_data **left_domain_head_p, struct domfeat_data *left_domain_p,
 		 long *left_domain_end, int init_score);
 
 extern void
 close_annot_match (int ia, void *annot_stack, int *have_push_features,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
-		   struct domfeat_link **left_domain_p,
+		   struct domfeat_data **left_domain_p,
 		   long *left_end_p, int init_score);
 
 extern void
@@ -346,7 +350,8 @@ calc_cons_u( /* inputs */
   int d0_score, d0_ident, d0_alen;
   int have_push_features;
   int *have_push_features_p;
-  struct domfeat_link *left_domain_list1, *left_domain_list0;
+  struct domfeat_data *left_domain_head1, *left_domain_head0;
+  struct domfeat_data *left_domain_list1, *left_domain_list0;
 
   /* variables for handling coordinate offsets */
   long q_offset, l_offset;
@@ -427,6 +432,9 @@ calc_cons_u( /* inputs */
   have_push_features=0;
 
   if (have_ann) {  /* initialize annotation variables */
+    left_domain_head0 = left_domain_head1 = NULL;
+    left_domain_list0 = left_domain_list1 = NULL;
+
     if (calc_func_mode == CALC_CONS) {
       sp0a_p = seqc0a+mins;
       sp1a_p = seqc1a+mins;
@@ -450,7 +458,6 @@ calc_cons_u( /* inputs */
     *score_delta = 0;
     i0_left_end = i1_left_end = -1;
     NULL_dyn_string(annot_var_dyn);
-    left_domain_list0 = left_domain_list1 = NULL;
   }
   /* always initialize, updated with no annotations */
   d1_score = d1_ident = d1_alen = 0;
@@ -471,19 +478,21 @@ calc_cons_u( /* inputs */
     i0_off = seq_pos(i0, aln->qlrev,0) + q_offset;
 
     if (annot1_p && annot1_p->n_annot > 0) {
-      s_annot1_arr_p = annot1_p->s_annot_arr_p;
-
       if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
+
+	left_domain_list1 = init_domfeat_data(annot1_p);
+	s_annot1_arr_p = annot1_p->s_annot_arr_p;
+
 	while (i1_annot < annot1_p->n_annot) {
 	  if (s_annot1_arr_p[i1_annot]->pos >= i1_off) {break;}
 	  if (s_annot1_arr_p[i1_annot]->end < i1_off) {i1_annot++; continue;}
 
 	  if (s_annot1_arr_p[i1_annot]->label == '-') {
 	    process_annot_match(&itmp, aa0_pam2_p, i1_off, i0_off,
-				sp1_p, sp1a_p, sq, s_annot1_arr_p[i1_annot],  &ann_comment, 
+				sp1_p, sp1a_p, sq, s_annot1_arr_p[i1_annot],  annot1_p->n_domains, &ann_comment, 
 				annot_stack, have_push_features_p, &v_delta,
-				&d1_score, &d1_ident, &d1_alen,
-				&left_domain_list1, &i1_left_end, 0);
+				&d1_score, &d1_ident, &d1_alen, &left_domain_head1,
+				&left_domain_list1[i1_annot], &i1_left_end, 0);
 	  }
 	  i1_annot++;
 	}
@@ -492,19 +501,22 @@ calc_cons_u( /* inputs */
 
     /* do not need have_ann here, because domain only */
     if (annot0_p && annot0_p->n_annot>0) {
-      s_annot0_arr_p = annot0_p->s_annot_arr_p;
 
       if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
+
+	left_domain_list0 = init_domfeat_data(annot0_p);
+	s_annot0_arr_p = annot0_p->s_annot_arr_p;
+
 	while (i0_annot < annot0_p->n_annot) {
 	  if (s_annot0_arr_p[i0_annot]->pos >= i0_off) {break;}
 	  if (s_annot0_arr_p[i0_annot]->end < i0_off) {i0_annot++; continue;}
 
 	  if (s_annot0_arr_p[i0_annot]->label == '-') {
 	    process_annot_match(&itmp, NULL, i0_off, i1_off,
-				sp0_p, sp0a_p, sq, s_annot0_arr_p[i0_annot], &ann_comment, 
+				sp0_p, sp0a_p, sq, s_annot0_arr_p[i0_annot], annot0_p->n_domains,  &ann_comment, 
 				annot_stack, have_push_features_p, &v_delta,
-				&d0_score, &d0_ident, &d0_alen,
-				&left_domain_list0, &i0_left_end, 0);
+				&d0_score, &d0_ident, &d0_alen, &left_domain_head0,
+				&left_domain_list0[i0_annot], &i0_left_end, 0);
 	  }
 	  i0_annot++;
 	}
@@ -546,7 +558,7 @@ calc_cons_u( /* inputs */
 					i1_annot, annot1_p->n_annot, s_annot1_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
 					&d1_score, &d1_ident, &d1_alen,
-					&left_domain_list1, &i1_left_end, 0);
+					&left_domain_head1, left_domain_list1, &i1_left_end, 0);
 
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa1p[i1]] != *sp1_p) {
@@ -575,7 +587,7 @@ calc_cons_u( /* inputs */
 					i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					&ann_comment, annot_stack, have_push_features_p, &v_delta,
 					&d0_score, &d0_ident, &d0_alen,
-					&left_domain_list0, &i0_left_end, 0);
+					&left_domain_head0, left_domain_list0, &i0_left_end, 0);
 
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa0[i0]] != *sp0_p) {
@@ -679,7 +691,8 @@ calc_cons_u( /* inputs */
 					    q_offset+seq_pos(i0,aln->qlrev,0), sp1_p, sp1a_p, sq, 
 					    i1_annot, annot1_p->n_annot, s_annot1_arr_p,
 					    &ann_comment, annot_stack, have_push_features_p, &v_delta,
-					    &d1_score, &d1_ident, &d1_alen, &left_domain_list1, &i1_left_end,
+					    &d1_score, &d1_ident, &d1_alen,
+					    &left_domain_head1, left_domain_list1, &i1_left_end,
 					    ppst->ggapval+ppst->gdelval);
 	      }
 	    }
@@ -733,7 +746,8 @@ calc_cons_u( /* inputs */
 					    l_offset+seq_pos(i1,aln->llrev,0), sp0_p, sp0a_p, sq, 
 					    i0_annot, annot0_p->n_annot, s_annot0_arr_p,
 					    &ann_comment, annot_stack, have_push_features_p, &v_delta,
-					    &d0_score, &d0_ident, &d0_alen, &left_domain_list0, &i0_left_end,
+					    &d0_score, &d0_ident, &d0_alen,
+					    &left_domain_head0, left_domain_list0, &i0_left_end,
 					    ppst->ggapval+ppst->gdelval);
 
 	      }
@@ -781,7 +795,7 @@ calc_cons_u( /* inputs */
   *score_delta = v_delta;
 
   *nc = lenc;
-  if (calc_func_mode == CALC_CONS) {
+  if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
     if (have_ann) {
       *sp0a_p = *sp1a_p = '\0';
       have_push_features = 0;
@@ -789,13 +803,13 @@ calc_cons_u( /* inputs */
       if (annot1_p && i1_left_end > 0) {
 	close_annot_match(-1, annot_stack, have_push_features_p,
 			  &d1_score, &d1_ident, &d1_alen,
-			  &left_domain_list1, &i1_left_end, 0);
+			  &left_domain_head1, &i1_left_end, 0);
       }
 
       if (annot0_p && i0_left_end > 0) {
 	close_annot_match(-1, annot_stack, have_push_features_p,
 			  &d0_score, &d0_ident, &d0_alen,
-			  &left_domain_list0, &i0_left_end, 0);
+			  &left_domain_head0, &i0_left_end, 0);
       }
 
       if (have_push_features) {
@@ -810,16 +824,22 @@ calc_cons_u( /* inputs */
   }
   *spa_p = '\0';
 
-  if (calc_func_mode == CALC_CONS) {
+  if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
+    if (calc_func_mode == CALC_CONS) {
 #ifndef LCAL_CONS	/* have context around alignment */
-    nd = post_fill_cons(aa0, n0, aa1p, nn1,
-			a_res, ppst, mins, lenc, aln,
-			seqc0, seqc1, seqc0a, seqc1a);
+      nd = post_fill_cons(aa0, n0, aa1p, nn1,
+			  a_res, ppst, mins, lenc, aln,
+			  seqc0, seqc1, seqc0a, seqc1a);
 #else
-    nd = 0;
+      nd = 0;
 #endif
-    lenc = mins + lenc + nd;
-    if (annot0_p || annot1_p) free_stack(annot_stack);
+      lenc = mins + lenc + nd;
+    }
+    if (annot0_p || annot1_p) {
+      if (left_domain_list0) free(left_domain_list0);
+      if (left_domain_list1) free(left_domain_list1);
+      annot_stack = free_stack(annot_stack);
+    }
   }
 
   return lenc;
