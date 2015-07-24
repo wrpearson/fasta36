@@ -83,7 +83,7 @@ extern struct domfeat_data * init_domfeat_data(const struct annot_str *annot_p);
 extern int
 align_type(int score, char sp0, char sp1, int nt_align, struct a_struct *aln, int pam_x_id_sim);
 
-extern void
+extern void	/* in compacc2e.c */
 process_annot_match(int *itmp, int *pam2aa0v, 
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		    struct annot_entry *annot_arr_p, int n_domains, char **ann_comment,
@@ -93,7 +93,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 		    struct domfeat_data *left_domain_p,
 		    long *left_end_p, int init_score);
 
-extern int
+extern int	/* in compacc2e.c */
 next_annot_match(int *itmp, int *pam2aa0v, 
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
@@ -102,18 +102,18 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		  struct domfeat_data **left_domain_head_p, struct domfeat_data *left_domain_p,
 		 long *left_domain_end, int init_score);
 
-extern void
+extern void	/* in compacc2e.c */
 close_annot_match (int ia, void *annot_stack, int *have_push_features,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
 		   struct domfeat_data **left_domain_p,
 		   long *left_end_p, int init_score);
 
-extern void
+extern void	/* in compacc2e.c */
 comment_var(long i0, char sp0, long i1, char sp1, char o_sp1, char sim_char,
 	    const char *ann_comment, struct dyn_string_str *annot_var_dyn,
 	    int target, int d_type);
 
-void
+extern void		/* in compacc2e.c */
 display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym, 
 		      int score, double comp, int n0, int n1,
@@ -350,6 +350,11 @@ calc_cons_u( /* inputs */
   int d0_score, d0_ident, d0_alen;
   int have_push_features;
   int *have_push_features_p;
+
+  /* struct domfeat_data is used to capture score, coordinate, and
+     identity information for possibly overlapping sub-alignment
+     scores -- each domfeat_data entry is associated with an
+     annot_p->annot_arr_p entry */
   struct domfeat_data *left_domain_head1, *left_domain_head0;
   struct domfeat_data *left_domain_list1, *left_domain_list0;
 
@@ -504,6 +509,9 @@ calc_cons_u( /* inputs */
 
       if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
 
+	/* inefficient -- the same initiation is done for every
+	  query/subj alignment, even though it is always the same --
+	  should be done in the build_ares() loop */
 	left_domain_list0 = init_domfeat_data(annot0_p);
 	s_annot0_arr_p = annot0_p->s_annot_arr_p;
 

@@ -3914,16 +3914,8 @@ process_annot_match(int *itmp, int *pam2aa0v,
 
   if (*left_domain_head_p) {
     *left_end_p = (*left_domain_head_p)->end_pos;
-
-    /*
-    if (left_domain_p->next && left_domain_p->next->next && left_domain_p->next->next->annot_entry_p == left_domain_p->annot_entry_p) {
-      v_tmp = 0;
-      for (this_dom = left_domain_p; this_dom; this_dom=this_dom->next) {v_tmp++;}
-      fprintf(stderr,"*** error [%s:%d] -- process_annot_match() circular link %d steps / %d domains\n",  __FILE__,__LINE__,v_tmp,n_annots);
-    }
-    */
   }
-
+    
   if (ip == *left_end_p) { /* do this first before starting any new domains */
     close_annot_match(ip, annot_stack, have_push_features, 
 		      d_score_p, d_ident_p, d_alen_p,
@@ -3933,20 +3925,13 @@ process_annot_match(int *itmp, int *pam2aa0v,
     return 0;
   }
   else {
-    /* need new_dom_feat for either domain '-' or non-variant feature */
-    if (left_domain_p->annot_entry_p) {
-      /* ensure initial values zero-ed out */
-      left_domain_p->next = NULL;
-      left_domain_p->score = 0;
-      left_domain_p->n_ident = 0;
-      left_domain_p->n_alen = 0;
-      left_domain_p->pos = ip;
-      left_domain_p->a_pos = ia;
-    }
-    else {
-      fprintf(stderr,"*** error [%s:%d] -- annot_arr->link is NULL\n",  __FILE__,__LINE__);
-      return 1;
-    }
+    /* initialize domfeat_data (scoring, boundary) information */
+    left_domain_p->next = NULL;
+    left_domain_p->score = 0;
+    left_domain_p->n_ident = 0;
+    left_domain_p->n_alen = 0;
+    left_domain_p->pos = ip;
+    left_domain_p->a_pos = ia;
 
     if (annot_arr_p->label == 'V') { /* label == 'V' */
       v_tmp = pam2aa0v[annot_arr_p->value];
@@ -3968,7 +3953,10 @@ process_annot_match(int *itmp, int *pam2aa0v,
       if (*left_domain_head_p == NULL) {
 	*left_domain_head_p = left_domain_p;
       }
-      else { /* we already have a domain list - update scores for "live" domains and insert new domain */
+      else { 
+	/* we already have a domain list - update scores for "live"
+	   domains and insert new domain */
+
 	new_left_domain_end = annot_arr_p->end;
 	new_dom = prev_dom = NULL;
 	
