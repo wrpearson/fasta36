@@ -1916,11 +1916,10 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   int i_ann, l_doms;
   int n_annot = 0;
   int last_left_bracket = -1;
+  struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr;
 
   int *t_ascii = lascii;	/* generally, annotation target is library */
   if (target != 1) t_ascii = qascii;	/* for TFAST, target is only query */
-
-  struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr;
 
   SAFE_STRNCPY(annot_acc, tmp_line, sizeof(annot_acc));
 

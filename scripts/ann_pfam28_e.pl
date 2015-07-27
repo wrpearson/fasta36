@@ -42,7 +42,7 @@ use vars qw($host $db $port $user $pass);
 my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam28", 0, "web_user", "fasta_www");
-#$host = 'xdb';
+$host = 'xdb';
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
 
@@ -335,8 +335,66 @@ sub get_pfam_annots {
     @pf_domains = @j_domains;
   }
 
+  if($no_over && scalar(@pf_domains) > 1) {
 
-  # no longer check for domain overlap -- in full guarantee's no overlap
+    my @tmp_domains = @pf_domains;
+    my @save_domains = ();
+
+    my $prev_dom = shift @tmp_domains;
+
+    while (my $curr_dom = shift @tmp_domains) {
+
+      my @overlap_domains = ($prev_dom);
+
+      my $diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
+      # check for overlap > domain_length/3
+
+      my ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
+      my $inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
+		       (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
+
+      my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+
+      while ($inclusion || ($diff > 0 && $diff > $longer_len/3)) {
+	push @overlap_domains, $curr_dom;
+	$curr_dom = shift @tmp_domains;
+	last unless $curr_dom;
+	$diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
+	($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
+	$longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+	$inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
+		      (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
+      }
+
+      # check for overlapping domains; >1 because $prev_dom is always there
+      if (scalar(@overlap_domains) > 1 ) {
+	# if $rpd2_fams, check for a chosen one
+
+	for my $dom ( @overlap_domains) {
+	  $dom->{evalue} = 1.0 unless defined($dom->{evalue});
+	}
+
+	@overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
+	$prev_dom = $overlap_domains[0];
+      }
+
+      # $prev_dom should be the best of the overlaps, and we are no longer overlapping > dom_length/3
+      push @save_domains, $prev_dom;
+      $prev_dom = $curr_dom;
+    }
+    if ($prev_dom) {push @save_domains, $prev_dom;}
+
+    @pf_domains = @save_domains;
+
+    # now check for smaller overlaps
+    for (my $i=1; $i < scalar(@pf_domains); $i++) {
+      if ($pf_domains[$i-1]->{seq_end} >= $pf_domains[$i]->{seq_start}) {
+	my $overlap = $pf_domains[$i-1]->{seq_end} - $pf_domains[$i]->{seq_start};
+	$pf_domains[$i-1]->{seq_end} -= int($overlap/2);
+	$pf_domains[$i]->{seq_start} = $pf_domains[$i-1]->{seq_end}+1;
+      }
+    }
+  }
 
   # $vdoms -- virtual Pfam domains -- the equivalent of $neg_doms,
   # but covering parts of a Pfam model that are not annotated.  split
