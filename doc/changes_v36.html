@@ -24,7 +24,17 @@ font-size: 12px; font-family: sans-serif; text-decoration:none; background-color
 </small>
 </pre>
 <hr>
-<h2>Latest Updates - FASTA version 36.3.7 (November, 2014)</h2>
+<h2>Latest Updates - FASTA version 36.3.8 (July, 2015)</h2>
+<ol>
+  <li>
+    Bug fixes for overlapping domain domain scoring.  v36.3.7 was not thread-safe.
+  <li>
+    Annotation scripts accessing the Pfam domain database can now use
+    the <tt>--vdoms</tt> option to highlight missing parts of a Pfam
+    domain model. In addtion, domains from clans are labeled as clans
+    unless <tt>--no-clans</tt> is specified.
+ </ol>
+<h2>Updates - FASTA version 36.3.7 (November, 2014)</h2>
 <ol>
   <li>The FASTA programs have been released under the Apache2.0 Open
   Source License.  The COPYRIGHT file, and copyright notices in

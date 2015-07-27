@@ -1,9 +1,9 @@
 
  $Id: README 1253 2014-01-26 18:37:12Z wrp $
 
-November, 2014
+July, 2015
 
-This version of the FASTA programs is fasta-36.3.7.  Since March, 2011
+This version of the FASTA programs is fasta-36.3.8.  Since March, 2011
 (fasta-36.3.4), the FASTA programs are no longer interactive.  Typing
 bin/fasta36 (or any of the other programs) provides a help message.
 The "classic" interactive mode is available by typing "fasta36 -I".
