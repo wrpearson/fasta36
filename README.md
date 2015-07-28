@@ -30,7 +30,7 @@ dir/file | description
 `doc/fasta36.1` | (unix man page)
 `doc/changes_v36.html` | (short descriptions of enhancements to FASTA programs)
 `doc/readme.v36` | (text descriptions of bug fixes and version history)
-`doc/fasta_guide.tex` | (Latex file which describes fasta36, and provides	an introduction to the FASTA programs, their use and installation.)
+`doc/fasta_guide.tex` | (Latex file which describes fasta36, and provides an introduction to the FASTA programs, their use and installation.)
 `doc/fasta_guide.pdf1` | (printable/viewable description of fasta-36)
 
 `fasta_guide.pdf` provides background information on installing the
