@@ -1,10 +1,22 @@
 /*	doinit.c	general and function-specific initializations */
 
-/* copyright (c) 1996, 1997, 1998  William R. Pearson and the U. of Virginia */
+/* $Id: doinit.c 1267 2014-07-29 13:50:40Z wrp $ */
 
+/* copyright (c) 1996, 1997, 1998, 2014 by William R. Pearson and the
+   Rector & Vistors of the University of Virginia */
 
-/*  $Id: doinit.c 1267 2014-07-29 13:50:40Z wrp $ */
-/* $Revision: 1267 $  */
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* this file performs general initializations of search parameters
 
@@ -801,10 +813,10 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
 void
 parse_markx(char *optarg, struct markx_str *this) {
   int itmp;
-  char ctmp;
+  char ctmp, ctmp2;
 
   itmp = 0;
-  ctmp = '\0';
+  ctmp = ctmp2 = '\0';
 
   if (optarg[0] == 'B') {	/* BLAST alignment output */
     this->markx = MX_MBLAST;
@@ -820,7 +832,7 @@ parse_markx(char *optarg, struct markx_str *this) {
       return;
     }
     else if (optarg[1] == '8') {
-      sscanf(optarg,"%d%c",&itmp,&ctmp);
+      sscanf(optarg,"%d%c%c",&itmp,&ctmp,&ctmp2);
     }
     else {return;}		/* done with BLAST aligment output */
   }
@@ -831,7 +843,7 @@ parse_markx(char *optarg, struct markx_str *this) {
     return;
   }
   else {
-    sscanf(optarg,"%d%c",&itmp,&ctmp);
+    sscanf(optarg,"%d%c%c",&itmp,&ctmp,&ctmp2);
   }
   if (itmp==9) {
     if (ctmp=='c') {this->show_code = SHOW_CODE_ALIGN;}
@@ -847,6 +859,10 @@ parse_markx(char *optarg, struct markx_str *this) {
     this->std_output = 0;
     this->ashow = 0;
     if (ctmp=='C') { this->markx += MX_M8COMMENT;}
+    if (ctmp2 == 'c') { this->show_code = SHOW_CODE_ALIGN;}
+    else if (ctmp2 == 'd') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
+    else if (ctmp2 == 'C') {this->show_code = SHOW_CODE_CIGAR;}
+    else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
   }
 }
 

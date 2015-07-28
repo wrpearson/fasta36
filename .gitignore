@@ -1,0 +1,5 @@
+bin/
+results/
+*.o
+*~
+*.annot

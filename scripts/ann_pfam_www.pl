@@ -1,5 +1,22 @@
 #!/usr/bin/perl -w
 
+################################################################
+# copyright (c) 2014 by William R. Pearson and The Rector &
+# Visitors of the University of Virginia */
+################################################################
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under this License is distributed on an "AS
+# IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.  See the License for the specific language
+# governing permissions and limitations under the License. 
+################################################################
+
 # ann_pfam_www.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
@@ -43,7 +60,7 @@ my %annot_types = ();
 my %domains = (NODOM=>0);
 my $domain_cnt = 0;
 
-my $loc="http://pfam.sanger.ac.uk/";
+my $loc="http://pfam.xfam.org/";
 my $url;
 
 my @pf_domains;
@@ -143,10 +160,12 @@ sub push_match {
 }
 
 sub get_pfam_www {
-  my ($seq_id, $seq_length) = @_;
+  my ($acc, $seq_length) = @_;
 
-  if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
-  else {$url = "protein/$acc?output=xml"; }
+#  if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
+#  else {$url = "protein/$acc?output=xml"; }
+
+  $url = "protein/$acc?output=xml";
 
   my $res = get($loc . $url);
 
@@ -263,7 +282,7 @@ sub get_pfam_www {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info}, $seq_id );
+    $pf->{info} = domain_name($pf->{info}, $acc );
   }
 
   my @feats = ();
@@ -321,22 +340,23 @@ ann_feats.pl
  --help include description
 
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
- --neg-doms,  -- report domains between annotated domains as NODOM
+ --neg-doms  -- report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
  --min_nodom=10  -- minimum length between domains for NODOM
+ --pfacc  -- report pfamA_acc, not domain name
 
 =head1 DESCRIPTION
 
 C<ann_pfam_www.pl> extracts domain information from the Pfam www site
-(pfam.sanger.ac.uk).  Currently, the program works with database
+(pfam.xfam.org).  Currently, the program works with database
 sequence descriptions in several formats:
 
  >gi|1705556|sp|P54670.1|CAF1_DICDI
  >sp|P09488|GSTM1_HUMAN
- >sp:CALM_HUMAN 
+ >SP:CALM_HUMAN 
 
 C<ann_pfam_www.pl> uses the Pfam RESTful WWW interface
-(C<pfam.sanger.ac.uk/help#tabview=10>) to download domain
+(C<pfam.xfam.org/help#tabview=10>) to download domain
 names/locations/score.  For proteins that have multiple domains
 associated with the same overlapping region (domains overlap by more
 than 1/3 of the domain length), C<auto_pfam.pl> selects the domain
@@ -344,12 +364,12 @@ annotation with the best C<domain_evalue_score>.  When domains overlap
 by less than 1/3 of the domain length, they are shortened to remove
 the overlap.
 
-C<ann_feats_up_www2.pl> is an alternative to C<ann_feats2l.pl> and
-C<ann_feats2ipr.pl> that does not require a MySQL database with
-Uniprot Feature table information.
+C<ann_feats_up_www2.pl> is an alternative to C<ann_pfam.pl> that does
+ not require a MySQL instance with a Pfam database installation.
 
-C<ann_pfam_www.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam_www.pl> or C<-V "\!ann_pfam_www.pl --neg"> option.
+C<ann_pfam_www.pl> is designed to be used by the B<FASTA> programs
+with the C<-V \!ann_pfam_www.pl> or C<-V "\!ann_pfam_www.pl --neg">
+option.
 
 =head1 AUTHOR
 

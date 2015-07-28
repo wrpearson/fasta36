@@ -9,6 +9,121 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jul. 21, 2015 [fasta-36.3.8]
+[compacc2e.c, cal_cons2.c, dropfx2.c dropfz3.c, param.h]
+Fixed a major bug in the annotation code that had been added to
+accomodate overlapping domains.  The original implementation was not
+thread-safe, because the array of annotations was modified during the
+scoring, but was also shared by threads.  The new version keeps
+independent scoring arrays.
+
+>>Jun. 23, 2015 [released as fasta-36.3.7b]
+[dropnnw2.c]
+Fix problem where glsearch reset (ignored) the -M sequence limit.
+
+>>Jun. 18, 2015
+[dropfx.c, dropgsw.c, dropfx.c, dropfx2.c, dropfz3.c]
+Fix problem in do_walign.c with comparison to score_thresh during
+recursive alignment.
+
+>>May. 21, 2015
+[compacc2e.c]
+Add additional checks to ensure that annotations are within the
+sequence boundaries.
+
+>>Jan. 26, 2015	[ re-released as fasta-36.3.7a]
+[compacc2e.c]
+Fix problem with domain boundary calculations for subsets of sequences.
+
+>>Jan. 21, 2015	[ released as fasta-36.3.7a]
+[calc_cons2.c, dropfx2.c, dropfy3.c]
+Fix problems with -m 9c / -m 9C alignment encodings in version
+36.3.7. Apparently, the Nov. 25, 2014 fix was not committed properly.
+In addition, make certain that the query sequence is ALWAYS the
+reference sequence, particularly in translated alignments. As a
+result, the insertion/deletion codes are now reversed for fast[xy]36
+and tfast[xy]36.
+
+>>Jan. 6, 2014
+[data/VTML_*.mat]
+Provided scoring matrix files for the VTML_10,20,40,80,120,160,200
+matrices available internally.
+
+>>Nov. 25, 2014	[ released as fasta-36.3.7]
+[cal_cons.c, dropfx2.c, dropfz3.c]
+Fix problem that prevented -m 9c and -m 8CC unless annotations were
+present.
+
+Added approved copyright notice and Apache 2.0 license to
+appropriate files.
+
+>>Nov. 19, 2014
+[mshowbest.c]
+Add alignment (CIGAR) string and annotation string to BLAST tabular
+(-m 8) aligments with -m 8C[cCdD].  To get alignment and annotation
+encoding without BLAST comments, use -m 8X[cCdD].
+
+>>Nov. 10, 2014
+[cal_cons2.c, dropfx2.c, dropfz3.c]
+Ensure that site annotations are shown when annotations are embedded
+in a sequence, not provided by a script.
+
+>>Oct. 27, 2014
+[cal_cons2.c]
+Fix a bug in the annotation alignment that put annotation symbols off
+by one (or more) in the coordinate lines. Add annotations that align
+in gaps.
+
+>>Oct. 6, 2014
+[most source files]
+The copyright notice for fasta-36.3.7 has been updated to include an
+open software license, Apache2.0, for redistribution.
+
+>>Sept. 28, 2014
+[url_subs.c]
+Substitute annot_p->s_annot_arr_p[] for annot_p->domain_arr_p[i] in
+display_domains(), encode_json_str().  Remove domain_arr_p from struct
+annot_entry.  With domain_arr_p gone, n_domains is less useful, but it
+is still available, and used for checking for domain graphics.
+encode_json_domains() also now uses annot_p->n_annots, and skips over
+non-domains.
+
+>>Sept. 19, 2014
+[dropfx2.c, dropfz3.c]
+Fixes to produce correct coordinates with forward and reverse
+complement [t]fast[x,y].
+
+>>Sept. 17, 2014 [new version, fasta-36.3.7]
+[compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
+The annotation domain scoring/plotting strategy has been extended to
+allow overlapping domains.  To accommodate overlapping domain
+annotations, the annotation file format (e.g. gstm1_human.annot) has
+been extended to accept the form:
+
+>sp|P09388|GSTM1_HUMAN
+1	-	88	Glutathione_S-Trfase_N :1
+7	V	F	Mutagen: Reduces catalytic activity 100- fold.
+90	-	208	Glutathione-S-Trfase_C-like :2
+108	V	Q	Mutagen: Reduces catalytic activity by half.
+
+where a "-" in the second field indicates that the first and third
+fields specify the beginning and end of the domain. In previous
+versions, a '[' specified the beginning of a domain, and a ']' on a
+later line specified the end of the domain. '[' and ']' on separate
+lines required that domains not overlap (so that the '[' and ']' could
+be paired).  fasta-36.3.7 will still read this format, but the "start -
+stop" format is both simpler and more flexible.
+
+Three new annotation scripts are available that use the new domain
+notation: ann_feats2ipr_e.pl, ann_feats_up_www2_e.pl, ann_pfam_e.pl,
+and ann_pfam_www_e.pl.  All four scripts will report overlapping
+domains.
+
+Overlapping domains also allows domain annotations from different
+sources to be combined (e.g. InterPro Pfam, Panther, and Superfamily
+domain annotations), as well as domain annotations of different types,
+e.g. Uniprot domain and secondary structure annotations.
+
 >>Aug. 28, 2014	[re-released as fasta-36.3.6f]
 [ncbl2_mlib.c]
 The code used to parse blastfmtdb sequence description lines has not

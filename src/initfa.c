@@ -1,9 +1,21 @@
 /*	initfa.c	*/
-
 /*  $Id: initfa.c 1274 2014-08-07 18:30:56Z wrp $ */
-/*  $Rev: 1274 $  */
 
-/* copyright (c) 1996, 1997, 1998  William R. Pearson and the U. of Virginia */
+/* copyright (c) 1996, 1997, 1998, 2014 by William R. Pearson and The
+   Rector & Visitors of the University of Virginia */
+
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* init??.c files provide function specific initializations */
 
@@ -486,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.6 Aug., 2014 MPI";
+char *verstr="36.3.8 Jul, 2015 MPI";
 #else
-char *verstr="36.3.6 Aug., 2014";
+char *verstr="36.3.8 Jul, 2015";
 #endif
 
 static int mktup=3;
@@ -1137,10 +1149,16 @@ f_getopt (char copt, char *optarg,
     shift_set = 1;
     break;
 #endif
-#ifdef LALIGN
   case 'J':
+#ifdef LALIGN
     ppst->show_ident=1;
+#else
+    ppst->show_ident=0;
+#endif
     break;
+
+
+#ifdef LALIGN
   case 'K':
     sscanf(optarg,"%d", &ppst->max_repeat);
     break;

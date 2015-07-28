@@ -1,9 +1,20 @@
+/* $Id: url_subs.c $ */
 
-/* copyright (c) 1998, 1999 William R. Pearson and the
-   U. of Virginia */
+/* copyright (c) 1998, 1999, 2014 by William R. Pearson and the
+   The Rector & Visitors of the University of Virginia */
 
-/*  $Id: url_subs.c 1246 2014-01-01 14:49:09Z wrp $ */
-/* $Revision: 1246 $  */
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* 30 Dec 2004 - modify REF_URL to accomodate current Entrez */
 
@@ -25,7 +36,7 @@
 
 extern int seq_pos(int pos, int rev, int off);
 
-char *display_domains(char, struct annot_entry *domain_arr_p, int n_domains);
+char *display_domains(char, struct annot_entry **s_annot_arr_p, int n_domains);
 char *web_encode(const char *);
 
 void encode_json_str(FILE *fp, const char *label, const char *value, int first) {
@@ -79,10 +90,11 @@ void encode_json_domains(FILE *fp, const char *label, const struct annot_str *an
 
   if (!first) {fprintf(fp, ",\n");}
   fprintf(fp, "\"%s\": [\n",label);
-  for (i=0; i < annot_p->n_domains; i++) {
+  for (i=0; i < annot_p->n_annot; i++) {
+    if (annot_p->s_annot_arr_p[i]->label != '-') continue;
     if (i != 0) fprintf(fp, ",\n");
     fprintf(fp, "  { \"start\":%ld, \"stop\":%ld, \"description\":\"%s\" }",
-	    annot_p->domain_arr_p[i].pos+1,annot_p->domain_arr_p[i].end+1,annot_p->domain_arr_p[i].comment);
+	    annot_p->s_annot_arr_p[i]->pos+1,annot_p->s_annot_arr_p[i]->end+1,annot_p->s_annot_arr_p[i]->comment);
   }
   fprintf(fp,"\n  ]");
 }
@@ -177,14 +189,14 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
   if (ref_url != NULL) {fprintf(fp,ref_url,db,my_l_name);}
 
   /* SRCH_URL should provide */
-  /* "<A HREF=\"http://%s/searchfa.cgi?query=%s&db=%s&lib=%s&pgm=%s&start=%ld&stop=%ld&n1=%d&o_pgm=%s\">Re-search database</A>&nbsp;&nbsp;" */
+  /* "<A HREF=\"http://localhost/fasta_www2/searchfa.cgi?query=%s&db=fasta_www.cgi&lib=%s&pgm=%s&start=%ld&stop=%ld&n1=%d&o_pgm=%s\">Re-search database</A>&nbsp;&nbsp;" */
   if (srch_url != NULL) {
     fprintf(fp,srch_url,my_l_name,db,lib,pgm,
 	    l_offset+aln_p->amin1+1,l_offset+aln_p->amax1,n1,m_msp->f_id0);
   }
 
   /* SRCH_URL1 should provide: */
-  /*  "<A HREF=\"http://%s/searchxf.cgi?query=%s&db=%s&lib=%s&pgm=%s&start=%ld&stop=%ld&n1=%d&o_pgm=%s\">General re-search</A>\n" */
+  /*  "<A HREF=\"http://localhost/fasta_www2/searchxf.cgi?query=%s&db=%s&lib=%s&pgm=%s&start=%ld&stop=%ld&n1=%d&o_pgm=%s\">General re-search</A>\n" */
 
   if (srch_url1 != NULL) {
     fprintf(fp,srch_url1,my_l_name,db,lib,pgm,
@@ -200,10 +212,10 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
     q_domain_s = l_domain_s = NULL;
 
     if (q_annot_p && q_annot_p->n_domains > 0 && 
-	(q_domain_s = display_domains('q',q_annot_p->domain_arr_p, q_annot_p->n_domains))!=NULL) {
+	(q_domain_s = display_domains('q',q_annot_p->s_annot_arr_p, q_annot_p->n_annot))!=NULL) {
     }
     if (l_annot_p && l_annot_p->n_domains > 0 && 
-	(l_domain_s = display_domains('l',l_annot_p->domain_arr_p, l_annot_p->n_domains))!=NULL) {
+	(l_domain_s = display_domains('l',l_annot_p->s_annot_arr_p, l_annot_p->n_annot))!=NULL) {
     }
 
     /* combine domain strings */
@@ -305,20 +317,22 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
   }
 }
 
-char *display_domains(char target, struct annot_entry *domain_arr_p, int n_domains) {
+char *display_domains(char target, struct annot_entry **annot_arr_p, int n_annots) {
   char *domain_s;
   char line[MAX_STR];
-  int i, n_domain_s = MAX_LSTR;
+  int i, i_doms, n_domain_s = MAX_LSTR;
 
-  /* since (currently) annot_var_s is MAX_LSTR, do the same for domain_s */
+  /* since (currently) annot_var_s is MAX_LSOTR, do the same for domain_s */
   if ((domain_s = (char *)calloc(n_domain_s, sizeof(char)))==NULL) {
     fprintf(stderr,"*** error [%s:%d] *** cannot allocate domain_s[%d]\n",__FILE__, __LINE__,n_domain_s);
     return NULL;
   }
 
-  for (i=0; i<n_domains; i++) {
+  for (i=0; i < n_annots; i++) {
+    /* annot_arr_p[] has both domains and non domains, but n_domains only counts domains */
+    if (annot_arr_p[i]->label != '-') continue;
     sprintf(line, "%cDomain:\t%ld-%ld\t%s\n",
-	    target, domain_arr_p[i].pos+1, domain_arr_p[i].end+1, domain_arr_p[i].comment);
+	    target, annot_arr_p[i]->pos+1, annot_arr_p[i]->end+1, annot_arr_p[i]->comment);
     if (strlen(domain_s) + strlen(line)+1 > n_domain_s) {
       n_domain_s += n_domain_s/2;
       domain_s = realloc(domain_s, n_domain_s);

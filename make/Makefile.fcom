@@ -75,14 +75,14 @@ init_tfy.o : initfa.c defs.h param.h rstruct.h upam.h structs.h aln_structs.h
 htime.o : htime.c
 	$(CC) $(THR_CC) $(CFLAGS) -c htime.c
 
-compacc2_t.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR  -DCOMP_MLIB -c compacc2.c -o compacc2_t.o
+compacc2_t.o : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR  -DCOMP_MLIB -c compacc2e.c -o compacc2_t.o
 
-compacc2_s.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c compacc2.c -o compacc2_s.o
+compacc2_s.o : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c compacc2e.c -o compacc2_s.o
 
-compacc2_p.o : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -DMPI_SRCB -c compacc2.c -o compacc2_p.o
+compacc2_p.o : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -DMPI_SRCB -c compacc2e.c -o compacc2_p.o
 
 compacc.o : compacc.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
 	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -c compacc.c -o compacc.o
@@ -186,17 +186,17 @@ drop_tfm.o : dropfs2.c param.h rstruct.h defs.h drop_func.h dyn_string.h
 drop_tfa.o : dropnfa.c dropnfa.h upam.h param.h rstruct.h defs.h dyn_string.h
 	$(CC) $(THR_CC) $(CFLAGS) -c -DTFASTA dropnfa.c -o drop_tfa.o
 
-drop_fx.o : dropfx.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -c dropfx.c -o drop_fx.o
+drop_fx.o : dropfx2.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropfx2.c -o drop_fx.o
 
-drop_tfx.o : dropfx.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfx.c -o drop_tfx.o
+drop_tfx.o : dropfx2.c upam.h param.h rstruct.h defs.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfx2.c -o drop_tfx.o
 
-drop_fz.o : dropfz2.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -c dropfz2.c -o drop_fz.o
+drop_fz.o : dropfz3.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c dropfz3.c -o drop_fz.o
 
-drop_tfz.o : dropfz2.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
-	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfz2.c -o drop_tfz.o
+drop_tfz.o : dropfz3.c upam.h param.h rstruct.h defs.h aamap.h drop_func.h dyn_string.h
+	$(CC) $(THR_CC) $(CFLAGS) -c -DTFAST dropfz3.c -o drop_tfz.o
 
 dropnsw.o : dropnsw.c upam.h param.h rstruct.h structs.h drop_func.h dyn_string.h
 	$(CC) $(THR_CC) $(CFLAGS) -c dropnsw.c
@@ -255,17 +255,17 @@ lwm_align.o : wm_align.c defs.h param.h rstruct.h a_mark.h
 gwm_align.o : wm_align.c defs.h param.h rstruct.h a_mark.h
 	$(CC) $(THR_CC) $(CFLAGS) -DGGSEARCH -c wm_align.c -o gwm_align.o
 
-calcons_fa.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
-	$(CC) $(THR_CC) $(CFLAGS) -DFASTA -c cal_cons.c -o calcons_fa.o
+calcons_fa.o : cal_cons2.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTA -c cal_cons2.c -o calcons_fa.o
 
-calcons_tfa.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
-	$(CC) $(THR_CC) $(CFLAGS) -DTFASTA -c cal_cons.c -o calcons_tfa.o
+calcons_tfa.o : cal_cons2.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DTFASTA -c cal_cons2.c -o calcons_tfa.o
 
-calcons_sw.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
-	$(CC) $(THR_CC) $(CFLAGS) -DSSEARCH -c cal_cons.c -o calcons_sw.o
+calcons_sw.o : cal_cons2.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSSEARCH -c cal_cons2.c -o calcons_sw.o
 
-calcons_la.o : cal_cons.c defs.h param.h rstruct.h a_mark.h
-	$(CC) $(THR_CC) -DLALIGN -DLCAL_CONS $(CFLAGS) -c cal_cons.c -o calcons_la.o
+calcons_la.o : cal_cons2.c defs.h param.h rstruct.h a_mark.h
+	$(CC) $(THR_CC) -DLALIGN -DLCAL_CONS $(CFLAGS) -c cal_cons2.c -o calcons_la.o
 
 calcons_ff.o : cal_consf.c defs.h param.h rstruct.h a_mark.h
 	$(CC) $(THR_CC) $(CFLAGS) -DFASTF -c cal_consf.c -o calcons_ff.o

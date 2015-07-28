@@ -1,6 +1,4 @@
-
 /* $Id: structs.h 1259 2014-05-28 19:28:06Z wrp $ */
-/* $Revision: 1259 $  */
 
 #include "rstruct.h"
 

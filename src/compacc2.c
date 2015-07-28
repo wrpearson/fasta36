@@ -1,8 +1,20 @@
-/* copyright (c) 1996, 1997, 1998, 1999 William R. Pearson and the
-   U. of Virginia */
+/* $Id: compacc2.c 1280 2014-08-21 00:47:55Z wrp $ */
 
-/*  $Id: compacc2.c 1280 2014-08-21 00:47:55Z wrp $ */
-/* $Revision: 1280 $  */
+/* copyright (c) 1996, 1997, 1998, 1999, 2014 by William R. Pearson and
+   The Rector & Visitors of the University of Virginia */
+
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* Concurrent read version */
 
@@ -1896,7 +1908,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
   int i_ann, l_doms, r_doms;
   int n_annot = 0;
 
-  struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr, *tmp_domain_entry_arr;
+  struct annot_entry *tmp_ann_entry_arr, **s_tmp_ann_entry_arr;
 
   SAFE_STRNCPY(annot_acc, tmp_line, sizeof(annot_acc));
 
@@ -2077,9 +2089,6 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       annot_p->s_annot_arr_p = s_tmp_ann_entry_arr;
       annot_p->n_annot = n_annot;
       annot_p->n_domains = l_doms;
-      if (l_doms > 0) {
-	annot_p->domain_arr_p = tmp_domain_entry_arr;
-      }
       /* set to NULL to re-initialize */
     }
   }

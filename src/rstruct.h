@@ -1,6 +1,4 @@
-
 /* $Id: rstruct.h 625 2011-03-23 17:21:38Z wrp $ */
-/* $Revision: 625 $  */
 
 #ifndef RSTRUCT
 #define RSTRUCT

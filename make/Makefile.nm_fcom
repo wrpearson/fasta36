@@ -69,11 +69,11 @@ htime.obj : htime.c
 compacc.obj : compacc.c upam.h uascii.h param.h structs.h $(MWH) defs.h
 	$(CC) $(CFLAGS) -c compacc.c
 
-compacc2_t.obj : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c compacc2.c /Focompacc2_t.obj
+compacc2_t.obj : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c compacc2e.c /Focompacc2_t.obj
 
-compacc2_s.obj : compacc2.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
-	$(CC) $(THR_CC) $(CFLAGS) -c compacc2.c /Focompacc2_s.obj
+compacc2_s.obj : compacc2e.c upam.h uascii.h param.h rstruct.h structs.h $(MWH) defs.h aln_structs.h drop_func.h
+	$(CC) $(THR_CC) $(CFLAGS) -c compacc2e.c /Focompacc2_s.obj
 
 pssm_asn_subs.obj : pssm_asn_subs.c defs.h
 	$(CC) $(CFLAGS) -c pssm_asn_subs.c
@@ -182,17 +182,17 @@ drop_tfm.obj : dropfs2.c param.h defs.h drop_func.h
 drop_tfa.obj : dropnfa.c dropnfa.h upam.h param.h defs.h
 	$(CC) $(CFLAGS) -c -DTFASTA dropnfa.c /Fodrop_tfa.obj
 
-drop_fx.obj : dropfx.c upam.h param.h defs.h drop_func.h
-	$(CC) $(CFLAGS) -c dropfx.c /Fodrop_fx.obj
+drop_fx.obj : dropfx2.c upam.h param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c dropfx2.c /Fodrop_fx.obj
 
-drop_tfx.obj : dropfx.c upam.h param.h defs.h drop_func.h
-	$(CC) $(CFLAGS) -c -DTFAST dropfx.c /Fodrop_tfx.obj
+drop_tfx.obj : dropfx2.c upam.h param.h defs.h drop_func.h
+	$(CC) $(CFLAGS) -c -DTFAST dropfx2.c /Fodrop_tfx.obj
 
-drop_fz.obj : dropfz2.c upam.h param.h defs.h aamap.h drop_func.h
-	$(CC) $(CFLAGS) -c dropfz2.c /Fodrop_fz.obj
+drop_fz.obj : dropfz3.c upam.h param.h defs.h aamap.h drop_func.h
+	$(CC) $(CFLAGS) -c dropfz3.c /Fodrop_fz.obj
 
-drop_tfz.obj : dropfz2.c upam.h param.h defs.h aamap.h drop_func.h
-	$(CC) $(CFLAGS) -c -DTFAST dropfz2.c /Fodrop_tfz.obj
+drop_tfz.obj : dropfz3.c upam.h param.h defs.h aamap.h drop_func.h
+	$(CC) $(CFLAGS) -c -DTFAST dropfz3.c /Fodrop_tfz.obj
 
 dropnsw.obj : dropnsw.c upam.h param.h structs.h drop_func.h
 	$(CC) $(CFLAGS) -c dropnsw.c

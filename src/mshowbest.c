@@ -1,9 +1,20 @@
-
-/* copyright (c) 1996, 1997, 1998, 1999 William R. Pearson and the
-   U. of Virginia */
-
 /* $Id: mshowbest.c 1281 2014-08-21 17:32:06Z wrp $ */
-/* $Revision: 1281 $  */
+
+/* copyright (c) 1996, 1997, 1998, 1999, 2014 by William R. Pearson and
+   The Rector and Visitors of the University of Virginia */
+
+/* Licensed under the Apache License, Version 2.0 (the "License"); you
+   may not use this file except in compliance with the License.  You
+   may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* 2-April-2009 changes to simplify interactive display logic.  Coming
    into showbest(), things are interactive (quiet==0) or use
@@ -231,7 +242,9 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   /* display number of hits for -m 8C (Blast Tab-commented format) */
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
-    fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score\n");
+    fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    if (m_msp->show_code == SHOW_CODE_ALIGN || m_msp->show_code == SHOW_CODE_CIGAR) { fprintf(fp," aln_code");}
+    fprintf(fp,"\n");
     fprintf(fp,"# %d hits found\n",nshow);
   }
 
@@ -301,7 +314,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif	/* SHOWSIM */
 	}
       }
-      if (m_msp->show_code == SHOW_CODE_ALIGN) {	fprintf(fp," aln_code"); }
+      if (m_msp->show_code == SHOW_CODE_ALIGN) { fprintf(fp," aln_code"); }
       fprintf(fp,"\n");
     }
   }	/* !(m_msp->markx & MX_M8OUT) */
@@ -511,7 +524,7 @@ l1:
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db));
       }
 
-      if (m_msp->markx & MX_M9SUMM) {
+      if (m_msp->markx & MX_M9SUMM || m_msp->markx & MX_M8OUT) {
 	loffset = bbp->seq->l_offset;
 	l_off = bbp->seq->l_off;
 	aln_p = &cur_ares_p->aln;
@@ -519,7 +532,6 @@ l1:
 	seq_code_len = cur_ares_p->aln_code_n;
 	ann_code = cur_ares_p->ann_code;
 	ann_code_len = cur_ares_p->ann_code_n;
-
 
         percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
 
@@ -542,7 +554,7 @@ l1:
 		     loffset + (l_off-1) + (m_msp->sq1off-1),
 		     aln_p);
 
-	  if (m_msp->markx & MX_HTML) fprintf(fp,"<!-- ");
+	  /* if (m_msp->markx & MX_HTML) fprintf(fp,"<!-- "); */
 	  /*            %_id  %_sim s-w alen an0  ax0  pn0  px0  an1  ax1  pn1  px1 gapq gapl fs  */
 	  /*                    alignment    min  max            min  max */
 	  /*                    sequence coordinate    min  max            min  max */
@@ -565,13 +577,20 @@ l1:
 	    }
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
-	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f\n",
+	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
 		    percent,aln_p->lc,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
+	    if ((m_msp->show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN && seq_code_len > 0 && seq_code != NULL) {
+	      fprintf(fp,"\t%s",seq_code);
+	      if (ann_code_len > 0 && ann_code != NULL) {
+		fprintf(fp,"\t%s",ann_code);
+	      }
+	    }
+	    fprintf(fp,"\n");
 	  }
 	}
 	else {	/* !SHOW_CODE */

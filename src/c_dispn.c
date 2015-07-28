@@ -1,7 +1,23 @@
 /*	dispn.c	associated subroutines for matching sequences */
 
-/*  $Id: c_dispn.c 1124 2013-03-13 20:24:57Z wrp $ */
+/* $Id: c_dispn.c 1124 2013-03-13 20:24:57Z wrp $ */
 /* $Revision: 1124 $  */
+
+/* copyright (c) 1988, 1995, 1996, 2008, 2013, 2014 by William R. Pearson and 
+   The Rector and Visitors of the University of Virginia */
+
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +53,7 @@ void
 discons(FILE *fd, const struct mngmsg *m_msp, 
 	char *seqc0, char *seqc0a, 
 	char *seqc1, char *seqc1a,
-	char *seqca, int *seqc_score, int nc,
+	char *seqca, int *cumm_seq_score, int nc,
 	int n0, int n1, char *name0, char *name1, int nml,
 	struct a_struct *aln)
 {
@@ -203,11 +219,11 @@ discons(FILE *fd, const struct mngmsg *m_msp,
 	del1++;
       }
 
-      tot_score += seqc_score[ic];
+      tot_score += cumm_seq_score[ic];
       fprintf(fd,"%ld\t%ld\t%c\t%c\t%d\t%d\n",
 	      aln->q_offset+qlsgn*(ioff0-del0)*aln->llmult+qfx0,
 	      aln->l_offset+llsgn*(ioff1-del1)+lfx0,	      
-	      seqc0[ic], seqc1[ic], seqc_score[ic], tot_score);
+	      seqc0[ic], seqc1[ic], cumm_seq_score[ic], tot_score);
     }
     return;
   }

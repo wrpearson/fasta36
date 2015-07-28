@@ -1,5 +1,4 @@
 /* $Id: aln_structs.h 1139 2013-04-16 01:00:09Z wrp $ */
-/* $Revision: 1139 $  */
 
 #ifndef A_STRUCT
 #define A_STRUCT

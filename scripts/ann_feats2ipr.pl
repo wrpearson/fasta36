@@ -1,5 +1,22 @@
 #!/usr/bin/perl -w
 
+################################################################
+# copyright (c) 2014 by William R. Pearson and The Rector &
+# Visitors of the University of Virginia */
+################################################################
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under this License is distributed on an "AS
+# IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.  See the License for the specific language
+# governing permissions and limitations under the License. 
+################################################################
+
 # ann_feats2ipr.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
@@ -32,7 +49,8 @@ my $domain_cnt = 0;
 my $hostname = `/bin/hostname`;
 
 unless ($hostname =~ m/ebi/) {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("xdb", "uniprot", "annot2", 0, "web_user", "fasta_www");
+  ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
+#  $host = 'localhost';
 } else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
 }

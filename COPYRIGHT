@@ -1,23 +1,24 @@
 
-     Copyright 1988, 1991, 1992, 1993, 1994 1995, 2011 by William
-     R. Pearson and the University of Virginia.  All rights
-     reserved. The FASTA program and documentation may not be sold or
-     incorporated into a commercial product, in whole or in part,
-     without written consent of William R. Pearson and the University
-     of Virginia.  For further information regarding permission for
-     use or reproduction, please contact:
+     Copyright 1988, 1991, 1992, 1993, 1994 1995, 2011, 2014 by
+     William R. Pearson and the Rectors and Visitors of the University
+     of Virginia.
 
-	     David Hudson
-	     Assistant Provost for Research
-	     University of Virginia
-	     P.O. Box 400301
-	     Charlottesville, VA  22906-9025
+     This software was developed at the University of Virginia by
+     William R. Pearson (wrp@virginia.edu).
 
-	     (434) 924-3606
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing,
+     software distributed under this License is distributed on an "AS
+     IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+     express or implied.  See the License for the specific language
+     governing permissions and limitations under the License. 
 
      Code in the smith_waterman_sse2.c and smith_waterman_sse2.h files
-     is copyright (c) 2006 by Michael Farrar.
-
-     This program may not be sold or incorporated into a commercial
-     product, in whole or in part, without written consent of Michael
-     Farrar.
+     is copyright (c) 2006 by Michael Farrar.  Code in the
+     global_sse2.c, global_sse2.h, glocal_sse2.c, and glocal_sse2.h
+     files is copyright (c) 2010 by Michael Farrar.

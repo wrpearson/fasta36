@@ -1,5 +1,22 @@
 #!/usr/bin/perl -w
 
+################################################################
+# copyright (c) 2014 by William R. Pearson and The Rector &
+# Visitors of the University of Virginia */
+################################################################
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under this License is distributed on an "AS
+# IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied.  See the License for the specific language
+# governing permissions and limitations under the License. 
+################################################################
+
 # ann_feats_up_www2.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # SP:GSTM1_HUMAN P09488 218
@@ -27,7 +44,7 @@ my $domain_cnt = 0;
 
 my $hostname = `/bin/hostname`;
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0);
+my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
 
 GetOptions(

@@ -1,9 +1,22 @@
 /* cal_consf.c - routines for printing translated alignments for [t]fast[sf] */
 
-/* copyright (c) 1998, 1999, 2007 by William R. Pearson and the University of Virginia */
+/* copyright (c) 1998, 1999, 2007, 2014 by William R. Pearson and The
+   Rector & Visitors of the University of Virginia */
 
 /*  $Id: cal_consf.c 1263 2014-06-25 10:40:39Z wrp $ */
-/* $Revision: 1263 $  */
+
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* removed from dropfs2.c, dropff2.c April, 2007 */
 
@@ -32,7 +45,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res,
 	    struct pstruct *ppst,
-	    char *seqc0, char *seqc1, char *seqca, int *seqc_score,
+	    char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a, 
 	    const unsigned char *aa1a, const struct annot_str *annot1_p, char *seqc1a, 
@@ -126,7 +139,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 /* now get the middle */
 
   spa = seqca+mins;
-  if (seqc_score) i_spa = seqc_score+mins;
+  if (cumm_seq_score) i_spa = cumm_seq_score+mins;
   sp0 = seqc0+mins;
   sp0a = seqc0a+mins;
   sp1 = seqc1+mins;
@@ -172,7 +185,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       if (*spa == M_POS)  { aln->npos++;}
       if (*spa == M_ZERO || *spa == M_POS) { aln->nsim++;}
 
-      if (seqc_score) *i_spa++ += itmp;
+      if (cumm_seq_score) *i_spa++ += itmp;
 
       *sp0 = ppst->sq[f_str->aa0t[i0++]];	/* get the residues for the consensus */
 

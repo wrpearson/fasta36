@@ -1,15 +1,12 @@
-
 /* mrandom.c 28-Jan-2010 */
-
-/* system versions of random/nrand48/nrand tend have thread contention
-   issues.  This version uses a random number generator from Wikipedia
-   that maintains state in a separate buffer, so that there is no contention.
-
-*/
 
 /*  $Id:  */
 /* $Revision: 625 $  */
 
+/* system versions of random/nrand48/nrand tend have thread contention
+   issues.  This version uses a random number generator from Wikipedia
+   that maintains state in a separate buffer, so that there is no contention.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>

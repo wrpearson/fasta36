@@ -1,8 +1,20 @@
+/* $Id: dropnfa.c $ */
 
-/* copyright (c) 1998, 1999 William R. Pearson and the U. of Virginia */
+/* copyright (c) 1998, 1999, 2014 by William R. Pearson and The Rector &
+   Vistors of the University of Virginia */
 
-/*  $Id: dropnfa.c 1136 2013-04-06 17:43:43Z wrp $ */
-/* $Revision: 1136 $  */
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* 17-Sept-2008 - modified for multiple non-overlapping alignments */
 
@@ -1346,7 +1358,7 @@ bd_malign (const unsigned char *aa0, int n0,
 
   do_fasta(aa0, n0, aa1, n1, ppst, f_str, &cur_ares->rst, &hoff,0, &s_info);
 
-  if (first_align || cur_ares->rst.score[score_ix]>=score_thresh) {
+  if (first_align || cur_ares->rst.score[score_ix]>score_thresh) {
     if (ppst->sw_flag) {
       /* hoff gives us a projection of the query on the library
 	 sequence, which can be used to limit the portions of the
@@ -1419,7 +1431,7 @@ bd_malign (const unsigned char *aa0, int n0,
 
   /* check to see if a variant is better */
 
-  if (!ppst->do_rep || cur_ares->rst.score[score_ix] < score_thresh) {return cur_ares;}
+  if (!ppst->do_rep || cur_ares->rst.score[score_ix] <= score_thresh) {return cur_ares;}
 
   if (cur_ares->min1 >= min_alen) { /* try the left  */
     /* allocate a_res */	
@@ -1486,7 +1498,7 @@ bd_malign (const unsigned char *aa0, int n0,
 	     tmpr_ares->rst.score[score_ix]);
     */
 
-    if (tmpr_ares->rst.score[score_ix] >= score_thresh) {
+    if (tmpr_ares->rst.score[score_ix] > score_thresh) {
       /* adjust the left boundary */
       for (this_ares = tmpr_ares; this_ares; this_ares = this_ares->next) {
 	this_ares->min1 += cur_ares->max1;
@@ -1505,7 +1517,7 @@ bd_malign (const unsigned char *aa0, int n0,
   }
   else {tmpr_ares = NULL;}
 
-  if (max_sub_score < score_thresh) return cur_ares;
+  if (max_sub_score <= score_thresh) return cur_ares;
 
   /*
     fprintf(stderr, "lr: %d l: %d r:%d\n",

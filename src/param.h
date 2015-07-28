@@ -146,7 +146,6 @@ struct annot_str {
   int n_domains; 	/* length of domain_arr_p array */
   struct annot_entry *annot_arr_p;	/* array[n_annot] of annot_entry's for all annotations */
   struct annot_entry **s_annot_arr_p;	/* sorted version of annots */
-  struct annot_entry *domain_arr_p;	/* array[n_domains] of annot_entry's for domains */
 };
 
 /* ann_str keeps information on "rich" annotations, position, type, value */
@@ -157,32 +156,18 @@ struct annot_entry {
   unsigned char value;	/* must be amino acid residue, binary encoded */
   char *comment;
   int target;	 /* 0 for query/ 1 for library */
-  long a_pos;	/* position of aligned residue */
-  int score;	/* score of current region */
-  int n_ident;	/* count for percent id */
-  int n_aln; 	/* align len for percent id */
-  struct annot_entry *start;
-};
-
-/* feature_str keeps information on "rich" annotations, position, type, value */
-struct feature_str {
-  int pos;
-  char label;	/* currently -V *#%!@ symbols, plus 'V' for variant */
-  unsigned char value;	/* must be amino acid residue, binary encoded */
-  char *comment;
 };
 
 /* domain_str keeps information on "rich" annotations, position, type, value */
-struct domain_str {
-  int start;
-  int end;
-  char label;	/* currently -V *#%!@ symbols, plus 'V' for variant */
-  unsigned char value;	/* must be amino acid residue, binary encoded */
-  char *comment;
-  int target;	 /* 0 for query/ 1 for library */
-  int a_start;	/* position of aligned residue */
-  int a_end;	/* position of aligned residue */
+struct domfeat_data {
+  struct annot_entry *annot_entry_p;
+  struct domfeat_data *next;
+  long pos;	/* annotation position */
+  long a_pos;	/* aligned annotation position */
+  long end_pos;	/* domain annotation end */
   int score;	/* score of current region */
+  int n_ident;	/* count for percent id */
+  int n_alen; 	/* align len for percent id */
 };
 
 /* seq_record has the data required to do a calculation */

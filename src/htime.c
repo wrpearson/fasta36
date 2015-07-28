@@ -1,6 +1,6 @@
 /* Concurrent read version */
 
-/*  $Id: htime.c 867 2011-10-30 14:44:04Z wrp $ */
+/* $Id: htime.c 867 2011-10-30 14:44:04Z wrp $ */
 /* $Revision: 867 $  */
 
 #include <stdio.h>

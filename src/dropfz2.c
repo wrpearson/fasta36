@@ -1,8 +1,21 @@
-
-/* copyright (c) 1998, 1999 William R. Pearson and the U. of Virginia */
-
-/*  $Id: dropfz2.c 1280 2014-08-21 00:47:55Z wrp $ */
+/* $Id: dropfz2.c 1280 2014-08-21 00:47:55Z wrp $ */
 /* $Revision: 1280 $  */
+
+/* copyright (c) 1998, 1999, 2014 by William R. Pearson and The Rector &
+   Vistors of the University of Virginia */
+
+/* Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under this License is distributed on an "AS
+   IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
+   express or implied.  See the License for the specific language
+   governing permissions and limitations under the License. 
+*/
 
 /* 18-Sept-2006 - removed static global variables for alignment */
 
@@ -2756,7 +2769,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res,
 	    struct pstruct *ppst,
-	    char *seqc0, char *seqc1, char *seqca, int *seqc_score,
+	    char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a,
 	    const unsigned char *aa1a, const struct annot_str *annot1_p, char *seqc1a,
@@ -2845,7 +2858,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 			   annotation */
 #endif
   spa = seqca;
-  i_spa = seqc_score;
+  i_spa = cumm_seq_score;
 
   rp = a_res->res;			/* start of alignment info */
   rpmax = &a_res->res[a_res->nres];	/* end of alignment info */
@@ -2924,7 +2937,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	if (*spa == M_IDENT) {region1_p->n_ident++;}
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
@@ -2945,7 +2958,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *sp0++ = '/';
       *sp1++ = '-';
       *spa++ = M_DEL;
-      if (seqc_score) *i_spa++ = ppst->gshift;
+      if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       if (have_ann) {*sp0a++ = *sp1a++ = ' ';}
       not_c++;
@@ -3000,7 +3013,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	have_push_features = 0;
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       i1++;
       sp0++; sp1++; spa++;
@@ -3015,7 +3028,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *sp0++ = '\\';
       *sp1++ = '-';
       *spa++ = M_DEL;
-      if (seqc_score) *i_spa++ = ppst->gshift;
+      if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       not_c++;
 
@@ -3052,7 +3065,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	if (*spa == M_IDENT) {region1_p->n_ident++;}
       }
 
-      if (seqc_score) *i_spa++ = itmp;
+      if (cumm_seq_score) *i_spa++ = itmp;
 
       if (have_ann && have_push_features) {
 	display_push_features(annot_stack, annot_var_dyn,
@@ -3077,13 +3090,13 @@ calc_cons_a(const unsigned char *aa0, int n0,
       *spa++ = M_DEL;
       lenc++;
       ngap_p++;
-      if (seqc_score) *i_spa++ = ppst->gdelval;
+      if (cumm_seq_score) *i_spa++ = ppst->gdelval;
       break;
     case 0:		/* insertion in 1 */
       *sp0++ = '-';
       *sp1++ = sq[ap1[i1]];
       *spa++ = M_DEL;
-      if (seqc_score) {
+      if (cumm_seq_score) {
 	if (prev_match) *i_spa = ppst->gdelval;
 	*i_spa++ += ppst->gdelval;
       }
