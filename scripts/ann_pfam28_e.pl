@@ -113,7 +113,7 @@ EOSQL
 
 my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
 
-SELECT seq_start, seq_end, model_start, model_end, model_length pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
 JOIN $pfamA_reg_full using(pfamseq_acc)
 JOIN pfamA USING (pfamA_acc)
