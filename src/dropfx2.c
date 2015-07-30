@@ -2884,7 +2884,7 @@ calc_cons_u( /* inputs */
   *score_delta = 0;
   d1_score = d1_ident = d1_alen = 0;
   i1_left_end = -1;
-  left_domain_list1 = NULL;
+  left_domain_head1 = left_domain_list1 = NULL;
 
   NULL_dyn_string(annot_var_dyn);
 
@@ -2922,7 +2922,7 @@ calc_cons_u( /* inputs */
     spa_p = &spa_c;
     sp0a_p = NULL;
     sp1a_p = NULL;
-    annot_fmt = 0;
+    annot_fmt = 3;
   }
   else if (calc_func_mode == CALC_CODE) {
     spa_p = &spa_c;
@@ -2979,6 +2979,7 @@ calc_cons_u( /* inputs */
 
     sp0a_p = &sp0a_c;
     sp1a_p = &sp1a_c;
+    annot_fmt = 3;
 
     /* does not require aa0a/aa1a, only for variants */
   }
@@ -3023,48 +3024,32 @@ calc_cons_u( /* inputs */
   have_push_features = prev_match = 0;
 
   if (have_ann) {
-    left_domain_head1 = left_domain_list1 = NULL;
-
-    if (calc_func_mode == CALC_CONS) {
-      annot_stack = init_stack(64,64);
-      have_push_features_p = &have_push_features;
-    }
-    else if (calc_func_mode == CALC_ID) {
-      have_push_features_p = NULL;
-      ann_comment = NULL;
-      annot_stack = NULL;
-    }
-    else if (calc_func_mode == CALC_CODE) {
-      have_push_features_p = &have_push_features;
-      annot_stack = init_stack(64,64);
-    }
+    have_push_features_p = &have_push_features;
 
     if (annotp_p && annotp_p->n_annot > 0) {
-      if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
+      annot_stack = init_stack(64,64);
+      left_domain_list1=init_domfeat_data(annotp_p);
+      s_annotp_arr_p = annotp_p->s_annot_arr_p;
 
-	left_domain_list1=init_domfeat_data(annotp_p);
-	s_annotp_arr_p = annotp_p->s_annot_arr_p;
+      while (i1_annot < annotp_p->n_annot) {
+	if (s_annotp_arr_p[i1_annot]->pos >= i1+i1_offset) {break;}
+	if (s_annotp_arr_p[i1_annot]->end < i1+i1_offset) {i1_annot++; continue;}
 
-	while (i1_annot < annotp_p->n_annot) {
-	  if (s_annotp_arr_p[i1_annot]->pos >= i1+i1_offset) {break;}
-	  if (s_annotp_arr_p[i1_annot]->end < i1+i1_offset) {i1_annot++; continue;}
-
-	  if (s_annotp_arr_p[i1_annot]->label == '-') {
-	    process_annot_match(&itmp, NULL, 
+	if (s_annotp_arr_p[i1_annot]->label == '-') {
+	  process_annot_match(&itmp, NULL, 
 #ifndef TFAST
-				i1_offset+seq_pos(i1,aln->llrev,0),
-				i0_offset+seq_pos(i0,aln->qlrev,0),
+			      i1_offset+seq_pos(i1,aln->llrev,0),
+			      i0_offset+seq_pos(i0,aln->qlrev,0),
 #else
-				i1_offset+seq_pos(i1,aln->qlrev,0),
-				i0_offset+seq_pos(i0,aln->llrev,0),
+			      i1_offset+seq_pos(i1,aln->qlrev,0),
+			      i0_offset+seq_pos(i0,aln->llrev,0),
 #endif
-				sp1_p, sp1a_p, sq, s_annotp_arr_p[i1_annot], annotp_p->n_annot,
-				&ann_comment, annot_stack, have_push_features_p, &v_delta,
-				&d1_score, &d1_ident, &d1_alen, 
-				&left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end, 0);
-	  }
-	  i1_annot++;
+			      sp1_p, sp1a_p, sq, s_annotp_arr_p[i1_annot], annotp_p->n_annot,
+			      &ann_comment, annot_stack, have_push_features_p, &v_delta,
+			      &d1_score, &d1_ident, &d1_alen, 
+			      &left_domain_head1, &left_domain_list1[i1_annot], &i1_left_end, 0);
 	}
+	i1_annot++;
       }
     }
   }
