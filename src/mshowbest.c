@@ -612,7 +612,7 @@ l1:
 	    link_shown = 1;
 	  }
 	  if (cur_ares_p->annot_var_s) {
-	    fprintf(fp," |Var: %s",cur_ares_p->annot_var_s);
+	    fprintf(fp," %s",cur_ares_p->annot_var_s);
 	  }
 	  else { link_shown = 0;}
 	}

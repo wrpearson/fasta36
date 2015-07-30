@@ -4258,6 +4258,11 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 	  SAFE_STRNCAT(tmp_lstr,tmp_sstr,sizeof(tmp_lstr));
 	}
       }
+      else if (d_type == 3 && this_dom_p->annot_entry_p->target == 1) {	/* CALC_ID domain names */
+	SAFE_STRNCPY(tmp_sstr,(this_dom_p->annot_entry_p->comment) ? this_dom_p->annot_entry_p->comment : '\0',MAX_SSTR);
+	if ((bp=strchr(tmp_sstr,' ')) != NULL) { *bp='\0';}
+	sprintf(tmp_lstr, "%s;",tmp_sstr);
+      }
       /* SAFE_STRNCAT(annot_var_s,tmp_lstr,n_annot_var_s); */
       dyn_strcat(annot_var_dyn, tmp_lstr);
       /*

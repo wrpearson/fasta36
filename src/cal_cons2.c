@@ -413,7 +413,7 @@ calc_cons_u( /* inputs */
     sp1_p = &sp1_c;
     /* does not require aa0a/aa1a, only for variants */
     /*     have_ann = ((annot1_p && annot1_p->n_annot > 0) || (annot0_p && annot0_p->n_annot > 0)); */
-    annot_fmt = 0;
+    annot_fmt = 3;
   }
   else if (calc_func_mode == CALC_CODE) {
     spa_p = &spa_c;
@@ -449,9 +449,9 @@ calc_cons_u( /* inputs */
     else if (calc_func_mode == CALC_ID) {
       sp0a_p = NULL;
       sp1a_p = NULL;
-      have_push_features_p = NULL;
-      ann_comment = NULL;
-      annot_stack = NULL;
+      have_push_features_p = &have_push_features;
+      /*      ann_comment = NULL; */
+      annot_stack = init_stack(64,64);
     }
     else if (calc_func_mode == CALC_CODE) {
       annot_stack = init_stack(64,64);
@@ -483,7 +483,6 @@ calc_cons_u( /* inputs */
     i0_off = seq_pos(i0, aln->qlrev,0) + q_offset;
 
     if (annot1_p && annot1_p->n_annot > 0) {
-      if (calc_func_mode == CALC_CONS || calc_func_mode == CALC_CODE) {
 
 	left_domain_list1 = init_domfeat_data(annot1_p);
 	s_annot1_arr_p = annot1_p->s_annot_arr_p;
@@ -501,7 +500,6 @@ calc_cons_u( /* inputs */
 	  }
 	  i1_annot++;
 	}
-      }
     }
 
     /* do not need have_ann here, because domain only */
