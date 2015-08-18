@@ -428,12 +428,13 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       fprintf (fp, "h {\n   \"%s\"\n   \"%s\"\n}\n", qline_p, bline_p);
     }
 
+
+#ifndef LALIGN
     first_line = 1;
-    /*
-#ifdef LALIGN
+#else
     first_line = 0;
 #endif
-    */
+
     while (cur_ares_p != NULL && cur_ares_p->nres > 0) {
 
       /* estimate space for alignment consensus */
