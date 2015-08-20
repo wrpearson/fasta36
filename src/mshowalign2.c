@@ -429,11 +429,11 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
     }
 
     first_line = 1;
-    /*
+    /* do not remove this #ifdef -- required to get correct bits,
+       evalue, or first LALIGN score */
 #ifdef LALIGN
     first_line = 0;
 #endif
-    */
     while (cur_ares_p != NULL && cur_ares_p->nres > 0) {
 
       /* estimate space for alignment consensus */
