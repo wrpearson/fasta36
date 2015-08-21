@@ -590,7 +590,7 @@ void print_header4(FILE *fd, char *info_qlabel, char *argv_line, char *info_gstr
 }
 
 void print_header4a(FILE *outfd, struct mngmsg *m_msp) {
-  if (!(m_msp->markx & MX_M8OUT) && (m_msp->markx & (MX_M10FORM+MX_M9SUMM)) && m_msp->show_code != SHOW_CODE_ID) {
+  if (!(m_msp->markx & MX_M8OUT) && (m_msp->markx & (MX_M10FORM+MX_M9SUMM)) && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) {
     fprintf(outfd,">>><<<\n");
   }
 }
@@ -1009,7 +1009,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
 
   /* adjust description line length */
   l_llen = m_msp->aln.llen;
-  if ((m_msp->markx & MX_M9SUMM) && m_msp->show_code != SHOW_CODE_ID) {
+  if ((m_msp->markx & MX_M9SUMM) && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) {
     l_llen += 40;
     if (l_llen > 200) l_llen=200;
   }
@@ -4258,7 +4258,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 	  SAFE_STRNCAT(tmp_lstr,tmp_str,sizeof(tmp_lstr));
 	}
       }
-      else if (d_type == 3 && this_dom_p->annot_entry_p->target == 1) {	/* CALC_ID domain names */
+      else if (d_type == 3 && this_dom_p->annot_entry_p->target == 1) {	/* CALC_ID_DOM domain names */
 	SAFE_STRNCPY(tmp_str,(this_dom_p->annot_entry_p->comment) ? this_dom_p->annot_entry_p->comment : '\0',sizeof(tmp_str));
 	if ((bp=strchr(tmp_str,' ')) != NULL) { *bp='\0';}
 	sprintf(tmp_lstr, "%s;",tmp_str);

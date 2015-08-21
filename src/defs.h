@@ -167,3 +167,4 @@
 #define SHOW_CODE_MASK  3	/* use higher bits for annotation format */
 #define SHOW_CODE_EXT   4	/* encode identity, mismatch state */
 #define SHOW_ANNOT_FULL 8	/* show full-length annot in calc_code */
+#define SHOW_CODE_IDD   9	/* identity with domains */

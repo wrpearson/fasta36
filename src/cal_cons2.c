@@ -127,6 +127,7 @@ extern int seq_pos(int pos, int rev, int off);
 #define CALC_CONS 1
 #define CALC_CODE 2
 #define CALC_ID   3
+#define CALC_ID_DOM   4
 
 int
 pre_fill_cons(const unsigned char *aa0, const unsigned char *aa1p,
@@ -407,7 +408,7 @@ calc_cons_u( /* inputs */
     /*     have_ann = (seqc0a != NULL);  */
     annot_fmt = DP_FULL_FMT;
   }
-  else if (calc_func_mode == CALC_ID) {
+  else if (calc_func_mode == CALC_ID || calc_func_mode == CALC_ID_DOM) {
     spa_p = &spa_c;
     sp0_p = &sp0_c;
     sp1_p = &sp1_c;
@@ -446,7 +447,7 @@ calc_cons_u( /* inputs */
       annot_stack = init_stack(64,64);
       have_push_features_p = &have_push_features;
     }
-    else if (calc_func_mode == CALC_ID) {
+    else if (calc_func_mode == CALC_ID || calc_func_mode == CALC_ID_DOM) {
       sp0a_p = &sp0a_c;
       sp1a_p = &sp1a_c;
       have_push_features_p = &have_push_features;
@@ -567,7 +568,7 @@ calc_cons_u( /* inputs */
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa1p[i1]] != *sp1_p) {
 	      t_spa = align_type(itmp, *sp0_p, *sp1_p, ppst->nt_align, NULL, ppst->pam_x_id_sim);
-	      if (calc_func_mode != CALC_ID) {
+	      if (calc_func_mode != CALC_ID && calc_func_mode != CALC_ID_DOM) {
 		comment_var(q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			    l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
 			    sq[aa1p[i1]], sim_sym[t_spa], ann_comment,
@@ -596,7 +597,7 @@ calc_cons_u( /* inputs */
 	    /* must be out of the loop to capture the last value */
 	    if (sq[aa0[i0]] != *sp0_p) {
 	      t_spa = align_type(itmp, *sp0_p, *sp1_p, ppst->nt_align, NULL, ppst->pam_x_id_sim);
-	      if (calc_func_mode != CALC_ID) {
+	      if (calc_func_mode != CALC_ID && calc_func_mode != CALC_ID_DOM) {
 
 	      comment_var(q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			  l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
@@ -636,7 +637,7 @@ calc_cons_u( /* inputs */
 			 sim_sym[*spa_p], annot_var_dyn);
       }
 
-      if (have_push_features) {
+      if (have_push_features && calc_func_mode != CALC_ID) {
 	display_push_features(annot_stack, annot_var_dyn,
 			      q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 			      l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
@@ -696,7 +697,7 @@ calc_cons_u( /* inputs */
 			   '-', annot_var_dyn);
 	  }
 
-	  if (have_push_features) {
+	  if (have_push_features && calc_func_mode != CALC_ID) {
 	    display_push_features(annot_stack, annot_var_dyn,
 				  q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 				  l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
@@ -752,7 +753,7 @@ calc_cons_u( /* inputs */
 			   '-', annot_var_dyn);
 	  }
 
-	  if (have_push_features) {
+	  if (have_push_features && calc_func_mode != CALC_ID) {
 	    display_push_features(annot_stack, annot_var_dyn,
 				  q_offset+seq_pos(i0,aln->qlrev,0), *sp0_p,
 				  l_offset+seq_pos(i1,aln->llrev,0), *sp1_p,
@@ -802,7 +803,7 @@ calc_cons_u( /* inputs */
 			&left_domain_head0, &i0_left_end, 0);
     }
 
-    if (have_push_features) {
+    if (have_push_features && calc_func_mode != CALC_ID) {
       display_push_features(annot_stack, annot_var_dyn,
 			    a_res->max0-1 + q_offset, *sp0_p,
 			    a_res->max1-1 + l_offset, *sp1_p,
@@ -1052,6 +1053,31 @@ int calc_id(const unsigned char *aa0, int n0,
 		     aa0, n0, aa1, n1,
 		     a_res, ppst, f_str, NULL,
 		     NULL, NULL, annot0_p, NULL, annot1_p, CALC_ID, 0,
+		     &nc, NULL, NULL, NULL, NULL,
+		     NULL, NULL, aln, score_delta, annot_var_dyn,
+		     NULL, 0
+		     );
+}
+
+/* calc_id never looks at domains or features, only variation */
+
+int calc_idd(const unsigned char *aa0, int n0,
+	     const unsigned char *aa1, int n1,
+	     struct a_struct *aln, 
+	     struct a_res_str *a_res,
+	     struct pstruct *ppst,
+	     const struct annot_str *annot0_p,
+	     const struct annot_str *annot1_p,
+	     int *score_delta,
+	     struct dyn_string_str *annot_var_dyn,
+	     struct f_struct *f_str)
+{
+  int nc;
+
+  return calc_cons_u(
+		     aa0, n0, aa1, n1,
+		     a_res, ppst, f_str, NULL,
+		     NULL, NULL, annot0_p, NULL, annot1_p, CALC_ID_DOM, 0,
 		     &nc, NULL, NULL, NULL, NULL,
 		     NULL, NULL, aln, score_delta, annot_var_dyn,
 		     NULL, 0

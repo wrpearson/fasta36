@@ -219,7 +219,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   }
 
   desc_llen = l_llen = m_msp->aln.llen;
-  if ((m_msp->markx & MX_M9SUMM) && m_msp->show_code != SHOW_CODE_ID) {
+  if ((m_msp->markx & MX_M9SUMM) && (m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD)) {
     l_llen += 40;
     if (l_llen > 200) l_llen=200;
   }
