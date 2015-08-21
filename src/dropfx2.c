@@ -2920,8 +2920,8 @@ calc_cons_u( /* inputs */
     sp0_p = &sp0_c;
     sp1_p = &sp1_c;
     spa_p = &spa_c;
-    sp0a_p = NULL;
-    sp1a_p = NULL;
+    sp0a_p = &sp0a_c;
+    sp1a_p = &sp1a_c;
     annot_fmt = 3;
   }
   else if (calc_func_mode == CALC_CODE) {

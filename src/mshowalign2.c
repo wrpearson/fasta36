@@ -429,9 +429,10 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
     }
 
 
-#ifndef LALIGN
     first_line = 1;
-#else
+    /* do not remove this #ifdef -- required to get correct bits,
+       evalue, or first LALIGN score */
+#ifdef LALIGN
     first_line = 0;
 #endif
 
