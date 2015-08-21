@@ -9,6 +9,12 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Aug. 20, 2015 [fasta-36.3.8a]
+[mshowalign2.c]
+Fixed bug in lalign36 E()-value, bit score calculations for highest
+scoring non-identical alignment by reverting to older code.  This bug
+was introduced in fasta-36.3.6d in January, 2014.
+
 >>Jul. 21, 2015 [fasta-36.3.8]
 [compacc2e.c, cal_cons2.c, dropfx2.c dropfz3.c, param.h]
 Fixed a major bug in the annotation code that had been added to
