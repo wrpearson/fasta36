@@ -283,7 +283,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif
 	}
 	else {
-	  if (m_msp->markx & MX_HTML && m_msp->show_code !=1) { fprintf(fp,"<!-- ");}
+	  if (m_msp->markx & MX_HTML && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) { fprintf(fp,"<!-- ");}
 #ifndef SHOWSIM
 	  fprintf(fp,"\t%%_id  %%_gid %4s  alen  an0  ax0  pn0  px0  an1  ax1 pn1 px1 gapq gapl  fs ",m_msp->f_id1);
 #else
@@ -291,7 +291,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif
 	}
 	if (m_msp->show_code == SHOW_CODE_ALIGN) { fprintf(fp," aln_code"); }
-	if (m_msp->markx & MX_HTML && m_msp->show_code!=1) { fprintf(fp," -->");}
+	if (m_msp->markx & MX_HTML && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) { fprintf(fp," -->");}
       }
       fprintf(fp,"\n");
     }
