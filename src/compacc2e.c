@@ -4190,7 +4190,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   struct domfeat_data *this_dom_p;
   double lbits, total_bits, zscore, lprob, lpercid;
   char *ann_comment, *bp;
-  char tmp_lstr[MAX_LSTR], ctarget, tmp_sstr[MAX_SSTR];
+  char tmp_lstr[MAX_LSTR], ctarget, tmp_str[MAX_STR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
   int n_stack;
@@ -4252,16 +4252,16 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		l_min, i1_pos+1, this_dom_p->score, lbits,lpercid, lprob);
 
 	if (this_dom_p->annot_entry_p->comment) {
-	  SAFE_STRNCPY(tmp_sstr,this_dom_p->annot_entry_p->comment,sizeof(tmp_sstr));
-	  if ((bp=strchr(tmp_sstr,' '))!=NULL) { *bp = '\0';}
+	  SAFE_STRNCPY(tmp_str,this_dom_p->annot_entry_p->comment,sizeof(tmp_str));
+	  if ((bp=strchr(tmp_str,' '))!=NULL) { *bp = '\0';}
 	  SAFE_STRNCAT(tmp_lstr,";C=",sizeof(tmp_lstr));
-	  SAFE_STRNCAT(tmp_lstr,tmp_sstr,sizeof(tmp_lstr));
+	  SAFE_STRNCAT(tmp_lstr,tmp_str,sizeof(tmp_lstr));
 	}
       }
       else if (d_type == 3 && this_dom_p->annot_entry_p->target == 1) {	/* CALC_ID domain names */
-	SAFE_STRNCPY(tmp_sstr,(this_dom_p->annot_entry_p->comment) ? this_dom_p->annot_entry_p->comment : '\0',MAX_SSTR);
-	if ((bp=strchr(tmp_sstr,' ')) != NULL) { *bp='\0';}
-	sprintf(tmp_lstr, "%s;",tmp_sstr);
+	SAFE_STRNCPY(tmp_str,(this_dom_p->annot_entry_p->comment) ? this_dom_p->annot_entry_p->comment : '\0',sizeof(tmp_str));
+	if ((bp=strchr(tmp_str,' ')) != NULL) { *bp='\0';}
+	sprintf(tmp_lstr, "%s;",tmp_str);
       }
       /* SAFE_STRNCAT(annot_var_s,tmp_lstr,n_annot_var_s); */
       dyn_strcat(annot_var_dyn, tmp_lstr);
