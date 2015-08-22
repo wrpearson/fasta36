@@ -190,9 +190,6 @@ build_ares_code(unsigned char *aa0, int n0,
 			   &score_delta,
 			   annot_var_dyn, f_str);
       }
-      else {
-	fprintf(stderr,"*** ERROR *** [%s/%d] not SHOW_CODE_ID or SHOW_CODE_IDD\n",__FILE__,__LINE__);
-      }
     }
 
     if (score_delta > 0) {
