@@ -50,13 +50,16 @@ my $hostname = `/bin/hostname`;
 
 unless ($hostname =~ m/ebi/) {
   ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
-#  $host = 'xdb';
+  $host = 'xdb';
 } else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc) = 
     (0,0,0,0,0,0,0,0,0,0,0,0);
+
+my $color_sep_str = " :";
+$color_sep_str = '~';
 
 GetOptions(
 	   "host=s" => \$host,
@@ -204,7 +207,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[4]})) {
-      $annot->[-2] .= " :".$domains{$annot->[4]};
+      $annot->[-2] .= $color_sep_str.$domains{$annot->[4]};
     }
     if ($lav) {
       print join("\t",@$annot[0 .. 2]),"\n";

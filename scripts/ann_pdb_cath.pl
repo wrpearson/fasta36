@@ -50,6 +50,9 @@ my $hostname = `/bin/hostname`;
 my ($neg_doms, $lav, $shelp, $help, $class) = (0, 0, 0, 0, 0);
 my ($min_nodom) = (10);
 
+my $color_sep_str = " :";
+$color_sep_str = '~';
+
 GetOptions(
     "host=s" => \$host,
     "db=s" => \$db,
@@ -126,7 +129,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= " :".$domains{$annot->[-1]};
+      $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
     }
     print join("\t",@$annot),"\n";
   }

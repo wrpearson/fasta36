@@ -43,6 +43,9 @@ my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc_flag, $she
   (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 my ($min_nodom, $min_vdom) = (10, 10);
 
+my $color_sep_str = " :";
+$color_sep_str = '~';
+
 GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
@@ -117,7 +120,7 @@ for my $seq_annot (@annots) {
       if ($acc_comment) {
 	$annot->[-1] .= "{$domain_list[$a_num]}";
       }
-      $annot->[-1] = "$a_name :$a_num";
+      $annot->[-1] = $a_name.$color_set_str.$a_num;
     }
     print join("\t",@$annot),"\n";
   }
