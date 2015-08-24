@@ -173,23 +173,21 @@ build_ares_code(unsigned char *aa0, int n0,
 	cur_ares_p->ann_code_n = ann_code_len;
       }
     }
-    else {
-      if (m_msp->show_code == SHOW_CODE_ID) {
-	aln_p->lc=calc_id(aa0,m_msp->n0,aa1,seq->n1,
-			  aln_p, cur_ares_p,
-			  ppst,
-			  m_msp->annot_p, seq->annot_p,
-			  &score_delta,
-			  annot_var_dyn, f_str);
-      }
-      else if (m_msp->show_code == SHOW_CODE_IDD) {
-	aln_p->lc=calc_idd(aa0,m_msp->n0,aa1,seq->n1,
-			   aln_p, cur_ares_p,
-			   ppst,
-			   m_msp->annot_p, seq->annot_p,
-			   &score_delta,
+    else if (m_msp->show_code == SHOW_CODE_IDD) {
+      aln_p->lc=calc_idd(aa0,m_msp->n0,aa1,seq->n1,
+			 aln_p, cur_ares_p,
+			 ppst,
+			 m_msp->annot_p, seq->annot_p,
+			 &score_delta,
 			   annot_var_dyn, f_str);
       }
+    else {	/* ensure that calc_id (or something else) is ALWAYS done to set score_delta */
+      aln_p->lc=calc_id(aa0,m_msp->n0,aa1,seq->n1,
+			aln_p, cur_ares_p,
+			ppst,
+			m_msp->annot_p, seq->annot_p,
+			&score_delta,
+			annot_var_dyn, f_str);
     }
 
     if (score_delta > 0) {
