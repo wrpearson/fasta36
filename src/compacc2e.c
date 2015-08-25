@@ -4260,6 +4260,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       }
       else if (d_type == 3 && this_dom_p->annot_entry_p->target == 1) {	/* CALC_ID_DOM domain names */
 	SAFE_STRNCPY(tmp_str,(this_dom_p->annot_entry_p->comment) ? this_dom_p->annot_entry_p->comment : '\0',sizeof(tmp_str));
+	/* comment out to allow spaces in domain names */
 	if ((bp=strchr(tmp_str,' ')) != NULL) { *bp='\0';}
 	sprintf(tmp_lstr, "%s;",tmp_str);
       }

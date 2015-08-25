@@ -218,6 +218,9 @@ sub get_cath_annots {
     else {
       $row_href->{seq_end} = $seq_length if ($row_href->{seq_end} > $seq_length);
     }
+    
+    $row_href->{info} =~ s/\s+/_/g;
+
     push @cath_domains, $row_href
   }
 
@@ -236,7 +239,7 @@ sub get_cath_annots {
     my @ncath_domains;
     my $prev_dom={seq_end=>0};
     for my $cur_dom ( @cath_domains) {
-      if ($cur_dom{seq_start} - $prev_dom{seq_end} > $min_nodom) {
+      if ($cur_dom->{seq_start} - $prev_dom->{seq_end} > $min_nodom) {
 	my %new_dom = (seq_start=>$prev_dom->{seq_end}+1, seq_end => $cur_dom->{seq_start}-1, info=>'NODOM');
 	push @ncath_domains, \%new_dom;
       }
