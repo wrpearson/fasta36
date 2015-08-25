@@ -39,13 +39,17 @@ use LWP::Simple;
 use XML::Twig;
 # use Data::Dumper;
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc, $shelp, $help, $no_over, $acc_comment, $pfamB) =
-  (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc_flag, $shelp, $help, $no_over, $acc_comment, $bound_comment, $pfamB) =
+  (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 my ($min_nodom, $min_vdom) = (10, 10);
+
+my $color_sep_str = " :";
+$color_sep_str = '~';
 
 GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
+    "bound_comment" => \$bound_comment,
     "min_nodom=i" => \$min_nodom,
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
@@ -57,9 +61,9 @@ GetOptions(
     "pfamB" => \$pfamB,
     "vdoms" => \$vdoms,
     "v_doms" => \$vdoms,
-    "pfacc" => \$pf_acc,
-    "pfam_acc" => \$pf_acc,
-    "acc" => \$pf_acc,
+    "pfacc" => \$pf_acc_flag,
+    "pfam_acc" => \$pf_acc_flag,
+    "acc" => \$pf_acc_flag,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -82,7 +86,7 @@ my %pfamA_fams = ();
 my ($pf_seq_length, $pf_model_length)=(0,0);
 my ($clan_acc, $clan_id) = ("","");
 
-my $get_annot_sub = \&get_pfam_annots;
+my $get_annot_sub = \&get_pfam_www;
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
@@ -114,10 +118,16 @@ for my $seq_annot (@annots) {
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
       my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
+      $annot->[-1] = $a_name;
+      my $tmp_a_num = $a_num;
+      $tmp_a_num =~ s/v$//;
       if ($acc_comment) {
-	$annot->[-1] .= "{$domain_list[$a_num]}";
+	$annot->[-1] .= "{$domain_list[$tmp_a_num]}";
       }
-      $annot->[-1] = "$a_name :$a_num";
+      if ($bound_comment) {
+	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
+      }
+      $annot->[-1] .= $color_sep_str.$a_num;
     }
     print join("\t",@$annot),"\n";
   }
@@ -254,7 +264,7 @@ sub get_pfam_www {
   @pf_domains = ();
 
   for my $dom_ref (@raw_pf_domains) {
-    if ($pf_acc) {
+    if ($pf_acc_flag) {
       $dom_ref->{info} = $dom_ref->{accession};
     }
     else {
@@ -265,44 +275,6 @@ sub get_pfam_www {
 	$dom_ref->{end} = $seq_length;
     }
     push @pf_domains, $dom_ref;
-  }
-
-  # before checking for domain overlap, check for "split-domains"
-  # (self-unbound) by looking for runs of the same domain that are
-  # ordered by hmm_start
-
-  if (scalar(@pf_domains) > 1) {
-    my @j_domains;		#joined domains
-    my @tmp_domains = @pf_domains;
-
-    my $prev_dom = shift(@tmp_domains);
-
-    for my $curr_dom (@tmp_domains) {
-      # to join domains:
-      # (1) the domains must be in order by hmm_start/end coordinates
-      # (3) joining the domains cannot make the total combination too long
-
-      # check for model and sequence consistency
-      if (($prev_dom->{accession} eq $curr_dom->{accession})  # same family
-	  && $prev_dom->{hmm_start} < $curr_dom->{hmm_start}  # model check
-	  && $prev_dom->{hmm_end} < $curr_dom->{hmm_end}
-
-	  && ($curr_dom->{hmm_start} > $prev_dom->{hmm_end} * 0.80   # limit overlap
-	      || $curr_dom->{hmm_start} <  $prev_dom->{hmm_end} * 1.25)
-	  && ((($curr_dom->{hmm_end} - $curr_dom->{hmm_start}+1)/$curr_dom->{model_length} +
-	       ($prev_dom->{hmm_end} - $prev_dom->{hmm_start}+1)/$prev_dom->{model_length}) < 1.33)
-	 ) {			# join them by updating $prev_dom
-	$prev_dom->{end} = $curr_dom->{end};
-	$prev_dom->{hmm_end} = $curr_dom->{hmm_end};
-	$prev_dom->{auto_pfamA_reg_full} = $prev_dom->{auto_pfamA_reg_full} . ";". $curr_dom->{auto_pfamA_reg_full};
-	$prev_dom->{evalue} = ($prev_dom->{evalue} < $curr_dom->{evalue} ? $prev_dom->{evalue} : $curr_dom->{evalue});
-      } else {
-	push @j_domains, $prev_dom;
-	$prev_dom = $curr_dom;
-      }
-    }
-    push @j_domains, $prev_dom;
-    @pf_domains = @j_domains;
   }
 
   if($no_over && scalar(@pf_domains) > 1) {
@@ -364,6 +336,54 @@ sub get_pfam_www {
 	$pf_domains[$i]->{start} = $pf_domains[$i-1]->{end}+1;
       }
     }
+  }
+
+  # before checking for domain overlap, check for "split-domains"
+  # (self-unbound) by looking for runs of the same domain that are
+  # ordered by model_start
+
+  if (scalar(@pf_domains) > 1) {
+    my @j_domains;		#joined domains
+    my @tmp_domains = @pf_domains;
+
+    my $prev_dom = shift(@tmp_domains);
+
+    for my $curr_dom (@tmp_domains) {
+      # to join domains:
+      # (1) the domains must be in order by model_start/end coordinates
+      # (3) joining the domains cannot make the total combination too long
+
+      # check for model and sequence consistency
+      if ($prev_dom->{accession} eq $curr_dom->{accession}) { # same family
+
+	my $prev_dom_len = $prev_dom->{hmm_end}-$prev_dom->{hmm_start}+1;
+	my $curr_dom_len = $curr_dom->{hmm_end}-$curr_dom->{hmm_start}+1;
+	my $prev_dom_fn = $prev_dom_len/$curr_dom->{model_length};
+	my $curr_dom_fn = $curr_dom_len/$curr_dom->{model_length};
+	my $missing_dom_fn = max(0,($curr_dom->{hmm_start} - $prev_dom->{hmm_end})/$curr_dom->{model_length});
+
+	if ( $prev_dom->{hmm_start} < $curr_dom->{hmm_start} # model check
+	     && $prev_dom->{hmm_end} < $curr_dom->{hmm_end}
+	     && ($curr_dom->{hmm_start} > $prev_dom->{hmm_end} * 0.80 # limit overlap
+		 || $curr_dom->{hmm_start} <  $prev_dom->{hmm_end} * 1.25)
+	     && $prev_dom_fn + $curr_dom_fn < 1.33
+	     && $missing_dom_fn < min($prev_dom_fn,$curr_dom_fn)) { # join them by updating $prev_dom
+	  $prev_dom->{end} = $curr_dom->{end};
+	  $prev_dom->{hmm_end} = $curr_dom->{hmm_end};
+	  $prev_dom->{evalue} = ($prev_dom->{evalue} < $curr_dom->{evalue} ? $prev_dom->{evalue} : $curr_dom->{evalue});
+	  next;
+	}
+
+	push @j_domains, $prev_dom;
+	$prev_dom = $curr_dom;
+      }
+      else {
+	  push @j_domains, $prev_dom;
+	  $prev_dom = $curr_dom;
+      }
+    }
+    push @j_domains, $prev_dom;
+    @pf_domains = @j_domains;
   }
 
   # $vdoms -- virtual Pfam domains -- the equivalent of $neg_doms,
@@ -546,13 +566,14 @@ sub domain_name {
 
     if ($clan_acc) {
       my $c_value = "C." . $clan_id;
-      if ($pf_acc) {$c_value = "C." . $clan_acc;}
+      if ($pf_acc_flag) {$c_value = "C." . $clan_acc;}
 
       $domain_clan{$value} = {clan_id => $clan_id,
 			      clan_acc => $clan_acc};
 
       if ($domains{$c_value}) {
 	$domain_clan{$value}->{domain_cnt} =  $domains{$c_value};
+	$value = $c_value;
       }
       else {
 	$domain_clan{$value}->{domain_cnt} = ++ $domain_cnt;
@@ -568,7 +589,7 @@ sub domain_name {
     }
   }
   elsif ($domain_clan{$value} && $domain_clan{$value}->{clan_acc}) {
-    if ($pf_acc) {$value = "C." . $domain_clan{$value}->{clan_acc};}
+    if ($pf_acc_flag) {$value = "C." . $domain_clan{$value}->{clan_acc};}
     else { $value = "C." . $domain_clan{$value}->{clan_id}; }
   }
 
