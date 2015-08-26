@@ -41,9 +41,6 @@ use XML::Twig;
 my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0);
 my ($min_nodom) = (10);
 
-my $color_sep_str = " :";
-$color_sep_str = '~';
-
 GetOptions(
     "lav" => \$lav,
     "neg" => \$neg_doms,
@@ -102,7 +99,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
+      $annot->[-1] .= " :".$domains{$annot->[-1]};
     }
     print join("\t",@$annot),"\n";
   }
@@ -126,13 +123,10 @@ sub show_annots {
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^sp\|/) {
+  elsif ($annot_line =~ m/^(sp|tr)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^tr\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^SP:/i) {
+  elsif ($annot_line =~ m/^(SP|TR):/i) {
     ($sdb, $id) = split(/:/,$annot_line);
     $use_acc = 0;
   }
