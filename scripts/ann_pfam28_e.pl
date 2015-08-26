@@ -237,17 +237,14 @@ sub show_annots {
 	$get_annots_sql = $get_pfam_refacc;
     }
   }
-  elsif ($annot_line =~ m/^sp\|/) {
+  elsif ($annot_line =~ m/^(sp|tr)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
   elsif ($annot_line =~ m/^ref\|/) {
     ($sdb, $acc) = split(/\|/,$annot_line);
     $get_annots_sql = $get_pfam_refacc;
   }
-  elsif ($annot_line =~ m/^tr\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^SP:/i) {
+  elsif ($annot_line =~ m/^(SP|TR):/i) {
     ($sdb, $id) = split(/:/,$annot_line);
     $use_acc = 0;
   }

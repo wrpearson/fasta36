@@ -157,7 +157,7 @@ sub show_annots {
   elsif ($annot_line =~ m/^tr\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^SP:/i) {
+  elsif ($annot_line =~ m/^(SP|TR):/i) {
     ($sdb, $id) = split(/:/,$annot_line);
     $use_acc = 0;
   }
