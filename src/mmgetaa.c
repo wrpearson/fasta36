@@ -545,8 +545,9 @@ agetlibm(unsigned char *seq,
       while (*bp++) if ( *bp=='\001' || *bp=='\t') *bp=' ';
     }
 
-    /* find @C:offset */
-    if ((bp = memchr(desc+desc_len-15,'@', 14)) && !strncmp(bp+1,"C:",2)) {
+    /* find @C:offset in the last 11 characters of the description */
+    /* check that we can offset desc by 12 characters to get to  ' @C:' */
+    if ((desc_len > 12) && (bp = memchr(desc+desc_len-12,'@', 11)) && !strncmp(bp+1,"C:",2)) {
       *l_off = atol(bp+3);	/* this addresses an apparent bug in sscanf for non-null terminated strings */
     }
 
