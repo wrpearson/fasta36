@@ -44,7 +44,7 @@ my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc_flag, $she
 my ($min_nodom, $min_vdom) = (10, 10);
 
 my $color_sep_str = " :";
-$color_sep_str = '~';
+#$color_sep_str = '~';
 
 GetOptions(
     "lav" => \$lav,

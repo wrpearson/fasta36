@@ -27,7 +27,7 @@
 
 /* constants associated with displaying annotation links */
 #ifndef DESCR_OFFSET
-#define DESCR_OFFSET 15
+#define DESCR_OFFSET 12
 #endif
 
 #define NO_FILE_EXIT 4
