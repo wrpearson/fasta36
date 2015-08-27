@@ -166,7 +166,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   else if (ppst->zsflag>=0  && m_msp->srelv > 1 ) r_margin = 19;
   else r_margin = 10;
 
-  if (m_msp->markx & MX_M9SUMM && m_msp->show_code == SHOW_CODE_ID) {
+  if (m_msp->markx & MX_M9SUMM && (m_msp->show_code == SHOW_CODE_ID || m_msp->show_code == SHOW_CODE_IDD)) {
 #ifdef SHOWSIM
     r_margin += 15;
 #else
@@ -275,7 +275,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       }
       header_aux(fp);
       if (m_msp->markx & MX_M9SUMM) {
-	if (m_msp->show_code == SHOW_CODE_ID) {
+	if (m_msp->show_code == SHOW_CODE_ID || m_msp->show_code == SHOW_CODE_IDD) {
 #ifdef SHOWSIM
 	  fprintf(fp," %%_id  %%_sim  alen");
 #else
@@ -283,7 +283,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif
 	}
 	else {
-	  if (m_msp->markx & MX_HTML && m_msp->show_code !=1) { fprintf(fp,"<!-- ");}
+	  if (m_msp->markx & MX_HTML && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) { fprintf(fp,"<!-- ");}
 #ifndef SHOWSIM
 	  fprintf(fp,"\t%%_id  %%_gid %4s  alen  an0  ax0  pn0  px0  an1  ax1 pn1 px1 gapq gapl  fs ",m_msp->f_id1);
 #else
@@ -291,7 +291,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif
 	}
 	if (m_msp->show_code == SHOW_CODE_ALIGN) { fprintf(fp," aln_code"); }
-	if (m_msp->markx & MX_HTML && m_msp->show_code!=1) { fprintf(fp," -->");}
+	if (m_msp->markx & MX_HTML && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) { fprintf(fp," -->");}
       }
       fprintf(fp,"\n");
     }
@@ -299,7 +299,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       fprintf(fp,"\nThe best%s %s are:%s%s",rel_label,score_label,pad,m_msp->label);
       header_aux(fp);
       if (m_msp->markx & MX_M9SUMM) {
-	if (m_msp->show_code == SHOW_CODE_ID) {
+	if (m_msp->show_code == SHOW_CODE_ID || m_msp->show_code == SHOW_CODE_IDD) {
 #ifdef SHOWSIM
 	  fprintf(fp," %%_id  %%_sm  alen");
 #else
@@ -542,7 +542,7 @@ l1:
 	gpercent = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
 #endif	/* SHOWSIM */
 
-	if (m_msp->show_code != SHOW_CODE_ID) {	/* show more complete info than just identity */
+	if (m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) {	/* show more complete info than just identity */
 
 	  /*  	calc_astruct(aln_p, cur_ares_p); -- this function
 		should not be used after calc_code or any other
@@ -612,7 +612,7 @@ l1:
 	    link_shown = 1;
 	  }
 	  if (cur_ares_p->annot_var_s) {
-	    fprintf(fp," |Var: %s",cur_ares_p->annot_var_s);
+	    fprintf(fp," %s",cur_ares_p->annot_var_s);
 	  }
 	  else { link_shown = 0;}
 	}

@@ -45,6 +45,30 @@ extern void calc_coord(int n0, int n1, long qoffset, long loffset,
 
 extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, void *f_str);
 
+extern
+int calc_id(const unsigned char *aa0, int n0,
+	    const unsigned char *aa1, int n1,
+	    struct a_struct *aln, 
+	    struct a_res_str *a_res,
+	    struct pstruct *ppst,
+	    const struct annot_str *annot0_p,
+	    const struct annot_str *annot1_p,
+	    int *score_delta,
+	    struct dyn_string_str *annot_var_dyn,
+	    void *f_str);
+
+extern
+int calc_idd(const unsigned char *aa0, int n0,
+	     const unsigned char *aa1, int n1,
+	     struct a_struct *aln, 
+	     struct a_res_str *a_res,
+	     struct pstruct *ppst,
+	     const struct annot_str *annot0_p,
+	     const struct annot_str *annot1_p,
+	     int *score_delta,
+	     struct dyn_string_str *annot_var_dyn,
+	     void *f_str);
+
 /* in build_ares_code, *aa1 is separate from *seq because *seq has
    permanent information about aa1, but aa1 may be temporary */
 
@@ -149,7 +173,15 @@ build_ares_code(unsigned char *aa0, int n0,
 	cur_ares_p->ann_code_n = ann_code_len;
       }
     }
-    else {
+    else if (m_msp->show_code == SHOW_CODE_IDD) {
+      aln_p->lc=calc_idd(aa0,m_msp->n0,aa1,seq->n1,
+			 aln_p, cur_ares_p,
+			 ppst,
+			 m_msp->annot_p, seq->annot_p,
+			 &score_delta,
+			   annot_var_dyn, f_str);
+      }
+    else {	/* ensure that calc_id (or something else) is ALWAYS done to set score_delta */
       aln_p->lc=calc_id(aa0,m_msp->n0,aa1,seq->n1,
 			aln_p, cur_ares_p,
 			ppst,
