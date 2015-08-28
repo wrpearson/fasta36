@@ -593,7 +593,7 @@ l1:
 	    fprintf(fp,"\n");
 	  }
 	}
-	else {	/* !SHOW_CODE */
+	else {	/* SHOW_CODE */
 #ifdef SHOWSIM
 	  fprintf(fp," %5.3f %5.3f %4d", 
 		  percent/100.0,
