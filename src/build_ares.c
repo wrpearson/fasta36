@@ -173,7 +173,7 @@ build_ares_code(unsigned char *aa0, int n0,
 	cur_ares_p->ann_code_n = ann_code_len;
       }
     }
-    else if (m_msp->tot_show_code == SHOW_CODE_IDD) {
+    else if ((m_msp->tot_show_code & SHOW_CODE_IDD) == SHOW_CODE_IDD) {
       aln_p->lc=calc_idd(aa0,m_msp->n0,aa1,seq->n1,
 			 aln_p, cur_ares_p,
 			 ppst,
