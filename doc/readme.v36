@@ -9,6 +9,16 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Aug. 31, 2015   [git v36.3.8_30Jul15]
+[cal_cons.c, dropfx2.c, dropfz3.c, mshowbest.c, build_ares.c, doinit.c, comp_lib9.c]
+Modifications to enhance the independence of annotation output to
+different files.  Earlier, annotations could not be properly output to
+different files in different formats.  For example, -m 9c prevented -m
+"F8CC output.m8CC" -m "F9I ouutput.m9I".  Annotation output formats
+are now more independent.  They are not fully independent, however.
+Thus, if CIGAR format is used for one output, it will be used in all
+other alignment encoding outputs.
+
 >>Aug. 21, 2015
 [cal_cons.c, dropfx2.c, dropfz3.c, mshowbest.c, build_ares.c, doinit.c]
 Add -m 9I to -m 9i.  -m 9i reports identity and variation (based on
