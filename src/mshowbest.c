@@ -129,8 +129,8 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   char *bp, *bline_p;
   char rel_label[12];
   char score_label[120];
-  char tmp_str[20], *seq_code, *ann_code;
-  int seq_code_len, ann_code_len;
+  char tmp_str[20], *seq_code, *annot_str;
+  int seq_code_len, annot_str_len;
   long loffset;		/* loffset is offset from beginning of real sequence */
   long l_off;		/* l_off is the the virtual coordinate of residue 1 */
   int n1, ranlib_done;
@@ -530,8 +530,8 @@ l1:
 	aln_p = &cur_ares_p->aln;
 	seq_code = cur_ares_p->aln_code;
 	seq_code_len = cur_ares_p->aln_code_n;
-	ann_code = cur_ares_p->ann_code;
-	ann_code_len = cur_ares_p->ann_code_n;
+	annot_str = cur_ares_p->annot_code;
+	annot_str_len = cur_ares_p->annot_code_n;
 
         percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
 
@@ -571,8 +571,8 @@ l1:
 	    if ((m_msp->show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN
 		&& seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
-	      if (ann_code_len > 0 && ann_code != NULL) {
-		fprintf(fp,"\t%s",ann_code);
+	      if (annot_str_len > 0 && annot_str != NULL) {
+		fprintf(fp,"\t%s",annot_str);
 	      }
 	    }
 	  }
@@ -586,14 +586,14 @@ l1:
 		    lbits);
 	    if ((m_msp->show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN && seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
-	      if (ann_code_len > 0 && ann_code != NULL) {
-		fprintf(fp,"\t%s",ann_code);
+	      if (annot_str_len > 0 && annot_str != NULL) {
+		fprintf(fp,"\t%s",annot_str);
 	      }
 	    }
 	    fprintf(fp,"\n");
 	  }
 	}
-	else {	/* SHOW_CODE */
+	else {	/* !SHOW_CODE -> SHOW_ID or SHOW_IDD*/
 #ifdef SHOWSIM
 	  fprintf(fp," %5.3f %5.3f %4d", 
 		  percent/100.0,
@@ -611,10 +611,20 @@ l1:
 	    fprintf(fp," <a href=\"#%s\">align</a>",link_name);
 	    link_shown = 1;
 	  }
-	  if (cur_ares_p->annot_var_s) {
-	    fprintf(fp," %s",cur_ares_p->annot_var_s);
-	  }
 	  else { link_shown = 0;}
+
+	  if ((m_msp->show_code & SHOW_CODE_ID) == SHOW_CODE_ID) {
+	    annot_str = cur_ares_p->annot_var_id;
+	  }
+	  else if ((m_msp->show_code & SHOW_CODE_IDD) == SHOW_CODE_IDD) {
+	    annot_str = cur_ares_p->annot_var_idd;
+	  }
+	  else {
+	    annot_str = NULL;
+	  }
+	  if (annot_str && annot_str[0]) {
+	    fprintf(fp," %s",annot_str);
+	  }
 	}
       }
     } while ( cur_ares_p && (cur_ares_p = cur_ares_p->next));

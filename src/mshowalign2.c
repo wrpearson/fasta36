@@ -161,8 +161,8 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   char *seqc0, *seqc0a, *seqc1, *seqc1a, *seqca;
   int *cumm_seq_score;
   /* strings, lengths, for encoded alignment for MX10 */
-  char *seq_code=NULL, *ann_code=NULL;
-  int seq_code_len=0, ann_code_len=0;
+  char *seq_code=NULL, *annot_code=NULL;
+  int seq_code_len=0, annot_code_len=0;
   long loffset, l_off;
   long qt_offset, lt_offset;
   int lsw_score, l_score0;
@@ -747,14 +747,14 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
 	seq_code = cur_ares_p->aln_code;
 	seq_code_len = cur_ares_p->aln_code_n;
-	ann_code = cur_ares_p->ann_code;
-	ann_code_len = cur_ares_p->ann_code_n;
+	annot_code = cur_ares_p->annot_code;
+	annot_code_len = cur_ares_p->annot_code_n;
 
 	if (seq_code_len > 0 && seq_code != NULL) {
 	  fprintf(fp,"; al_code: %s\n",seq_code);
 	  /* 	  free(seq_code);  -- this is now freed in comp_lib2.c */
-	  if (ann_code_len > 0 && ann_code != NULL) {
-	    fprintf(fp,"; al_code_ann: %s\n",ann_code);
+	  if (annot_code_len > 0 && annot_code != NULL) {
+	    fprintf(fp,"; al_code_ann: %s\n",annot_code);
 	    /* 	    free(ann_code);  -- this is now freed in comp_lib2.c */
 	  }
 	}

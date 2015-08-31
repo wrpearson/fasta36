@@ -848,8 +848,8 @@ parse_markx(char *optarg, struct markx_str *this) {
   if (itmp==9) {
     if (ctmp=='c') {this->show_code = SHOW_CODE_ALIGN;}
     else if (ctmp=='d') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
-    else if (ctmp=='C') {this->show_code = SHOW_CODE_CIGAR;}
-    else if (ctmp=='D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
+    else if (ctmp=='C') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_ALIGN;}
+    else if (ctmp=='D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT + SHOW_CODE_ALIGN;}
     else if (ctmp=='i') {this->show_code = SHOW_CODE_ID;}
     else if (ctmp=='I') {this->show_code = SHOW_CODE_IDD;}
   }
@@ -862,8 +862,8 @@ parse_markx(char *optarg, struct markx_str *this) {
     if (ctmp=='C') { this->markx += MX_M8COMMENT;}
     if (ctmp2 == 'c') { this->show_code = SHOW_CODE_ALIGN;}
     else if (ctmp2 == 'd') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
-    else if (ctmp2 == 'C') {this->show_code = SHOW_CODE_CIGAR;}
-    else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
+    else if (ctmp2 == 'C') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_ALIGN;}
+    else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT + SHOW_CODE_ALIGN;}
   }
 }
 

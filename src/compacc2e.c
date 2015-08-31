@@ -3770,6 +3770,13 @@ init_dyn_string(int size, int inc) {
 }
 
 void
+reset_dyn_string(struct dyn_string_str *dyn_string) {
+
+  memset(dyn_string->string,0,dyn_string->c_size);
+  dyn_string->c_size = 0;
+}
+
+void
 dyn_strcat(struct dyn_string_str *dyn_string, char *value) {
   size_t add_len;
 
@@ -4180,6 +4187,10 @@ void comment_var (long i0_pos, char sp0, long i1_pos, char sp1, char o_sp1,
    the domain is closed or the alignment boundary has been exceeded
    (for open domains).  Thus, it uses the current site for the end,
    and information domfeat_data information in annot_stack
+
+   d_type == 1 : full display ([q]Region: %d-%d:%d-%d : score=%d ... )
+   d_type == 2 : -m9C/-m8CC calc_code "|RX:%d-%d:%d-%d:s=%d;b=%.1f;I=%.3f;Q=%.1f";
+   d_type == 3 : -m9I CALC_ID_DOM short domains, variants
 */
 
 void

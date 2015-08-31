@@ -3587,7 +3587,7 @@ init_update_data(show_code) {
   update_data_p->p_op_cnt = 0;
   update_data_p->show_code = show_code;
 
-  if ((show_code & SHOW_CODE_MASK) == SHOW_CODE_CIGAR) {
+  if ((show_code & SHOW_CODE_CIGAR) == SHOW_CODE_CIGAR) {
     update_data_p->op_map = cigar_code;
     update_data_p->cigar_order = 1;
   }
