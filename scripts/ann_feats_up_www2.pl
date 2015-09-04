@@ -44,11 +44,15 @@ my $domain_cnt = 0;
 
 my $hostname = `/bin/hostname`;
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0,0);
+my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $bound_comment, $shelp, $help) = (0,0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
+
+my $color_sep_str = " :";
+$color_sep_str = '~';
 
 GetOptions(
     "lav" => \$lav,
+    "bound_comment" => \$bound_comment,
     "no_doms" => \$no_doms,
     "no-doms" => \$no_doms,
     "nodoms" => \$no_doms,
@@ -158,7 +162,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= " :".$domains{$annot->[-1]};
+      $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
     }
     print join("\t",@$annot),"\n";
   }
@@ -269,6 +273,9 @@ sub gff2_annots {
 	my ($mutant) = ($value =~ m/->\s(\w)/);
 	next unless $mutant;
 	my $info = $comments[1];
+	if ($comments[1] =~ /UniProtKB FT ID/i) {
+	  $info = join('; ',@comments[2 .. $#comments]);
+	}
 	$info = '' unless $info;
 	if ($label =~ m/mutated_variant_site/) {$info = "Mutant: $info";}
 	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];

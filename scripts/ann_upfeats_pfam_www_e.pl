@@ -17,9 +17,9 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-# ann_pfam_www_e.pl gets an annotation file from fasta36 -V with a line of the form:
+# ann_upfeats_pfam_www.pl gets an annotation file from fasta36 -V with a line of the form:
 
-# gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
+# SP:GSTM1_HUMAN P09488 218
 #
 # it must:
 # (1) read in the line
@@ -27,38 +27,42 @@
 # (3) return the tab delimited features
 #
 
-# This version uses the Pfam RESTful interface, rather than a local database
-# >pf26|164|O57809|1A1D_PYRHO
-# and only provides domain information
+# this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 
-# use strict;
+use strict;
 
 use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
 use XML::Twig;
-# use Data::Dumper;
+## use IO::String;
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc_flag, $shelp, $help, $no_over, $acc_comment, $bound_comment, $pfamB) =
-  (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-my ($min_nodom, $min_vdom) = (10, 10);
+my $up_base = 'http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb';
+my $gff_post = "gff2";
 
-my $color_sep_str = " :";
-$color_sep_str = '~';
+my %domains = ();
+my $domain_cnt = 0;
+
+my ($lav, $neg_doms, $no_doms, $no_feats, $no_over, $shelp, $help) = (0,0,0,0,0,0,0);
+my ($auto_reg, $vdoms, $no_clans, $pf_acc_flag, $acc_comment) =  (0, 0, 0, 0, 0);
+
+my ($min_nodom, $min_vdom) = (10,10);
 
 GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
-    "bound_comment" => \$bound_comment,
-    "min_nodom=i" => \$min_nodom,
+    "no-over" => \$no_over,
+    "no_doms" => \$no_doms,
+    "no-doms" => \$no_doms,
+    "nodoms" => \$no_doms,
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
-    "no-over" => \$no_over,
-    "no_over" => \$no_over,
-    "no-clans" => \$no_clans,
-    "no_clans" => \$no_clans,
-    "pfamB" => \$pfamB,
+    "negdoms" => \$neg_doms,
+    "min_nodom=i" => \$min_nodom,
+    "no_feats" => \$no_feats,
+    "no-feats" => \$no_feats,
+    "nofeats" => \$no_feats,
     "vdoms" => \$vdoms,
     "v_doms" => \$vdoms,
     "pfacc" => \$pf_acc_flag,
@@ -72,26 +76,63 @@ pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
 pod2usage(1) unless @ARGV;
 
+#my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
+
+my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
+		   polypeptide_region mutated_variant_site natural_variant_site);
+
+my %feats_text = ();
+@feats_text{@feat_keys} = ('Active site', '', 'Substrate binding', 'Metal binding', 'Site', '','');
+
+my %feats_label;
+@feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding', 'Site', '','');
+
+my @feat_vals = ( '=','*','#','^','@','V','V');
+
+
+my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
+my @dom_vals = ( [ '[', ']'],[ '[', ']']);
+
+my @ssr_keys = qw(beta_strand alpha_helix);
+my @ssr_vals = ( [ '[', ']']);
+
 my %annot_types = ();
-my %domains = (NODOM=>0);
+
+# from ann_pfam_www_e.pl 
 my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my @domain_list = (0);
-my $domain_cnt = 0;
 
 my $loc="http://pfam.xfam.org/";
-my $url;
+my $pf_url;
 
 my @pf_domains;
 my %pfamA_fams = ();
 my ($pf_seq_length, $pf_model_length)=(0,0);
 my ($clan_acc, $clan_id) = ("","");
 
-my $get_annot_sub = \&get_pfam_www;
+my $get_domain_sub = \&get_pfam_annots;
+
+if ($lav) {
+  $no_feats = 1;
+}
+
+@annot_types{@feat_keys} = @feat_vals unless ($no_feats);
+
+if ($neg_doms) {
+  $domains{'NODOM'}=0;
+}
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
+unless ($no_feats) {
+  for my $i ( 0 .. $#feat_keys) {
+    next unless $feats_label{$feat_keys[$i]};
+    print "=",$feat_vals[$i],":",$feats_label{$feat_keys[$i]},"\n";
+  }
+}
+
 # get the query
-my ($query, $seq_len) = @ARGV;
+my ($query, $seq_len) =  @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
 $query =~ s/^>//;
@@ -101,16 +142,16 @@ my $ANN_F;
 my @annots = ();
 
 #if it's a file I can open, read and parse it
+
 if ($query !~ m/\|/ && open($ANN_F, $query)) {
 
-  while (my $a_line = <$ANN_F>) {
-    $a_line =~ s/^>//;
-    chomp $a_line;
-    push @annots, show_annots($a_line, $get_annot_sub);
-  }
-}
-else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+    while (my $a_line = <$ANN_F>) {
+	$a_line =~ s/^>//;
+	chomp $a_line;
+	push @annots, upfeats_pfam_www($a_line, \&up_gff2_annots, \&get_pfam_www);
+    }
+} else {
+  push @annots, upfeats_pfam_www("$query\t$seq_len", \&up_gff2_annots, \&get_pfam_www);
 }
 
 for my $seq_annot (@annots) {
@@ -118,16 +159,10 @@ for my $seq_annot (@annots) {
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
       my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
-      $annot->[-1] = $a_name;
-      my $tmp_a_num = $a_num;
-      $tmp_a_num =~ s/v$//;
       if ($acc_comment) {
-	$annot->[-1] .= "{$domain_list[$tmp_a_num]}";
+	$annot->[-1] .= "{$domain_list[$a_num]}";
       }
-      if ($bound_comment) {
-	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
-      }
-      $annot->[-1] .= $color_sep_str.$a_num;
+      $annot->[-1] = "$a_name :$a_num";
     }
     print join("\t",@$annot),"\n";
   }
@@ -135,43 +170,135 @@ for my $seq_annot (@annots) {
 
 exit(0);
 
-sub show_annots {
-  my ($query_len, $get_annot_sub) = @_;
+sub upfeats_pfam_www {
+  my ($query_len, $get_upfeats_sub, $get_pfam_sub) = @_;
 
-  my ($annot_line, $seq_len) = split(/\s+/,$query_len);
-
-  my $pfamA_acc;
+  my ($annot_line, $seq_len) = split(/\t/,$query_len);
 
   my %annot_data = (seq_info=>$annot_line);
 
   $use_acc = 1;
-  if ($annot_line =~ m/^pf26\|/) {
-    ($sdb, $gi, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^gi\|/) {
+
+  if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^sp\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^tr\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^(SP|TR):/i) {
-    ($sdb, $id) = split(/:/,$annot_line);
+  } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    $sdb = lc($1);
+    $id = $2;
     $use_acc = 0;
+#     $acc = $2;
+  } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
+    $sdb = lc($1);
+    $id = $2;
+#    $acc = $2;
+  } else {
+    ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
 
-  # remove version number
+  $acc =~ s/\.\d+// if ($acc);
+  $annot_data{list} = [];
+  my $lwp_features = "";
+
+  if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
+    $lwp_features = get("$up_base/$acc/$gff_post");
+  } elsif ($id && ($id =~ m/^\w+$/)) {
+    $lwp_features = get("$up_base/$id/$gff_post");
+  }
+
+  my @annots = ();
+
+  if ($lwp_features && ($lwp_features !~ /ERROR/)) {
+    push @annots, $get_upfeats_sub->(\%annot_types, $lwp_features, $seq_len);
+  }
+
   unless ($use_acc) {
-    $annot_data{list} = get_pfam_www($id, $seq_len);
+    push @annots, $get_pfam_sub->($id, $seq_len);
   }
   else {
     $acc =~ s/\.\d+$//;
-    $annot_data{list} = get_pfam_www($acc, $seq_len);
+    push @annots, $get_pfam_sub->($acc, $seq_len);
   }
 
+  @annots  = sort { $a->[0] <=> $b->[0] } @annots;
+  $annot_data{list} = \@annots;
+
   return \%annot_data;
+}
+
+# parses www.uniprot.org gff feature table
+sub up_gff2_annots {
+  my ($annot_types, $annot_data, $seq_len) = @_;
+
+  my ($acc, $pos, $end, $label, $value, $comment, $len);
+  my ($seq_acc, $seq_start, $seq_end, $tmp);
+
+  $seq_len = 0;
+
+  my @sites = ();  # sites with one position
+
+  my @gff_lines = split(/\n/m,$annot_data);
+
+  my $gff_line = shift @gff_lines; # skip ##gff
+  shift @gff_lines;		   # ##Type Protein
+  shift @gff_lines;		   # ''
+  $gff_line = shift @gff_lines;
+  ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
+  $seq_len = $seq_end if ($seq_end > $seq_len);
+
+  while ($gff_line = shift(@gff_lines)) {
+    next if ($gff_line =~ m/^#/);
+    chomp($gff_line);
+
+    my @gff_line_arr = split(/\t/,$gff_line);
+    ($acc, $label, $pos, $end, $comment) = @gff_line_arr[(0,2,3,4,-1)];
+
+    # combine different binding sites
+    if ($annot_types->{$label}) {
+
+      my @comments = ();
+      if ($comment =~ m/;/) {
+	@comments = split(/\s*;\s*/,$comment);
+      } else {
+	$comments[0] = $comment;
+      }
+
+      # select comments with 'Note='
+      @comments = grep {/Note /} @comments;
+      for my $comment ( @comments) {
+	$comment =~ s/^Note\s+//;
+	$comment =~ s/"//g;
+      }
+
+      # select first comment
+      $value = $comments[0];
+
+      if ($label =~ m/mutated_variant_site/ || $label =~ m/natural_variant_site/) {
+	next unless $value;
+	my ($mutant) = ($value =~ m/->\s(\w)/);
+	next unless $mutant;
+	my $info = $comments[2];
+	$info = '' unless $info;
+	if ($label =~ m/mutated_variant_site/) {
+	  $info = "Mutant: $comments[1]";
+	}
+	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
+      } else {
+	$value = '' unless $value;
+	#	print join("\t",($pos, $annot_types->{$label})),"\n";
+	#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
+	if ($feats_text{$label}) {
+	  my $info = $feats_text{$label};
+	  if ($value) {
+	    $info .= ": $value";
+	  }
+	  push @sites, [$pos, $annot_types->{$label}, "-", $info];
+	} else {
+	  push @sites, [$pos, $annot_types->{$label}, "-", $value];
+	}
+      }
+    }
+  }
+
+  return @sites;
 }
 
 sub get_length {
@@ -205,9 +332,9 @@ sub get_pfam_www {
 #  if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
 #  else {$url = "protein/$acc?output=xml"; }
 
-  $url = "protein/$acc?output=xml";
+  $pf_url = "protein/$acc?output=xml";
 
-  my $res = get($loc . $url);
+  my $res = get($loc . $pf_url);
 
   @pf_domains = ();
 
@@ -228,24 +355,19 @@ sub get_pfam_www {
 
   @pf_domains = sort { $a->{start} <=> $b->{start} } @pf_domains;
 
-  unless ($pfamB) {
-    @pf_domains = grep { $_->{type} !~ m/Pfam-B/ } @pf_domains;
-  }
-
-  # for virtual domains, also need information about the families
-  if ($vdoms) {
-    for my $curr_dom (@pf_domains) {
+  # to look for possible joining, need model_length
+  for my $curr_dom (@pf_domains) {
       
       my $acc = $curr_dom->{accession};
-      $url = "family/$acc?output=xml";
+      $pf_url = "family/$acc?output=xml";
 
-      my $res = get($loc . $url);
+      my $res = get($loc . $pf_url);
 
       my $twig_fam = XML::Twig->new(twig_roots => {hmm_details => 1, clan_membership=> 1},
 				    twig_handlers => {
-						      'hmm_details' => \&get_model_length,
-						      'clan_membership' => \&get_clan,
-						     },
+					'hmm_details' => \&get_model_length,
+					'clan_membership' => \&get_clan,
+				    },
 				    pretty_print => 'indented');
 
       ($clan_acc, $clan_id) = ("","");
@@ -253,7 +375,6 @@ sub get_pfam_www {
 
       $pfamA_fams{$acc} = { model_length => $pf_model_length, clan_acc=>$clan_acc, clan_id=>$clan_id};
       $curr_dom->{model_length} = $pf_model_length;
-    }
   }
 
   # check for domain overlap, and resolve check for domain overlap
@@ -499,7 +620,7 @@ sub get_pfam_www {
     }
   }
 
-  return \@feats;
+  return @feats;
 }
 
 # domain name takes a uniprot domain label, removes comments ( ;
@@ -546,9 +667,9 @@ sub domain_name {
     # return the clan name, identifier if a clan member
     if (!defined($pfamA_fams{$pf_acc})) {
 
-      my $url = "family/$value?output=xml";
+      my $pf_url = "family/$value?output=xml";
 
-      my $res = get($loc . $url);
+      my $res = get($loc . $pf_url);
 
       my $twig_clan = XML::Twig->new(twig_roots => {'clan_membership'=>1},
 				     twig_handlers => {
@@ -627,50 +748,78 @@ __END__
 
 =head1 NAME
 
-ann_feats.pl
+ann_feats_up_www2.pl
 
 =head1 SYNOPSIS
 
- ann_pfam_www_e.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_feats_up_www2.pl --no_doms --no_feats --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
-
+ --no-doms  do not show domain boundaries (domains are always shown with --lav)
+ --no-feats do not show feature (variants, active sites, phospho-sites)
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
- --neg-doms : report domains between annotated domains as NODOM
+
+ --neg-doms,  -- report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
- --no-over  : generate non-overlapping domains (equivalent to ann_pfam_www.pl)
- --no-clans : do not use clans with multiple families from same clan
- --min_nodom=10  : minimum length between domains for NODOM
+ --min_nodom=10  -- minimum length between domains for NODOM
+
+ --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_pfam_www_e.pl> extracts domain information from the Pfam www site
-(pfam.xfam.org).  Currently, the program works with database
-sequence descriptions in several formats:
+C<ann_feats_up_www2.pl> extracts feature, domain, and repeat
+information from the Uniprot DAS server through an XSLT transation
+provided by http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
+This server provides GFF descriptions of Uniprot entries, with most of
+the information provided in UniProt feature tables.
 
- >gi|1705556|sp|P54670.1|CAF1_DICDI
- >sp|P09488|GSTM1_HUMAN
- >sp:CALM_HUMAN 
+C<ann_feats_up_www2.pl> is an alternative to C<ann_pfam.pl> and
+C<ann_pfam.pl> that does not require a local MySQL copy of Pfam.
 
-C<ann_pfam_www_e.pl> uses the Pfam RESTful WWW interface
-(C<pfam.xfam.org/help#tabview=10>) to download domain
-names/locations/score. C<ann_pfam_www_e.pl> is an alternative to
-C<ann_pfam_e.pl> that does not require a MySQL instance with a Pfam
-database installation.
+Given a command line argument that contains a sequence accession
+(P09488), the program looks up the features available for that
+sequence and returns them in a tab-delimited format:
 
-If the "--no-over" option is set, overlapping domains are selected and
-edited to remove overlaps.  For proteins with multiple overlapping
-domains (domains overlap by more than 1/3 of the domain length),
-C<auto_pfam_e.pl> selects the domain annotation with the best
-C<domain_evalue_score>.  When domains overlap by less than 1/3 of the
-domain length, they are shortened to remove the overlap.
+>sp|P09488|GSTM1_HUMAN
+2	[	-	GST N-terminal :1
+7	V	F	Mutagen: Reduces catalytic activity 100- fold.
+23	*	-	MOD_RES: Phosphotyrosine (By similarity).
+33	*	-	MOD_RES: Phosphotyrosine (By similarity).
+34	*	-	MOD_RES: Phosphothreonine (By similarity).
+88	]	-	
+90	[	-	GST C-terminal :2
+108	V	Q	Mutagen: Reduces catalytic activity by half.
+108	V	S	Mutagen: Changes the properties of the enzyme toward some substrates.
+109	V	I	Mutagen: Reduces catalytic activity by half.
+116	#	-	BINDING: Substrate.
+116	V	A	Mutagen: Reduces catalytic activity 10-fold.
+116	V	F	Mutagen: Slight increase of catalytic activity.
+173	V	N	in allele GSTM1B; dbSNP:rs1065411.
+208	]	-	
+210	V	T	in dbSNP:rs449856.
 
-C<ann_pfam_www_e.pl> is designed to be used by the B<FASTA> programs
-with the C<-V \!ann_pfam_www_e.pl> or C<-V "\!ann_pfam_www_e.pl --neg">
-option.
+If features are provided, then a legend of feature symbols is provided
+as well:
+
+ =*:phosphorylation
+ ==:active site
+ =@:site
+ =^:binding
+ =!:metal binding
+
+If the C<--lav> option is specified, domain and repeat features are
+presented in a different format for the C<lav2plt.pl> program:
+
+  >sp|P09488|GSTM1_HUMAN
+  2	88	GST N-terminal.
+  90	208	GST C-terminal.
+
+C<ann_feats_up_www2.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_feats_up_www2.pl> option.  It can also be used with the lav2plt.pl
+program with the C<--xA "\!ann_feats_up_www2.pl --lav"> or C<--yA "\!ann_feats_up_www2.pl --lav"> options.
 
 =head1 AUTHOR
 
