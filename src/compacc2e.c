@@ -447,7 +447,7 @@ print_header1(FILE *fd, const char *argv_line,
   int i;
 
 #ifdef PGM_DOC
-  if (!(m_msp->markx & (MX_M8OUT+MX_MBLAST2))) fprintf(fd, "#%s\n",argv_line);
+  if (!(m_msp->markx & (MX_M8OUT+MX_MBLAST2)) || (m_msp->markx & MX_M8COMMENT)) fprintf(fd, "#%s\n",argv_line);
 #endif
 
   if (m_msp->markx & MX_M11OUT) {
@@ -3918,7 +3918,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
   int new_left_domain_end;
   struct domfeat_data *this_dom, *prev_dom, *new_dom;
 
-  if (*left_domain_head_p) {
+  if (*left_domain_head_p) {	/* do we have a domain_link_chain? */
     *left_end_p = (*left_domain_head_p)->end_pos;
   }
     
