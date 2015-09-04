@@ -3047,7 +3047,7 @@ calc_cons_u( /* inputs */
 
 	while (i1_annot < annotp_p->n_annot) {
 	  if (s_annotp_arr_p[i1_annot]->pos >= i1+i1_offset) {break;}
-	  if (s_annotp_arr_p[i1_annot]->end < i1+i1_offset) {i1_annot++; continue;}
+	  if (s_annotp_arr_p[i1_annot]->end <= i1+i1_offset) {i1_annot++; continue;}
 
 	  if (s_annotp_arr_p[i1_annot]->label == '-') {
 	    process_annot_match(&itmp, NULL, 

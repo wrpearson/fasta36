@@ -9,6 +9,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Sep. 4, 2015[m
+[comp_lib9.c, cal_cons2.c, dropfx2.c, dropfz3.c][m
+(1) Fix bug with overlapping domains when a domain ends exactly where
+the alignment starts. (2) provide command line in -m 8CC output with -DPGM_DOC
+
 >>Aug. 20, 2015 [fasta-36.3.8a]
 [mshowalign2.c]
 Fixed bug in lalign36 E()-value, bit score calculations for highest
