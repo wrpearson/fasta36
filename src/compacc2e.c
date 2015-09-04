@@ -447,7 +447,7 @@ print_header1(FILE *fd, const char *argv_line,
   int i;
 
 #ifdef PGM_DOC
-  if (!(m_msp->markx & (MX_M8OUT+MX_MBLAST2))) fprintf(fd, "#%s\n",argv_line);
+  if (!(m_msp->markx & (MX_M8OUT+MX_MBLAST2)) || (m_msp->markx & MX_M8COMMENT)) fprintf(fd, "#%s\n",argv_line);
 #endif
 
   if (m_msp->markx & MX_M11OUT) {

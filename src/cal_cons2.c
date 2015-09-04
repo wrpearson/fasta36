@@ -490,7 +490,7 @@ calc_cons_u( /* inputs */
 
 	while (i1_annot < annot1_p->n_annot) {
 	  if (s_annot1_arr_p[i1_annot]->pos >= i1_off) {break;}
-	  if (s_annot1_arr_p[i1_annot]->end < i1_off) {i1_annot++; continue;}
+	  if (s_annot1_arr_p[i1_annot]->end <= i1_off) {i1_annot++; continue;}
 
 	  if (s_annot1_arr_p[i1_annot]->label == '-') {
 	    process_annot_match(&itmp, aa0_pam2_p, i1_off, i0_off,
@@ -517,7 +517,7 @@ calc_cons_u( /* inputs */
 
 	while (i0_annot < annot0_p->n_annot) {
 	  if (s_annot0_arr_p[i0_annot]->pos >= i0_off) {break;}
-	  if (s_annot0_arr_p[i0_annot]->end < i0_off) {i0_annot++; continue;}
+	  if (s_annot0_arr_p[i0_annot]->end <= i0_off) {i0_annot++; continue;}
 
 	  if (s_annot0_arr_p[i0_annot]->label == '-') {
 	    process_annot_match(&itmp, NULL, i0_off, i1_off,
