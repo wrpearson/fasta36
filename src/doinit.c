@@ -47,6 +47,10 @@
 #endif
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include "defs.h"
 #include "param.h"
 #include "upam.h"	/* required for 'U' option change of nascii */
@@ -195,6 +199,9 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
 {
   char *cptr, *bp, *bp1;
   int  copt;
+#ifdef WIN32
+  SYSTEM_INFO siSysInfo;
+#endif
 
    /* options for all search functions */
    /* char   *g_optstr = "b:BC:d:DE:F:HiK:l:Lm:N:O:QqR:T:v:V:w:W:X:Z:"; */
@@ -232,10 +239,14 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
     fprintf(stderr," have %d workers\n",fa_max_workers);
   }
 #endif
-#else
+#else	/* not PCOMPLIB */
 #if defined(IRIX)
    fa_max_workers = sysmp(MP_NPROCS);
 #else
+#if defined(WIN32)
+   GetSystemInfo(&siSysInfo);
+   fa_max_workers = siSysInfo.dwNumberOfProcessors;
+#endif
 #if defined(UNIX) || defined(HAVE_SYSCONF)
    fa_max_workers = sysconf(_SC_NPROCESSORS_CONF);
 #endif	/* UNIX || SYSCONF */
