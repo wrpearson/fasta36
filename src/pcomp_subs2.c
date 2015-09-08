@@ -88,6 +88,7 @@ init_thr(int nworkers, char *info_lib_range_p, const struct mngmsg *m_msp, struc
   }
   else {
     int_msg_b[0] = nworkers;
+    int_msg_b[1] = m_bufi_p->max_buf2_res;
     int_msg_b[2] = m_bufi_p->max_chain_seqs;
     int_msg_b[3] = m_bufi_p->seq_buf_size;
   }
