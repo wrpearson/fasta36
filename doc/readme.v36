@@ -12,8 +12,8 @@ BLAST could show multiple HSPs, FASTA did not.
 >>Sep. 7, 2015
 [Makefile.nmk_icl, Makefile.nm_pcomp, doinit.c, readme.win32]
 Automatic detection of thread/core number on windows. Changes to
-readme.w32 documentation, Windows programs nolonger require sse2
-(since all modern processors have it).
+readme.w32 documentation, Windows programs nolonger require sse2 in
+name (since all modern x86 processors have it).
 
 >>Sep. 4, 2015
 [comp_lib9.c, cal_cons2.c, dropfx2.c, dropfz3.c]
