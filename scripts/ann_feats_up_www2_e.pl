@@ -277,7 +277,7 @@ sub gff2_annots {
 	my ($mutant) = ($value =~ m/->\s(\w)/);
 	next unless $mutant;
 	my $info = $comments[1];
-	if ($comments[1] =~ /UniProtKB FT ID/i) {
+	if ($comments[1] && $comments[1] =~ /UniProtKB FT ID/i) {
 	  $info = join('; ',@comments[2 .. $#comments]);
 	}
 	$info = '' unless $info;

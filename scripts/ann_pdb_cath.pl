@@ -50,6 +50,9 @@ my $hostname = `/bin/hostname`;
 my ($neg_doms, $lav, $shelp, $help, $class) = (0, 0, 0, 0, 0);
 my ($min_nodom) = (10);
 
+my $color_sep_str = " :";
+$color_sep_str = '~';
+
 GetOptions(
     "host=s" => \$host,
     "db=s" => \$db,
@@ -126,7 +129,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= " :".$domains{$annot->[-1]};
+      $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
     }
     print join("\t",@$annot),"\n";
   }
@@ -215,6 +218,9 @@ sub get_cath_annots {
     else {
       $row_href->{seq_end} = $seq_length if ($row_href->{seq_end} > $seq_length);
     }
+    
+    $row_href->{info} =~ s/\s+/_/g;
+
     push @cath_domains, $row_href
   }
 
@@ -233,7 +239,7 @@ sub get_cath_annots {
     my @ncath_domains;
     my $prev_dom={seq_end=>0};
     for my $cur_dom ( @cath_domains) {
-      if ($cur_dom{seq_start} - $prev_dom{seq_end} > $min_nodom) {
+      if ($cur_dom->{seq_start} - $prev_dom->{seq_end} > $min_nodom) {
 	my %new_dom = (seq_start=>$prev_dom->{seq_end}+1, seq_end => $cur_dom->{seq_start}-1, info=>'NODOM');
 	push @ncath_domains, \%new_dom;
       }

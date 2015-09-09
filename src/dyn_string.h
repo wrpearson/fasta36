@@ -22,6 +22,9 @@ void dyn_strcat(struct dyn_string_str *dyn_string, char *value);
 /* free */
 void free_dyn_string(struct dyn_string_str *dyn_string);
 
+/* reset */
+void reset_dyn_string(struct dyn_string_str *dyn_string);
+
 /* initialize to '\0' */
 #define NULL_dyn_string(str) str->string[0]='\0'; str->c_size = 0;
 

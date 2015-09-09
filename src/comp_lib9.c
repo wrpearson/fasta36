@@ -1716,8 +1716,10 @@ main (int argc, char *argv[])
 	cur_ares_p = bestp_arr[i]->a_res;
 	while (cur_ares_p) {
 	  if (cur_ares_p->aln_code) free(cur_ares_p->aln_code);
-	  if (cur_ares_p->ann_code) free(cur_ares_p->ann_code);
+	  if (cur_ares_p->annot_code) free(cur_ares_p->annot_code);
 	  if (cur_ares_p->annot_var_s) free(cur_ares_p->annot_var_s);
+	  if (cur_ares_p->annot_var_id) free(cur_ares_p->annot_var_id);
+	  if (cur_ares_p->annot_var_idd) free(cur_ares_p->annot_var_idd);
 	  if (bestp_arr[i]->have_ares & 0x1 && cur_ares_p->res) free(cur_ares_p->res);
 	  next_ares_p = cur_ares_p->next;
 	  free(cur_ares_p);

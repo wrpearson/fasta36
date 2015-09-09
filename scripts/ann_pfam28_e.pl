@@ -50,7 +50,7 @@ my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc,
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
 
 my $color_sep_str = " :";
-$color_sep_str = '~';
+#$color_sep_str = '~';
 
 my ($min_nodom, $min_vdom) = (10,10);
 
@@ -134,7 +134,7 @@ my $get_annots_sql = $get_pfam_acc;
 
 my $get_pfam_id = $dbh->prepare(<<EOSQL);
 
-SELECT seq_start, seq_end, model_start, model_end, model_length pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
 JOIN $pfamA_reg_full using(pfamseq_acc)
 JOIN pfamA USING (pfamA_acc)
@@ -629,7 +629,7 @@ sub domain_num {
   my ($value, $number) = @_;
   if ($value =~ m/^@/) {
     $value =~ s/^@/v/;
-    $number = $number."v";
+#    $number = $number."v";
   }
   return ($value, $number);
 }

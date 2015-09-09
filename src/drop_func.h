@@ -21,8 +21,6 @@
 
 /* functions provided by each of the drop files */
 
-#include "dyn_string.h"
-
 #ifdef DEBUG
 unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 #endif
@@ -103,6 +101,9 @@ pre_cons(const unsigned char *aa, int n, int frame,
 void 
 aln_func_vals(int frame, struct a_struct *aln);
 
+
+#include "dyn_string.h"
+
 /* calc_cons_a - takes aa0, aa1, a_res, and produces seqc0, seqc1, 
  *             and seqc0a, seqc1a - the annotated sequences 
  */
@@ -164,5 +165,22 @@ calc_id(const unsigned char *aa0, int n0,
 	void *f_arg
 #else
 	struct f_struct *f_arg
+#endif
+	);
+
+int 	/* returns lenc - length of alignment */
+calc_idd(const unsigned char *aa0, int n0,
+	 const unsigned char *aa1, int n1,
+	 struct a_struct *aln, 
+	 struct a_res_str *a_res,
+	 struct pstruct *ppst,
+	 const struct annot_str *annot0_p,
+	 const struct annot_str *annot1_p,
+	 int *score_delta,
+	 struct dyn_string_str *annot_var_dyn,
+#ifndef DROP_INTERN
+	 void *f_arg
+#else
+	 struct f_struct *f_arg
 #endif
 	);
