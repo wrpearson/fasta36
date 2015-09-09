@@ -227,14 +227,14 @@ dropnw.obj : dropnw.c upam.h param.h structs.h drop_func.h
 wm_align.obj : wm_align.c defs.h param.h a_mark.h
 	$(CC) $(THR_CC) $(CFLAGS) -c wm_align.c
 
-calcons_fa.obj : cal_cons.c defs.h param.h a_mark.h
-	$(CC) $(THR_CC) $(CFLAGS) -DFASTA -c cal_cons.c /Focalcons_fa.obj
+calcons_fa.obj : cal_cons2.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DFASTA -c cal_cons2.c /Focalcons_fa.obj
 
-calcons_sw.obj : cal_cons.c defs.h param.h a_mark.h
-	$(CC) $(THR_CC) $(CFLAGS) -DSSEARCH -c cal_cons.c /Focalcons_sw.obj
+calcons_sw.obj : cal_cons2.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) $(CFLAGS) -DSSEARCH -c cal_cons2.c /Focalcons_sw.obj
 
-calcons_la.obj : cal_cons.c defs.h param.h a_mark.h
-	$(CC) $(THR_CC) -DLALIGN -DLCAL_CONS $(CFLAGS) -c cal_cons.c /Focalcons_la.obj
+calcons_la.obj : cal_cons2.c defs.h param.h a_mark.h
+	$(CC) $(THR_CC) -DLALIGN -DLCAL_CONS $(CFLAGS) -c cal_cons2.c /Focalcons_la.obj
 
 calcons_ff.obj : cal_consf.c defs.h param.h a_mark.h
 	$(CC) $(THR_CC) $(CFLAGS) -DFASTF -c cal_consf.c /Focalcons_ff.obj
