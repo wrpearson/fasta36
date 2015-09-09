@@ -58,6 +58,9 @@ unless ($hostname =~ m/ebi/) {
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc) = 
     (0,0,0,0,0,0,0,0,0,0,0,0);
 
+my $color_sep_str = " :";
+$color_sep_str = '~';
+
 GetOptions(
 	   "host=s" => \$host,
 	   "db=s" => \$db,
@@ -190,7 +193,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[4]})) {
-      $annot->[-2] .= " :".$domains{$annot->[4]};
+      $annot->[-2] .= $color_sep_str.$domains{$annot->[4]};
     }
     if ($lav) {
       print join("\t",@$annot[0 .. 2]),"\n";

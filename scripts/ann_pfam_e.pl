@@ -42,11 +42,14 @@ use vars qw($host $db $port $user $pass);
 my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam27", 0, "web_user", "fasta_www");
-$host = 'xdb';
+#$host = 'xdb';
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $shelp, $help) = 
   (0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
 my ($min_nodom) = (10);
+
+my $color_sep_str = " :";
+$color_sep_str = '~';
 
 GetOptions(
     "host=s" => \$host,
@@ -196,7 +199,7 @@ for my $seq_annot (@annots) {
       if ($acc_comment) {
 	$annot->[-1] .= "{$domain_list[$a_num]}";
       }
-      $annot->[-1] .= " :".$a_num;
+      $annot->[-1] .= $color_sep_str.$a_num;
     }
     print join("\t",@$annot),"\n";
   }

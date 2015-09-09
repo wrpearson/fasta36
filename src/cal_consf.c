@@ -574,3 +574,18 @@ calc_id(const unsigned char *aa0, int n0,
   }
   return lenc-len_gap;
 }
+
+int
+calc_idd(const unsigned char *aa0, int n0,
+	const unsigned char *aa1, int n1,
+	struct a_struct *aln,
+	struct a_res_str *a_res,
+	struct pstruct *ppst,
+	const struct annot_str *annot0_p,
+	const struct annot_str *annot1_p,
+	int *score_delta,
+	struct dyn_string_str *annot_var_dyn,
+	struct f_struct *f_str)
+{
+  return calc_id(aa0,n0,aa1,n1,aln, a_res, ppst, annot0_p, annot1_p, score_delta, annot_var_dyn, f_str);
+}

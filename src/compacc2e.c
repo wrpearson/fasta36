@@ -447,7 +447,7 @@ print_header1(FILE *fd, const char *argv_line,
   int i;
 
 #ifdef PGM_DOC
-  if (!(m_msp->markx & (MX_M8OUT+MX_MBLAST2))) fprintf(fd, "#%s\n",argv_line);
+  if (!(m_msp->markx & (MX_M8OUT+MX_MBLAST2)) || (m_msp->markx & MX_M8COMMENT)) fprintf(fd, "#%s\n",argv_line);
 #endif
 
   if (m_msp->markx & MX_M11OUT) {
@@ -590,7 +590,7 @@ void print_header4(FILE *fd, char *info_qlabel, char *argv_line, char *info_gstr
 }
 
 void print_header4a(FILE *outfd, struct mngmsg *m_msp) {
-  if (!(m_msp->markx & MX_M8OUT) && (m_msp->markx & (MX_M10FORM+MX_M9SUMM)) && m_msp->show_code != SHOW_CODE_ID) {
+  if (!(m_msp->markx & MX_M8OUT) && (m_msp->markx & (MX_M10FORM+MX_M9SUMM)) && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) {
     fprintf(outfd,">>><<<\n");
   }
 }
@@ -1009,7 +1009,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
 
   /* adjust description line length */
   l_llen = m_msp->aln.llen;
-  if ((m_msp->markx & MX_M9SUMM) && m_msp->show_code != SHOW_CODE_ID) {
+  if ((m_msp->markx & MX_M9SUMM) && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) {
     l_llen += 40;
     if (l_llen > 200) l_llen=200;
   }
@@ -3770,6 +3770,13 @@ init_dyn_string(int size, int inc) {
 }
 
 void
+reset_dyn_string(struct dyn_string_str *dyn_string) {
+
+  memset(dyn_string->string,0,dyn_string->c_size);
+  dyn_string->c_size = 0;
+}
+
+void
 dyn_strcat(struct dyn_string_str *dyn_string, char *value) {
   size_t add_len;
 
@@ -3911,7 +3918,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
   int new_left_domain_end;
   struct domfeat_data *this_dom, *prev_dom, *new_dom;
 
-  if (*left_domain_head_p) {
+  if (*left_domain_head_p) {	/* do we have a domain_link_chain? */
     *left_end_p = (*left_domain_head_p)->end_pos;
   }
     
@@ -4180,6 +4187,10 @@ void comment_var (long i0_pos, char sp0, long i1_pos, char sp1, char o_sp1,
    the domain is closed or the alignment boundary has been exceeded
    (for open domains).  Thus, it uses the current site for the end,
    and information domfeat_data information in annot_stack
+
+   d_type == 1 : full display ([q]Region: %d-%d:%d-%d : score=%d ... )
+   d_type == 2 : -m9C/-m8CC calc_code "|RX:%d-%d:%d-%d:s=%d;b=%.1f;I=%.3f;Q=%.1f";
+   d_type == 3 : -m9I CALC_ID_DOM short domains, variants
 */
 
 void
@@ -4190,7 +4201,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   struct domfeat_data *this_dom_p;
   double lbits, total_bits, zscore, lprob, lpercid;
   char *ann_comment, *bp;
-  char tmp_lstr[MAX_LSTR], ctarget, tmp_sstr[MAX_SSTR];
+  char tmp_lstr[MAX_LSTR], ctarget, tmp_str[MAX_STR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
   int n_stack;
@@ -4252,11 +4263,17 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		l_min, i1_pos+1, this_dom_p->score, lbits,lpercid, lprob);
 
 	if (this_dom_p->annot_entry_p->comment) {
-	  SAFE_STRNCPY(tmp_sstr,this_dom_p->annot_entry_p->comment,sizeof(tmp_sstr));
-	  if ((bp=strchr(tmp_sstr,' '))!=NULL) { *bp = '\0';}
+	  SAFE_STRNCPY(tmp_str,this_dom_p->annot_entry_p->comment,sizeof(tmp_str));
+	  if ((bp=strchr(tmp_str,' '))!=NULL) { *bp = '\0';}
 	  SAFE_STRNCAT(tmp_lstr,";C=",sizeof(tmp_lstr));
-	  SAFE_STRNCAT(tmp_lstr,tmp_sstr,sizeof(tmp_lstr));
+	  SAFE_STRNCAT(tmp_lstr,tmp_str,sizeof(tmp_lstr));
 	}
+      }
+      else if (d_type == 3 && this_dom_p->annot_entry_p->target == 1) {	/* CALC_ID_DOM domain names */
+	SAFE_STRNCPY(tmp_str,(this_dom_p->annot_entry_p->comment) ? this_dom_p->annot_entry_p->comment : '\0',sizeof(tmp_str));
+	/* comment out to allow spaces in domain names */
+	if ((bp=strchr(tmp_str,' ')) != NULL) { *bp='\0';}
+	sprintf(tmp_lstr, "%s;",tmp_str);
       }
       /* SAFE_STRNCAT(annot_var_s,tmp_lstr,n_annot_var_s); */
       dyn_strcat(annot_var_dyn, tmp_lstr);

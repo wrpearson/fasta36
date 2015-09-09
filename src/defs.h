@@ -162,8 +162,9 @@
 
 /* codes for -m 9 */
 #define SHOW_CODE_ID	1	/* identity only */
-#define SHOW_CODE_ALIGN 2	/* encoded alignment */
-#define SHOW_CODE_CIGAR 3	/* encoded alignment */
-#define SHOW_CODE_MASK  3	/* use higher bits for annotation format */
-#define SHOW_CODE_EXT   4	/* encode identity, mismatch state */
-#define SHOW_ANNOT_FULL 8	/* show full-length annot in calc_code */
+#define SHOW_CODE_IDD   2	/* identity with domains */
+#define SHOW_CODE_ALIGN 4	/* encoded alignment */
+#define SHOW_CODE_CIGAR 8	/* CIGAR vs old encoded alignment */
+#define SHOW_CODE_MASK  15	/* use higher bits for annotation format */
+#define SHOW_CODE_EXT   16	/* encode identity, mismatch state */
+#define SHOW_ANNOT_FULL 32	/* show full-length annot in calc_code */

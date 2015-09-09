@@ -49,9 +49,13 @@ struct a_res_str {
   /* encoded alignment/annotation information */
   char *aln_code;
   int aln_code_n;
-  char *ann_code;	/* annotation info written by calc_code() */
-  int ann_code_n;
+
+  char *annot_code;	/* annotation info written by calc_code() */
+  int annot_code_n;
+
   char *annot_var_s;	/* annotation info written by calc_cons_a() */
+  char *annot_var_id; 	/* annotation info written by calc_id() */
+  char *annot_var_idd; 	/* annotation info written by calc_idd() */
   struct a_struct aln;
 };
 #endif

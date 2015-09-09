@@ -22,9 +22,9 @@ LSHOWALIGN = lshowalign2
 MWH = mw.h 
 MWHP = mw.h
 
-TPROGS = ssearch36_t.exe ssearch36sse2_t.exe fasta36_t.exe fasts36_t.exe fastx36_t.exe tfastx36_t.exe fasty36_t.exe tfasty36_t.exe tfasts36_t.exe fastm36_t.exe fastf36_t.exe tfastf36_t.exe ggsearch36_t.exe glsearch36_t.exe
+TPROGS = ssearch36_t.exe fasta36_t.exe fasts36_t.exe fastx36_t.exe tfastx36_t.exe fasty36_t.exe tfasty36_t.exe tfasts36_t.exe fastm36_t.exe fastf36_t.exe tfastf36_t.exe ggsearch36_t.exe glsearch36_t.exe
 
-SPROGS = fasta36.exe ssearch36.exe ssearch36sse2.exe fasts36.exe fastx36.exe tfastx36.exe fasty36.exe tfasty36.exe tfasts36.exe fastm36.exe tfastm36.exe fastf36.exe tfastf36.exe lalign36.exe ggsearch36.exe glsearch36.exe
+SPROGS = fasta36.exe ssearch36.exe fasts36.exe fastx36.exe tfastx36.exe fasty36.exe tfasty36.exe tfasts36.exe fastm36.exe tfastm36.exe fastf36.exe tfastf36.exe lalign36.exe ggsearch36.exe glsearch36.exe
 
 MAPROGS = map_db.exe
 
@@ -95,8 +95,8 @@ tfasts36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN
 tfastm36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_tfm.obj scaleswts.obj tatstats_fm.obj last_tat.obj karlin.obj $(DROPTFM_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj faatran.obj $(NRAND).obj url_subs.obj getopt.obj
 	$(CL) /Fe..\bin\tfastm36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_tfm.obj $(DROPTFM_O) scaleswts.obj tatstats_fm.obj last_tat.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj faatran.obj $(NRAND).obj url_subs.obj getopt.obj
 
-ssearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
-	$(CL) /Fe..\bin\ssearch36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
+ssearch36nosse2.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
+	$(CL) /Fe..\bin\ssearch36nosse2.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
 
 ggsearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_gnw.obj scale_sn.obj karlin.obj $(DROPGNW_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
 	$(CL) /Fe..\bin\ggsearch36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_gnw.obj $(DROPGNW_O) scale_sn.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
@@ -107,8 +107,8 @@ glsearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALI
 lalign36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(LSHOWALIGN).obj htime.obj apam.obj doinit.obj init_lal.obj scale_se.obj karlin.obj last_thresh.obj $(DROPLAL_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
 	$(CL) /Fe..\bin\lalign36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(LSHOWALIGN).obj htime.obj apam.obj doinit.obj init_lal.obj last_thresh.obj $(DROPLAL_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
 
-ssearch36sse2.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_SSE2_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
-	$(CL) /Fe..\bin\ssearch36sse2.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_SSE2_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
+ssearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_SSE2_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
+	$(CL) /Fe..\bin\ssearch36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_SSE2_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
 
 osearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_ssw.obj scale_se.obj karlin.obj dropnsw.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj getopt.obj
 	$(CL) /Fe..\bin\osearch36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_ssw.obj dropnsw.obj scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj getopt.obj
@@ -116,11 +116,11 @@ osearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIG
 usearch36.exe : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj dropnsw.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj getopt.obj
 	$(CL) /Fe..\bin\usearch36.exe $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj dropnsw.obj scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj getopt.obj
 
-ssearch36_t.exe : $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
-	$(CL) /Fe..\bin\ssearch36_t.exe $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj $(THR_LIBS)
+ssearch36nosse2_t.exe : $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
+	$(CL) /Fe..\bin\ssearch36nosse2_t.exe $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj $(THR_LIBS)
 
-ssearch36sse2_t.exe : $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_SSE2_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
-	$(CL) /Fe..\bin\ssearch36sse2_t.exe $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_SSE2_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj $(THR_LIBS)
+ssearch36_t.exe : $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj $(DROPGSW_SSE2_O) $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj
+	$(CL) /Fe..\bin\ssearch36_t.exe $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj $(DROPGSW_SSE2_O) scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj pssm_asn_subs.obj getopt.obj $(THR_LIBS)
 
 osearch36_t.exe : $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj scale_se.obj karlin.obj dropnsw.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj getopt.obj
 	$(CL) /Fe..\bin\osearch36_t.exe $(COMP_THRO) work_thr2.obj $(THR_SUBS).obj $(COMPACC_TO) $(SHOWBESTO) re_getlib.obj $(SHOWALIGN).obj htime.obj apam.obj doinit.obj init_sw.obj dropnsw.obj scale_se.obj karlin.obj $(LGETLIB) c_dispn.obj $(NCBL_LIB) lib_sel.obj url_subs.obj $(NRAND).obj getopt.obj $(THR_LIBS)

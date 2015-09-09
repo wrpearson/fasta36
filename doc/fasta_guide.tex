@@ -527,18 +527,21 @@ While sequence alignments are very informative, it is often not
 practical to examine all the statistically significant alignments in
 large-scale searches. The \texttt{-m 9} and \texttt{-m 8} options
 present summaries of each alignment (alignment boundaries, percent
-identity, and other information) in a much more compact form.  In
-addition, \texttt{-m 9c} or \texttt{-m 9C} (see options below) provide
-a detailed encoding of the alignment, that allows it to be
-reconstructed. For large-scale searches, we routinely use \texttt{-m
-  8} with the \texttt{-d 0} option, which sets the number of
+identity, and other information) in a much more compact
+form. \texttt{-m 9i} adds three columns to the summary report line,
+the fraction identical, fraction similar, and alignment length (in
+addition, variants are reported if they affect identity). \texttt{-m
+  9I} is similar to \texttt{-m 9i}, but also reports domain content if
+annotations are used.  \texttt{-m 9c} or \texttt{-m 9C} (see options
+below) provide a detailed encoding of the alignment, that allows it to
+be reconstructed. For large-scale searches, we routinely use
+\texttt{-m 8} with the \texttt{-d 0} option, which sets the number of
 alignments shown to 0 (thus none are shown).  Alternatively, the
 \texttt{-m 8} and \texttt{-m 8C} ouput options produce BLAST-format
 tabular results summaries (\texttt{-m 8C} provides commented tabular
 results).  \texttt{-m 8CC} adds an alignment CIGAR string and
-annotation string to the BLAST tabular format.
-\texttt{-m BB} produces an output that mimics BLAST output
-(with alignments).
+annotation string to the BLAST tabular format.  \texttt{-m BB}
+produces an output that mimics BLAST output (with alignments).
 
 \subsubsection{Alignments with annotations}
 
@@ -853,8 +856,12 @@ can use \texttt{-m 1 -m 6 -m 9}.
 
 \item[\texttt{-m 9}] display alignment coordinates and scores with the
   best score information.  \texttt{-m 9i} provides alignment length,
-  percent identity, and percent similarity only. \texttt{ -m 9} extends
-  the normal best score information:
+  percent identity, and percent similarity only. \texttt{-m 9i} also
+  provides variation information if it improves the score. \texttt{-m
+    9I} provides both identity and domain information on the summary
+  line.
+
+ \texttt{ -m 9, -m 9c} and \texttt{-m 9C} extend the normal best score information:
 \begin{footnotesize}
 \begin{verbatim}
 The best scores are:                                      opt bits E(14548)
@@ -1917,8 +1924,8 @@ In addition, the \texttt{-m 8} and \texttt{-m 8C} options provide
 BLAST tabular output, optionally with comments (\texttt{-m 8C}). This
 compact output is effective for analysis pipelines.  In addtion,
 \texttt{-m 8XC} (no comments) or \texttt{-m 8CC} provides two
-additional blast-tabular fields, a CIGAR alignment string and (if
-available), an annotation string.
+additional blast-tabular fields, a CIGAR alignment string and, if
+available, an annotation string.
 
 {\noindent}\textbf{When I search Genbank - the program reports:} \texttt{0 residues in 0
 sequences}?  This typically happens because the program does not
