@@ -45,29 +45,6 @@ extern void calc_coord(int n0, int n1, long qoffset, long loffset,
 
 extern void calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, void *f_str);
 
-extern
-int calc_id(const unsigned char *aa0, int n0,
-	    const unsigned char *aa1, int n1,
-	    struct a_struct *aln, 
-	    struct a_res_str *a_res,
-	    struct pstruct *ppst,
-	    const struct annot_str *annot0_p,
-	    const struct annot_str *annot1_p,
-	    int *score_delta,
-	    struct dyn_string_str *annot_var_dyn,
-	    void *f_str);
-
-extern
-int calc_idd(const unsigned char *aa0, int n0,
-	     const unsigned char *aa1, int n1,
-	     struct a_struct *aln, 
-	     struct a_res_str *a_res,
-	     struct pstruct *ppst,
-	     const struct annot_str *annot0_p,
-	     const struct annot_str *annot1_p,
-	     int *score_delta,
-	     struct dyn_string_str *annot_var_dyn,
-	     void *f_str);
 
 /* in build_ares_code, *aa1 is separate from *seq because *seq has
    permanent information about aa1, but aa1 may be temporary
@@ -145,7 +122,7 @@ build_ares_code(unsigned char *aa0, int n0,
        and frame, and only needs to be called once */
     aln_func_vals(frame, aln_p);
 
-    if ((m_msp->tot_show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN) {
+    if (m_msp->tot_show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) {
       cur_ares_p->aln_code = seq_code=(char *)calloc(seqc_max,sizeof(char));
       /* if we have an annotation string, allocate space for the
 	 encoded annotation */

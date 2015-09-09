@@ -166,3 +166,20 @@ calc_id(const unsigned char *aa0, int n0,
 	struct f_struct *f_arg
 #endif
 	);
+
+int 	/* returns lenc - length of alignment */
+calc_idd(const unsigned char *aa0, int n0,
+	const unsigned char *aa1, int n1,
+	struct a_struct *aln, 
+	struct a_res_str *a_res,
+	struct pstruct *ppst,
+	const struct annot_str *annot0_p,
+	const struct annot_str *annot1_p,
+	int *score_delta,
+	struct dyn_string_str *annot_var_dyn,
+#ifndef DROP_INTERN
+	void *f_arg
+#else
+	struct f_struct *f_arg
+#endif
+	);
