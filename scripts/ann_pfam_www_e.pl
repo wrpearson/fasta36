@@ -390,14 +390,15 @@ sub get_pfam_www {
   # each domain (but must also check for bounded-ness)
   # only add when 10% or more is missing and missing length > $min_nodom
 
-  if ($vdoms) {
+  if ($vdoms && scalar(@pf_domains)) {
       my @vpf_domains;
 
       my $curr_dom = $pf_domains[0];
+      my $length = $curr_dom->{model_length};
 
       my $prev_dom={end=>0, accession=>''};
       my $prev_dom_end = 0;
-      my $next_dom_start = $seq_length+1;
+      my $next_dom_start = $length+1;
 
       for (my $dom_ix=0; $dom_ix < scalar(@pf_domains); $dom_ix++ ) {
 	  $curr_dom = $pf_domains[$dom_ix];
