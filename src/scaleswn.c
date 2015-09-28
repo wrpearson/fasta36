@@ -620,34 +620,46 @@ proc_hist_a(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   f_string = histp->stat_info;
 
   if (ppst->dnaseq==0) {
-    if (strcmp(ppst->pam_name,"BL50")==0 || strcmp(ppst->pam_name,"BLOSUM50")==0)
+    if (strcmp(ppst->pam_name,"BL50")==0 || strcmp(ppst->pam_name,"BLOSUM50")==0) {
       r_v = look_p(bl50_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"BL62")==0 || strcmp(ppst->pam_name,"BLOSUM62")==0)
+    }
+    else if (strcmp(ppst->pam_name,"BL62")==0 || strcmp(ppst->pam_name,"BLOSUM62")==0) {
       r_v = look_p(bl62_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"BL80")==0 || strcmp(ppst->pam_name,"BLOSUM80")==0)
+    }
+    else if (strcmp(ppst->pam_name,"BL80")==0 || strcmp(ppst->pam_name,"BLOSUM80")==0) {
       r_v = look_p(bl80_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"PAM250")==0)
+    }
+    else if (strcmp(ppst->pam_name,"PAM250")==0) {
       r_v = look_p(p250_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"PAM120")==0)
+    }
+    else if ((strcmp(ppst->pam_name,"PAM120")==0) || (strcmp(ppst->pam_name,"VT120")==0)) {
       r_v = look_p(p120_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"MD10")==0)
+    }
+    else if ((strcmp(ppst->pam_name,"MD10")==0) || (strcmp(ppst->pam_name,"VT10")==0)) {
       r_v = look_p(md10_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"MD20")==0)
+    }
+    else if ((strcmp(ppst->pam_name,"MD20")==0) || (strcmp(ppst->pam_name,"VT20")==0)) {
       r_v = look_p(md20_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"MD40")==0)
+    }
+    else if ((strcmp(ppst->pam_name,"MD40")==0) || (strcmp(ppst->pam_name,"VT40")==0)) {
       r_v = look_p(md40_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"OPTIMA5")==0)
+    }
+    else if (strcmp(ppst->pam_name,"OPTIMA5")==0) {
       r_v = look_p(opt5_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
+    }
     else r_v = 0;
   }
   else {
-    if (strcmp(ppst->pam_name,"DNA")==0 || (ppst->pam_h==5 && ppst->pam_l == -4))
+    r_v = look_p(nt32_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
+    if (strcmp(ppst->pam_name,"DNA")==0 || (ppst->pam_h==5 && ppst->pam_l == -4)) {
       r_v = look_p(nt54_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"+3/-2")==0 || (ppst->pam_h==3 && ppst->pam_l == -2))
+    }
+    else if (strcmp(ppst->pam_name,"+3/-2")==0 || (ppst->pam_h==3 && ppst->pam_l == -2)) {
       r_v = look_p(nt32_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else if (strcmp(ppst->pam_name,"+1/-3")==0 || (ppst->pam_h==1 && ppst->pam_l == -3))
+    }
+    else if (strcmp(ppst->pam_name,"+1/-3")==0 || (ppst->pam_h==1 && ppst->pam_l == -3)) {
       r_v = look_p(nt13_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-    else r_v = 0;
+    }
   }
 
   if (r_v == 1) {
@@ -656,12 +668,11 @@ proc_hist_a(struct stat_str *sptr, int nstats, struct score_count_s s_info,
     pu->r_u.ag.H = H;
   }
   else {
+      r_v = look_p(bl62_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
 #ifdef DEBUG
-    fprintf(stderr,"Parameters not available for: %s: %d/%d\n",
-	    ppst->pam_name,t_gdelval-t_ggapval,t_ggapval);
+    fprintf(stderr,"+++ Warning : [%s:%d] Parameters not available for: %s: %d/%d -- using BL62\n",
+	    __FILE__, __LINE__, ppst->pam_name,t_gdelval-t_ggapval,t_ggapval);
 #endif
-
-    return proc_hist_n(sptr, nstats, s_info, ppst, histp, do_trim, pu);
   }
 
   /*
@@ -1548,7 +1559,8 @@ proc_hist_n(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   }
   
   if (pu->r_u.rg.mean_var < 0.01) {
-    pu->r_u.rg.mean_var = (pu->r_u.rg.mu > 1.0) ? pu->r_u.rg.mu: 1.0;
+    /*     pu->r_u.rg.mean_var = (pu->r_u.rg.mu > 1.0) ? pu->r_u.rg.mu: 1.0; */
+    return proc_hist_a(sptr, nstats, s_info, ppst, histp, do_trim, pu);
   }
 
   /* now remove some scores */
