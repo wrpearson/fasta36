@@ -2616,6 +2616,10 @@ last_params(unsigned char *aa0, int n0,
       ppst->LK_set = 1;
       free(kar_p);
     }
+    else {
+      fprintf(stderr,"+++ warning [%s:%d] - query too short [%d] for %d bit signal -- fasts36 may be more useful +++\n",
+	      __FILE__, __LINE__, n0, DEF_MIN_BITS);
+    }
   }
 
   if (ppst->ext_sq_set) { ppst->nsq_e = nsq = 2*ppst->nsq; }

@@ -217,6 +217,7 @@ of masks is 1/32 the number of sequences in the file.
 
 #define MAX_FADL_ACC_LEN 64
 
+unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 unsigned int bl2_uint4_cvt(unsigned int);
 unsigned int bl2_long4_cvt(long);
 uint64_t bl2_long8_cvt(uint64_t);

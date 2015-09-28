@@ -2974,7 +2974,7 @@ buf_do_work(unsigned char **aa0,  int n0,
   unsigned long atmp;
   struct buf2_data_s *lib_buf2_dp;
   struct buf2_res_s *lib_buf2_rp, *t_best_rp;
-  int t_best, sc_ix;
+  int t_best, sc_ix, i;
   double t_escore;
 
   sc_ix = ppst->score_ix;
@@ -3024,6 +3024,7 @@ buf_do_work(unsigned char **aa0,  int n0,
 	      lib_bhead_p->hdr.buf2_cnt - (buf2_cnt+1),
 	      lib_bhead_p->hdr.buf2_cnt,lib_buf2_dp->seq->n1,
 	      lib_buf2_dp->seq->l_offset);
+
       goto next_seq;
     }
 #endif

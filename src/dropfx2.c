@@ -115,6 +115,8 @@ static char *cigar_code = "IXFMRD*";
 static struct update_code_str *
 init_update_data(int show_code);
 
+unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
+
 static void
 sprintf_code(char *tmp_str, struct update_code_str *, int op_idx, int op_cnt);
 
