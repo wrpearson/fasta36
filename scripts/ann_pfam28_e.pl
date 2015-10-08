@@ -403,7 +403,7 @@ sub get_pfam_annots {
   # each domain (but must also check for bounded-ness)
   # only add when 10% or more is missing and missing length > $min_nodom
 
-  if ($vdoms) {
+  if ($vdoms && scalar(@pf_domains)) {
     my @vpf_domains;
 
     my $curr_dom = $pf_domains[0];

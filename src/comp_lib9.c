@@ -141,6 +141,7 @@ extern void free_pam2p(int **);
 #ifdef DEBUG
 void check_rbuf(struct buf_head *cur_buf);
 int check_seq_range(unsigned char *aa1b, int n1, int nsq, char *);
+unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 #endif
 
 /* initialize environment (doinit.c) */
@@ -2569,7 +2570,6 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
       current_seq_p->n1 = n1 += m_msp->ldb_info.l_overlap;	/* corrected 28-June-2008 */
       m_msp->db.entries--;
     }
-    if ( n1 <= 1) {goto loop2;}
 
 #ifdef DEBUG
     current_seq_p->adler32_crc =
@@ -2589,6 +2589,8 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
 	}
       }
 #endif
+
+    if ( n1 <= 1) {goto loop2;}
 
     if (getlib_info->lcont) {
       memcpy(getlib_info->aa1save,&aa1[n1-m_msp->ldb_info.l_overlap],m_msp->ldb_info.l_overlap);
@@ -3025,7 +3027,6 @@ init_beststats(struct beststr **best, struct beststr ***bestp_arr,
     s_abort ("Cannot allocate rstats struct","");
   }
 }
-
 
 #ifdef DEBUG
 void

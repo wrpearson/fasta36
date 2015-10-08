@@ -63,6 +63,7 @@
 extern int64_t bl2_long8_cvt(int64_t);
 extern int bl2_uint4_cvt(int);
 extern void newname(char *, char *, char *, int);
+unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 
 long crck(char *, int);
 extern void src_int4_read(FILE *fd,  int *val);

@@ -243,7 +243,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
     fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
-    if (m_msp->show_code == SHOW_CODE_ALIGN || m_msp->show_code == SHOW_CODE_CIGAR) { fprintf(fp," aln_code");}
+    if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp," aln_code");}
     fprintf(fp,"\n");
     fprintf(fp,"# %d hits found\n",nshow);
   }
@@ -290,7 +290,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 	  fprintf(fp,"\t%%_id  %%_sim %4s  alen  an0  ax0  pn0  px0  an1  ax1 pn1 px1 gapq gapl  fs ",m_msp->f_id1);
 #endif
 	}
-	if (m_msp->show_code == SHOW_CODE_ALIGN) { fprintf(fp," aln_code"); }
+	if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp," aln_code"); }
 	if (m_msp->markx & MX_HTML && m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) { fprintf(fp," -->");}
       }
       fprintf(fp,"\n");
@@ -314,7 +314,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif	/* SHOWSIM */
 	}
       }
-      if (m_msp->show_code == SHOW_CODE_ALIGN) { fprintf(fp," aln_code"); }
+      if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp," aln_code"); }
       fprintf(fp,"\n");
     }
   }	/* !(m_msp->markx & MX_M8OUT) */
@@ -568,7 +568,7 @@ l1:
 		    aln_p->d_start1,aln_p->d_stop1,
 		    aln_p->l_start_off, aln_p->l_end_off,
 		    aln_p->ngap_q,aln_p->ngap_l,aln_p->nfs);
-	    if ((m_msp->show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN
+	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR))
 		&& seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
 	      if (annot_str_len > 0 && annot_str != NULL) {
@@ -584,7 +584,7 @@ l1:
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
-	    if ((m_msp->show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN && seq_code_len > 0 && seq_code != NULL) {
+	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) && seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
 	      if (annot_str_len > 0 && annot_str != NULL) {
 		fprintf(fp,"\t%s",annot_str);

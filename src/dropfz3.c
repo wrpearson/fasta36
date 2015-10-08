@@ -105,6 +105,7 @@ static void
 close_update_data(char *al_str, int al_str_max,
 		  struct update_code_str *update_data);
 
+unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 void kpsort (struct savestr **v, int n);
 extern void *init_stack(int, int);
 extern void push_stack(void *, void *);

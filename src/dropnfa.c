@@ -78,6 +78,7 @@ extern int ELK_to_s(double E_join, int n0, int n1, double Lambda, double K, doub
 
 extern void aancpy(char *to, char *from, int count, struct pstruct *ppst);
 char *ckalloc(size_t);
+unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 
 #ifdef TFASTA
 extern int aatran(const unsigned char *ntseq, unsigned char *aaseq, int maxs, int frame);

@@ -120,7 +120,7 @@ build_ares_code(unsigned char *aa0, int n0,
        and frame, and only needs to be called once */
     aln_func_vals(frame, aln_p);
 
-    if ((m_msp->tot_show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN) {
+    if (m_msp->tot_show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) {
       cur_ares_p->aln_code = seq_code=(char *)calloc(seqc_max,sizeof(char));
       /* if we have an annotation string, allocate space for the
 	 encoded annotation */

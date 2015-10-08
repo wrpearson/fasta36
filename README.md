@@ -3,9 +3,7 @@
 
 The **FASTA** (pronounced FAST-Aye, not FAST-Ah) programs are a
 comprehensive set of similarity searching and alignment programs for
-searching protein and DNA sequence databases.  Like the **BLAST** programs `blastp` and
-`blastn`, the `fasta` program itself uses a rapid heuristic strategy
-for finding similar regions in protein and DNA sequences.  But in
+searching protein and DNA sequence databases.  Like the **BLAST** programs `blastp` and `blastn`, the `fasta` program itself uses a rapid heuristic strategy for finding similar regions in protein and DNA sequences.  But in
 addition to heuristic similarity searching, the FASTA package provides
 programs for rigorous local (`ssearch`) and global (`ggsearch`)
 similarity searching, as well as a program for finding non-overlapping
@@ -68,6 +66,6 @@ The executable programs will then be found in `../bin`
 
 For a simple test of a program, try (from the src directory)
 ```
-   ../bin/fasta36 -q ../seq/mgstm1.aa ../seq/prot_test.lseg     
+   ../bin/fasta36 -q ../seq/mgstm1.aa ../seq/prot_test.lseg
 ```
 

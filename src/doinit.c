@@ -862,6 +862,7 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (ctmp=='C') {this->show_code = SHOW_CODE_CIGAR;}
     else if (ctmp=='D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
     else if (ctmp=='i') {this->show_code = SHOW_CODE_ID;}
+    else if (ctmp=='I') {this->show_code = SHOW_CODE_IDD;}
   }
   if (itmp > 6 && itmp != 11 && itmp != 10 && itmp != 9 && itmp != 8) itmp = 0;
   this->markx = set_markx(this->markx,itmp,ctmp);
