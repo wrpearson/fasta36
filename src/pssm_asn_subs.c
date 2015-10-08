@@ -722,6 +722,8 @@ get_astr_userfld(struct asn_bstruct *asnp) {
     ABP_INC2;
     asnp->abp = get_astr_userfld_data(asnp)+2;
   }
+
+  asnp->abp = chk_asn_buf(asnp,4);
   if (in_seq) ABP_INC2;
   return asnp->abp;
 }
@@ -1079,6 +1081,8 @@ get_pssm_intermed_null(struct asn_bstruct *asnp,
       }
     }
   }
+
+  asnp->abp = chk_asn_buf(asnp,4);
   if (in_seq) {asnp->abp +=2;}	/* skip nulls */
   ABP_INC2;
   return asnp->abp;
@@ -1119,6 +1123,8 @@ get_pssm_freqs(struct asn_bstruct *asnp,
       }
     }
   }
+
+  asnp->abp = chk_asn_buf(asnp,4);
   if (in_seq) {asnp->abp +=2;}	/* skip nulls */
   ABP_INC2;
   return asnp->abp;
