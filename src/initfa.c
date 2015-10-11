@@ -2501,6 +2501,9 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   scale = 0.5 * (scale_high + scale_low);
   fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
 
+  free(no_remap[0]);
+  free(no_remap);
+
 #ifdef DEBUG
   /*
     fprintf(stderr, "final scale: %g\n", scale);
