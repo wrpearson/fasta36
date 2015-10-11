@@ -2387,7 +2387,7 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
 
 
   /* quick 2d array alloc: */
-  if((no_remap = (int **) calloc(n0, sizeof(int))) == NULL) {
+  if((no_remap = (int **) calloc(n0, sizeof(int *))) == NULL) {
     fprintf(stderr, "***error [%s:%d] Couldn't allocate memory for remap[%d]\n",__FILE__, __LINE__, n0);
     exit(1);
   }
@@ -2398,7 +2398,7 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   }
 
   for (qi=1; qi < n0; qi++) {
-    no_remap[qi] = no_remap[qi-1]+n0;
+    no_remap[qi] = no_remap[qi-1]+20;
   }
 
   /* convert freq2d from frequences to log_scores; 
@@ -2607,7 +2607,6 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
   }
 
   /* try to just use the the iscore2d file */
-  /*
   if (iscores2d != NULL) {
     for (qi = 0 ; qi < n0 ; qi++) {
       for (rj = 1 ; rj <= 24 ; rj++) {
@@ -2618,11 +2617,8 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
     }
   }
   else {
-  */
     scale_pssm(ppst->pam2p[0], freq2d, query, n0, ppst->pam2[0], pamscale);
-    /*
   }
-    */
 
 #if DEBUG
   if (ppst->debug_lib) {

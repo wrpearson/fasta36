@@ -9,6 +9,14 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Oct. 11, 2015
+[initfa.c]
+Fix problems encountered when reading in binary ASN.1 file produced by
+datatool.  Previous versions did not use the final score data provided
+by the tool; this version now uses that information if it is
+available.  If it is not available, the PSSM integer values are
+calculated from the frequency data.
+
 >>Oct. 8, 2015
 [pssm_asn_subs.c]
 Fix a rare condition where the pssm_asn parser reads past the asn
