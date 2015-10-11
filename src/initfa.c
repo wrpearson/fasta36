@@ -2436,6 +2436,7 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   lambda = get_lambda(pam2, 20, 20, ustandard_aa);
 
 #ifdef DEBUG
+  /*
   fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
   fprintf(stderr,"        ");
   for (rj = 1; rj <= 20; rj++) {
@@ -2449,6 +2450,7 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
     }
     fprintf(stderr, "\n");
   }
+  */
 #endif
 
   /* should be near 1.0 because of our initial scaling by ppst->pamscale */
@@ -2498,9 +2500,6 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
 
   scale = 0.5 * (scale_high + scale_low);
   fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
-
-  /* the positions with freq2d[][] data are filled in pssm2p, but the
-     0's from freq2d[][] are not; add those values using BLOSUM62 */
 
 #ifdef DEBUG
   /*
