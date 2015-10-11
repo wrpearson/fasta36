@@ -2146,7 +2146,7 @@ void header_aux(FILE *fp) {
 #endif
 
 void
-fill_pam(int **pam2p, int n0, int nsq, double **freq2d, double scale) {
+fill_pam(int **pam2p, int n0, int nsq, double **freq2d, double scale, int **no_remap) {
   int i, j, new_j;
   double freq;
 
@@ -2159,7 +2159,13 @@ fill_pam(int **pam2p, int n0, int nsq, double **freq2d, double scale) {
       freq = scale * freq2d[i][j-1];
       if ( freq < 0.0) freq -= 0.5;
       else freq += 0.5;
-      pam2p[i][new_j] = (int)(freq);
+
+      if (no_remap[i][j-1]) {
+	pam2p[i][j] = (int)freq;
+      }
+      else {
+	pam2p[i][new_j] = (int)(freq);
+      }
     }
   }
 }
@@ -2377,6 +2383,26 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   double freq, new_lambda, lambda;
   int first, too_high;
   double scale, scale_high, scale_low;
+  int **no_remap;
+
+
+  /* quick 2d array alloc: */
+  if((no_remap = (int **) calloc(n0, sizeof(int))) == NULL) {
+    fprintf(stderr, "***error [%s:%d] Couldn't allocate memory for remap[%d]\n",__FILE__, __LINE__, n0);
+    exit(1);
+  }
+
+  if((no_remap[0] = (int *) calloc(n0 * 20, sizeof(int))) == NULL) {
+    fprintf(stderr, "***error [%s:%d] Couldn't allocate memory for remap[%d]\n",__FILE__, __LINE__, n0);
+    exit(1);
+  }
+
+  for (qi=1; qi < n0; qi++) {
+    no_remap[qi] = no_remap[qi-1]+n0;
+  }
+
+  /* convert freq2d from frequences to log_scores; 
+     fill zeros with BLOSUM62 values */
 
   for (rj = 0 ; rj < 20 ; rj++) {
     for (qi = 0 ; qi < n0 ; qi++) {
@@ -2389,7 +2415,12 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
 	/* when blastpgp decides to leave something out, it puts 0's in all the frequencies
 	   in the binary checkpoint file.  In the ascii version, however, it uses BLOSUM62
 	   values.  I will put in scoring matrix values as well */
+	/* 11-Oct-2015 -- this does not work properly, because the
+	   correct amino-acid ordering is not used -- pam2 uses
+	   NCBIStdaa ordering, but the rest of the matrix uses pssm_aa
+	   ordering, which is changed in fill_pam */
 
+	no_remap[qi][rj] = 1;
 	if (query[qi] < 'A') {
 	  freq2d[qi][rj] = pam2[query[qi]][rj+1];
 	}
@@ -2404,13 +2435,29 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   scale = 1.0;
   lambda = get_lambda(pam2, 20, 20, ustandard_aa);
 
+#ifdef DEBUG
+  fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
+  fprintf(stderr,"        ");
+  for (rj = 1; rj <= 20; rj++) {
+    fprintf(stderr,"   %c", NCBIstdaa[rj]);
+  }
+  fprintf(stderr,"\n");
+  for (qi = 0 ; qi < n0 ; qi++) {
+    fprintf(stderr, "%4d %c: ", qi+1, NCBIstdaa[query[qi]]);
+    for (rj = 1 ; rj <= 20 ; rj++) {
+      fprintf(stderr, "%4d", pssm2p[qi][rj]);
+    }
+    fprintf(stderr, "\n");
+  }
+#endif
+
   /* should be near 1.0 because of our initial scaling by ppst->pamscale */
   /* fprintf(stderr, "real_lambda: %g\n", lambda); */
 
   /* get initial high/low scale values: */
   first = 1;
   while (1) {
-    fill_pam(pssm2p, n0, 20, freq2d, scale);
+    fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
     new_lambda = get_lambda(pssm2p, n0, 20, query); 
 
     if (new_lambda > lambda) {
@@ -2442,7 +2489,7 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   /* now do binary search between low and high */
   for (i = 0 ; i < 10 ; i++) {
     scale = 0.5 * (scale_high + scale_low);
-    fill_pam(pssm2p, n0, 20, freq2d, scale);
+    fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
     new_lambda = get_lambda(pssm2p, n0, 20, query);
     
     if (new_lambda > lambda) scale_low = scale;
@@ -2450,25 +2497,37 @@ scale_pssm(int **pssm2p, double **freq2d, unsigned char *query, int n0, int **pa
   }
 
   scale = 0.5 * (scale_high + scale_low);
-  fill_pam(pssm2p, n0, 20, freq2d, scale);
+  fill_pam(pssm2p, n0, 20, freq2d, scale, no_remap);
 
+  /* the positions with freq2d[][] data are filled in pssm2p, but the
+     0's from freq2d[][] are not; add those values using BLOSUM62 */
+
+#ifdef DEBUG
   /*
-  fprintf(stderr, "final scale: %g\n", scale);
+    fprintf(stderr, "final scale: %g\n", scale);
 
-  for (qi = 0 ; qi < n0 ; qi++) {
-    fprintf(stderr, "%4d %c:  ", qi+1, query[qi]);
-    for (rj = 1 ; rj <= 20 ; rj++) {
-      fprintf(stderr, "%4d", pssm2p[qi][rj]);
+    fprintf(stderr,"        ");
+    for (rj = 1; rj <= 20; rj++) {
+      fprintf(stderr,"   %c", NCBIstdaa[rj]);
     }
-    fprintf(stderr, "\n");
-  }
+    fprintf(stderr,"\n");
+    for (qi = 0 ; qi < n0 ; qi++) {
+      fprintf(stderr, "%4d %c: ", qi+1, NCBIstdaa[query[qi]]);
+      for (rj = 1 ; rj <= 20 ; rj++) {
+	fprintf(stderr, "%4d", pssm2p[qi][rj]);
+      }
+      fprintf(stderr, "\n");
+    }
   */
+#endif
+
 }
 
 #if defined(CAN_PSSM)
 int
 parse_pssm_asn_fa(FILE *afd, int *n_rows, int *n_cols,
-		  unsigned char **query, double ***freqs,
+		  unsigned char **query,
+		  double ***wfreqs, double ***freqs, int ***iscores,
 		  char *matrix, int *gap_open, int *gap_extend,
 		  double *lambda);
 
@@ -2485,7 +2544,7 @@ int
 read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 	      double pamscale, FILE *fp, struct pstruct *ppst) {
 
-  int i, j, len, k;
+  int i, j, len, k, itmp;
   int qi, rj;	/* qi - index query; rj - index residues (1-20) */
   int **pam2p;
   int first, too_high;
@@ -2493,18 +2552,21 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
   char dline[512];
   char matrix[MAX_SSTR];
   double psi2_lambda;
-  double freq, **freq2d, lambda, new_lambda;
+  double freq, **wfreq2d, **freq2d, lambda, new_lambda;
   double scale, scale_high, scale_low;
+  int **iscores2d;
   int gap_open, gap_extend;
   int n_rows, n_cols;
 
   pam2p = ppst->pam2p[0];
 
-  if (parse_pssm_asn_fa(fp, &n_rows, &n_cols, &query, &freq2d,
+  /* get the information from the ASN.1 (binary) file */
+  if (parse_pssm_asn_fa(fp, &n_rows, &n_cols, &query, &wfreq2d, &freq2d, &iscores2d,
 			matrix, &gap_open, &gap_extend, &psi2_lambda)<=0) {
     return -1;
   }
 
+  /* do we have a query sequence */
   if (query == NULL) { query = aa0;}
 
   if (!gap_set) {
@@ -2544,8 +2606,43 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
     exit(1);
   }
 
-  scale_pssm(ppst->pam2p[0], freq2d, query, n0, ppst->pam2[0],pamscale);
+  /* try to just use the the iscore2d file */
+  /*
+  if (iscores2d != NULL) {
+    for (qi = 0 ; qi < n0 ; qi++) {
+      for (rj = 1 ; rj <= 24 ; rj++) {
+	itmp = iscores2d[qi][rj];
+	if (itmp < -256) itmp=0;
+	pam2p[qi][rj] = itmp;
+      }
+    }
+  }
+  else {
+  */
+    scale_pssm(ppst->pam2p[0], freq2d, query, n0, ppst->pam2[0], pamscale);
+    /*
+  }
+    */
 
+#if DEBUG
+  if (ppst->debug_lib) {
+    /*    fprintf(stderr, "final scale: %g\n", scale); */
+
+    fprintf(stderr,"        ");
+    for (rj = 1; rj <= 24; rj++) {
+      fprintf(stderr,"  %c", NCBIstdaa[rj]);
+    }
+    fprintf(stderr,"\n");
+    for (qi = 0 ; qi < n0 ; qi++) {
+      fprintf(stderr, "%3d %c: ", qi+1, NCBIstdaa[query[qi]]);
+      for (rj = 1 ; rj <= 24 ; rj++) {
+	fprintf(stderr, "%3d", pam2p[qi][rj]);
+      }
+      fprintf(stderr, "\n");
+    }
+  }
+#endif
+  
   free(freq2d[0]);
   free(freq2d);
 
