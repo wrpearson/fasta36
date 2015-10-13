@@ -697,23 +697,34 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
     fprintf(stderr, "\n");
   }
 
-  fprintf(stderr,"         ");
-  for (rj = 1; rj <= N_EFFECT+3; rj++ ) {
-    fprintf(stderr," %c ",NCBIstdaa[rj]);
-  }
-  fprintf(stderr,"\n");
-  for (qi = 0 ; qi < n0 ; qi++) {
-    fprintf(stderr, "%4d %c: ", qi+1, NCBIstdaa[aa0[qi]]);
-    for (rj = 1 ; rj <= N_EFFECT+3 ; rj++) {
-      itmp = iscores2d[qi][rj];
-      if (itmp < -256) itmp=0;
-      fprintf(stderr, "%3d", itmp );
+  if (iscores2d != NULL) {
+    fprintf(stderr,"         ");
+    for (rj = 1; rj <= N_EFFECT+3; rj++ ) {
+      fprintf(stderr," %c ",NCBIstdaa[rj]);
     }
-    fprintf(stderr, "\n");
+    fprintf(stderr,"\n");
+    for (qi = 0 ; qi < n0 ; qi++) {
+      fprintf(stderr, "%4d %c: ", qi+1, NCBIstdaa[aa0[qi]]);
+      for (rj = 1 ; rj <= N_EFFECT+3 ; rj++) {
+	itmp = iscores2d[qi][rj];
+	if (itmp < -256) itmp=0;
+	fprintf(stderr, "%3d", itmp );
+      }
+      fprintf(stderr, "\n");
+    }
+    free(iscores2d[0]);
+    free(iscores2d);
   }
 
-  free(freq2d[0]);
-  free(freq2d);
+  if (wfreq2d != NULL) {
+    free(wfreq2d[0]);
+    free(wfreq2d);
+  }
+
+  if (freq2d != NULL) {
+    free(freq2d[0]);
+    free(freq2d);
+  }
 
   free(query);
   return 1;

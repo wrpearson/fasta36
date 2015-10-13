@@ -2568,6 +2568,13 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
     return -1;
   }
 
+  /* not using wfreq2d[][] right now, free it */
+  if (wfreq2d != NULL) {
+    free(wfreq2d[0]);
+    free(wfreq2d);
+  }
+
+
   /* do we have a query sequence */
   if (query == NULL) { query = aa0;}
 
@@ -2617,6 +2624,9 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 	pam2p[qi][rj] = itmp;
       }
     }
+    /* all done, free it */
+    free(iscores2d[0]);
+    free(iscores2d);
   }
   else {
     scale_pssm(ppst->pam2p[0], freq2d, query, n0, ppst->pam2[0], pamscale);
@@ -2632,7 +2642,7 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
     }
     fprintf(stderr,"\n");
     for (qi = 0 ; qi < n0 ; qi++) {
-      fprintf(stderr, "%3d %c: ", qi+1, NCBIstdaa[query[qi]]);
+      fprintf(stderr, "%3d %c: ", qi+1, NCBIstdaa[aa0[qi]]);
       for (rj = 1 ; rj <= 24 ; rj++) {
 	fprintf(stderr, "%3d", pam2p[qi][rj]);
       }
@@ -2641,8 +2651,10 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
   }
 #endif
   
-  free(freq2d[0]);
-  free(freq2d);
+  if (freq2d != NULL) {
+    free(freq2d[0]);
+    free(freq2d);
+  }
 
   if (query != aa0) free(query);
   return 1;

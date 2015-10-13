@@ -1289,7 +1289,7 @@ get_pssm_final_scores(struct asn_bstruct *asnp, int ***iscores, int n_rows, int 
 
   if (ABP == ASN_SEQ) { ABP_INC2; in_seq=1;}
 
-  if ((*iscores = (int **) calloc(n_cols, sizeof(int *)))==NULL) {
+  if (((*iscores) = (int **) calloc(n_cols, sizeof(int *)))==NULL) {
     fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
     exit(1);
   }
