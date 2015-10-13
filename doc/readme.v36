@@ -1,7 +1,4 @@
 
-  $Id: readme.v36 1291 2014-08-28 18:32:58Z wrp $
-  $Revision: 55 $
-
 Version 3.6 of the FASTA programs is a significant update over version
 3.5.  It uses the same underlying structure as FASTA35 (specifically
 the strategies for ensuring accurate statistics), but it allows for
@@ -9,8 +6,8 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Oct. 11, 2015
-[initfa.c]
+>>Oct. 13, 2015	[released as fasta-36.3.8b]
+[initfa.c, pssm_asn_subs.c]
 Fix problems encountered when reading in binary ASN.1 file produced by
 datatool.  Previous versions did not use the final score data provided
 by the tool; this version now uses that information if it is
