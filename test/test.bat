@@ -18,9 +18,6 @@ rem "done"
 rem "starting ssearch36_t"
 ..\bin\ssearch36_t -m 9c -S -z 3 -q ..\seq\mgstm1.aa  q > results\test_m1.ss_tz3
 ..\bin\ssearch36_t -q -M 200-300 -z 2 -Z 100000 -s P250 ..\seq\mgstm1.aa q > results\test_m1.ss_t_p25
-rem "starting ssearch36_t"
-..\bin\ssearch36sse2_t -m 9c -S -z 3 -q ..\seq\mgstm1.aa  q > results\test_m1.ss_tz3sse2
-..\bin\ssearch36sse2_t -q -M 200-300 -z 2 -Z 100000 -s P250 ..\seq\mgstm1.aa q > results\test_m1.ss_t_p25sse2
 rem "done"
 rem "starting prss/prfx36"
 ..\bin\ssearch36_t -q -k 1000 -A ..\seq\mgstm1.aa ..\seq\xurt8c.aa  > results\test_m1.rss
@@ -65,8 +62,6 @@ rem "done"
 rem "starting ssearch3"
 ..\bin\ssearch36 -S -q -z 2 ..\seq\mgstm1.aa q > results\test_m1.ss_z2
 ..\bin\ssearch36 -q -s P250 ..\seq\mgstm1.aa q > results\test_m1.ss_p25 
-..\bin\ssearch36sse2 -S -q -z 2 ..\seq\mgstm1.aa q > results\test_m1.ss_z2_sse2
-..\bin\ssearch36sse2 -q -s P250 ..\seq\mgstm1.aa q > results\test_m1.ss_p25_sse2 
 rem "done"
 rem "starting tfastxy3"
 ..\bin\tfastx36 -q ..\seq\mgstm1.aa M > results\test_m1.tx2 
