@@ -72,7 +72,7 @@ build_ares_code(unsigned char *aa0, int n0,
   struct rstruct rst;
   struct a_res_str *my_ares_p, *cur_ares_p;
   struct a_struct *aln_p;
-  struct dyn_string_str *annot_str_dyn;
+  struct dyn_string_str *annot_str_dyn, *align_code_dyn;
   long loffset;		/* loffset is offset from beginning of real sequence */
   long l_off;		/* l_off is the the virtual coordinate of residue 1 */
   int seqc_max, annc_max;
@@ -81,6 +81,7 @@ build_ares_code(unsigned char *aa0, int n0,
   int score_delta;
   int variant_calc_done = 0;
 
+  align_code_dyn = init_dyn_string(2048, 2048);
   annot_str_dyn = init_dyn_string(2048, 2048);
 
   if (seq->annot_p) {aa1_ann = seq->annot_p->aa1_ann;}
@@ -141,7 +142,7 @@ build_ares_code(unsigned char *aa0, int n0,
 			    aa1,seq->n1, 
 			    aln_p,cur_ares_p,
 			    ppst,
-			    seq_code,seqc_max,
+			    align_code_dyn,
 			    m_msp->ann_arr,
 			    m_msp->aa0a, m_msp->annot_p,
 			    aa1_ann, seq->annot_p,
@@ -153,6 +154,14 @@ build_ares_code(unsigned char *aa0, int n0,
 	cur_ares_p->aln_code_n = seq_code_len = strlen(seq_code);
 	if (seq_code[1] == '0' && seq_code[0] == '=') {
 	  fprintf(stderr," code begins with 0: %s\n", seq_code);
+	}
+
+	if (align_code_dyn != NULL) {
+	  seq_code_len = strlen(align_code_dyn->string);
+	  cur_ares_p->aln_code = (char *)calloc(seq_code_len+2,sizeof(char));
+	  cur_ares_p->aln_code_n = seq_code_len+2;
+	  SAFE_STRNCPY(cur_ares_p->aln_code,align_code_dyn->string, seq_code_len+2);
+	  reset_dyn_string(align_code_dyn);
 	}
 
 	if (annot_str_dyn != NULL) {

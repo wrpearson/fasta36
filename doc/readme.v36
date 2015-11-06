@@ -9,6 +9,7 @@ BLAST could show multiple HSPs, FASTA did not.
 >>Nov. 6, 2015
 [cal_cons2.c, initfa.c, mshowbest.c, dropfx2.c, dropfz3.c]
 Implement BLAST+ BTOP alignment format, available with -m 8CB or -m 9B.
+Convert previously static calc_code alignment strings to dynamic strings.
 
 >>Oct. 13, 2015	[released as fasta-36.3.8b]
 [initfa.c, pssm_asn_subs.c]

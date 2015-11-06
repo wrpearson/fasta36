@@ -142,7 +142,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   char tmp_str[20];
   char info_str[200];
   char bline[2048], *qline_p, *bline_p, *bl_ptr, *bp, *bp1, fmt[40];
-  struct dyn_string_str *annot_var_dyn;
+  struct dyn_string_str *annot_var_dyn, *align_code_dyn;
   char *annot_var_s10;
   int tmp_len, ttmp_len, l_llen, desc_llen, ranlib_done;
   char name0[80], name0s[80], name1[200];
@@ -177,6 +177,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct lmf_str *m_fptr;
   int ngap;
 
+  align_code_dyn = init_dyn_string(4096, 4096);
   annot_var_dyn = init_dyn_string(4096, 4096);
 
   qline_p = m_msp->qtitle;
@@ -476,11 +477,15 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 	lbits = zs_to_bit(lzscore, m_msp->n0, bbp->seq->n1);
 
 	NULL_dyn_string(annot_var_dyn);
+	NULL_dyn_string(align_code_dyn);
 
 	lc=calc_code(aa0[bbp->frame],m_msp->n0,
 		     aa1,n1, 
 		     l_aln_p, cur_ares_p,
-		     ppst, seqc0,maxc,  m_msp->ann_arr,
+		     ppst, 
+		     align_code_dyn,
+		     /*	seqc0, maxc, */
+		     m_msp->ann_arr,
 		     m_msp->aa0a, m_msp->annot_p,
 		     aa1a, bbp->seq->annot_p,
 		     annot_var_dyn,
@@ -503,12 +508,12 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 	  }
 	}
 	fprintf (fp, "  s %d %.1f\n", lsw_score, lbits);
-	do_lav(fp, l_aln_p, seqc0, percent, 0);
+	do_lav(fp, l_aln_p, align_code_dyn->string, percent, 0);
 
 	if (ppst->nseq == 1) {
 	  fprintf (fp, "a {\n");
 	  fprintf (fp, "  s %d %.1f\n", lsw_score, lbits);
-	  do_lav(fp, l_aln_p, seqc0, percent, 1);
+	  do_lav(fp, l_aln_p, align_code_dyn->string, percent, 1);
 	}
 
 	cur_ares_p = cur_ares_p->next;
@@ -517,6 +522,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif		/* ifdef LALIGN */
 
       NULL_dyn_string(annot_var_dyn);
+      NULL_dyn_string(align_code_dyn);
 
       nc=calc_cons_a(aa0[bbp->frame],m_msp->n0, aa1, n1,
 		     &lc,l_aln_p, cur_ares_p, ppst, 
