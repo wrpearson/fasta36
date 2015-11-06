@@ -77,6 +77,7 @@ struct savestr
 struct update_code_str {
   int p_op_idx;
   int p_op_cnt;
+  int btop_enc;
   int show_code;
   int cigar_order;
   int show_ext;

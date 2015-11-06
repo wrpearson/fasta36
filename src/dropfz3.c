@@ -76,6 +76,7 @@ struct savestr
 struct update_code_str {
   int p_op_idx;
   int p_op_cnt;
+  int btop_enc;
   int show_code;
   int cigar_order;
   int show_ext;
@@ -3151,15 +3152,16 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 2:		/* frame shift +2, then match */
-      if (calc_func_mode == CALC_CODE) {
-	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
-      }
-
       nfs++;
       i0 += 2;
       *sp0_p = '/';
       *sp1_p = '-';
       *spa_p = M_DEL;
+
+      if (calc_func_mode == CALC_CODE) {
+	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,*sp0_p,*sp1_p);
+      }
+
       if (cumm_seq_score) *i_spa++ = ppst->gshift;
 
       if (calc_func_mode == CALC_CONS) {
@@ -3229,6 +3231,10 @@ calc_cons_u( /* inputs */
 
       *spa_p = align_type(itmp, *sp0_p, *sp1_p, 0, aln, ppst->pam_x_id_sim);
 
+      if (calc_func_mode == CALC_CODE) {
+	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 3, *spa_p,*sp0_p,*sp1_p);
+      }
+
       d1_alen++;
       if (*spa_p == M_IDENT) {d1_ident++;}
 
@@ -3264,16 +3270,16 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 4:		/* frame shift, -1, then match */
-      if (calc_func_mode == CALC_CODE) {
-        update_code(al_str, al_str_n-strlen(al_str), update_data_p, 4, *spa_p,'-','-');
-      }
-
       nfs++;
       i0 += 4;
 
       *sp0_p = '\\';
       *sp1_p = '-';
       *spa_p = M_DEL;
+
+      if (calc_func_mode == CALC_CODE) {
+        update_code(al_str, al_str_n-strlen(al_str), update_data_p, 4, *spa_p,*sp0_p,*sp1_p);
+      }
 
       if (calc_func_mode == CALC_CONS) {sp0_p++; sp1_p++; spa_p++;}
 
@@ -3335,6 +3341,11 @@ calc_cons_u( /* inputs */
       }
 
       *spa_p = align_type(itmp, *sp0_p, *sp1_p, 0, aln, ppst->pam_x_id_sim);
+
+      if (calc_func_mode == CALC_CODE) {
+	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 3, *spa_p,*sp0_p,*sp1_p);
+      }
+
       d1_alen++;
       if (*spa_p == M_IDENT) {d1_ident++;}
       if (cumm_seq_score) *i_spa++ = itmp;
@@ -3358,11 +3369,6 @@ calc_cons_u( /* inputs */
       lenc++;
       break;
     case 5:		/* insertion in 0 */
-      if (calc_func_mode == CALC_CODE) {
-	*spa_p = 5;
-	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 5, *spa_p,'-','-');
-      }
-
       if (have_ann && calc_func_mode == CALC_CONS) {
 	*sp1a_p++ = *sp0a_p++ = ' ';
       }
@@ -3381,20 +3387,27 @@ calc_cons_u( /* inputs */
       *sp0_p = f_str->weight_c[0][ap0[i0]].c3;
       *sp1_p = '-';
       *spa_p = M_DEL;
+
+      if (calc_func_mode == CALC_CODE) {
+	*spa_p = 5;
+	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 5, *spa_p,*sp0_p,*sp1_p);
+      }
+
       lenc++;
       ngap_p++;
 
       if (calc_func_mode == CALC_CONS) {sp0_p++; sp1_p++; spa_p++;}
       break;
     case 0:		/* insertion in 1 */
-      if (calc_func_mode == CALC_CODE) {
-	*spa_p = 5; /* indel code */
-	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 0, *spa_p,'-','-');
-      }
 
       *sp0_p = '-';
       *sp1_p = sq[ap1[i1]];
       *spa_p = M_DEL;
+
+      if (calc_func_mode == CALC_CODE) {
+	*spa_p = 5; /* indel code */
+	update_code(al_str, al_str_n-strlen(al_str), update_data_p, 0, *spa_p,*sp0_p,*sp1_p);
+      }
 
       if (cumm_seq_score) {
 	if (prev_match) *i_spa = ppst->gdelval;
@@ -3585,17 +3598,24 @@ init_update_data(show_code) {
     return NULL;
   }
 
+  update_data_p->p_op_idx = -1;
   update_data_p->p_op_cnt = 0;
   update_data_p->show_code = show_code;
+  update_data_p->btop_enc = 0;
 
   if ((show_code & SHOW_CODE_CIGAR) == SHOW_CODE_CIGAR) {
     update_data_p->op_map = cigar_code;
     update_data_p->cigar_order = 1;
   }
-  else {
+  else if ((show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN) {
     update_data_p->op_map = ori_code;
     update_data_p->cigar_order = 0;
   }
+  else if ((show_code & SHOW_CODE_BTOP) == SHOW_CODE_BTOP) {
+    update_data_p->op_map = ori_code;
+    update_data_p->cigar_order = 0;
+    update_data_p->btop_enc = 1;
+  }    
 
   if ((show_code & SHOW_CODE_EXT) == SHOW_CODE_EXT) {
     update_data_p->show_ext = 1;
@@ -3613,7 +3633,14 @@ close_update_data(char *al_str, int al_str_max,
   char tmp_cnt[MAX_SSTR];
 
   if (!up_dp) return;
-  sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
+
+  if (up_dp->btop_enc) {
+    sprintf(tmp_cnt,"%d",up_dp->p_op_cnt);
+    up_dp->p_op_cnt = 0;
+  }
+  else {
+    sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
+  }
   strncat(al_str,tmp_cnt,al_str_max);
 
   free(up_dp);
@@ -3647,12 +3674,51 @@ sprintf_code(char *tmp_str, struct update_code_str *up_dp, int op_idx, int op_cn
   }
 }
 
+/* only called for btop alignment encoding, for identity, update
+   count, otherwise, print previous count and current difference.
+   assumes that up_dp->p_op_cnt only tracks identity
+
+   for fx/fz, op=0, 
+*/
+
+static void
+sprintf_btop(char *tmp_str, 
+	     struct update_code_str *up_dp, 
+	     int op, int sim_code,
+	     unsigned char sp0, unsigned char sp1)
+{
+  char local_str[MAX_SSTR];
+  local_str[0]='\0';
+
+  tmp_str[0] = '\0';
+
+  /* only aligned identities update counts */
+  if (op==3 && sim_code == M_IDENT) {
+    up_dp->p_op_cnt++;
+    return;
+  }
+  else {
+    if (up_dp->p_op_cnt > 0) {
+      sprintf(local_str,"%d",up_dp->p_op_cnt);
+    }
+    up_dp->p_op_cnt = 0;
+    sprintf(tmp_str,"%s%c%c",local_str,sp0,sp1);
+  }
+}
+
 static void
 update_code(char *al_str, int al_str_max, 
 	    struct update_code_str *up_dp, int op, 
 	    int sim_code,  unsigned char sp0, unsigned char sp1)
 {
   char tmp_cnt[MAX_SSTR];
+  tmp_cnt[0]='\0';
+
+  if (up_dp->btop_enc) {
+    sprintf_btop(tmp_cnt, up_dp, op, sim_code, sp0, sp1);
+    strncat(al_str,tmp_cnt,al_str_max);
+    return;
+  }
 
   /* there are two kinds of "op's", one time and accumulating */
   /* op == 2, 4 are one-time: */

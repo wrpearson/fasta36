@@ -137,7 +137,7 @@ void set_opt_disp_defs(char opt_char, struct opt_def_str *options, int type,
 
    **************************************************************** */
 
-static char m_opt_descr[] ="Output/alignment format;\n      0 - standard \":. \" alignment; 1 - \" xX\"; 2 - \".MS..\"; 3 - separate >fasta entries;\n      4 - \"---\" alignment map; 5 - 0+4; 6 - <html>;\n      8 - BLAST tabular; 8C commented BLAST tabular;\n      B - BLAST Query/Sbjct alignments; BB - complete BLAST output;\n      9 - FASTA tabular; 9c - FASTA tabular encoded; 9C FASTA tabular CIGAR encoded;\n     10 - parseable key:value; 11 - lav for LALIGN;\n      A - aligned residue score\n      F - 'F0,6,9c out_file' - alternate output formats to files;";
+static char m_opt_descr[] ="Output/alignment format;\n      0 - standard \":. \" alignment; 1 - \" xX\"; 2 - \".MS..\"; 3 - separate >fasta entries;\n      4 - \"---\" alignment map; 5 - 0+4; 6 - <html>;\n      8 - BLAST tabular; 8C commented BLAST tabular; 8CC BLAST tab CIGAR, 8CD BLAST tab CIGAR ext; 8CB BLAST tab BTOP\n      B - BLAST Query/Sbjct alignments; BB - complete BLAST output;\n      9 - FASTA tabular; 9c - FASTA tabular encoded; 9C FASTA tabular CIGAR encoded; 9B FASTA tabular BTOP encoded\n     10 - parseable key:value; 11 - lav for LALIGN;\n      A - aligned residue score\n      F - 'F0,6,9c out_file' - alternate output formats to files;";
 
 struct opt_def_str g_options[] = {
   {'C', 1, "aname_length", "length of the query/sbjct name in alignments", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -861,6 +861,7 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (ctmp=='d') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
     else if (ctmp=='C') {this->show_code = SHOW_CODE_CIGAR;}
     else if (ctmp=='D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
+    else if (ctmp=='B') {this->show_code = SHOW_CODE_BTOP;}
     else if (ctmp=='i') {this->show_code = SHOW_CODE_ID;}
     else if (ctmp=='I') {this->show_code = SHOW_CODE_IDD;}
   }
@@ -875,6 +876,7 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (ctmp2 == 'd') {this->show_code = SHOW_CODE_ALIGN + SHOW_CODE_EXT;}
     else if (ctmp2 == 'C') {this->show_code = SHOW_CODE_CIGAR;}
     else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
+    else if (ctmp2 == 'B') {this->show_code = SHOW_CODE_BTOP;}
   }
 }
 
