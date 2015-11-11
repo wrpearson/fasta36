@@ -52,27 +52,28 @@ $color_sep_str = '~';
 
 GetOptions(
     "lav" => \$lav,
+    "no-over" => \$no_over,
     "bound_comment" => \$bound_comment,
-    "no_doms" => \$no_doms,
-    "no-doms" => \$no_doms,
-    "nodoms" => \$no_doms,
-    "neg" => \$neg_doms,
-    "neg_doms" => \$neg_doms,
-    "neg-doms" => \$neg_doms,
-    "negdoms" => \$neg_doms,
-    "min_nodom=i" => \$min_nodom,
-    "no_feats" => \$no_feats,
-    "no-feats" => \$no_feats,
-    "nofeats" => \$no_feats,
-    "data:s" => \$data_file,
-    "sstr" => \$sstr,
-    "h|?" => \$shelp,
-    "help" => \$help,
-    );
+	   "no_doms" => \$no_doms,
+	   "no-doms" => \$no_doms,
+	   "nodoms" => \$no_doms,
+	   "neg" => \$neg_doms,
+	   "neg_doms" => \$neg_doms,
+	   "neg-doms" => \$neg_doms,
+	   "negdoms" => \$neg_doms,
+	   "min_nodom=i" => \$min_nodom,
+	   "no_feats" => \$no_feats,
+	   "no-feats" => \$no_feats,
+	   "nofeats" => \$no_feats,
+	   "data:s" => \$data_file,
+	   "sstr" => \$sstr,
+	   "h|?" => \$shelp,
+	   "help" => \$help,
+	  );
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV || $data_file;
+pod2usage(1) unless (-p STDIN || -f STDIN || @ARGV || $data_file);
 
 #my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
 
@@ -101,8 +102,9 @@ if ($lav) {
   $no_feats = 1;
 }
 
-if ($sstr) {@annot_types{@ssr_keys} = @ssr_vals;}
-else {
+if ($sstr) {
+  @annot_types{@ssr_keys} = @ssr_vals;
+} else {
   @annot_types{@feat_keys} = @feat_vals unless ($no_feats);
   @annot_types{@dom_keys} = @dom_vals unless ($no_doms);
 }
@@ -124,18 +126,16 @@ unless ($no_feats || $sstr) {
 my ($query, $seq_len) =  @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
 #if it's a file I can open, read and parse it
 
 unless ($data_file) {
-  if ($query !~ m/\|/ && open($ANN_F, $query)) {
+  unless ($query && $query =~ m/[\|:]/ ) {
 
-    while (my $a_line = <$ANN_F>) {
+    while (my $a_line = <>) {
       $a_line =~ s/^>//;
       chomp $a_line;
       push @annots, lwp_annots($a_line, $get_annot_sub);
@@ -143,14 +143,15 @@ unless ($data_file) {
   } else {
     push @annots, lwp_annots("$query\t$seq_len", $get_annot_sub);
   }
-}
-else {	# just read the data from a file, give to $get_annot_sub().
+} else {   # just read the data from a file, give to $get_annot_sub().
   my %annot_data = (seq_info => ">$data_file DATA");
 
   open(DATA_IN, $data_file) || die "Cannot read $data_file";
 
   my $lwp_data = "";
-  while (<DATA_IN>) { $lwp_data .= $_;}
+  while (<DATA_IN>) {
+    $lwp_data .= $_;
+  }
 
   $annot_data{list} = $get_annot_sub->(\%annot_types, $lwp_data,0);
 
@@ -162,7 +163,11 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
+      my $d_name = $annot->[-1];
+      if ($bound_comment) {
+	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
+      }
+      $annot->[-1] .= $color_sep_str.$domains{$d_name};
     }
     print join("\t",@$annot),"\n";
   }
@@ -179,18 +184,15 @@ sub lwp_annots {
 
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+  } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
     $sdb = lc($1);
-#    $id = $2;
-    $acc = $2;
-  }
-  elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
+    $id = $2;
+#     $acc = $2;
+  } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
-#    $id = $2;
-    $acc = $2;
-  }
-  else {
+    $id = $2;
+#    $acc = $2;
+  } else {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
 
@@ -201,8 +203,7 @@ sub lwp_annots {
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
     $lwp_features = get("$up_base/$acc/$gff_post");
-  }
-  elsif ($id && ($id =~ m/^\w+$/)) {
+  } elsif ($id && ($id =~ m/^\w+$/)) {
     $lwp_features = get("$up_base/$id/$gff_post");
   }
 
@@ -222,14 +223,14 @@ sub gff2_annots {
 
   $seq_len = 0;
 
-  my @feats2 = ();	# features with start/stop, for checking overlap, adding negative
-  my @sites = ();	# sites with one position
+  my @feats2 = (); # features with start/stop, for checking overlap, adding negative
+  my @sites = ();  # sites with one position
 
   my @gff_lines = split(/\n/m,$annot_data);
 
   my $gff_line = shift @gff_lines; # skip ##gff
-  shift @gff_lines;	# ##Type Protein
-  shift @gff_lines;	# ''
+  shift @gff_lines;		   # ##Type Protein
+  shift @gff_lines;		   # ''
   $gff_line = shift @gff_lines;
   ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
   $seq_len = $seq_end if ($seq_end > $seq_len);
@@ -251,45 +252,19 @@ sub gff2_annots {
 	$comments[0] = $comment;
       }
 
-      # select comments with 'Note='
-      @comments = grep {/Note /} @comments;
-      for my $comment ( @comments) {
-	$comment =~ s/^Note\s+//;
-	$comment =~ s/"//g;
-      }
+      $comments[0] =~ s/^Signature\s*//;
 
       # select first comment
       $value = $comments[0];
 
-      if ($label =~ m/polypeptide_domain/ || $label =~ m/polypeptide_repeat/) {
-	$value = domain_name($label,$value);
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Helix/) {
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Beta/) {
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/mutated_variant_site/ || $label =~ m/natural_variant_site/) {
-	next unless $value;
-	my ($mutant) = ($value =~ m/->\s(\w)/);
-	next unless $mutant;
-	my $info = $comments[1];
-	if ($comments[1] =~ /UniProtKB FT ID/i) {
-	  $info = join('; ',@comments[2 .. $#comments]);
-	}
-	$info = '' unless $info;
-	if ($label =~ m/mutated_variant_site/) {$info = "Mutant: $info";}
-	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
-      }
-      else {
-	$value = '' unless $value;
-#	print join("\t",($pos, $annot_types->{$label})),"\n";
-#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
-	if ($feats_text{$label}) {
+      $value = '' unless $value;
+      if ($feats_text{$label}) {
 	  my $info = $feats_text{$label};
-	  if ($value) {$info .= ": $value";}
+	  if ($value) {
+	    $info .= ": $value";
+	  }
 	  push @sites, [$pos, $annot_types->{$label}, "-", $info];
-	}
-	else {
+	} else {
 	  push @sites, [$pos, $annot_types->{$label}, "-", $value];
 	}
       }
@@ -298,29 +273,30 @@ sub gff2_annots {
 
   @feats2 = sort { $a->[0] <=> $b->[0] } @feats2;
 
-  # check for containment
-  my $have_contained = 0;
-  my $last_container = 0;
-  for (my $i=1; $i < scalar(@feats2); $i++) {
-    if ($feats2[$i]->[0] >= $feats2[$last_container]->[0] && $feats2[$i]->[2] <= $feats2[$last_container]->[2]) {
-      $feats2[$i]->[1] = 'Delete';
-      $have_contained = 1;
+  if ($no_over) {
+    # check for containment
+    my $have_contained = 0;
+    my $last_container = 0;
+    for (my $i=1; $i < scalar(@feats2); $i++) {
+      if ($feats2[$i]->[0] >= $feats2[$last_container]->[0] && $feats2[$i]->[2] <= $feats2[$last_container]->[2]) {
+	$feats2[$i]->[1] = 'Delete';
+	$have_contained = 1;
+      } else {
+	$last_container=$i;
+      }
     }
-    else {
-      $last_container=$i;
+
+    if ($have_contained) {
+      @feats2 = grep { $_->[1] !~ /Delete/ } @feats2;
     }
-  }
 
-  if ($have_contained) {
-    @feats2 = grep { $_->[1] !~ /Delete/ } @feats2;
-  }
-
-  # ensure that domains do not overlap
-  for (my $i=1; $i < scalar(@feats2); $i++) {
-    my $diff = $feats2[$i-1]->[2] - $feats2[$i]->[0];
-    if ($diff >= 0) {
-      $feats2[$i-1]->[2] = $feats2[$i]->[0]+ int($diff/2);
-      $feats2[$i]->[0] = $feats2[$i-1]->[2] + 1;
+    # ensure that domains do not overlap
+    for (my $i=1; $i < scalar(@feats2); $i++) {
+      my $diff = $feats2[$i-1]->[2] - $feats2[$i]->[0];
+      if ($diff >= 0) {
+	$feats2[$i-1]->[2] = $feats2[$i]->[0]+ int($diff/2);
+	$feats2[$i]->[0] = $feats2[$i-1]->[2] + 1;
+      }
     }
   }
 
@@ -342,8 +318,8 @@ sub gff2_annots {
   my @feats = ();
   for my $feat (@feats2, @n_feats2) {
     if (!$lav)  {
-      push @feats, [$feat->[0], '[', '-', $feat->[-1] ];
-      push @feats, [$feat->[2], ']', '-', ""];
+      push @feats, [$feat->[0], '-', $feat->[2], $feat->[-1] ];
+#      push @feats, [$feat->[2], ']', '-', ""];
     }
     else {
       push @feats, [$feat->[0], $feat->[2], $feat->[-1]];

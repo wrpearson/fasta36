@@ -94,7 +94,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV;
+pod2usage(1) unless (-p STDIN || -f STDIN || @ARGV);
 
 my $connect = "dbi:mysql(AutoCommit=>1,RaiseError=>1):database=$db";
 $connect .= ";host=$host" if $host;
@@ -184,16 +184,14 @@ my ($query, $seq_len) = @ARGV;
 
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-if ($query !~ m/\|/ && open($ANN_F, $query)) {
+unless ($query && $query =~ m/[\|:]/ ) {
 
-  while (my $a_line = <$ANN_F>) {
+  while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
     my $annots_ref = show_annots($a_line, $get_annot_sub);

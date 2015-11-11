@@ -17,17 +17,25 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-# ann_feats_up_www2.pl gets an annotation file from fasta36 -V with a line of the form:
+# ann_ipr_www.pl gets an annotation file from fasta36 -V with a line of the form:
+
+
+# gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
+
+# this version only annotates sequences known to InterPro
+# and only provides domain information
+
+# This script uses the dbfetch iprmc database, which REQUIRES a
+# Uniprot Acc (not ID).  If an Acc is not provided, we must get an ACC
+# first from the ID.
 
 # SP:GSTM1_HUMAN P09488 218
 #
 # it must:
 # (1) read in the line
 # (2) parse it to get the up_acc
-# (3) return the tab delimited features
+# (3) return the tab delimited domains
 #
-
-# this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 
 use strict;
 
@@ -36,27 +44,55 @@ use Pod::Usage;
 use LWP::Simple;
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb';
-my $gff_post = "gff2";
+# use dbfetch and IPRMC to get Interpro domain coordinates
+# http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=iprmc&id=gstm1_human&format=gff2&style=default&Retrieve=Retrieve
+
+my $ipr_base = 'http://www.ebi.ac.uk/Tools/dbfetch/dbfetch?db=iprmc&id=';
+my $gff_post = '&format=gff2&style=default&Retrieve=Retrieve';
+
+################################################################
+#
+##gff-version 2
+##Type Protein
+# InterPro Matches for UniProtKB entries 
+##source-version InterProMatches 49.0
+##date 20-NOV-14
+
+##sequence-region P09488 1 218
+# P09488	InterProScan	region	99	190	1.1999999998684077E-49	.	.	Signature GENE3D G3DSA:1.20.1050.10 "G3DSA:1.20.1050.10" T ; InterPro IPR010987 "Glutathione S-transferase, C-terminal-like"
+# P09488	InterProScan	region	2	98	5.800000000494973E-51	.	.	Signature GENE3D G3DSA:3.40.30.10 "G3DSA:3.40.30.10" T ; InterPro IPR012336 "Thioredoxin-like fold"
+# P09488	InterProScan	region	105	189	3.900000000000007E-16	.	.	Signature PFAM PF00043 "GST_C" T ; InterPro IPR004046 "Glutathione S-transferase, C-terminal"
+# P09488	InterProScan	region	4	82	7.299999999999985E-21	.	.	Signature PFAM PF02798 "GST_N" T ; InterPro IPR004045 "Glutathione S-transferase, N-terminal"
+# P09488	InterProScan	region	31	43	1.1000015067164208E-25	.	.	Signature PRINTS PR01267 "GSTRNSFRASEM" T ; InterPro IPR003081 "Glutathione S-transferase, Mu class"
+# P09488	InterProScan	region	44	56	1.1000015067164208E-25	.	.	Signature PRINTS PR01267 "GSTRNSFRASEM" T ; InterPro IPR003081 "Glutathione S-transferase, Mu class"
+# P09488	InterProScan	region	87	98	1.1000015067164208E-25	.	.	Signature PRINTS PR01267 "GSTRNSFRASEM" T ; InterPro IPR003081 "Glutathione S-transferase, Mu class"
+# P09488	InterProScan	region	139	152	1.1000015067164208E-25	.	.	Signature PRINTS PR01267 "GSTRNSFRASEM" T ; InterPro IPR003081 "Glutathione S-transferase, Mu class"
+# P09488	InterProScan	region	1	88	0.0	.	.	Signature PROFILE PS50404 "GST_NTER" T ; InterPro IPR004045 "Glutathione S-transferase, N-terminal"
+# P09488	InterProScan	region	90	208	0.0	.	.	Signature PROFILE PS50405 "GST_CTER" T ; InterPro IPR010987 "Glutathione S-transferase, C-terminal-like"
+# P09488	InterProScan	region	1	217	0.0	.	.	Signature PANTHER PTHR11571 "PTHR11571" T
+# P09488	InterProScan	region	1	217	0.0	.	.	Signature PANTHER PTHR11571:SF117 "PTHR11571:SF117" T
+# P09488	InterProScan	region	86	217	8.190000000746436E-47	.	.	Signature SSF SSF47616 "SSF47616" T ; InterPro IPR010987 "Glutathione S-transferase, C-terminal-like"
+# P09488	InterProScan	region	3	85	3.339999999911062E-23	.	.	Signature SSF SSF52833 "SSF52833" T ; InterPro IPR012336 "Thioredoxin-like fold"
+###
 
 my %domains = ();
 my $domain_cnt = 0;
 
 my $hostname = `/bin/hostname`;
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $bound_comment, $shelp, $help) = (0,0,0,0,0,0,0,0,0,0);
-my ($min_nodom) = (10);
+my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $shelp, $help) = (0,0,0,0,1,0,0,0,0);
+my $dom_dbs = "PFAM+PROFILE+GENE3D";
 
-my $color_sep_str = " :";
-$color_sep_str = '~';
+my ($min_nodom) = (10);
 
 GetOptions(
     "lav" => \$lav,
     "no-over" => \$no_over,
-    "bound_comment" => \$bound_comment,
 	   "no_doms" => \$no_doms,
 	   "no-doms" => \$no_doms,
 	   "nodoms" => \$no_doms,
+    	   "dom_dbs:s" => \$dom_dbs,	# PF, PS, 
+    	   "dbs:s" => \$dom_dbs,
 	   "neg" => \$neg_doms,
 	   "neg_doms" => \$neg_doms,
 	   "neg-doms" => \$neg_doms,
@@ -73,9 +109,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV || $data_file;
-
-#my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
+pod2usage(1) unless (-p STDIN || -f STDIN || @ARGV || $data_file);
 
 my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
 		   polypeptide_region mutated_variant_site natural_variant_site);
@@ -89,24 +123,21 @@ my %feats_label;
 my @feat_vals = ( '=','*','#','^','@','V','V');
 
 
-my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
-my @dom_vals = ( [ '[', ']'],[ '[', ']']);
 
-my @ssr_keys = qw(beta_strand alpha_helix);
-my @ssr_vals = ( [ '[', ']']);
 
 my %annot_types = ();
 
-my $get_annot_sub = \&gff2_annots;
+my $get_annot_sub = \&iprmc_annots;
 if ($lav) {
   $no_feats = 1;
 }
 
-if ($sstr) {
-  @annot_types{@ssr_keys} = @ssr_vals;
-} else {
-  @annot_types{@feat_keys} = @feat_vals unless ($no_feats);
-  @annot_types{@dom_keys} = @dom_vals unless ($no_doms);
+if ($dom_dbs) {
+  my @dom_db_list = split(/\+/,$dom_dbs);
+
+  for my $dom_db (@dom_db_list) {
+    $annot_types{$dom_db} = $dom_db;
+  }
 }
 
 if ($neg_doms) {
@@ -126,18 +157,16 @@ unless ($no_feats || $sstr) {
 my ($query, $seq_len) =  @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
 #if it's a file I can open, read and parse it
 
 unless ($data_file) {
-  if ($query !~ m/\|/ && open($ANN_F, $query)) {
+  unless ($query && $query =~ m/[\|:]/) {
 
-    while (my $a_line = <$ANN_F>) {
+    while (my $a_line = <>) {
       $a_line =~ s/^>//;
       chomp $a_line;
       push @annots, lwp_annots($a_line, $get_annot_sub);
@@ -165,13 +194,9 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      my $d_name = $annot->[-1];
-      if ($bound_comment) {
-	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
-      }
-      $annot->[-1] .= $color_sep_str.$domains{$d_name};
+      $annot->[-2] .= " :".$domains{$annot->[-1]};
     }
-    print join("\t",@$annot),"\n";
+    print join("\t",@{$annot}[0..3]),"\n";
   }
 }
 
@@ -201,23 +226,23 @@ sub lwp_annots {
   $acc =~ s/\.\d+// if ($acc);
 
   $annot_data{list} = [];
-  my $lwp_features = "";
+  my $lwp_domains = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc/$gff_post");
+    $lwp_domains = get($ipr_base . $acc . $gff_post);
   } elsif ($id && ($id =~ m/^\w+$/)) {
-    $lwp_features = get("$up_base/$id/$gff_post");
+    $lwp_domains = get($ipr_base . $id . $gff_post);
   }
 
-  if ($lwp_features && ($lwp_features !~ /ERROR/)) {
-    $annot_data{list} = $get_annot_sub->(\%annot_types, $lwp_features, $seq_len);
+  if ($lwp_domains && ($lwp_domains !~ /ERROR/)) {
+    $annot_data{list} = $get_annot_sub->(\%annot_types, $lwp_domains, $seq_len);
   }
 
   return \%annot_data;
 }
 
 # parses www.uniprot.org gff feature table
-sub gff2_annots {
+sub iprmc_annots {
   my ($annot_types, $annot_data, $seq_len) = @_;
 
   my ($acc, $pos, $end, $label, $value, $comment, $len);
@@ -225,81 +250,37 @@ sub gff2_annots {
 
   $seq_len = 0;
 
-  my @feats2 = (); # features with start/stop, for checking overlap, adding negative
+  my @feats2 = (); # domains with start/stop, for checking overlap, adding negative
   my @sites = ();  # sites with one position
 
   my @gff_lines = split(/\n/m,$annot_data);
 
-  my $gff_line = shift @gff_lines; # skip ##gff
-  shift @gff_lines;		   # ##Type Protein
-  shift @gff_lines;		   # ''
-  $gff_line = shift @gff_lines;
-  ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
-  $seq_len = $seq_end if ($seq_end > $seq_len);
+  while (my $gff_line = shift @gff_lines) {
+    chomp $gff_line;
+    if ($gff_line =~ m/^#sequence-region/) {
+      my @fields = split($gff_line, /\s+/);
+      $seq_end = $fields[-1];
+      last;
+    }
+  }
 
-  while ($gff_line = shift(@gff_lines)) {
+  while (my $gff_line = shift(@gff_lines)) {
     next if ($gff_line =~ m/^#/);
     chomp($gff_line);
 
     my @gff_line_arr = split(/\t/,$gff_line);
-    ($acc, $label, $pos, $end, $comment) = @gff_line_arr[(0,2,3,4,-1)];
+    ($acc, $pos, $end, $comment) = @gff_line_arr[(0,3,4,-1)];
 
-    # combine different binding sites
-    if ($annot_types->{$label}) {
+    # parse the comment to get signature (domain_db), domain_db_acc, interpro_acc, description
+    my ($domain_info, $dom_acc) = parse_ipr_comment($comment);
 
-      my @comments = ();
-      if ($comment =~ m/;/) {
-	@comments = split(/\s*;\s*/,$comment);
-      } else {
-	$comments[0] = $comment;
-      }
+    next unless $domain_info;
 
-      # select comments with 'Note='
-      @comments = grep {/Note /} @comments;
-      for my $comment ( @comments) {
-	$comment =~ s/^Note\s+//;
-	$comment =~ s/"//g;
-      }
+    push @feats2, [$pos, "-", $end, $domain_info, $dom_acc];
 
-      # select first comment
-      $value = $comments[0];
-
-      if ($label =~ m/polypeptide_domain/ || $label =~ m/polypeptide_repeat/) {
-	$value =~ s/\s+/_/g;
-	$value = domain_name($label,$value);
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Helix/) {
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Beta/) {
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/mutated_variant_site/ || $label =~ m/natural_variant_site/) {
-	next unless $value;
-	my ($mutant) = ($value =~ m/->\s(\w)/);
-	next unless $mutant;
-	my $info = $comments[1];
-	if ($comments[1] && $comments[1] =~ /UniProtKB FT ID/i) {
-	  $info = join('; ',@comments[2 .. $#comments]);
-	}
-	$info = '' unless $info;
-	if ($label =~ m/mutated_variant_site/) {
-	  $info = "Mutant: $info";
-	}
-	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
-      } else {
-	$value = '' unless $value;
-	#	print join("\t",($pos, $annot_types->{$label})),"\n";
-	#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
-	if ($feats_text{$label}) {
-	  my $info = $feats_text{$label};
-	  if ($value) {
-	    $info .= ": $value";
-	  }
-	  push @sites, [$pos, $annot_types->{$label}, "-", $info];
-	} else {
-	  push @sites, [$pos, $annot_types->{$label}, "-", $value];
-	}
-      }
-    }
+    $value = '' unless $value;
+    #	print join("\t",($pos, $annot_types->{$label})),"\n";
+    #	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
   }
 
   @feats2 = sort { $a->[0] <=> $b->[0] } @feats2;
@@ -337,19 +318,20 @@ sub gff2_annots {
     my $last_end = 0;
     for my $feat ( @feats2 ) {
       if ($feat->[0] - $last_end > $min_nodom) {
-	push @n_feats2, [$last_end+1, "-", $feat->[0]-1, "NODOM"];
+	push @n_feats2, [$last_end+1, "-", $feat->[0]-1, "NODOM", ""];
       }
       $last_end = $feat->[2];
     }
     if ($seq_len - $last_end > $min_nodom) {
-      push @n_feats2, [$last_end+1, "-", $seq_len, "NODOM"];
+      push @n_feats2, [$last_end+1, "-", $seq_len, "NODOM", ""];
     }
   }
 
   my @feats = ();
+
   for my $feat (@feats2, @n_feats2) {
     if (!$lav)  {
-      push @feats, [$feat->[0], '-', $feat->[2], $feat->[-1] ];
+      push @feats, [$feat->[0], '-', $feat->[2], $feat->[-2], $feat->[-1] ];
 #      push @feats, [$feat->[2], ']', '-', ""];
     }
     else {
@@ -359,7 +341,40 @@ sub gff2_annots {
 
   @feats = sort { $a->[0] <=> $b->[0] } (@sites, @feats);
 
+  # now that domains are sorted, give them names
+  for my $feat ( @feats ) {
+    $feat->[-2] = domain_name($feat->[-2],$feat->[-1]);
+  }
+
   return \@feats;
+}
+
+sub parse_ipr_comment {
+  my ($comment_str) = @_;
+
+  my @comments = split(/\s+;\s+/,$comment_str);
+  my @comment_info = ();
+  my $ipr_info = "";
+  $comments[0] =~ s/^Signature\s+//;
+
+  return ("","") unless @comments;
+
+  for my $comment (@comments) {
+    my %ipr_data = ();
+    @ipr_data{qw(db acc descr)} = ($comment =~ m/(\S+)\s+(\S+)\s+"([^"]+)"/);
+    next if $ipr_data{db} =~ m/PRINTS/;
+    $ipr_data{descr} =~ s/\s+/_/g;
+    push @comment_info, \%ipr_data;
+  }
+
+  my $primary_acc = $comment_info[0]->{acc};
+
+  for my $comment (@comment_info) {
+    if ($comment->{db} =~ m/InterPro/) {
+      return ("$primary_acc:".$comment->{descr},$comment->{acc});
+    }
+  }
+  return ("","");
 }
 
 # domain name takes a uniprot domain label, removes comments ( ;
@@ -371,26 +386,19 @@ sub gff2_annots {
 
 sub domain_name {
 
-  my ($label, $value) = @_;
+  my ($value, $ipr_acc) = @_;
 
   $value = 'UnDef' unless $value;
 
-  if ($label =~ /Domain|Repeat/i) {
-    $value =~ s/;.*$//;
-    $value =~ s/\.\s*$//;
-    $value =~ s/\s+\d+$//;
-    if (!defined($domains{$value})) {
-      $domain_cnt++;
-      $domains{$value} = $domain_cnt;
-    }
-    return $value;
+  $value =~ s/;.*$//;
+  $value =~ s/\.\s*$//;
+  $value =~ s/\s+\d+$//;
+  if (!defined($domains{$ipr_acc})) {
+    $domain_cnt++;
+    $domains{$ipr_acc} = $domain_cnt;
   }
-  else {
-    return $value;
-  }
+  return $value;
 }
-
-
 
 __END__
 
@@ -398,11 +406,11 @@ __END__
 
 =head1 NAME
 
-ann_feats_up_www2.pl
+ann_ipr_www.pl
 
 =head1 SYNOPSIS
 
- ann_feats_up_www2.pl --no_doms --no_feats --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_ipr_www.pl --no_doms --no_feats --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
@@ -420,56 +428,33 @@ ann_feats_up_www2.pl
 
 =head1 DESCRIPTION
 
-C<ann_feats_up_www2.pl> extracts feature, domain, and repeat
+C<ann_ipr_www.pl> extracts feature, domain, and repeat
 information from the Uniprot DAS server through an XSLT transation
 provided by http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
 This server provides GFF descriptions of Uniprot entries, with most of
 the information provided in UniProt feature tables.
 
-C<ann_feats_up_www2.pl> is an alternative to C<ann_pfam.pl> and
+C<ann_ipr_www.pl> is an alternative to C<ann_pfam.pl> and
 C<ann_pfam.pl> that does not require a local MySQL copy of Pfam.
 
 Given a command line argument that contains a sequence accession
-(P09488), the program looks up the features available for that
+(P09488), the program looks up the domains available for that
 sequence and returns them in a tab-delimited format:
 
 >sp|P09488|GSTM1_HUMAN
-2	[	-	GST N-terminal :1
-7	V	F	Mutagen: Reduces catalytic activity 100- fold.
-23	*	-	MOD_RES: Phosphotyrosine (By similarity).
-33	*	-	MOD_RES: Phosphotyrosine (By similarity).
-34	*	-	MOD_RES: Phosphothreonine (By similarity).
-88	]	-	
-90	[	-	GST C-terminal :2
-108	V	Q	Mutagen: Reduces catalytic activity by half.
-108	V	S	Mutagen: Changes the properties of the enzyme toward some substrates.
-109	V	I	Mutagen: Reduces catalytic activity by half.
-116	#	-	BINDING: Substrate.
-116	V	A	Mutagen: Reduces catalytic activity 10-fold.
-116	V	F	Mutagen: Slight increase of catalytic activity.
-173	V	N	in allele GSTM1B; dbSNP:rs1065411.
-208	]	-	
-210	V	T	in dbSNP:rs449856.
+2	-	88	GST N-terminal :1
+90	-	208	GST C-terminal :2
 
-If features are provided, then a legend of feature symbols is provided
-as well:
-
- =*:phosphorylation
- ==:active site
- =@:site
- =^:binding
- =!:metal binding
-
-If the C<--lav> option is specified, domain and repeat features are
+If the C<--lav> option is specified, domain and repeat domains are
 presented in a different format for the C<lav2plt.pl> program:
 
   >sp|P09488|GSTM1_HUMAN
   2	88	GST N-terminal.
   90	208	GST C-terminal.
 
-C<ann_feats_up_www2.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_feats_up_www2.pl> option.  It can also be used with the lav2plt.pl
-program with the C<--xA "\!ann_feats_up_www2.pl --lav"> or C<--yA "\!ann_feats_up_www2.pl --lav"> options.
+C<ann_ipr_www.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_ipr_www.pl> option.  It can also be used with the lav2plt.pl
+program with the C<--xA "\!ann_ipr_www.pl --lav"> or C<--yA "\!ann_ipr_www.pl --lav"> options.
 
 =head1 AUTHOR
 

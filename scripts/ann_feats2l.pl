@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# copyright (c) 2014 by William R. Pearson and The Rector &
+# copyright (c) 2014,2015 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +74,6 @@ GetOptions(
     "no_feats" => \$no_feats,
     "no-feats" => \$no_feats,
     "nofeats" => \$no_feats,
-    "pfam26" => \$pfam26,
     "sstr" => \$sstr,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -82,11 +81,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV;
-if ($pfam26) {
-  $db = 'pfam26';
-  $no_feats = 1;
-}
+pod2usage(1) unless (@ARGV || -p STDIN || -f STDIN);
 
 my $connect = "dbi:mysql(AutoCommit=>1,RaiseError=>1):database=$db";
 $connect .= ";host=$host" if $host;
@@ -129,16 +124,9 @@ my $get_annots_acc = $dbh->prepare(qq(select acc, pos, end, label, value, len fr
 
 my $get_annots_refacc = $dbh->prepare(qq(select ref_acc, pos, end, label, value, len from features2 join $a_table using(acc) where ref_acc=? order by pos));
 
-my $get_pfam26_id = $dbh->prepare(qq(select pfamseq_acc as acc, seq_start as pos, seq_end as end, "DOMAIN" as label, pfamA_acc as value, length as len from pfamseq join pfamA_reg_full_significant using(auto_pfamseq) join pfamA using(auto_pfamA) where pfamseq_id=? and domain_evalue_score < 0.001 order by pos));
-
-my $get_pfam26_acc = $dbh->prepare(qq(select pfamseq_acc as acc, seq_start as pos, seq_end as end, "DOMAIN" as label, pfamA_acc as value, length as len from pfamseq join pfamA_reg_full_significant using(auto_pfamseq) join pfamA using(auto_pfamA) where pfamseq_acc=? and domain_evalue_score < 0.001 and in_full=1 order by pos));
-
 my $up_atable = "uniprot." . $a_table;
-my $get_pfam26_refacc = $dbh->prepare(qq(select ref_acc, seq_start as pos, seq_end as end, "DOMAIN" as label, pfamA_acc as value, length as len from $up_atable join pfamseq on(acc = pfamseq_acc) join pfamA_reg_full_significant using(auto_pfamseq) join pfamA using(auto_pfamA) where ref_acc=? and domain_evalue_score < 0.001 and in_full=1 order by pos));
 
 my $get_annots_sql = $get_annots_id;
-if ($pfam26) { $get_annots_sql = $get_annots_acc;}
-
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
@@ -154,16 +142,14 @@ unless ($no_feats || $sstr) {
 my ($query, $seq_len) =  @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-if ($query !~ m/\|/ && open($ANN_F, $query)) {
+unless ($query && $query =~ m/[\|:]/ ) {
 
-  while (my $a_line = <$ANN_F>) {
+  while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
     push @annots, show_annots($a_line, $get_annot_sub);
@@ -213,30 +199,14 @@ sub show_annots {
 
   # remove version number
   unless ($use_acc) {
-    unless ($pfam26) {
-      $get_annots_sql = $get_annots_id;
-    }
-    else {
-      $get_annots_sql = $get_pfam26_id;
-    }
+    $get_annots_sql = $get_annots_id;
     $get_annots_sql->execute($id);
   }
   else {
-    unless ($pfam26) {
-      unless ($sdb =~ m/ref/) {
-	$get_annots_sql = $get_annots_acc;
-      }
-      else {
-	$get_annots_sql = $get_annots_refacc;
-      }
-    }
-    else {
-      unless ($sdb =~ m/ref/) {
-	$get_annots_sql = $get_pfam26_acc;
-      }
-      else {
-	$get_annots_sql = $get_pfam26_refacc;
-      }
+    unless ($sdb =~ m/ref/) {
+      $get_annots_sql = $get_annots_acc;
+    } else {
+      $get_annots_sql = $get_annots_refacc;
     }
     $acc =~ s/\.\d+$//;
     $get_annots_sql->execute($acc);
@@ -328,8 +298,8 @@ sub get_fasta_annots {
 
   my @feats = ();
   for my $feat (@feats2, @n_feats2) {
-    push @feats, [$feat->[0], '[', '-', $feat->[-1] ];
-    push @feats, [$feat->[2], ']', '-', ""];
+    push @feats, [$feat->[0], '-', $feat->[2], $feat->[-1] ];
+#    push @feats, [$feat->[2], ']', '-', ""];
   }
 
   @feats = sort { $a->[0] <=> $b->[0] } (@sites, @feats);
@@ -366,11 +336,9 @@ sub domain_name {
   my ($label, $value) = @_;
 
   if ($label =~ /DOMAIN|REPEAT/) {
-    unless ($pfam26) {
-      $value =~ s/;.*$//;
-      $value =~ s/\.\s*$//;
-      $value =~ s/\s+\d+$//;
-    }
+    $value =~ s/;.*$//;
+    $value =~ s/\.\s*$//;
+    $value =~ s/\s+\d+$//;
     if (!defined($domains{$value})) {
       $domain_cnt++;
       $domains{$value} = $domain_cnt;

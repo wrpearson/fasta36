@@ -22,7 +22,7 @@ ann_feats_up_www.pl -- generate Uniprot sites, domains from a Uniprot
 
 ann_pdb_cath.pl -- generate CATH domains using PDB accessions from a mySQL database
 
-ann_pfam.pl -- generate Pfam domains using local Pfam mySQL database
+ann_pfam28.pl -- generate Pfam domains using local Pfam mySQL database
 
 ann_pfam_www.pl -- use Pfam Website, and XML::Twig, to get Pfam domain info.
 

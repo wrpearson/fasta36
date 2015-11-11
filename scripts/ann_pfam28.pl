@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# copyright (c) 2014 by William R. Pearson and The Rector &
+# copyright (c) 2014,2015 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-# ann_pfam_e.pl gets an annotation file from fasta36 -V with a line of the form:
+# ann_pfam.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
 #
@@ -28,7 +28,6 @@
 #
 
 # this version only annotates sequences known to Pfam:pfamseq:
-# >pf26|164|O57809|1A1D_PYRHO
 # and only provides domain information
 
 use strict;
@@ -41,15 +40,18 @@ use vars qw($host $db $port $user $pass);
 
 my $hostname = `/bin/hostname`;
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam27", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam28", 0, "web_user", "fasta_www");
 #$host = 'xdb';
+#$host = 'localhost';
+#$db = 'RPD2_pfam28u';
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $shelp, $help) = 
-  (0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
-my ($min_nodom) = (10);
+my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $shelp, $help) = 
+  (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
 
 my $color_sep_str = " :";
-$color_sep_str = '~';
+#$color_sep_str = '~';
+
+my ($min_nodom, $min_vdom) = (10,10);
 
 GetOptions(
     "host=s" => \$host,
@@ -67,6 +69,8 @@ GetOptions(
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
     "min_nodom=i" => \$min_nodom,
+    "vdoms" => \$vdoms,
+    "v_doms" => \$vdoms,
     "pfacc" => \$pf_acc,
     "RPD2" => \$rpd2_fams,
     "auto_reg" => \$auto_reg,
@@ -76,7 +80,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV;
+pod2usage(1) unless (@ARGV || -p STDIN || -f STDIN);
 
 my $connect = "dbi:mysql(AutoCommit=>1,RaiseError=>1):database=$db";
 $connect .= ";host=$host" if $host;
@@ -93,14 +97,17 @@ my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my @domain_list = (0);
 my $domain_cnt = 0;
 
+my $pfamA_reg_full = 'pfamA_reg_full_significant';
+
 my $get_annot_sub = \&get_pfam_annots;
 
-my $get_pfam_acc = $dbh->prepare(<<EOSQL);
+my @pfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_pfamA_reg_full domain_evalue_score as evalue length);
 
-SELECT seq_start, seq_end, auto_pfamA, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+my $get_pfam_acc = $dbh->prepare(<<EOSQL);
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
-JOIN pfamA_reg_full_significant using(auto_pfamseq)
-JOIN pfamA USING (auto_pfamA)
+JOIN $pfamA_reg_full using(pfamseq_acc)
+JOIN pfamA USING (pfamA_acc)
 WHERE in_full = 1
 AND  pfamseq_acc=?
 ORDER BY seq_start
@@ -109,10 +116,10 @@ EOSQL
 
 my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
 
-SELECT seq_start, seq_end, auto_pfamA, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
-JOIN pfamA_reg_full_significant using(auto_pfamseq)
-JOIN pfamA USING (auto_pfamA)
+JOIN $pfamA_reg_full using(pfamseq_acc)
+JOIN pfamA USING (pfamA_acc)
 JOIN seqdb_demo2.annot as sa1 on(sa1.acc=pfamseq_acc and sa1.db='sp')
 JOIN seqdb_demo2.annot as sa2 using(prot_id)
 WHERE in_full = 1
@@ -126,10 +133,10 @@ my $get_annots_sql = $get_pfam_acc;
 
 my $get_pfam_id = $dbh->prepare(<<EOSQL);
 
-SELECT seq_start, seq_end, auto_pfamA, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
-JOIN pfamA_reg_full_significant using(auto_pfamseq)
-JOIN pfamA USING (auto_pfamA)
+JOIN $pfamA_reg_full using(pfamseq_acc)
+JOIN pfamA USING (pfamA_acc)
 WHERE in_full=1
 AND  pfamseq_id=?
 ORDER BY seq_start
@@ -139,9 +146,9 @@ EOSQL
 my $get_pfam_clan = $dbh->prepare(<<EOSQL);
 
 SELECT clan_acc, clan_id
-FROM clans
-JOIN clan_membership using(auto_clan)
-WHERE auto_pfamA=?
+FROM clan
+JOIN clan_membership using(clan_acc)
+WHERE pfamA_acc=?
 
 EOSQL
 
@@ -162,9 +169,7 @@ my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 my ($query, $seq_len) = @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
@@ -179,9 +184,9 @@ if ($rpd2_fams) {
 }
 
 #if it's a file I can open, read and parse it
-if ($query !~ m/\|/ && open($ANN_F, $query)) {
+unless ($query && $query =~ m/[\|:]/) {
 
-  while (my $a_line = <$ANN_F>) {
+  while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
     push @annots, show_annots($a_line, $get_annot_sub);
@@ -195,11 +200,11 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      my ($a_name, $a_num) = ($annot->[-1],$domains{$annot->[-1]});
+      my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
       if ($acc_comment) {
 	$annot->[-1] .= "{$domain_list[$a_num]}";
       }
-      $annot->[-1] .= $color_sep_str.$a_num;
+      $annot->[-1] = $a_name.$color_sep_str.$a_num;
     }
     print join("\t",@$annot),"\n";
   }
@@ -229,17 +234,14 @@ sub show_annots {
 	$get_annots_sql = $get_pfam_refacc;
     }
   }
-  elsif ($annot_line =~ m/^sp\|/) {
+  elsif ($annot_line =~ m/^(sp|tr)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
   elsif ($annot_line =~ m/^ref\|/) {
     ($sdb, $acc) = split(/\|/,$annot_line);
     $get_annots_sql = $get_pfam_refacc;
   }
-  elsif ($annot_line =~ m/^tr\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
-  }
-  elsif ($annot_line =~ m/^SP:/i) {
+  elsif ($annot_line =~ m/^(SP|TR):/i) {
     ($sdb, $id) = split(/:/,$annot_line);
     $use_acc = 0;
   }
@@ -267,30 +269,69 @@ sub get_pfam_annots {
   my @pf_domains = ();
 
   # get the list of domains, sorted by start
+
+  # $row_href has: seq_start, seq_end, model_start, model_end, model_length, 
+  #                pfamA_acc, pfamA_id, auto_pfamA_reg_full,
+  #                domain_evalue_score as evalue, length
+
   while ( my $row_href = $get_annots->fetchrow_hashref()) {
     if ($auto_reg) {
       $row_href->{info} = $row_href->{auto_pfamA_reg_full};
-    }
-    elsif ($pf_acc) {
+    } elsif ($pf_acc) {
       $row_href->{info} = $row_href->{pfamA_acc};
-    }
-    else {
+    } else {
       $row_href->{info} = $row_href->{pfamA_id};
     }
 
-    if ($row_href && $row_href->{length} > $seq_length && $seq_length == 0) { $seq_length = $row_href->{length};}
+    if ($row_href && $row_href->{length} > $seq_length && $seq_length == 0) {
+      $seq_length = $row_href->{length};
+    }
 
     next if ($row_href->{seq_start} >= $seq_length);
     if ($row_href->{seq_end} > $seq_length) {
-	$row_href->{seq_end} = $seq_length;
+      $row_href->{seq_end} = $seq_length;
     }
 
     push @pf_domains, $row_href
   }
 
-  # check for domain overlap, and resolve check for domain overlap
-  # (possibly more than 2 domains), choosing the domain with the best
-  # evalue
+  # before checking for domain overlap, check for "split-domains"
+  # (self-unbound) by looking for runs of the same domain that are
+  # ordered by model_start
+
+  if (scalar(@pf_domains) > 1) {
+    my @j_domains;		#joined domains
+    my @tmp_domains = @pf_domains;
+
+    my $prev_dom = shift(@tmp_domains);
+
+    for my $curr_dom (@tmp_domains) {
+      # to join domains:
+      # (1) the domains must be in order by model_start/end coordinates
+      # (3) joining the domains cannot make the total combination too long
+
+      # check for model and sequence consistency
+      if (($prev_dom->{pfamA_acc} eq $curr_dom->{pfamA_acc})  # same family
+	  && $prev_dom->{model_start} < $curr_dom->{model_start}  # model check
+	  && $prev_dom->{model_end} < $curr_dom->{model_end}
+
+	  && ($curr_dom->{model_start} > $prev_dom->{model_end} * 0.80   # limit overlap
+	      || $curr_dom->{model_start} <  $prev_dom->{model_end} * 1.25)
+	  && ((($curr_dom->{model_end} - $curr_dom->{model_start}+1)/$curr_dom->{model_length} +
+	       ($prev_dom->{model_end} - $prev_dom->{model_start}+1)/$prev_dom->{model_length}) < 1.33)
+	 ) {			# join them by updating $prev_dom
+	$prev_dom->{seq_end} = $curr_dom->{seq_end};
+	$prev_dom->{model_end} = $curr_dom->{model_end};
+	$prev_dom->{auto_pfamA_reg_full} = $prev_dom->{auto_pfamA_reg_full} . ";". $curr_dom->{auto_pfamA_reg_full};
+	$prev_dom->{evalue} = ($prev_dom->{evalue} < $curr_dom->{evalue} ? $prev_dom->{evalue} : $curr_dom->{evalue});
+      } else {
+	push @j_domains, $prev_dom;
+	$prev_dom = $curr_dom;
+      }
+    }
+    push @j_domains, $prev_dom;
+    @pf_domains = @j_domains;
+  }
 
   if($no_over && scalar(@pf_domains) > 1) {
 
@@ -326,18 +367,13 @@ sub get_pfam_annots {
       # check for overlapping domains; >1 because $prev_dom is always there
       if (scalar(@overlap_domains) > 1 ) {
 	# if $rpd2_fams, check for a chosen one
-	if ($rpd2_fams) {
-	  for my $dom (@overlap_domains) {
-	    if ($rpd2_clan_fams{$dom->{auto_pfamA}}) {
-	      $prev_dom = $dom;
-	      last;
-	    }
-	  }
+
+	for my $dom ( @overlap_domains) {
+	  $dom->{evalue} = 1.0 unless defined($dom->{evalue});
 	}
-	else {
-	  @overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
-	  $prev_dom = $overlap_domains[0];
-	}
+
+	@overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
+	$prev_dom = $overlap_domains[0];
       }
 
       # $prev_dom should be the best of the overlaps, and we are no longer overlapping > dom_length/3
@@ -358,6 +394,103 @@ sub get_pfam_annots {
     }
   }
 
+  # $vdoms -- virtual Pfam domains -- the equivalent of $neg_doms,
+  # but covering parts of a Pfam model that are not annotated.  split
+  # domains have been joined, so simply check beginning and end of
+  # each domain (but must also check for bounded-ness)
+  # only add when 10% or more is missing and missing length > $min_nodom
+
+  if ($vdoms && scalar(@pf_domains)) {
+    my @vpf_domains;
+
+    my $curr_dom = $pf_domains[0];
+    my $length = $curr_dom->{length};
+
+    my $prev_dom={seq_end=>0, pfamA_acc=>''};
+    my $prev_dom_end = 0;
+    my $next_dom_start = $length+1;
+
+    for (my $dom_ix=0; $dom_ix < scalar(@pf_domains); $dom_ix++ ) {
+      $curr_dom = $pf_domains[$dom_ix];
+
+      my $pfamA =  $curr_dom->{pfamA_acc};
+
+      # first, look left, is there a domain there (if there is,
+      # it should be updated right
+
+      # my $min_vdom = $curr_dom->{model_length} / 10;
+
+      if ($prev_dom->{pfamA_acc}) { # look for previous domain
+	$prev_dom_end = $prev_dom->{seq_end};
+      }
+
+      # there is a domain to the left, how much room is available?
+      my $left_dom_len = min($curr_dom->{seq_start}-$prev_dom_end-1, $curr_dom->{model_start}-1);
+      if ( $left_dom_len > $min_vdom) {
+	# there is room for a virtual domain
+	my %new_dom = (seq_start=> $curr_dom->{seq_start}-$left_dom_len,
+	               seq_end => $curr_dom->{seq_start}-1,
+		       info=>'@'.$curr_dom->{info},
+		       model_length=>$curr_dom->{model_length},
+		       model_end => $curr_dom->{model_start}-1,
+		       model_start => $left_dom_len,
+		       pfamA_acc=>$pfamA,
+		      );
+	push @vpf_domains, \%new_dom;
+      }
+
+      # save the current domain
+      push @vpf_domains, $curr_dom;
+      $prev_dom = $curr_dom;
+
+      if ($dom_ix < $#pf_domains) { # there is a domain to the right
+	# first, give all the extra space to the first domain (no splitting)
+	$next_dom_start = $pf_domains[$dom_ix+1]->{seq_start};
+      }
+      else {
+	$next_dom_start = $length;
+      }
+
+      # is there room for a virtual domain right
+	  
+      my $right_dom_len = min($next_dom_start-$curr_dom->{seq_end}-1, # space available 
+			      $curr_dom->{model_length}-$curr_dom->{model_end} # space needed
+			     );
+      if ( $right_dom_len > $min_vdom) {
+	my %new_dom = (seq_start=> $curr_dom->{seq_end}+1,
+		       seq_end=> $curr_dom->{seq_end}+$right_dom_len,
+		       info=>'@'.$pfamA,
+		       model_length => $curr_dom->{model_length},
+		       pfamA_acc=> $pfamA,
+		      );
+	push @vpf_domains, \%new_dom;
+	$prev_dom = \%new_dom;
+      }
+    }				# all done, check for last one
+
+    # $curr_dom=$pf_domains[-1];
+    # # my $min_vdom = $curr_dom->{model_length}/10;
+
+    # my $right_dom_len = min($length - $curr_dom->{seq_end}+1,  # space available 
+    # 			    $curr_dom->{model_length}-$curr_dom->{model_end} # space needed
+    # 			   );
+    # if ($right_dom_len > $min_vdom) {
+    #   my %new_dom = (seq_start=> $curr_dom->{seq_end}+1,
+    # 		     seq_end => $curr_dom->{seq_end}+$right_dom_len,
+    # 		     info=>'@'.$curr_dom->{pfamA_acc},
+    # 		     model_len=> $curr_dom->{model_len},
+    # 		     pfamA_acc => $curr_dom->{pfamA_acc},
+    # 		     model_start => $curr_dom->{model_end}+1,
+    # 		     model_end => $curr_dom->{model_len},
+    # 		     );
+
+    #   push @vpf_domains, \%new_dom;
+    # }
+
+    # @vpf_domains has both old @pf_domains and new neg-domains
+    @pf_domains = @vpf_domains;
+  }
+
   if ($neg_doms) {
     my @npf_domains;
     my $prev_dom={seq_end=>0};
@@ -371,7 +504,9 @@ sub get_pfam_annots {
     }
     if ($seq_length - $prev_dom->{seq_end} > $min_nodom) {
       my %new_dom = (seq_start=>$prev_dom->{seq_end}+1, seq_end=>$seq_length, info=>'NODOM');
-      if ($new_dom{seq_end} > $new_dom{seq_start}) {push @npf_domains, \%new_dom;}
+      if ($new_dom{seq_end} > $new_dom{seq_start}) {
+	push @npf_domains, \%new_dom;
+      }
     }
 
     # @npf_domains has both old @pf_domains and new neg-domains
@@ -381,22 +516,33 @@ sub get_pfam_annots {
   # now make sure we have useful names: colors
 
   for my $pf (@pf_domains) {
-    $pf->{info} = domain_name($pf->{info}, $pf->{auto_pfamA}, $pf->{pfamA_acc});
+    $pf->{info} = domain_name($pf->{info}, $pf->{pfamA_acc});
   }
 
   my @feats = ();
   for my $d_ref (@pf_domains) {
     if ($lav) {
       push @feats, [$d_ref->{seq_start}, $d_ref->{seq_end}, $d_ref->{info}];
-    }
-    else {
+    } else {
       push @feats, [$d_ref->{seq_start}, '-', $d_ref->{seq_end},  $d_ref->{info} ];
-#      push @feats, [$d_ref->{seq_end}, ']', '-', ""];
+      #      push @feats, [$d_ref->{seq_end}, ']', '-', ""];
     }
 
   }
 
   return \@feats;
+}
+
+sub min {
+  my ($arg1, $arg2) = @_;
+
+  return ($arg1 <= $arg2 ? $arg1 : $arg2);
+}
+
+sub max {
+  my ($arg1, $arg2) = @_;
+
+  return ($arg1 >= $arg2 ? $arg1 : $arg2);
 }
 
 # domain name takes a uniprot domain label, removes comments ( ;
@@ -408,7 +554,13 @@ sub get_pfam_annots {
 
 sub domain_name {
 
-  my ($value, $auto_pfamA, $pfamA_acc) = @_;
+  my ($value, $pfamA_acc) = @_;
+  my $is_virtual = 0;
+
+  if ($value =~ m/^@/) {
+    $is_virtual = 1;
+    $value =~ s/^@//;
+  }
 
   # check for clan:
   if ($no_clans) {
@@ -427,7 +579,7 @@ sub domain_name {
     # (3) for clans, combine family name with clan name, but use colors based on clan
 
     # check to see if it's a clan
-    $get_pfam_clan->execute($auto_pfamA);
+    $get_pfam_clan->execute($pfamA_acc);
 
     my $pfam_clan_href=0;
 
@@ -436,7 +588,7 @@ sub domain_name {
 
       # now check to see if we have seen this clan before (if so, do not increment $domain_cnt)
       my $c_value = "C." . $clan_id;
-      if ($pf_acc) {$c_value = "C." . $clan_acc;}
+      if ($pf_acc) {$c_value = $clan_acc;}
 
       $domain_clan{$value} = {clan_id => $clan_id,
 			      clan_acc => $clan_acc};
@@ -459,12 +611,26 @@ sub domain_name {
     }
   }
   elsif ($domain_clan{$value} && $domain_clan{$value}->{clan_acc}) {
-    if ($pf_acc) {$value = "C." . $domain_clan{$value}->{clan_acc};}
+    if ($pf_acc) {$value = $domain_clan{$value}->{clan_acc};}
     else { $value = "C." . $domain_clan{$value}->{clan_id}; }
   }
 
+  if ($is_virtual) {
+    $domains{'@'.$value} = $domains{$value};
+    $value = '@'.$value;
+  }
   return $value;
 }
+
+sub domain_num {
+  my ($value, $number) = @_;
+  if ($value =~ m/^@/) {
+    $value =~ s/^@/v/;
+#    $number = $number."v";
+  }
+  return ($value, $number);
+}
+
 
 __END__
 
@@ -472,11 +638,11 @@ __END__
 
 =head1 NAME
 
-ann_feats.pl
+ann_pfam28.pl
 
 =head1 SYNOPSIS
 
- ann_pfam_e.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_pfam28.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
@@ -486,36 +652,35 @@ ann_feats.pl
  --no-clans : do not use clans with multiple families from same clan
  --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
+ --vdoms : produce "virtual domains" using model_start, 
+           model_end for partial pfam domains
  --min_nodom=10  : minimum length between domains for NODOM
 
  --host, --user, --password, --port --db : info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_pfam_e.pl> extracts domain information from the pfam msyql
-database.  Currently, the program works with database sequence
-descriptions in one of two formats:
-
- Currently, the program works with database
+C<ann_pfam28.pl> extracts domain information from the pfam msyql
+database. Currently, the program works with database
 sequence descriptions in several formats:
 
  >gi|1705556|sp|P54670.1|CAF1_DICDI
  >sp|P09488|GSTM1_HUMAN
  >sp:CALM_HUMAN 
 
-C<ann_pfam_e.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
+C<ann_pfam28.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
 information on a protein. 
 
 If the "--no-over" option is set, overlapping domains are selected and
 edited to remove overlaps.  For proteins with multiple overlapping
 domains (domains overlap by more than 1/3 of the domain length),
-C<auto_pfam_e.pl> selects the domain annotation with the best
+C<auto_pfam28.pl> selects the domain annotation with the best
 C<domain_evalue_score>.  When domains overlap by less than 1/3 of the
 domain length, they are shortened to remove the overlap.
 
-C<ann_pfam_e.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam_e.pl> or C<-V "\!ann_pfam_e.pl --neg"> option.
+C<ann_pfam28.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_pfam28.pl> or C<-V "\!ann_pfam28.pl --neg"> option.
 
 =head1 AUTHOR
 

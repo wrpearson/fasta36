@@ -70,7 +70,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV;
+pod2usage(1) unless (@ARGV || -p STDIN || -f STDIN);
 
 my @feat_keys = ('Active site','Modified residue', 'Binding', 'Metal', 'Site');
 
@@ -117,16 +117,14 @@ unless ($no_feats || $sstr) {
 my ($query, $seq_len) =  @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-if ($query !~ m/\|/ && open($ANN_F, $query)) {
+unless ($query && $query =~ m/[\|:]/) {
 
-  while (my $a_line = <$ANN_F>) {
+  while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
     push @annots, lwp_annots($a_line, $get_annot_sub);
@@ -294,8 +292,8 @@ sub gff2_annots {
   my @feats = ();
   for my $feat (@feats2, @n_feats2) {
     if (!$lav) {
-      push @feats, [$feat->[0], '[', '-', $feat->[-1] ];
-      push @feats, [$feat->[2], ']', '-', ""];
+      push @feats, [$feat->[0], '-', $feat->[2], $feat->[-1] ];
+#      push @feats, [$feat->[2], ']', '-', ""];
     }
     else {
       push @feats, [$feat->[0], $feat->[2], $feat->[-1]];
