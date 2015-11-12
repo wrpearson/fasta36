@@ -355,9 +355,7 @@ sub sub_alignment_score {
       if ($dom_r->{sd_start} <= $s_start) {  # {sd_start} is less, {sd_end} is greater, overlap
 	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
-      else {
-	last;
-      }
+      else { last; }
     }
   }
 
@@ -544,6 +542,8 @@ sub last_annot_match {
   $active_doms_r = [];
 }
 
+# domain output formatter
+
 sub format_dom_info {
   my ($hit_r, $raw_score, $dom_r) = @_;
 
@@ -555,8 +555,12 @@ sub format_dom_info {
   $qval = 0 if $qval < 0;
 
   #	print join(":",($dom_r->{asd_start},$dom_r->{asd_end},$ns_score, $s_bit, sprintf("%.1f",$qval))),"\n";
-  return join(";",(sprintf("|XR:%d-%d:%d-%d:s=%d",$dom_r->{qa_start},$dom_r->{qa_end},$dom_r->{sa_start},$dom_r->{sa_end},$ns_score),
-	      sprintf("b=%.1f",$s_bit),sprintf("I=%.3f",$dom_r->{ident}),sprintf("Q=%.1f",$qval),$dom_r->{descr}));
+  return join(";",(sprintf("|XR:%d-%d:%d-%d:s=%d",
+			   $dom_r->{qa_start},$dom_r->{qa_end},
+			   $dom_r->{sa_start},$dom_r->{sa_end},$ns_score),
+		   sprintf("b=%.1f",$s_bit),
+		   sprintf("I=%.3f",$dom_r->{ident}),
+		   sprintf("Q=%.1f",$qval),$dom_r->{descr}));
 }
 
 __END__
