@@ -18,7 +18,7 @@
 ################################################################
 
 ################################################################
-# annot_blast_btop.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop file
+# annot_blast_btop.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
 ################################################################
 # annot_blast_btop.pl associates domain annotation information and
 # subalignment scores with a blast tabular (-outfmt 6 or -outfmt 7)
@@ -34,7 +34,7 @@ use strict;
 use IPC::Open2;
 use Pod::Usage;
 use Getopt::Long;
-use Data::Dumper;
+# use Data::Dumper;
 
 # read lines of the form:
 # gi|121694|sp|P20432.1|GSTT1_DROME	gi|121694|sp|P20432|GSTT1_DROME	100.00	209	0	0	1	209	1	209	6e-156	433	1113	209
@@ -70,9 +70,12 @@ if ($query_file_name) {
   $query_seq_r = parse_query_file($query_file_name);
 }
 
-
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
-my @out_tab_fields = @tab_fields;
+
+# the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
+my @out_tab_fields = @tab_fields[0 .. $#tab_fields-2];
+
+# @out_tab_fields = qw( s_seqid percid evalue bits score BTOP );   # more compact report
 
 my $have_data = 0;
 my @header_lines = ();
@@ -142,20 +145,9 @@ if (@hit_domains) {
   $hit_list[$hit_ix]{domains} = [ @hit_domains ];
 }
 
-# print Dumper(\@hit_list);
-
-# now have the domains associated with each hit; display the original lines with domains added
-
 for my $line (@header_lines) {
   print $line;
 }
-
-if (! defined($hit_list[0]->{BTOP})) {
-  pop @out_tab_fields;	# remove raw score if BTOP not present
-}
-pop @out_tab_fields; # remove BTOP
-
-#unless (defined($hit_list[0]->{BTOP})) {}
 
 for my $hit (@hit_list) {
   my @list_covered = ();
@@ -180,9 +172,7 @@ for my $hit (@hit_list) {
 
       my ($raw_score, $domain_r) = sub_alignment_score($query_seq_r, $hit, $btop_enc_r, \%blosum62dd, $hit->{domains});
 
-      #    print "\t$raw_score\n";
-
-      print "\t";
+      print "\t" if @$domain_r;
       for my $dom_r ( @$domain_r ) {
 	if (defined($dom_r->{score}) && $dom_r->{score} > 0) {
 	  print format_dom_info($hit, $raw_score, $dom_r);
@@ -341,6 +331,8 @@ sub sub_alignment_score {
   return (0, $domain_r) unless (scalar(@$domain_r));
 
   my ($gap0, $gap1) = (0,0);
+  my @active_dom_list = ();
+  my $left_active_end = $domain_r->[-1]->{sd_end}+1;	# as far right as possible
 
   my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
 
@@ -351,19 +343,21 @@ sub sub_alignment_score {
 
   # find the first overlapping domain
 
-  my ($sdom_ix, $sdom_nx, $in_sdom) = (0,scalar(@$domain_r), 0);
+  my ($sdom_ix, $sdom_nx) = (0,scalar(@$domain_r));
   my $dom_r = $domain_r->[0];
 
+  # skip over domains that do not overlap alignment
+  # capture first domain that alignment overlaps
   for ($sdom_ix=0; $sdom_ix < $sdom_nx; $sdom_ix++) {
     $domain_r->[$sdom_ix]->{score} = 0;
-    if ($domain_r->[$sdom_ix]->{sd_end} >= $s_start) {
+    if ($domain_r->[$sdom_ix]->{sd_end} >= $s_start) {  # if {sd_end} < $_start, cannot overlap
       $dom_r = $domain_r->[$sdom_ix];
-      if ($dom_r->{sd_start} <= $s_start) {
-	$dom_r->{sa_start} = $s_start;
-	$dom_r->{qa_start} = $q_start;
-	$in_sdom = 1;
+      if ($dom_r->{sd_start} <= $s_start) {  # {sd_start} is less, {sd_end} is greater, overlap
+	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
-      last;
+      else {
+	last;
+      }
     }
   }
 
@@ -378,22 +372,17 @@ sub sub_alignment_score {
 	$score += $m_score;
 
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
-	  $dom_r->{sa_start} = $six;
-	  $dom_r->{qa_start} = $qix+1;
-	  $in_sdom = 1;
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $six, $s_id_cnt, $s_dom_score);
+	  $sdom_ix++;
+	  $dom_r = $domain_r->[$sdom_ix];
+	  ($s_dom_score, $s_id_cnt) = (0,0);
 	}
-	if ($in_sdom) {
+	if (@active_dom_list) {
 	  $s_dom_score += $m_score;
 	  $s_id_cnt++;
-	  if ($six == $dom_r->{sd_end}) {
-	    $dom_r->{score} = $s_dom_score;
-	    $dom_r->{sa_end} = $six;
-	    $dom_r->{qa_end} = $qix+1;
-	    $dom_r->{ident} = $s_id_cnt/($dom_r->{sa_end}-$dom_r->{sa_start}+1);
+	  if ($six == $left_active_end) {
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $six, $s_id_cnt, $s_dom_score);
 	    $s_dom_score = $s_id_cnt = 0;
-	    $in_sdom = 0;
-	    $sdom_ix++;
-	    $dom_r = $domain_r->[$sdom_ix];
 	  }
 	}
 
@@ -413,21 +402,16 @@ sub sub_alignment_score {
 	  $gap0 = 1;
 
 	  if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
-	    $in_sdom = 1;
-	    $dom_r->{sa_start} = $six;
-	    $dom_r->{qa_start} = $qix+1;
+	    $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $six, $s_id_cnt, $s_dom_score);
+	    $sdom_ix++;
+	    $dom_r = $domain_r->[$sdom_ix];
+	    ($s_dom_score, $s_id_cnt) = (0,0);
 	  }
-	  if ($in_sdom) {
+	  if (@active_dom_list) {
 	    $s_dom_score += $m_score;
-	    if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_end}) {
-	      $dom_r->{score} = $s_dom_score;
-	      $dom_r->{sa_end} = $six;
-	      $dom_r->{qa_end} = $qix+1;
-	      $dom_r->{ident} = $s_id_cnt/($dom_r->{sa_end}-$dom_r->{sa_start}+1);
+	    if ($sdom_ix < $sdom_nx && $six == $left_active_end) {
+	      $left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $six, $s_id_cnt, $s_dom_score);
 	      $s_dom_score = $s_id_cnt = 0;
-	      $in_sdom = 0;
-	      $sdom_ix++;
-	      $dom_r = $domain_r->[$sdom_ix];
 	    }
 	  }
 	  $six++;
@@ -443,21 +427,16 @@ sub sub_alignment_score {
 	$m_score = $matrix_2d->{$seq0}{$seq1};
 	$score += $m_score;
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
-	  $in_sdom = 1;
-	  $dom_r->{sa_start} = $six;
-	  $dom_r->{qa_start} = $qix+1;
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $six, $s_id_cnt, $s_dom_score);
+	  $sdom_ix++;
+	  $dom_r = $domain_r->[$sdom_ix];
+	  ($s_dom_score, $s_id_cnt) = (0,0);
 	}
-	if ($in_sdom) {
+	if (@active_dom_list) {
 	  $s_dom_score += $m_score;
-	  if ($six == $dom_r->{sd_end}) {
-	    $dom_r->{score} = $s_dom_score;
-	    $dom_r->{sa_end} = $six;
-	    $dom_r->{qa_end} = $qix+1;
-	    $dom_r->{ident} = $s_id_cnt/($dom_r->{sa_end}-$dom_r->{sa_start}+1);
+	  if ($six == $left_active_end) {
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $six, $s_id_cnt, $s_dom_score);
 	    $s_dom_score = $s_id_cnt = 0;
-	    $in_sdom = 0;
-	    $sdom_ix++;
-	    $dom_r = $domain_r->[$sdom_ix];
 	  }
 	}
 	$qix++;
@@ -468,12 +447,8 @@ sub sub_alignment_score {
   }
 
   # all done, finish any domain stuff
-  if ($in_sdom) {
-    $dom_r->{score} = $s_dom_score;
-    $dom_r->{sa_end} = $s_end;
-    $dom_r->{qa_end} = $q_end;
-    $dom_r->{ident} = $s_id_cnt/($dom_r->{sa_end}-$dom_r->{sa_start}+1);
-    $sdom_ix++;
+  if (@active_dom_list) {
+    last_annot_match(\@active_dom_list, $q_end, $s_end, $s_id_cnt, $s_dom_score);
   }
 
   for (; $sdom_ix < $sdom_nx; $sdom_ix++) {
@@ -481,6 +456,92 @@ sub sub_alignment_score {
   }
 
   return ($score, $domain_r);
+}
+
+################
+# push_annot_match - adds domain to set of active domains,
+#                    returns current left-most right boundary
+#
+sub push_annot_match {
+  my ($active_doms_r, $dom_r, $q_pos, $s_pos, $c_ident, $c_score) = @_;
+
+  $dom_r->{ident} = 0;
+  $dom_r->{score} = 0;
+  $dom_r->{qa_start} = $q_pos;
+  $dom_r->{sa_start} = $s_pos;
+
+  # no previous domains, just initialize
+  unless (scalar(@$active_doms_r)) {
+    push @$active_doms_r, $dom_r;
+    return $dom_r->{sd_end};
+  }
+
+  # some previous domains, update score, identity for domains in list
+  # also find insertion point
+  my $nx = scalar(@$active_doms_r);
+  my $min_ix = $nx;
+  for (my $ix=0; $ix < $nx; $ix++) {
+    $active_doms_r->[$ix]->{ident} += $c_ident;
+    $active_doms_r->[$ix]->{score} += $c_score;
+    if ($dom_r->{sd_end} < $active_doms_r->[$ix]->{sd_end}) {
+      $min_ix = $ix;
+    }
+  }
+  # now have location for insert
+  splice(@$active_doms_r, $min_ix, 0, $dom_r);
+  return $active_doms_r->[0]->{sd_end};
+}
+
+################
+# pop_annot_match - update scores
+#                   remove all domains that end at $s_ix
+#                   return left-most right boundary
+
+sub pop_annot_match {
+  my ($active_doms_r, $q_pos, $s_pos, $c_ident, $c_score) = @_;
+
+  my $nx = scalar(@$active_doms_r);
+
+  # we know the left most (first) domain matches,
+  my $pop_count = 0;
+  for my $cur_r (@$active_doms_r) {
+    $cur_r->{ident} += $c_ident;
+    $cur_r->{score} += $c_score;
+    $pop_count++ if ($cur_r->{sd_end} == $s_pos);
+  }
+
+  while ($pop_count-- > 0) {
+    my $cur_r = shift @$active_doms_r;
+    # convert identity count to identity fraction
+    $cur_r->{ident} = $cur_r->{ident}/($cur_r->{sd_end} - $cur_r->{sd_start}+1);
+    $cur_r->{qa_end} = $q_pos;
+    $cur_r->{sa_end} = $s_pos;
+  }
+  if (scalar(@$active_doms_r)) {
+    return $active_doms_r->[0]->{sd_end};
+  }
+  else {
+    return -1;
+  }
+}
+
+sub last_annot_match {
+  my ($active_doms_r, $q_pos, $s_pos, $c_ident, $c_score) = @_;
+
+  my $nx = scalar(@$active_doms_r);
+
+  # we know the left most (first) domain matches,
+  my $pop_count = 0;
+  for my $cur_r (@$active_doms_r) {
+    $cur_r->{ident} += $c_ident;
+    $cur_r->{score} += $c_score;
+    $cur_r->{ident} = $cur_r->{ident}/($cur_r->{sd_end} - $cur_r->{sd_start}+1);
+    $cur_r->{qa_end} = $q_pos;
+    $cur_r->{sa_end} = $s_pos;
+
+  }
+
+  $active_doms_r = [];
 }
 
 sub format_dom_info {
@@ -508,7 +569,7 @@ annot_blast_btop.pl
 
 =head1 SYNOPSIS
 
- annot_blast_btop --ann_script 'ann_pfam_www_e.pl --neg --vdoms' blast_tabular_file
+ annot_blast_btop --ann_script 'ann_pfam_www_e.pl --neg --vdoms' [--query_file query.fasta] blast_tabular_file
 
 =head1 OPTIONS
 
@@ -527,8 +588,10 @@ subject seqid is used to capture domain locations in the subject
 sequence.  If the domains overlap the aligned region, they are
 appended to the intput.
 
-Future versions of this program will read blast tabular files with
-btop alignment encodings, and calculate sub-alignment scores.
+If a C<--query_file> is specified and two additional fields, C<score>
+and C<btop> are present, C<annot_blast_btop.pl> can also calculate
+sub-alignments scores, partitioning the alignment score across the
+overlapping domains.
 
 =head1 AUTHOR
 

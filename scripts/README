@@ -1,5 +1,6 @@
 
 22-Jan-2014
+12-Nov-2015 updated
 
 fasta36/scripts
 
@@ -7,11 +8,33 @@ Perl scripts for annotating sequences and expanding libraries
 
 -- Sequence alignment annotation
 
+Two program scripts have been added to support sub-alignment scoring
+of BLASTP alignments.
+
+annot_blast_btop.pl takes three inputs: (1) a query sequence file; (2)
+a domain annotation script (see below), and (3) a BLAST tabular format
+output with two additional fields, "score" and "btop":
+
+annot_blast_btop.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
+
+The blast_tab_btop_file can be produced using the blastp_cmd.sh shell
+script, which uses ASN.1 output and blast_formatter to produce both a
+standard alignment file and the modified blast tabular btop file.
+
+(Nov. 2015) These domain annotation scripts allow overlapping domains,
+and must be used with versions of the FASTA programs that support the
+current "start - stop domain_description" format (in contrast to the
+older format which put domain starts and stops on separate lines with
+'[' and ']'). Until this release, the "overlapping" domain scripts had
+'_e' in their name, e.g. ann_pfam28_e.pl.  The "_e" scripts have been
+renamed, losing the '_e', and the old non-'_e' scripts have been
+removed from the distribuition.
+
 All of the "ann_*.pl" scripts are used to annotate query or library
 sequences using the -V option.  See ../test/test2V.pl for examples.
 
-ann_feats2ipr.pl -- generate Uniprot sites, Interpro domains, from a mySQL database
 
+ann_feats2ipr.pl -- generate Uniprot sites, Interpro domains, from a mySQL database
 ann_feats2l.pl -- generate Uniprot sites, domains from a mySQL database
 
 ann_feats_up_www2.pl -- generate Uniprot sites, domains from an EBI
@@ -21,10 +44,14 @@ ann_feats_up_www.pl -- generate Uniprot sites, domains from a Uniprot
 		       gff web server (less information than ann_feats_www2.pl)
 
 ann_pdb_cath.pl -- generate CATH domains using PDB accessions from a mySQL database
+ann_pdb_vast.pl -- use VAST domains, but domain names are not informative
 
-ann_pfam28.pl -- generate Pfam domains using local Pfam mySQL database
-
+ann_pfam27.pl -- generate Pfam domains using local Pfam mySQL database (Pfam27 with auto_pfamA, auto_pfamseq)
+ann_pfam28.pl -- generate Pfam domains using local Pfam mySQL database (Pfam28, no auto_pfamA, auto_pfamseq)
 ann_pfam_www.pl -- use Pfam Website, and XML::Twig, to get Pfam domain info.
+
+ann_exons_ens.pl -- generate exon boundaries on SwissProt proteins from Ensembl.
+ann_exons_ncbi.pl -- generate exon boundaries on NCBI refseq proteins.
 
 -- Library expansion
 
