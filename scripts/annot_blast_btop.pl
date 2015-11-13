@@ -27,7 +27,8 @@
 # using the command:
 #   blast_formatter -archive blast_output.asn -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop'  > blast_output.tab_annot
 #
-# if the BTOP field is not available, the script can also produce domain content, without sub-alignment scores
+# If the BTOP field or query_file is not available, the script
+# produces domain content without sub-alignment scores.
 ################################################################
 
 use strict;
@@ -44,7 +45,8 @@ use Getopt::Long;
 
 # and report the domain content ala -m 8CC
 
-my ($matrix, $query_file_name, $ann_script, $shelp, $help) = ("BLOSUM62", "", "ann_pfam28.pl --neg --vdoms", 0, 0);
+my ($matrix, $query_file_name, $ann_script, $shelp, $help) = ("BLOSUM62", "", "ann_feats_up_www2.pl --neg --no-feats", 0, 0);
+my ($out_field_str) = ("");
 my $query_seq_r;
 
 my %blosum62dd = ();
@@ -55,6 +57,7 @@ GetOptions(
     "matrix:s" => \$matrix,
     "ann_script:s" => \$ann_script,
     "query_file:s" => \$query_file_name,
+    "out_fields:s" => \$out_field_str,
     "script" => \$ann_script,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -75,7 +78,9 @@ my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_s
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-2];
 
-# @out_tab_fields = qw( s_seqid percid evalue bits score BTOP );   # more compact report
+if ($out_field_str) {
+  @out_tab_fields = split(/\s+/,$out_field_str);
+}
 
 my $have_data = 0;
 my @header_lines = ();
@@ -101,48 +106,48 @@ while (my $line = <>) {
   push @hit_list, \%hit_data;
 }
 
-# now get the overlapping domains for each s_seqid
+if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
+  # get the domains for each s_seqid using --ann_script
+  #
+  local (*Reader, *Writer);
+  my $pid = open2(\*Reader, \*Writer, $ann_script);
+  for my $hit (@hit_list) {
+    print Writer $hit->{s_seqid},"\n";
+  }
+  close(Writer);
 
-local (*Reader, *Writer);
-my $pid = open2(\*Reader, \*Writer, $ann_script);
-for my $hit (@hit_list) {
-  print Writer $hit->{s_seqid},"\n";
-}
-close(Writer);
+  my $current_domain = "";
+  my $hit_ix = 0;
+  my @hit_domains = ();
 
-my $current_domain = "";
-my $hit_ix = 0;
-my @hit_domains = ();
-while (my $line = <Reader>) {
-  chomp $line;
-  if ($line =~ m/^>/) {
-    if ($current_domain) {
-      if ($hit_list[$hit_ix]{s_seqid} eq $current_domain) {
-	$hit_list[$hit_ix]{domains} = [ @hit_domains ];
-	$hit_ix++;
+  while (my $line = <Reader>) {
+    chomp $line;
+    if ($line =~ m/^>/) {
+      if ($current_domain) {
+	if ($hit_list[$hit_ix]{s_seqid} eq $current_domain) {
+	  $hit_list[$hit_ix]{domains} = [ @hit_domains ];
+	  $hit_ix++;
+	} else {
+	  warn "phase error: $current_domain != $hit_list[$hit_ix]{s_seqid}";
+	}
       }
-      else {
-	warn "phase error: $current_domain != $hit_list[$hit_ix]{s_seqid}";
-      }
+      @hit_domains = ();
+      $current_domain = $line;
+      $current_domain =~ s/^>//;
+    } else {
+      next if $line=~ m/^=/;
+      my %dom_info = ();
+      @dom_info{qw(sd_start dash sd_end descr)} = split(/\t/,$line);
+      next unless $dom_info{dash} eq '-';
+      $dom_info{descr} =~ s/ :(\d+)$/~$1/;
+      delete($dom_info{dash});
+      push @hit_domains, \%dom_info;
     }
-    @hit_domains = ();
-    $current_domain = $line;
-    $current_domain =~ s/^>//;
   }
-  else {
-    next if $line=~ m/^=/;
-    my %dom_info = ();
-    @dom_info{qw(sd_start dash sd_end descr)} = split(/\t/,$line);
-    next unless $dom_info{dash} eq '-';
-    $dom_info{descr} =~ s/ :(\d+)$/~$1/;
-    delete($dom_info{dash});
-    push @hit_domains, \%dom_info;
+  close(Reader);
+  if (@hit_domains) {
+    $hit_list[$hit_ix]{domains} = [ @hit_domains ];
   }
-}
-close(Reader);
-
-if (@hit_domains) {
-  $hit_list[$hit_ix]{domains} = [ @hit_domains ];
 }
 
 for my $line (@header_lines) {
@@ -151,36 +156,35 @@ for my $line (@header_lines) {
 
 for my $hit (@hit_list) {
   my @list_covered = ();
-  # check for overlap
 
-  for my $dom_r (@{$hit->{domains}}) {
-    next if $dom_r->{sd_end} < $hit->{s_start};	# before start
-    last if $dom_r->{sd_start} > $hit->{s_end}; # after end
-
-    if ($dom_r->{sd_start} <= $hit->{s_end} && $dom_r->{sd_end} >= $hit->{s_start}) {
-      push @list_covered, $dom_r->{descr};
-    }
+  # If I have an encoded aligment and a query sequence, I can calculate sub-alignment scores
+  if (defined($hit->{BTOP}) && $query_seq_r && @$query_seq_r) {
+    ($hit->{raw_score}, $hit->{aligned_domains_r}) = 
+      sub_alignment_score($query_seq_r, $hit, \%blosum62dd, $hit->{domains});
   }
+  else {   # no alignment info, just check for overlap
+    for my $dom_r (@{$hit->{domains}}) {
+      next if $dom_r->{sd_end} < $hit->{s_start};	# before start
+      last if $dom_r->{sd_start} > $hit->{s_end}; # after end
 
-  print join("\t",@{$hit}{@out_tab_fields});
-  my $btop_enc_r;
-  if (defined($hit->{BTOP})) {
-    $btop_enc_r = decode_btop($hit->{BTOP});
-    #    print "\t",join(":",@{$btop_enc_r}),"\n";
-    if (@$query_seq_r) {
-      #    print "\t",sub_alignment_score($query_seq_r, $hit, $btop_enc_r, \%blosum62dd),"\n";
-
-      my ($raw_score, $domain_r) = sub_alignment_score($query_seq_r, $hit, $btop_enc_r, \%blosum62dd, $hit->{domains});
-
-      print "\t" if @$domain_r;
-      for my $dom_r ( @$domain_r ) {
-	if (defined($dom_r->{score}) && $dom_r->{score} > 0) {
-	  print format_dom_info($hit, $raw_score, $dom_r);
-	}
+      if ($dom_r->{sd_start} <= $hit->{s_end} && $dom_r->{sd_end} >= $hit->{s_start}) {
+	push @list_covered, $dom_r->{descr};
       }
     }
   }
-  elsif (@list_covered) {
+
+  ################
+  ## final output display
+
+  print join("\t",@{$hit}{@out_tab_fields});	# show fields from original blast tabular file
+
+  if (defined($hit->{aligned_domains_r})) {	# show subalignment scores if available
+    print "\t";
+    for my $dom_r ( @{$hit->{aligned_domains_r}} ) {
+      print format_dom_info($hit, $hit->{raw_score}, $dom_r);
+    }
+  }
+  elsif (@list_covered) {			# otherwise show domain content
     print "\t",join(";",@list_covered);
   }
   print "\n";
@@ -190,8 +194,8 @@ for my $line (@footer_lines) {
   print $line;
 }
 
-# takes a BTOP string of the form: "1VA160TS7KG10RK27"
-# and returns a list of tokens: (1, "VA", 60, "TS", 7, "KG, 10, "RK", 27)
+# input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
+# returns a list_ref of tokens: (1, "VA", 60, "TS", 7, "KG, 10, "RK", 27)
 #
 sub decode_btop {
   my ($btop_str) = @_;
@@ -275,7 +279,6 @@ sub init_blosum62 {
   }
 
   ($g_open, $g_ext) = (-11, -1);
-
 }
 
 # given: (1) a query sequence; (2) an encoded alignment; (3) a scoring matrix
@@ -324,14 +327,24 @@ sub alignment_score {
 
 # given: (1) a query sequence; (2) an encoded alignment; (3) a scoring matrix
 # calculate a score
+# updates $domain_r in place with new values:
+# domain_r->[]->{ident} (as fraction identical),
+#             ->{score} --matrix raw similarity score
+#             ->{qa_start,qa_end}  domain boundaries in query
+#             ->{sa_start, sa_end} domain boundaries in subject
 
 sub sub_alignment_score {
-  my ($query_r, $hit_r, $btop_align_r, $matrix_2d, $domain_r) = @_;
+  my ($query_r, $hit_r, $matrix_2d, $domain_r) = @_;
 
   return (0, $domain_r) unless (scalar(@$domain_r));
 
+  my $btop_enc_r = decode_btop($hit_r->{BTOP});
+
   my ($gap0, $gap1) = (0,0);
+
   my @active_dom_list = ();
+  my @aligned_domains = ();
+
   my $left_active_end = $domain_r->[-1]->{sd_end}+1;	# as far right as possible
 
   my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
@@ -349,10 +362,10 @@ sub sub_alignment_score {
   # skip over domains that do not overlap alignment
   # capture first domain that alignment overlaps
   for ($sdom_ix=0; $sdom_ix < $sdom_nx; $sdom_ix++) {
-    $domain_r->[$sdom_ix]->{score} = 0;
     if ($domain_r->[$sdom_ix]->{sd_end} >= $s_start) {  # if {sd_end} < $_start, cannot overlap
       $dom_r = $domain_r->[$sdom_ix];
       if ($dom_r->{sd_start} <= $s_start) {  # {sd_start} is less, {sd_end} is greater, overlap
+	push @aligned_domains, $dom_r;
 	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
       else { last; }
@@ -361,7 +374,7 @@ sub sub_alignment_score {
 
   my ($s_dom_score, $s_id_cnt) = (0,0);
 
-  for my $btop (@{$btop_align_r}) {
+  for my $btop (@{$btop_enc_r}) {
 
     if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
       for (my $i=0; $i < $btop; $i++) {
@@ -370,6 +383,7 @@ sub sub_alignment_score {
 	$score += $m_score;
 
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
+	  push @aligned_domains, $dom_r;
 	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $six, $s_id_cnt, $s_dom_score);
 	  $sdom_ix++;
 	  $dom_r = $domain_r->[$sdom_ix];
@@ -400,6 +414,7 @@ sub sub_alignment_score {
 	  $gap0 = 1;
 
 	  if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
+	    push @aligned_domains, $dom_r;
 	    $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $six, $s_id_cnt, $s_dom_score);
 	    $sdom_ix++;
 	    $dom_r = $domain_r->[$sdom_ix];
@@ -425,6 +440,7 @@ sub sub_alignment_score {
 	$m_score = $matrix_2d->{$seq0}{$seq1};
 	$score += $m_score;
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
+	  push @aligned_domains, $dom_r;
 	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $six, $s_id_cnt, $s_dom_score);
 	  $sdom_ix++;
 	  $dom_r = $domain_r->[$sdom_ix];
@@ -449,16 +465,15 @@ sub sub_alignment_score {
     last_annot_match(\@active_dom_list, $q_end, $s_end, $s_id_cnt, $s_dom_score);
   }
 
-  for (; $sdom_ix < $sdom_nx; $sdom_ix++) {
-    $domain_r->[$sdom_ix]->{score} = 0;
-  }
-
-  return ($score, $domain_r);
+  return ($score, \@aligned_domains);
 }
 
 ################
-# push_annot_match - adds domain to set of active domains,
-#                    returns current left-most right boundary
+# push_annot_match - adds domain to set of @$active_doms_r,
+#		     update ->{score}, ->{ident} for existing @$active_doms_r
+#		     initialize ->{score}, ->{ident} to zero for new domain
+#		     insert (splice) new domain in list ordered left-to-right by ->{sd_end}
+#                    returns current left-most {sd_end} boundary
 #
 sub push_annot_match {
   my ($active_doms_r, $dom_r, $q_pos, $s_pos, $c_ident, $c_score) = @_;
@@ -485,14 +500,17 @@ sub push_annot_match {
       $min_ix = $ix;
     }
   }
+
   # now have location for insert
   splice(@$active_doms_r, $min_ix, 0, $dom_r);
   return $active_doms_r->[0]->{sd_end};
 }
 
 ################
-# pop_annot_match - update scores
-#                   remove all domains that end at $s_ix
+# pop_annot_match - update domains in @$active_doms_r 
+#		    update: ->{ident}, ->{score}
+#		    add: ->{qa_end},->{sa_end}
+#                   remove all domains that end at $s_ix and convert {ident} count to fraction
 #                   return left-most right boundary
 
 sub pop_annot_match {
@@ -573,29 +591,41 @@ annot_blast_btop.pl
 
 =head1 SYNOPSIS
 
- annot_blast_btop --ann_script 'ann_pfam_www_e.pl --neg --vdoms' [--query_file query.fasta] blast_tabular_file
+ annot_blast_btop --ann_script ann_pfam_www_e.pl [--query_file query.fasta] --out_fields "q_seqid s_seqid percid evalue" blast_tabular_file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
 
- --ann_script
+ --ann_script -- annotation script returning domain locations
+ --query_file -- fasta query sequence
+ --out_fields -- blast tabular fields shown before domain information
 
 =head1 DESCRIPTION
 
 C<annot_blast_btop.pl> runs the script specified by C<--ann_script> to
 annotate the domain content of the sequences specified by the subject
 seqid field of blast tabular format (-outfmt 6 or 7) or FASTA blast
-tabular format (-m 8).  The tab file is read and parsed, and then the
-subject seqid is used to capture domain locations in the subject
-sequence.  If the domains overlap the aligned region, they are
-appended to the intput.
+tabular format (-m 8).  The C<--ann_script> file is run to produce
+domain boundary coordinates; if no C<--ann_script> is provided, domains
+are downloaded from UniProt (ann_feats_up_www2.pl).
+
+The tab file is read and parsed, and then the subject seqid is used to
+capture domain locations in the subject sequence.  If the domains
+overlap the aligned region, the domain names are appended to the
+intput.
 
 If a C<--query_file> is specified and two additional fields, C<score>
-and C<btop> are present, C<annot_blast_btop.pl> can also calculate
-sub-alignments scores, partitioning the alignment score across the
-overlapping domains.
+and C<btop> are present, C<annot_blast_btop.pl> calculates
+sub-alignment scores, including fraction identity, bit score, and
+Q-value (-log10(E-value)), partitioning the alignment score, identity,
+and bit score across the overlapping domains.
+
+The C<--out_fields> specifies the blast tabular fields that can be
+returned.  By default, C<q_seqid s_seqid percid alen mismatch gopen
+q_start q_end s_start s_end evalue bits> (but not C<score> and
+C<BTOP>) are shown.
 
 =head1 AUTHOR
 

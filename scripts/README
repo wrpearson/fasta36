@@ -43,6 +43,8 @@ ann_feats_up_www2.pl -- generate Uniprot sites, domains from an EBI
 ann_feats_up_www.pl -- generate Uniprot sites, domains from a Uniprot
 		       gff web server (less information than ann_feats_www2.pl)
 
+ann_ipr_www.pl -- Interpro domains from Interpro WWW site.
+
 ann_pdb_cath.pl -- generate CATH domains using PDB accessions from a mySQL database
 ann_pdb_vast.pl -- use VAST domains, but domain names are not informative
 

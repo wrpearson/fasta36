@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# copyright (c) 2014 by William R. Pearson and The Rector &
+# copyright (c) 2014,2015 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ my $domain_cnt = 0;
 
 my $hostname = `/bin/hostname`;
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $bound_comment, $shelp, $help) = (0,0,0,0,0,0,0,0,0,0);
+my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
 
 my $color_sep_str = " :";
@@ -53,7 +53,6 @@ $color_sep_str = '~';
 GetOptions(
     "lav" => \$lav,
     "no-over" => \$no_over,
-    "bound_comment" => \$bound_comment,
 	   "no_doms" => \$no_doms,
 	   "no-doms" => \$no_doms,
 	   "nodoms" => \$no_doms,
@@ -73,7 +72,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless (-p STDIN || -f STDIN || @ARGV || $data_file);
+pod2usage(1) unless @ARGV || $data_file || -p STDIN || -f STDIN;
 
 #my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
 
@@ -163,11 +162,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      my $d_name = $annot->[-1];
-      if ($bound_comment) {
-	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
-      }
-      $annot->[-1] .= $color_sep_str.$domains{$d_name};
+      $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
     }
     print join("\t",@$annot),"\n";
   }
@@ -252,13 +247,38 @@ sub gff2_annots {
 	$comments[0] = $comment;
       }
 
-      $comments[0] =~ s/^Signature\s*//;
+      # select comments with 'Note='
+      @comments = grep {/Note /} @comments;
+      for my $comment ( @comments) {
+	$comment =~ s/^Note\s+//;
+	$comment =~ s/"//g;
+      }
 
       # select first comment
       $value = $comments[0];
 
-      $value = '' unless $value;
-      if ($feats_text{$label}) {
+      if ($label =~ m/polypeptide_domain/ || $label =~ m/polypeptide_repeat/) {
+	$value = domain_name($label,$value);
+	push @feats2, [$pos, "-", $end, $value];
+      } elsif ($label =~ m/Helix/) {
+	push @feats2, [$pos, "-", $end, $value];
+      } elsif ($label =~ m/Beta/) {
+	push @feats2, [$pos, "-", $end, $value];
+      } elsif ($label =~ m/mutated_variant_site/ || $label =~ m/natural_variant_site/) {
+	next unless $value;
+	my ($mutant) = ($value =~ m/->\s(\w)/);
+	next unless $mutant;
+	my $info = $comments[1];
+	$info = '' unless $info;
+	if ($label =~ m/mutated_variant_site/) {
+	  $info = "Mutant: $info";
+	}
+	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
+      } else {
+	$value = '' unless $value;
+	#	print join("\t",($pos, $annot_types->{$label})),"\n";
+	#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
+	if ($feats_text{$label}) {
 	  my $info = $feats_text{$label};
 	  if ($value) {
 	    $info .= ": $value";
@@ -343,6 +363,8 @@ sub domain_name {
   my ($label, $value) = @_;
 
   $value = 'UnDef' unless $value;
+
+  $value =~ s/ /_/g;
 
   if ($label =~ /Domain|Repeat/i) {
     $value =~ s/;.*$//;

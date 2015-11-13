@@ -85,6 +85,9 @@ my $dom_dbs = "PFAM+PROFILE+GENE3D";
 
 my ($min_nodom) = (10);
 
+my $color_sep_str = " :";
+$color_sep_str = '~';
+
 GetOptions(
     "lav" => \$lav,
     "no-over" => \$no_over,
@@ -121,9 +124,6 @@ my %feats_label;
 @feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding', 'Site', '','');
 
 my @feat_vals = ( '=','*','#','^','@','V','V');
-
-
-
 
 my %annot_types = ();
 
@@ -194,7 +194,7 @@ for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
-      $annot->[-2] .= " :".$domains{$annot->[-1]};
+      $annot->[-2] .= $color_sep_str.$domains{$annot->[-1]};
     }
     print join("\t",@{$annot}[0..3]),"\n";
   }
@@ -362,7 +362,7 @@ sub parse_ipr_comment {
   for my $comment (@comments) {
     my %ipr_data = ();
     @ipr_data{qw(db acc descr)} = ($comment =~ m/(\S+)\s+(\S+)\s+"([^"]+)"/);
-    next if $ipr_data{db} =~ m/PRINTS/;
+    return ("","") if $ipr_data{db} =~ m/(PRINTS|PROSITE)/i;
     $ipr_data{descr} =~ s/\s+/_/g;
     push @comment_info, \%ipr_data;
   }
