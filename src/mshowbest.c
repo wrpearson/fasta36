@@ -243,7 +243,9 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
     fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
-    if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp," aln_code");}
+    if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp,", aln_code");}
+    else if ((m_msp->show_code & SHOW_CODE_BTOP)==SHOW_CODE_BTOP) { fprintf(fp,", BTOP");}
+
     fprintf(fp,"\n");
     fprintf(fp,"# %d hits found\n",nshow);
   }
@@ -568,7 +570,7 @@ l1:
 		    aln_p->d_start1,aln_p->d_stop1,
 		    aln_p->l_start_off, aln_p->l_end_off,
 		    aln_p->ngap_q,aln_p->ngap_l,aln_p->nfs);
-	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR))
+	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR+SHOW_CODE_BTOP))
 		&& seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
 	      if (annot_str_len > 0 && annot_str != NULL) {
@@ -584,7 +586,7 @@ l1:
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
-	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) && seq_code_len > 0 && seq_code != NULL) {
+	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR+SHOW_CODE_BTOP)) && seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
 	      if (annot_str_len > 0 && annot_str != NULL) {
 		fprintf(fp,"\t%s",annot_str);

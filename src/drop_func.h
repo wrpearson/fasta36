@@ -101,7 +101,6 @@ pre_cons(const unsigned char *aa, int n, int frame,
 void 
 aln_func_vals(int frame, struct a_struct *aln);
 
-
 #include "dyn_string.h"
 
 /* calc_cons_a - takes aa0, aa1, a_res, and produces seqc0, seqc1, 
@@ -134,7 +133,7 @@ calc_code(const unsigned char *aa0, int n0,
 	  struct a_struct *aln,
 	  struct a_res_str *a_res,
 	  struct pstruct *ppst,
-	  char *al_str, int al_str_n,
+	  struct dyn_string_str *align_code_dyn,
 	  const unsigned char *ann_arr,
 	  const unsigned char *aa0a,
 	  const struct annot_str *annot0_p,

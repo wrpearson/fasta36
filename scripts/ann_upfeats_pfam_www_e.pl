@@ -74,7 +74,7 @@ GetOptions(
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
-pod2usage(1) unless @ARGV;
+pod2usage(1) unless (@ARGV || -f STDIN || -p STDIN);
 
 #my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
 
@@ -135,17 +135,15 @@ unless ($no_feats) {
 my ($query, $seq_len) =  @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
-$query =~ s/^>//;
-
-my $ANN_F;
+$query =~ s/^>// if ($query);
 
 my @annots = ();
 
 #if it's a file I can open, read and parse it
 
-if ($query !~ m/\|/ && open($ANN_F, $query)) {
+unless ($query && $query =~ m/[\|:]/) {
 
-    while (my $a_line = <$ANN_F>) {
+    while (my $a_line = <>) {
 	$a_line =~ s/^>//;
 	chomp $a_line;
 	push @annots, upfeats_pfam_www($a_line, \&up_gff2_annots, \&get_pfam_www);

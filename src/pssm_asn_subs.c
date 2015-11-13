@@ -32,7 +32,7 @@ int parse_pssm2_asn();
 
 int
 parse_pssm_asn_fa(FILE *afd, int *n_rows, int *n_cols,
-		  unsigned char **query, double ***freqs, 
+		  unsigned char **query, double ***wfreqs, double ***freqs, int ***iscores,
 		  char *matrix, int *gap_open, int *gap_extend,
 		  double *lambda);
 
@@ -305,10 +305,9 @@ get_astr_bool(struct asn_bstruct *asnp, int *val) {
 }
 
 unsigned char *
-get_astr_int(struct asn_bstruct *asnp,
-	    long *val) {
+get_astr_int(struct asn_bstruct *asnp, long *val) {
 
-  int v_len, v;
+  int i_len, v_len, v;
 
   v = 0;
 
@@ -318,15 +317,15 @@ get_astr_int(struct asn_bstruct *asnp,
     return asn_error("get_astr_int", "ASN_IS_INT", ASN_IS_INT, asnp, 4);
   }
   else {
-    v_len = *asnp->abp++;
-    while (v_len-- > 0) {
+    i_len = v_len = *asnp->abp++;
+    while (i_len-- > 0) {
       v *= 256;
       v += *asnp->abp++;
     }
   }
 
-  if (v_len == 1 && v > 127) v = 256 - v;
-  else if (v_len == 2 && v > 32767) v = 65526 - v;
+  if (v_len == 1 && v > 127) { v = v - 256; }
+  else if (v_len == 2 && v > 32767) {v =  v - 65536;}
 
   *val = v;
   return asnp->abp;
@@ -1132,13 +1131,15 @@ get_pssm_freqs(struct asn_bstruct *asnp,
 
 unsigned char *
 get_pssm_intermed(struct asn_bstruct *asnp,
-		  double **freqs,
+		  double ***wfreqs,
+		  double ***freqs,
 		  int n_rows,
 		  int n_cols,
 		  int by_row) {
 
   long long_data;
   double real_data;
+  int i;
 
   asnp->abp = chk_asn_buf(asnp,4);
 
@@ -1151,14 +1152,41 @@ get_pssm_intermed(struct asn_bstruct *asnp,
     }
 
     if (ABP == ASN_PSSM_INTERMED_WRES_FREQS) {
+      if (((*wfreqs) = (double **)calloc(n_cols, sizeof(double *)))==NULL) {
+	fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+	exit(1);
+      }
+
+      if (((*wfreqs)[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
+	fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+	exit(1);
+      }
+
+      for (i=1; i < n_cols; i++) {
+	(*wfreqs)[i] = (*wfreqs)[i-1] + n_rows;
+      }
+
       ABP_INC2;
-      asnp->abp = get_pssm_intermed_null(asnp, n_rows, n_cols, by_row,
-					 &get_astr_packedreal, &long_data,  &real_data);
+      asnp->abp = get_pssm_freqs(asnp, *wfreqs, n_rows, n_cols, by_row);
     }
 
     if (ABP == ASN_PSSM_INTERMED_FREQ_RATIOS) {
+      if ((*freqs = (double **) calloc(n_cols, sizeof(double *)))==NULL) {
+	fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+	exit(1);
+      }
+
+      if (((*freqs)[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
+	fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+	exit(1);
+      }
+
+      for (i=1; i < n_cols; i++) {
+	(*freqs)[i] = (*freqs)[i-1] + n_rows;
+      }
+
       ABP_INC2;
-      asnp->abp = get_pssm_freqs(asnp, freqs, n_rows, n_cols, by_row);
+      asnp->abp = get_pssm_freqs(asnp, *freqs, n_rows, n_cols, by_row);
     }
 
     if (ABP == ASN_PSSM_INTERMED_INFO_CONTENT) {
@@ -1253,18 +1281,48 @@ get_pssm_rpsparams(struct asn_bstruct *asnp,
 
 /* this routine skips over the final scores */
 unsigned char *
-get_pssm_final_scores(struct asn_bstruct *asnp, int n_rows, int n_cols) {
+get_pssm_final_scores(struct asn_bstruct *asnp, int ***iscores, int n_rows, int n_cols, int by_row) {
 
-  int i_rows, j_cols;
+  int i_rows, i_cols, i;
+  int in_seq = 0;
   long l_val;
 
-  if (ABP == ASN_SEQ) { ABP_INC2; }
+  if (ABP == ASN_SEQ) { ABP_INC2; in_seq=1;}
 
-  for (i_rows=0; i_rows < n_rows; i_rows++) {
-    for (j_cols = 0; j_cols < n_cols; j_cols++) {
-      ABPP = get_astr_int(asnp, &l_val);
+  if (((*iscores) = (int **) calloc(n_cols, sizeof(int *)))==NULL) {
+    fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+    exit(1);
+  }
+
+  if (((*iscores)[0] = (int *) calloc(n_cols * n_rows, sizeof(int)))==NULL) {
+    fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+    exit(1);
+  }
+
+  for (i=1; i < n_cols; i++) {
+    (*iscores)[i] = (*iscores)[i-1] + n_rows;
+  }
+
+  if (!by_row) {
+    for (i_cols = 0; i_cols < n_cols; i_cols++) {
+      for (i_rows = 0; i_rows < n_rows; i_rows++) {
+	asnp->abp = get_astr_int(asnp, &l_val);
+	(*iscores)[i_cols][i_rows] = l_val;
+      }
     }
   }
+  else {
+    for (i_rows = 0; i_rows < n_rows; i_rows++) {
+      for (i_cols = 0; i_cols < n_cols; i_cols++) {
+	asnp->abp = get_astr_int(asnp, &l_val);
+	(*iscores)[i_cols][i_rows] = l_val;
+      }
+    }
+  }
+
+  asnp->abp = chk_asn_buf(asnp,8);
+  if (in_seq) {asnp->abp +=2;}	/* skip nulls */
+  ABP_INC2;
   return asnp->abp;
 }
 
@@ -1331,15 +1389,22 @@ get_pssm2_scores(struct asn_bstruct *asnp,
 
 unsigned char *
 get_pssm2_intermed(struct asn_bstruct *asnp,
+		   double ***wfreqs,
 		   double ***freqs,
 		   int n_rows,
 		   int n_cols) {
 
   int i;
-  double **my_freqs;
+  double **my_freqs, **my_wfreqs;
+  int **my_iscores;
 
   if ((my_freqs = (double **) calloc(n_cols, sizeof(double *)))==NULL) {
     fprintf(stderr, "*** error [%s:%d] - cannot allocate freq cols - %d\n", __FILE__, __LINE__, n_cols);
+    exit(1);
+  }
+
+  if ((my_wfreqs = (double **) calloc(n_cols, sizeof(double *)))==NULL) {
+    fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
     exit(1);
   }
 
@@ -1348,10 +1413,17 @@ get_pssm2_intermed(struct asn_bstruct *asnp,
     exit(1);
   }
 
-  for (i=1; i < n_cols; i++) {
-    my_freqs[i] = my_freqs[i-1] + n_rows;
+  if ((my_wfreqs[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
+    fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+    exit(1);
   }
 
+  for (i=1; i < n_cols; i++) {
+    my_freqs[i] = my_freqs[i-1] + n_rows;
+    my_wfreqs[i] = my_wfreqs[i-1] + n_rows;
+  }
+
+  *wfreqs = my_wfreqs;
   *freqs = my_freqs;
 
   chk_asn_buf(asnp, 8);
@@ -1369,7 +1441,9 @@ parse_pssm2_asn(struct asn_bstruct *asnp,
 		int *nq,
 		int *n_rows,
 		int *n_cols,
+		double ***wfreqs,
 		double ***freqs,
+		int ***iscores,
 		int *pseudo_cnts,
 		char *matrix, 
 		double *lambda_p) {
@@ -1441,7 +1515,7 @@ parse_pssm2_asn(struct asn_bstruct *asnp,
 
     if (ABP == ASN_PSSM2_FREQS) {
       asnp->abp += 4;
-      asnp->abp = get_pssm2_intermed(asnp, freqs, *n_rows, *n_cols) + 4;
+      asnp->abp = get_pssm2_intermed(asnp, wfreqs, freqs, *n_rows, *n_cols) + 4;
     }
   }
 
@@ -1458,7 +1532,9 @@ parse_pssm_asn(FILE *afd,
 	       int *nq,
 	       int *n_rows,
 	       int *n_cols,
+	       double ***wfreqs,
 	       double ***freqs,
+	       int  ***iscores,
 	       int *pseudo_cnts,
 	       char *matrix,
 	       int *gap_open_p,
@@ -1471,8 +1547,13 @@ parse_pssm_asn(FILE *afd,
   int i;
   long itmp;
   int have_rows=0, have_cols=0, by_col=0;
-  double **my_freqs, dtmp;
+  double **my_freqs, **my_wfreqs, dtmp;
+  int **my_iscores;
   struct asn_bstruct *asnp;
+
+  *wfreqs = NULL;
+  *freqs = NULL;
+  *iscores = NULL;
 
   asnp = new_asn_bstruct(ASN_BUF);
 
@@ -1498,7 +1579,8 @@ parse_pssm_asn(FILE *afd,
     *gap_open_p = *gap_ext_p = 0;
     return parse_pssm2_asn(asnp, gi, name, acc, descr,
 			   query, nq,
-			   n_rows, n_cols, freqs,
+			   n_rows, n_cols, 
+			   wfreqs, freqs, iscores,
 			   pseudo_cnts, matrix,
 			   lambda_p);
   }
@@ -1552,6 +1634,8 @@ parse_pssm_asn(FILE *afd,
   }
 
   /* finish up the nulls */
+
+
   while (ABP == '\0') { asnp->abp += 2;}
 
   if (ABP == ASN_PSSM_INTERMED_DATA) {
@@ -1562,23 +1646,10 @@ parse_pssm_asn(FILE *afd,
       return -1;
     }
 
-    if ((my_freqs = (double **) calloc(*n_cols, sizeof(double *)))==NULL) {
-      fprintf(stderr, "*** error [%s:%d] - cannot allocate freq cols - %d\n", __FILE__, __LINE__, *n_cols);
-      return -1;
-    }
-
-    if ((my_freqs[0] = (double *) calloc(*n_cols * *n_rows, sizeof(double)))==NULL) {
-      fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, *n_rows, *n_cols);
-      return -1;
-    }
-    for (i=1; i < *n_cols; i++) {
-      my_freqs[i] = my_freqs[i-1] + *n_rows;
-    }
-
-    *freqs = my_freqs;
-
     ABP_INC2;
-    asnp->abp = get_pssm_intermed(asnp, my_freqs, *n_rows, *n_cols, by_col);
+    asnp->abp = get_pssm_intermed(asnp, &my_wfreqs, &my_freqs, *n_rows, *n_cols, by_col);
+    *wfreqs = my_wfreqs;
+    *freqs = my_freqs;
   }
 
   if (ABP == ASN_PSSM_FINAL_DATA) {
@@ -1586,7 +1657,9 @@ parse_pssm_asn(FILE *afd,
     if (ABP == ASN_SEQ) { asnp->abp += 2;  }
     if (ABP == ASN_PSSM_FINAL_DATA_SCORES) {
       ABP_INC2;
-      asnp->abp = get_pssm_final_scores(asnp, *n_rows, *n_cols) + 2;
+
+      asnp->abp = get_pssm_final_scores(asnp, iscores, *n_rows, *n_cols, by_col) + 2;
+
       ABP_INC2;
     }
     if (ABP == ASN_PSSM_FINAL_DATA_LAMBDA) {
@@ -1640,7 +1713,9 @@ int
 parse_pssm_asn_fa( FILE *fd, 
 		   int *n_rows_p, int *n_cols_p,
 		   unsigned char **query,
+		   double ***wfreq2d,
 		   double ***freq2d,
+		   int ***iscores2d,
 		   char *matrix,
 		   int *gap_open_p,
 		   int *gap_extend_p,
@@ -1658,7 +1733,7 @@ parse_pssm_asn_fa( FILE *fd,
   /* parse the file */
 
   ret_val = parse_pssm_asn(fd, &gi, name, acc, descr, query, &nq,
-			   n_rows_p, n_cols_p, freq2d,
+			   n_rows_p, n_cols_p, wfreq2d, freq2d, iscores2d,
 			   &pseudo_cnts, matrix, gap_open_p, gap_extend_p,
 			   lambda_p);
 

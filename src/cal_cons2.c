@@ -47,6 +47,7 @@
 struct update_code_str {
   int p_op_idx;
   int p_op_cnt;
+  int btop_enc;
   int show_code;
   int cigar_order;
   int show_ext;
@@ -63,12 +64,12 @@ static void
 sprintf_code(char *tmp_str, struct update_code_str *, int op_idx, int op_cnt);
 
 static void 
-update_code(char *al_str, int al_str_max, 
+update_code(struct dyn_string_str *align_code_dyn,
 	    struct update_code_str *update_data, int op, 
 	    int sim_code, unsigned char sp0, unsigned char sp1);
 
 static void
-close_update_data(char *al_str, int al_str_max,
+close_update_data(struct dyn_string_str *align_code_dyn,
 		  struct update_code_str *update_data);
 
 extern void aancpy(char *to, char *from, int count, struct pstruct *ppst);
@@ -317,7 +318,7 @@ calc_cons_u( /* inputs */
 	    struct a_struct *aln,
 	    int *score_delta, 
 	    struct dyn_string_str *annot_var_dyn,
-	    char *al_str, int al_str_n)
+	    struct dyn_string_str *align_code_dyn)
 {
   int i0, i1, nn1;
   int op, lenc, nd, ns, itmp;
@@ -421,7 +422,7 @@ calc_cons_u( /* inputs */
     sp0_p = &sp0_c;
     sp1_p = &sp1_c;
 
-    show_code = (display_code & (SHOW_CODE_MASK+SHOW_CODE_EXT));	/* see defs.h; SHOW_CODE_ALIGN=2,_CIGAR=3,_CIGAR_EXT=4 */
+    show_code = (display_code & (SHOW_CODE_MASK+SHOW_CODE_EXT)); /* see defs.h; SHOW_CODE_ALIGN=4,_CIGAR=8,_CIGAR_EXT=24, _BTOP_EXT=16 */
     annot_fmt = 2;
     if (display_code & SHOW_ANNOT_FULL) {
       annot_fmt = 1;
@@ -626,7 +627,7 @@ calc_cons_u( /* inputs */
       }
 
       if (calc_func_mode == CALC_CODE) {
-	update_code(al_str, al_str_n-strlen(al_str), update_data_p, op, *spa_p, *sp0_p, *sp1_p);
+	update_code(align_code_dyn, update_data_p, op, *spa_p, *sp0_p, *sp1_p);
       }
 
       /* now we have done all the ?modified identity checks, display
@@ -668,13 +669,13 @@ calc_cons_u( /* inputs */
       d0_score +=  ppst->ggapval; d0_alen++;
 
       if (op > 0) {	/* insertion in aa0 */
-	if (calc_func_mode == CALC_CODE) {
-	  update_code(al_str, al_str_n-strlen(al_str), update_data_p, 2, *spa_p,'-','-');
-	}
-
 	*sp1_p = sq[aa1p[i1]];
 	*sp0_p = '-';
 	*spa_p = M_DEL;
+
+	if (calc_func_mode == CALC_CODE) {
+	  update_code(align_code_dyn, update_data_p, 2, *spa_p,*sp0_p,*sp1_p);
+	}
 
 	if (have_ann) {
 	  have_push_features = 0;
@@ -724,13 +725,14 @@ calc_cons_u( /* inputs */
 	aln->ngap_q++;
       }
       else {		/* (op < 0),  insertion in aa1 */
-	if (calc_func_mode == CALC_CODE) {
-	  update_code(al_str, al_str_n-strlen(al_str), update_data_p, 1, *spa_p,'-','-');
-	}
-
 	*sp1_p = '-';
 	*spa_p = M_DEL;
 	*sp0_p = sq[aa0[i0]];
+
+	if (calc_func_mode == CALC_CODE) {
+	  update_code(align_code_dyn, update_data_p, 1, *spa_p,*sp0_p,*sp1_p);
+	}
+
 	if (have_ann) {
 	  have_push_features = 0;
 	  *sp1a_p = ' ';
@@ -784,7 +786,7 @@ calc_cons_u( /* inputs */
   }
 
   if (calc_func_mode == CALC_CODE) {
-    close_update_data(al_str, al_str_n-strlen(al_str), update_data_p);
+    close_update_data(align_code_dyn, update_data_p);
   }
 
   *score_delta = v_delta;
@@ -859,7 +861,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 		     a_res, ppst, f_str, pstat_void,
 		     ann_arr, aa0a, annot0_p, aa1a, annot1_p, CALC_CONS, 0,
 		     nc, seqc0, seqc1, seqca, cumm_seq_score,
-		     seqc0a, seqc1a, aln, score_delta, annot_var_dyn, NULL, 0
+		     seqc0a, seqc1a, aln, score_delta, annot_var_dyn, NULL
 		     );
 }
 
@@ -890,17 +892,23 @@ init_update_data(show_code) {
   update_data_p->p_op_idx = -1;
   update_data_p->p_op_cnt = 0;
   update_data_p->show_code = show_code;
+  update_data_p->btop_enc = 0;
 
-  if ((show_code & SHOW_CODE_CIGAR) == SHOW_CODE_CIGAR) {
+  if ((show_code & SHOW_CODE_CIGAR) == SHOW_CODE_CIGAR) {	/* CIGAR enc */
     update_data_p->op_map = cigar_code;
     update_data_p->cigar_order = 1;
   }
-  else {
+  else if ((show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN) {  /* orig (ALIGN) enc */
     update_data_p->op_map = ori_code;
     update_data_p->cigar_order = 0;
   }
+  else if ((show_code & SHOW_CODE_BTOP) == SHOW_CODE_BTOP) {	/* btop_enc */
+    update_data_p->op_map = ori_code;
+    update_data_p->cigar_order = 0;
+    update_data_p->btop_enc = 1;
+  }    
 
-  if ((show_code & SHOW_CODE_EXT) == SHOW_CODE_EXT) {
+  if ((show_code & SHOW_CODE_EXT) == SHOW_CODE_EXT) {	/* set for CIGAR/ALIGN, BTOP already set */
     update_data_p->show_ext = 1;
   }
   else {
@@ -910,15 +918,23 @@ init_update_data(show_code) {
   return update_data_p;
 }
 
+/* btop_enc always has a p_opt_cnt == 0 unless in run of identical match */
 static void
-close_update_data(char *al_str, int al_str_max, 
+close_update_data(struct dyn_string_str *align_code_dyn,
 		  struct update_code_str *up_dp) {
   char tmp_cnt[MAX_SSTR];
+  tmp_cnt[0] = '\0';
 
   if (!up_dp) return;
-  sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
-  strncat(al_str,tmp_cnt,al_str_max);
 
+  if (up_dp->btop_enc) {
+    sprintf(tmp_cnt,"%d",up_dp->p_op_cnt);
+    up_dp->p_op_cnt = 0;
+  }
+  else {
+    sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
+  }
+  dyn_strcat(align_code_dyn,tmp_cnt);
   free(up_dp);
 }
 
@@ -927,7 +943,7 @@ close_update_data(char *al_str, int al_str_max,
    insertions or deletions, can produce an initial code of "0=".  When
    that happens, it is ignored and no code is added.
 
-   *al_str - alignment string [al_str_max] - not dynamic
+   *align_code_dyn - alignment string (dynamic)
    op -- encoded operation, currently 0=match, 1-delete, 2-insert, 3-term-match, 4-mismatch
    op_cnt -- length of run
    show_code -- SHOW_CODE_CIGAR uses cigar_code, otherwise legacy
@@ -943,12 +959,42 @@ sprintf_code(char *tmp_str, struct update_code_str *up_dp, int op_idx, int op_cn
   }
 }
 
+/* only called for btop alignment encoding, for identity, update
+   count, otherwise, print previous count and current difference.
+   assumes that up_dp->p_op_cnt only tracks identity
+*/
+
 static void
-update_code(char *al_str, int al_str_max, 
+sprintf_btop(char *tmp_str, 
+	     struct update_code_str *up_dp, 
+	     int op, int sim_code,
+	     unsigned char sp0, unsigned char sp1)
+{
+  char local_str[MAX_SSTR];
+  local_str[0]='\0';
+
+  tmp_str[0] = '\0';
+
+  if (op==0 && sim_code == M_IDENT) {
+    up_dp->p_op_cnt++;
+    return;
+  }
+  else {
+    if (up_dp->p_op_cnt > 0) {
+      sprintf(local_str,"%d",up_dp->p_op_cnt);
+    }
+    up_dp->p_op_cnt = 0;
+    sprintf(tmp_str,"%s%c%c",local_str,sp0,sp1);
+  }
+}
+
+static void
+update_code(struct dyn_string_str *align_code_dyn, 
 	    struct update_code_str *up_dp, int op, 
 	    int sim_code,  unsigned char sp0, unsigned char sp1)
 {
   char tmp_cnt[MAX_SSTR];
+  tmp_cnt[0]='\0';
 
   /* op == 0 : match state (could involve termination codons);
      op == 1 : deletion
@@ -957,6 +1003,13 @@ update_code(char *al_str, int al_str_max,
      p_op == 5 : mismatch state
   */
 
+  if (up_dp->btop_enc) {
+    sprintf_btop(tmp_cnt, up_dp, op, sim_code, sp0, sp1);
+    dyn_strcat(align_code_dyn, tmp_cnt);
+    return;
+  }
+
+  /* not btop_enc */
   if (up_dp->p_op_cnt == 0) {
     up_dp->p_op_idx = op;
     up_dp->p_op_cnt = 1;
@@ -967,7 +1020,7 @@ update_code(char *al_str, int al_str_max,
     if (up_dp->p_op_idx == op) { up_dp->p_op_cnt++;}
     else {
       sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx,up_dp->p_op_cnt);
-      strncat(al_str,tmp_cnt,al_str_max);
+      dyn_strcat(align_code_dyn, tmp_cnt);
       up_dp->p_op_idx = op;
       up_dp->p_op_cnt = 1;
     }
@@ -987,7 +1040,7 @@ update_code(char *al_str, int al_str_max,
 
     if (op != up_dp->p_op_idx) {
       sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx,up_dp->p_op_cnt);
-      strncat(al_str,tmp_cnt,al_str_max);
+      dyn_strcat(align_code_dyn, tmp_cnt);
       up_dp->p_op_idx = op;
       up_dp->p_op_cnt = 1;
     }
@@ -1011,7 +1064,8 @@ int calc_code(const unsigned char *aa0, int n0,
 	      struct a_struct *aln,
 	      struct a_res_str *a_res,
 	      struct pstruct *ppst,
-	      char *al_str, int al_str_n, 
+	      struct dyn_string_str *align_code_dyn,
+	      /* char *al_str, int al_str_n,  */
 	      const unsigned char *ann_arr, 
 	      const unsigned char *aa0a,
 	      const struct annot_str *annot0_p,
@@ -1032,7 +1086,7 @@ int calc_code(const unsigned char *aa0, int n0,
 		     display_code,
 		     &nc, NULL, NULL, NULL, NULL,
 		     NULL, NULL, aln, score_delta, annot_code_dyn,
-		     al_str, al_str_n
+		     align_code_dyn
 		     );
 }
 
@@ -1057,7 +1111,7 @@ int calc_id(const unsigned char *aa0, int n0,
 		     NULL, NULL, annot0_p, NULL, annot1_p, CALC_ID, 0,
 		     &nc, NULL, NULL, NULL, NULL,
 		     NULL, NULL, aln, score_delta, annot_var_dyn,
-		     NULL, 0
+		     NULL
 		     );
 }
 
@@ -1082,6 +1136,6 @@ int calc_idd(const unsigned char *aa0, int n0,
 		     NULL, NULL, annot0_p, NULL, annot1_p, CALC_ID_DOM, 0,
 		     &nc, NULL, NULL, NULL, NULL,
 		     NULL, NULL, aln, score_delta, annot_var_dyn,
-		     NULL, 0
+		     NULL
 		     );
 }

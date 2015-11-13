@@ -95,6 +95,12 @@ main(int argc, char **argv) {
   }
 
   initenv(argc, argv, &pst, qname);
+
+  if (argc < 1) {
+    fprintf(stderr,"usage -- print_pssm -P \"pssm.asn 2\" query_file\n");
+    exit(1);
+  }
+
   alloc_pam(pst.nsq+1,pst.nsq+1, &pst);
   initpam2(&pst);
   init_ascii0(qascii, NCBIstdaa_ext, NCBIstdaa_ext_n, &pst);
@@ -286,7 +292,7 @@ read_pssm(unsigned char *aa0, int n0, int nsq, double pamscale, FILE *fp, int pg
 	if (too_high) break;
 	scale = (scale_low += scale_low - 1.0);
       }
-    } else {
+    } else {  /* new_lambda <= 0 */
       fprintf(stderr, "new_lambda (%g) <= 0; matrix has positive average score", new_lambda);
       exit(1);
     }
@@ -526,7 +532,7 @@ void free_pam2p(int **pam2p) {
 
 int
 parse_pssm_asn_fa(FILE *afd, int *n_rows, int *n_cols,
-		  unsigned char **query, double ***freqs,
+		  unsigned char **query, double ***wfreqs,double ***freqs, int ***iscores,
 		  char *matrix, int *gap_open, int *gap_extend,
 		  double *lambda);
 
@@ -543,7 +549,7 @@ int
 read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 	      double pamscale, FILE *fp, struct pstruct *ppst) {
 
-  int i, j, len, k;
+  int i, j, len, k, itmp;
   int qi, rj;	/* qi - index query; rj - index residues (1-20) */
   int **pam2p;
   int first, too_high;
@@ -551,14 +557,15 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
   char dline[512];
   char matrix[MAX_SSTR];
   double psi2_lambda;
-  double freq, **freq2d, lambda, new_lambda;
+  double freq, **wfreq2d, **freq2d, lambda, new_lambda;
   double scale, scale_high, scale_low;
+  int **iscores2d;
   int gap_open, gap_extend;
   int n_rows, n_cols;
 
   pam2p = ppst->pam2p[0];
 
-  if (parse_pssm_asn_fa(fp, &n_rows, &n_cols, (unsigned char **)&query, &freq2d,
+  if (parse_pssm_asn_fa(fp, &n_rows, &n_cols, (unsigned char **)&query, &wfreq2d, &freq2d, &iscores2d,
 			matrix, &gap_open, &gap_extend, &psi2_lambda)<=0) {
     return -1;
   }
@@ -599,13 +606,13 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 
   printf(" rrtotal: %ld; pamscale=%0.5f\n", rrtotal, pamscale);
 
-  printf("   ");
+  printf("        ");
   for (rj = 1; rj <= N_EFFECT; rj++ ) {
     printf(" %c    ",NCBIstdaa[rj]);
   }
   printf("\n");
   for (qi = 0 ; qi < n0 ; qi++) {
-    printf("%c",NCBIstdaa[aa0[qi]]);
+    printf("%3d %c",qi+1, NCBIstdaa[aa0[qi]]);
     for (rj = 0 ; rj < N_EFFECT ; rj++) {
       freq = freq2d[qi][rj];
 /*    printf(" %8.7g",freq*10.0); */
@@ -615,8 +622,6 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 	freq /= pamscale; /* this gets us close to originial pam scores */
 	freq2d[qi][rj] = freq;
       }
-      else {freq2d[qi][rj] = freq;}
-
       printf(" %5.2f",freq);
     }
     printf("\n");
@@ -678,22 +683,48 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 
   fprintf(stderr, "final scale: %g\n", scale);
 
-  fprintf(stderr,"         ");
+  fprintf(stderr,"        ");
   for (rj = 1; rj <= N_EFFECT+3; rj++ ) {
-    fprintf(stderr,"   %c",NCBIstdaa[rj]);
+    fprintf(stderr,"  %c",NCBIstdaa[rj]);
   }
   fprintf(stderr,"\n");
 
   for (qi = 0 ; qi < n0 ; qi++) {
-    fprintf(stderr, "%4d %c:  ", qi+1, NCBIstdaa[aa0[qi]]);
+    fprintf(stderr, "%4d %c: ", qi+1, NCBIstdaa[aa0[qi]]);
     for (rj = 1 ; rj <= N_EFFECT+3 ; rj++) {
-      fprintf(stderr, "%4d", pam2p[qi][rj]);
+      fprintf(stderr, "%3d", pam2p[qi][rj]);
     }
     fprintf(stderr, "\n");
   }
 
-  free(freq2d[0]);
-  free(freq2d);
+  if (iscores2d != NULL) {
+    fprintf(stderr,"         ");
+    for (rj = 1; rj <= N_EFFECT+3; rj++ ) {
+      fprintf(stderr," %c ",NCBIstdaa[rj]);
+    }
+    fprintf(stderr,"\n");
+    for (qi = 0 ; qi < n0 ; qi++) {
+      fprintf(stderr, "%4d %c: ", qi+1, NCBIstdaa[aa0[qi]]);
+      for (rj = 1 ; rj <= N_EFFECT+3 ; rj++) {
+	itmp = iscores2d[qi][rj];
+	if (itmp < -256) itmp=0;
+	fprintf(stderr, "%3d", itmp );
+      }
+      fprintf(stderr, "\n");
+    }
+    free(iscores2d[0]);
+    free(iscores2d);
+  }
+
+  if (wfreq2d != NULL) {
+    free(wfreq2d[0]);
+    free(wfreq2d);
+  }
+
+  if (freq2d != NULL) {
+    free(freq2d[0]);
+    free(freq2d);
+  }
 
   free(query);
   return 1;

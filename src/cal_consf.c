@@ -35,7 +35,7 @@
 #define DROP_INTERN
 #include "drop_func.h"
 
-void update_code(char *al_str, int al_str_max, int op, int op_cnt, int fnum, int show_code);
+void update_code(struct dyn_string_str *align_code_dyn, int op, int op_cnt, int fnum, int show_code);
 extern void aancpy(char *to, char *from, int count, const struct pstruct *ppst);
 
 int
@@ -313,7 +313,7 @@ calc_code(const unsigned char *aa0, const int n0,
 	  struct a_struct *aln,
 	  struct a_res_str *a_res,
 	  struct pstruct *ppst,
-	  char *al_str, int al_str_n, 
+	  struct dyn_string_str *align_code_dyn,
 	  const unsigned char *ann_arr, 
 	  const unsigned char *aa0a,
 	  const struct annot_str *annot0_p,
@@ -394,14 +394,14 @@ calc_code(const unsigned char *aa0, const int n0,
       if (p_ac == 0) {	/* previous code was a match */
 	if (fnum == o_fnum) { op_cnt++;	}
 	else {		/* continuing a match, but with a different fragment */
-	  update_code(al_str,al_str_n-strlen(al_str), p_ac, op_cnt, o_fnum, show_code);
+	  update_code(align_code_dyn, p_ac, op_cnt, o_fnum, show_code);
 	  if (have_ann) aa0ap = &aa0a[f_str->nmoff[fnum]];
 	  o_fnum = fnum;
 	  op_cnt=1;
 	}
       }
       else {
-	update_code(al_str,al_str_n-strlen(al_str),p_ac,op_cnt,o_fnum, show_code);
+	update_code(align_code_dyn,p_ac,op_cnt,o_fnum, show_code);
 	op_cnt = 1; p_ac = 0; o_fnum = fnum = f_str->aa0ti[i0] + 1;
 	if (have_ann) {aa0ap = &aa0a[f_str->nmoff[fnum]];}
       }
@@ -460,7 +460,7 @@ calc_code(const unsigned char *aa0, const int n0,
       if (op==0) op = *rp++;
       if (p_ac == 1) { op_cnt++;}
       else {
-	update_code(al_str,al_str_n - strlen(al_str),p_ac,op_cnt,o_fnum, show_code);
+	update_code(align_code_dyn,p_ac,op_cnt,o_fnum, show_code);
 #if defined(FASTS) || defined(FASTM)
 	p_ac = 1;
 	fnum = f_str->aa0ti[i0];
@@ -470,7 +470,7 @@ calc_code(const unsigned char *aa0, const int n0,
       op--; lenc++; i1++; len_gap++;
     }
   }
-  update_code(al_str,al_str_n - strlen(al_str),p_ac,op_cnt,o_fnum, show_code);
+  update_code(align_code_dyn,p_ac,op_cnt,o_fnum, show_code);
 
   return lenc - len_gap;
 }
@@ -481,7 +481,7 @@ calc_code(const unsigned char *aa0, const int n0,
 */
 
 void
-update_code(char *al_str, int al_str_max, int op, int op_cnt, int fnum, int show_code) {
+update_code(struct dyn_string_str *align_code_dyn, int op, int op_cnt, int fnum, int show_code) {
 
   char align_char[4]={"=-+"};
   char cigar_char[4]={"MDI"};
@@ -498,7 +498,7 @@ update_code(char *al_str, int al_str_max, int op, int op_cnt, int fnum, int show
     else
       sprintf(tmp_cnt,"%c%d",align_char[op],op_cnt);
   }
-  strncat(al_str,tmp_cnt,al_str_max);
+  dyn_strcat(align_code_dyn, tmp_cnt);
 }
 
 int
