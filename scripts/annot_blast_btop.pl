@@ -50,6 +50,7 @@ my ($out_field_str) = ("");
 my $query_seq_r;
 
 my %blosum62dd = ();
+my %blosum62diag = ();
 my ($g_open, $g_ext) = (-11, -1);
 init_blosum62();
 
@@ -76,7 +77,8 @@ if ($query_file_name) {
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
-my @out_tab_fields = @tab_fields[0 .. $#tab_fields-2];
+my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
+push @out_tab_fields,"raw_score";
 
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
@@ -145,6 +147,9 @@ if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     }
   }
   close(Reader);
+
+  waitpid($pid, 0);
+
   if (@hit_domains) {
     $hit_list[$hit_ix]{domains} = [ @hit_domains ];
   }
@@ -160,7 +165,7 @@ for my $hit (@hit_list) {
   # If I have an encoded aligment and a query sequence, I can calculate sub-alignment scores
   if (defined($hit->{BTOP}) && $query_seq_r && @$query_seq_r) {
     ($hit->{raw_score}, $hit->{aligned_domains_r}) = 
-      sub_alignment_score($query_seq_r, $hit, \%blosum62dd, $hit->{domains});
+      sub_alignment_score($query_seq_r, $hit, \%blosum62dd, \%blosum62diag, $hit->{domains});
   }
   else {   # no alignment info, just check for overlap
     for my $dom_r (@{$hit->{domains}}) {
@@ -276,6 +281,7 @@ sub init_blosum62 {
     my %dd = ();
     @dd{@ncbi_blaa} = @{$blosum62{$key}};
     $blosum62dd{$key} = \%dd;
+    $blosum62diag{$key} = $blosum62dd{$key}{$key};
   }
 
   ($g_open, $g_ext) = (-11, -1);
@@ -334,7 +340,7 @@ sub alignment_score {
 #             ->{sa_start, sa_end} domain boundaries in subject
 
 sub sub_alignment_score {
-  my ($query_r, $hit_r, $matrix_2d, $domain_r) = @_;
+  my ($query_r, $hit_r, $matrix_2d, $matrix_diag, $domain_r) = @_;
 
   return (0, $domain_r) unless (scalar(@$domain_r));
 
@@ -379,7 +385,8 @@ sub sub_alignment_score {
     if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
       for (my $i=0; $i < $btop; $i++) {
 
-	$m_score = $matrix_2d->{$query_r->[$qix]}{$query_r->[$qix]};
+	#	$m_score = $matrix_2d->{$query_r->[$qix]}{$query_r->[$qix]};
+	$m_score = $matrix_diag->{$query_r->[$qix]};
 	$score += $m_score;
 
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
@@ -458,6 +465,7 @@ sub sub_alignment_score {
 	$gap0 = $gap1 = 0;
       }
     }
+#    print join(":",($qix, $six, $score)),"\n";
   }
 
   # all done, finish any domain stuff

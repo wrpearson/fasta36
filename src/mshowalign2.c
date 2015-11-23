@@ -432,7 +432,8 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
     first_line = 1;
     /* do not remove this #ifdef -- required to get correct bits,
-       evalue, or first LALIGN score */
+       evalue, for first LALIGN score.  If LALIGN + first_line=1, uses
+       the identity score for the bitscore and evalue */
 #ifdef LALIGN
     first_line = 0;
 #endif
@@ -548,7 +549,8 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #endif
 
       lsw_score = cur_ares_p->sw_score + score_delta;
-      if (first_line && !(m_msp->markx&MX_M11OUT )) {
+      /* removed 'first_line &&' so that LALIGN shows subject name/description */
+      if (!(m_msp->markx&MX_M11OUT )) {
 	if ((m_msp->markx & MX_ATYPE)!=7 && !(m_msp->markx & MX_M10FORM)) {
 	  if (m_msp->markx & MX_MBLAST) {
 	    /* provides >>id  description (length) line */
