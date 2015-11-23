@@ -6,7 +6,7 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Nov. 23, 2015
+>>Nov. 23, 2015   [releaseed as fasta-36.3.8c]
 [cal_cons2.c, mshowalign2.c, scripts/annot_blast_btop.pl, scripts/ann*_e.pl]
 Fix the problem that lalign36 no longer displayed the library/subject
 accession/description.  Correct some problems introduced with BTOP
