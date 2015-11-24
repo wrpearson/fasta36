@@ -430,13 +430,8 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
     }
 
 
+    /* enables >>seq_acc seq_description length for first alignment, >- after */
     first_line = 1;
-    /* do not remove this #ifdef -- required to get correct bits,
-       evalue, for first LALIGN score.  If LALIGN + first_line=1, uses
-       the identity score for the bitscore and evalue */
-#ifdef LALIGN
-    first_line = 0;
-#endif
 
     while (cur_ares_p != NULL && cur_ares_p->nres > 0) {
 
@@ -550,7 +545,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       lsw_score = cur_ares_p->sw_score + score_delta;
       /* removed 'first_line &&' so that LALIGN shows subject name/description */
-      if (!(m_msp->markx&MX_M11OUT )) {
+      if (first_line && !(m_msp->markx&MX_M11OUT )) {
 	if ((m_msp->markx & MX_ATYPE)!=7 && !(m_msp->markx & MX_M10FORM)) {
 	  if (m_msp->markx & MX_MBLAST) {
 	    /* provides >>id  description (length) line */
@@ -587,6 +582,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       /* this is required because cur_ares_p can carry scores from an
 	 alignment without -S low-complexity re-scored using low
 	 complexity */
+#ifndef LALIGN
       if (first_line) {
 	rst_p = &bbp->rst;
 	first_line = 0;
@@ -594,6 +590,11 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       else {
 	rst_p = &cur_ares_p->rst;
       }
+#else
+      /* ensures that LALIGN alignments do not report 100% match
+	 values */
+      rst_p = &cur_ares_p->rst;
+#endif
 
       l_score0 = rst_p->score[ppst->score_ix] + score_delta;
 
