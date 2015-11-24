@@ -594,6 +594,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       /* ensures that LALIGN alignments do not report 100% match
 	 values */
       rst_p = &cur_ares_p->rst;
+      first_line = 0;
 #endif
 
       l_score0 = rst_p->score[ppst->score_ix] + score_delta;
