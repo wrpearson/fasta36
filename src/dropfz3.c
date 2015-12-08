@@ -3607,15 +3607,15 @@ init_update_data(show_code) {
     update_data_p->op_map = cigar_code;
     update_data_p->cigar_order = 1;
   }
-  else if ((show_code & SHOW_CODE_ALIGN) == SHOW_CODE_ALIGN) {
-    update_data_p->op_map = ori_code;
-    update_data_p->cigar_order = 0;
-  }
   else if ((show_code & SHOW_CODE_BTOP) == SHOW_CODE_BTOP) {
     update_data_p->op_map = ori_code;
     update_data_p->cigar_order = 0;
     update_data_p->btop_enc = 1;
   }    
+  else {
+    update_data_p->op_map = ori_code;
+    update_data_p->cigar_order = 0;
+  }
 
   if ((show_code & SHOW_CODE_EXT) == SHOW_CODE_EXT) {
     update_data_p->show_ext = 1;

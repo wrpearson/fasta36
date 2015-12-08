@@ -31,6 +31,9 @@
 # produces domain content without sub-alignment scores.
 ################################################################
 
+## 16-Nov-2015
+# modify to allow multi-query blast searches
+
 use strict;
 use IPC::Open2;
 use Pod::Usage;
@@ -45,18 +48,23 @@ use Getopt::Long;
 
 # and report the domain content ala -m 8CC
 
-my ($matrix, $query_file_name, $ann_script, $shelp, $help) = ("BLOSUM62", "", "ann_feats_up_www2.pl --neg --no-feats", 0, 0);
+my ($matrix, $ann_script, $shelp, $help) = ("BLOSUM62", "ann_feats_up_www2.pl --neg --no-feats", 0, 0);
+my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
-my $query_seq_r;
+my $query_lib_r = 0;
 
-my %blosum62dd = ();
+my @blosum62 = ();
+my @blosum62_diag = ();
+my %aa_map = ();
 my ($g_open, $g_ext) = (-11, -1);
 init_blosum62();
 
 GetOptions(
     "matrix:s" => \$matrix,
     "ann_script:s" => \$ann_script,
-    "query_file:s" => \$query_file_name,
+    "query:s" => \$query_lib_name,
+    "query_file:s" => \$query_lib_name,
+    "query_lib:s" => \$query_lib_name,
     "out_fields:s" => \$out_field_str,
     "script" => \$ann_script,
     "h|?" => \$shelp,
@@ -69,130 +77,153 @@ unless (-f STDIN || -p STDIN || @ARGV) {
  pod2usage(1);
 }
 
-if ($query_file_name) {
-  $query_seq_r = parse_query_file($query_file_name);
+if ($query_lib_name) {
+  $query_lib_r = parse_query_lib($query_lib_name);
 }
 
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
-my @out_tab_fields = @tab_fields[0 .. $#tab_fields-2];
+my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
+push @out_tab_fields, "raw_score";
 
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
 }
 
-my $have_data = 0;
 my @header_lines = ();
-my @footer_lines = ();
 
-my @hit_list = ();
+# need outer loop to enable multiple queries
+while (1) {
 
-while (my $line = <>) {
-  if ($line =~ /^#/) {
-    if ($have_data) {
-      push @footer_lines, $line;
+  my $next_line = "";
+  my $have_data = 0;
+
+  my @hit_list = ();
+  while (my $line = <>) {
+    if ($line =~ /^#/) {
+      if ($have_data) {
+	$next_line = $line;
+	$have_data = 0;
+	last;
+      } else {
+	push @header_lines, $line;
+      }
+      next;
     }
-    else {
-      push @header_lines, $line;
-    }
-    next;
-  }
-  $have_data = 1;
-  my %hit_data = ();
-  chomp $line;
-  @hit_data{@tab_fields} = split(/\t/,$line);
 
-  push @hit_list, \%hit_data;
-}
-
-if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
-  # get the domains for each s_seqid using --ann_script
-  #
-  local (*Reader, *Writer);
-  my $pid = open2(\*Reader, \*Writer, $ann_script);
-  for my $hit (@hit_list) {
-    print Writer $hit->{s_seqid},"\n";
-  }
-  close(Writer);
-
-  my $current_domain = "";
-  my $hit_ix = 0;
-  my @hit_domains = ();
-
-  while (my $line = <Reader>) {
+    $have_data = 1;
+    my %hit_data = ();
     chomp $line;
-    if ($line =~ m/^>/) {
-      if ($current_domain) {
-	if ($hit_list[$hit_ix]{s_seqid} eq $current_domain) {
-	  $hit_list[$hit_ix]{domains} = [ @hit_domains ];
-	  $hit_ix++;
-	} else {
-	  warn "phase error: $current_domain != $hit_list[$hit_ix]{s_seqid}";
+    @hit_data{@tab_fields} = split(/\t/,$line);
+
+    push @hit_list, \%hit_data;
+  }
+
+  # get the current query sequence
+  if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
+    # get the domains for each s_seqid using --ann_script
+    #
+    local (*Reader, *Writer);
+    my $pid = open2(\*Reader, \*Writer, $ann_script);
+    for my $hit (@hit_list) {
+      print Writer $hit->{s_seqid},"\n";
+    }
+    close(Writer);
+
+    my $current_domain = "";
+    my $hit_ix = 0;
+    my @hit_domains = ();
+
+    while (my $line = <Reader>) {
+      chomp $line;
+      if ($line =~ m/^>/) {
+	if ($current_domain) {
+	  if ($hit_list[$hit_ix]{s_seqid} eq $current_domain) {
+	    $hit_list[$hit_ix]{domains} = [ @hit_domains ];
+	    $hit_ix++;
+	  } else {
+	    warn "phase error: $current_domain != $hit_list[$hit_ix]{s_seqid}";
+	  }
+	}
+	@hit_domains = ();
+	$current_domain = $line;
+	$current_domain =~ s/^>//;
+      } else {
+	next if $line=~ m/^=/;
+	my %dom_info = ();
+	@dom_info{qw(sd_start dash sd_end descr)} = split(/\t/,$line);
+	next unless $dom_info{dash} eq '-';
+	$dom_info{descr} =~ s/ :(\d+)$/~$1/;
+	delete($dom_info{dash});
+	push @hit_domains, \%dom_info;
+      }
+    }
+    close(Reader);
+    waitpid($pid, 0);
+
+    if (@hit_domains) {
+      $hit_list[$hit_ix]{domains} = [ @hit_domains ];
+    }
+  }
+
+  for my $line (@header_lines) {
+    print $line;
+  }
+  @header_lines = ($next_line);
+
+  # now get query sequence if available
+
+  for my $hit (@hit_list) {
+    my @list_covered = ();
+
+    # If I have an encoded aligment and a query sequence, I can calculate sub-alignment scores
+    if (defined($hit->{BTOP}) && 
+	$query_lib_r && $query_lib_r->{$hit->{q_seqid}}
+       && $hit->{domains}) {
+      ($hit->{raw_score}, $hit->{aligned_domains_r}) = 
+	sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
+			    $hit, \@blosum62, \@blosum62_diag, $hit->{domains});
+    } else {		   # no alignment info, just check for overlap
+      for my $dom_r (@{$hit->{domains}}) {
+	next if $dom_r->{sd_end} < $hit->{s_start}; # before start
+	last if $dom_r->{sd_start} > $hit->{s_end}; # after end
+
+	if ($dom_r->{sd_start} <= $hit->{s_end} && $dom_r->{sd_end} >= $hit->{s_start}) {
+	  push @list_covered, $dom_r->{descr};
 	}
       }
-      @hit_domains = ();
-      $current_domain = $line;
-      $current_domain =~ s/^>//;
-    } else {
-      next if $line=~ m/^=/;
-      my %dom_info = ();
-      @dom_info{qw(sd_start dash sd_end descr)} = split(/\t/,$line);
-      next unless $dom_info{dash} eq '-';
-      $dom_info{descr} =~ s/ :(\d+)$/~$1/;
-      delete($dom_info{dash});
-      push @hit_domains, \%dom_info;
     }
+
+    ################
+    ## final output display
+
+    print join("\t",@{$hit}{@out_tab_fields}); # show fields from original blast tabular file
+
+    if (defined($hit->{aligned_domains_r})) { # show subalignment scores if available
+      print "\t";
+      for my $dom_r ( @{$hit->{aligned_domains_r}} ) {
+	print format_dom_info($hit, $hit->{raw_score}, $dom_r);
+      }
+    } elsif (@list_covered) {	# otherwise show domain content
+      print "\t",join(";",@list_covered);
+    }
+    print "\n";
   }
-  close(Reader);
-  if (@hit_domains) {
-    $hit_list[$hit_ix]{domains} = [ @hit_domains ];
-  }
+
+  # for my $line (@footer_lines) {
+  #   print $line;
+  # }
+  # @footer_lines = ();
+
+  last if eof(ARGV);
 }
 
 for my $line (@header_lines) {
   print $line;
 }
 
-for my $hit (@hit_list) {
-  my @list_covered = ();
 
-  # If I have an encoded aligment and a query sequence, I can calculate sub-alignment scores
-  if (defined($hit->{BTOP}) && $query_seq_r && @$query_seq_r) {
-    ($hit->{raw_score}, $hit->{aligned_domains_r}) = 
-      sub_alignment_score($query_seq_r, $hit, \%blosum62dd, $hit->{domains});
-  }
-  else {   # no alignment info, just check for overlap
-    for my $dom_r (@{$hit->{domains}}) {
-      next if $dom_r->{sd_end} < $hit->{s_start};	# before start
-      last if $dom_r->{sd_start} > $hit->{s_end}; # after end
-
-      if ($dom_r->{sd_start} <= $hit->{s_end} && $dom_r->{sd_end} >= $hit->{s_start}) {
-	push @list_covered, $dom_r->{descr};
-      }
-    }
-  }
-
-  ################
-  ## final output display
-
-  print join("\t",@{$hit}{@out_tab_fields});	# show fields from original blast tabular file
-
-  if (defined($hit->{aligned_domains_r})) {	# show subalignment scores if available
-    print "\t";
-    for my $dom_r ( @{$hit->{aligned_domains_r}} ) {
-      print format_dom_info($hit, $hit->{raw_score}, $dom_r);
-    }
-  }
-  elsif (@list_covered) {			# otherwise show domain content
-    print "\t",join(";",@list_covered);
-  }
-  print "\n";
-}
-
-for my $line (@footer_lines) {
-  print $line;
-}
 
 # input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
 # returns a list_ref of tokens: (1, "VA", 60, "TS", 7, "KG, 10, "RK", 27)
@@ -221,6 +252,31 @@ sub decode_btop {
   return \@out_tokens;
 }
 
+sub parse_query_lib {
+  my ($query_file) = @_;
+
+  my %query_seqs = ();
+
+  open(my $qfd, $query_file);
+  {				# local scope for $/
+    local $/ = "\n>";
+
+    while (my $entry = <$qfd>) {  # returns an entire fasta entry
+      chomp $entry;
+      my ($header, $sequence) = ($entry =~ m/^>?           # ^> only in first entry
+                                             ( [^\n]* ) \n # header line
+                                             ( .*     )    # the sequence
+                                            /osx);    # optimize, multiline, commented
+      $sequence =~ s/[^A-Za-z\*]//g;    # remove everything but letters
+      $sequence = uc($sequence);
+      $header =~ s/\s.*$//;
+      my @seq = split(//,$sequence);
+      $query_seqs{$header} =  \@seq;
+    }
+  }
+  return \%query_seqs;
+}
+
 sub parse_query_file {
   my ($query_file) = @_;
 
@@ -245,37 +301,38 @@ sub parse_query_file {
 sub init_blosum62 {
 
   my @ncbi_blaa = qw(A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  Z  X * );
-  my %blosum62 = ();
 
-  $blosum62{A} = [ qw(  4 -1 -2 -2  0 -1 -1  0 -2 -1 -1 -1 -1 -2 -1  1  0 -3 -2  0 -2 -1  0 -4) ];
-  $blosum62{R} = [ qw( -1  5  0 -2 -3  1  0 -2  0 -3 -2  2 -1 -3 -2 -1 -1 -3 -2 -3 -1  0 -1 -4) ];
-  $blosum62{N} = [ qw( -2  0  6  1 -3  0  0  0  1 -3 -3  0 -2 -3 -2  1  0 -4 -2 -3  3  0 -1 -4) ];
-  $blosum62{D} = [ qw( -2 -2  1  6 -3  0  2 -1 -1 -3 -4 -1 -3 -3 -1  0 -1 -4 -3 -3  4  1 -1 -4) ];
-  $blosum62{C} = [ qw(  0 -3 -3 -3  9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1 -3 -3 -2 -4) ];
-  $blosum62{Q} = [ qw( -1  1  0  0 -3  5  2 -2  0 -3 -2  1  0 -3 -1  0 -1 -2 -1 -2  0  3 -1 -4) ];
-  $blosum62{E} = [ qw( -1  0  0  2 -4  2  5 -2  0 -3 -3  1 -2 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4) ];
-  $blosum62{G} = [ qw(  0 -2  0 -1 -3 -2 -2  6 -2 -4 -4 -2 -3 -3 -2  0 -2 -2 -3 -3 -1 -2 -1 -4) ];
-  $blosum62{H} = [ qw( -2  0  1 -1 -3  0  0 -2  8 -3 -3 -1 -2 -1 -2 -1 -2 -2  2 -3  0  0 -1 -4) ];
-  $blosum62{I} = [ qw( -1 -3 -3 -3 -1 -3 -3 -4 -3  4  2 -3  1  0 -3 -2 -1 -3 -1  3 -3 -3 -1 -4) ];
-  $blosum62{L} = [ qw( -1 -2 -3 -4 -1 -2 -3 -4 -3  2  4 -2  2  0 -3 -2 -1 -2 -1  1 -4 -3 -1 -4) ];
-  $blosum62{K} = [ qw( -1  2  0 -1 -3  1  1 -2 -1 -3 -2  5 -1 -3 -1  0 -1 -3 -2 -2  0  1 -1 -4) ];
-  $blosum62{M} = [ qw( -1 -1 -2 -3 -1  0 -2 -3 -2  1  2 -1  5  0 -2 -1 -1 -1 -1  1 -3 -1 -1 -4) ];
-  $blosum62{F} = [ qw( -2 -3 -3 -3 -2 -3 -3 -3 -1  0  0 -3  0  6 -4 -2 -2  1  3 -1 -3 -3 -1 -4) ];
-  $blosum62{P} = [ qw( -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4  7 -1 -1 -4 -3 -2 -2 -1 -2 -4) ];
-  $blosum62{S} = [ qw(  1 -1  1  0 -1  0  0  0 -1 -2 -2  0 -1 -2 -1  4  1 -3 -2 -2  0  0  0 -4) ];
-  $blosum62{T} = [ qw(  0 -1  0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1  1  5 -2 -2  0 -1 -1  0 -4) ];
-  $blosum62{W} = [ qw( -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1  1 -4 -3 -2 11  2 -3 -4 -3 -2 -4) ];
-  $blosum62{Y} = [ qw( -2 -2 -2 -3 -2 -1 -2 -3  2 -1 -1 -2 -1  3 -3 -2 -2  2  7 -1 -3 -2 -1 -4) ];
-  $blosum62{V} = [ qw(  0 -3 -3 -3 -1 -2 -2 -3 -3  3  1 -2  1 -1 -2 -2  0 -3 -1  4 -3 -2 -1 -4) ];
-  $blosum62{B} = [ qw( -2 -1  3  4 -3  0  1 -1  0 -3 -4  0 -3 -3 -2  0 -1 -4 -3 -3  4  1 -1 -4) ];
-  $blosum62{Z} = [ qw( -1  0  0  1 -3  3  4 -2  0 -3 -3  1 -1 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4) ];
-  $blosum62{X} = [ qw(  0 -1 -1 -1 -2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -2  0  0 -2 -1 -1 -1 -1 -1 -4) ];
-  $blosum62{'*'} = [ qw( -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1) ];
+  $blosum62[ 0] = [ qw(  4 -1 -2 -2  0 -1 -1  0 -2 -1 -1 -1 -1 -2 -1  1  0 -3 -2  0 -2 -1  0 -4) ]; # A
+  $blosum62[ 1] = [ qw( -1  5  0 -2 -3  1  0 -2  0 -3 -2  2 -1 -3 -2 -1 -1 -3 -2 -3 -1  0 -1 -4) ]; # R
+  $blosum62[ 2] = [ qw( -2  0  6  1 -3  0  0  0  1 -3 -3  0 -2 -3 -2  1  0 -4 -2 -3  3  0 -1 -4) ];
+  $blosum62[ 3] = [ qw( -2 -2  1  6 -3  0  2 -1 -1 -3 -4 -1 -3 -3 -1  0 -1 -4 -3 -3  4  1 -1 -4) ];
+  $blosum62[ 4] = [ qw(  0 -3 -3 -3  9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1 -3 -3 -2 -4) ];
+  $blosum62[ 5] = [ qw( -1  1  0  0 -3  5  2 -2  0 -3 -2  1  0 -3 -1  0 -1 -2 -1 -2  0  3 -1 -4) ];
+  $blosum62[ 6] = [ qw( -1  0  0  2 -4  2  5 -2  0 -3 -3  1 -2 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4) ];
+  $blosum62[ 7] = [ qw(  0 -2  0 -1 -3 -2 -2  6 -2 -4 -4 -2 -3 -3 -2  0 -2 -2 -3 -3 -1 -2 -1 -4) ];
+  $blosum62[ 8] = [ qw( -2  0  1 -1 -3  0  0 -2  8 -3 -3 -1 -2 -1 -2 -1 -2 -2  2 -3  0  0 -1 -4) ];
+  $blosum62[ 9] = [ qw( -1 -3 -3 -3 -1 -3 -3 -4 -3  4  2 -3  1  0 -3 -2 -1 -3 -1  3 -3 -3 -1 -4) ];
+  $blosum62[10] = [ qw( -1 -2 -3 -4 -1 -2 -3 -4 -3  2  4 -2  2  0 -3 -2 -1 -2 -1  1 -4 -3 -1 -4) ];
+  $blosum62[11] = [ qw( -1  2  0 -1 -3  1  1 -2 -1 -3 -2  5 -1 -3 -1  0 -1 -3 -2 -2  0  1 -1 -4) ];
+  $blosum62[12] = [ qw( -1 -1 -2 -3 -1  0 -2 -3 -2  1  2 -1  5  0 -2 -1 -1 -1 -1  1 -3 -1 -1 -4) ];
+  $blosum62[13] = [ qw( -2 -3 -3 -3 -2 -3 -3 -3 -1  0  0 -3  0  6 -4 -2 -2  1  3 -1 -3 -3 -1 -4) ];
+  $blosum62[14] = [ qw( -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4  7 -1 -1 -4 -3 -2 -2 -1 -2 -4) ];
+  $blosum62[15] = [ qw(  1 -1  1  0 -1  0  0  0 -1 -2 -2  0 -1 -2 -1  4  1 -3 -2 -2  0  0  0 -4) ];
+  $blosum62[16] = [ qw(  0 -1  0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1  1  5 -2 -2  0 -1 -1  0 -4) ];
+  $blosum62[17] = [ qw( -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1  1 -4 -3 -2 11  2 -3 -4 -3 -2 -4) ];
+  $blosum62[18] = [ qw( -2 -2 -2 -3 -2 -1 -2 -3  2 -1 -1 -2 -1  3 -3 -2 -2  2  7 -1 -3 -2 -1 -4) ];
+  $blosum62[19] = [ qw(  0 -3 -3 -3 -1 -2 -2 -3 -3  3  1 -2  1 -1 -2 -2  0 -3 -1  4 -3 -2 -1 -4) ];
+  $blosum62[20] = [ qw( -2 -1  3  4 -3  0  1 -1  0 -3 -4  0 -3 -3 -2  0 -1 -4 -3 -3  4  1 -1 -4) ];
+  $blosum62[21] = [ qw( -1  0  0  1 -3  3  4 -2  0 -3 -3  1 -1 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4) ];
+  $blosum62[22] = [ qw(  0 -1 -1 -1 -2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -2  0  0 -2 -1 -1 -1 -1 -1 -4) ];
+  $blosum62[23] = [ qw( -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1) ];
 
-  for my $key (keys %blosum62) {
-    my %dd = ();
-    @dd{@ncbi_blaa} = @{$blosum62{$key}};
-    $blosum62dd{$key} = \%dd;
+
+  die "blosum62 length mismatch $#blosum62 != $#ncbi_blaa" if (scalar(@blosum62) != scalar(@ncbi_blaa));
+
+  for (my $i=0; $i < scalar(@ncbi_blaa); $i++) {
+    $aa_map{$ncbi_blaa[$i]} = $i;
+    $blosum62_diag[$i] = $blosum62[$i][$i];
   }
 
   ($g_open, $g_ext) = (-11, -1);
@@ -334,9 +391,9 @@ sub alignment_score {
 #             ->{sa_start, sa_end} domain boundaries in subject
 
 sub sub_alignment_score {
-  my ($query_r, $hit_r, $matrix_2d, $domain_r) = @_;
+  my ($query_r, $hit_r, $matrix_2d, $matrix_diag, $domain_r) = @_;
 
-  return (0, $domain_r) unless (scalar(@$domain_r));
+  return (0, $domain_r) unless ($domain_r && scalar(@$domain_r));
 
   my $btop_enc_r = decode_btop($hit_r->{BTOP});
 
@@ -379,7 +436,10 @@ sub sub_alignment_score {
     if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
       for (my $i=0; $i < $btop; $i++) {
 
-	$m_score = $matrix_2d->{$query_r->[$qix]}{$query_r->[$qix]};
+	my $seq0_map = $aa_map{$query_r->[$qix]};
+	$seq0_map = $aa_map{'X'} unless defined($seq0_map);
+
+	$m_score = $matrix_diag->[$seq0_map];
 	$score += $m_score;
 
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
@@ -405,13 +465,18 @@ sub sub_alignment_score {
     }
     else {
       ($seq0, $seq1) = split(//,$btop);
+
       if ($btop=~ m/\-/) {
 	if ($seq0 eq '-') {  # gap in seq0
-	  if ($gap0) { $m_score = $g_ext;}
-	  else { $m_score = $g_open+$g_ext;}
+	  if ($gap0) {
+	    $m_score = $g_ext;
+	  }
+	  else {
+	    $m_score = $g_open+$g_ext;
+	    $gap0 = 1;
+	  }
 
 	  $score += $m_score;
-	  $gap0 = 1;
 
 	  if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
 	    push @aligned_domains, $dom_r;
@@ -430,14 +495,23 @@ sub sub_alignment_score {
 	  $six++;
 	}
 	else {  # gap in seq1, cannot match domain
-	  if ($gap1) { $score += $g_ext;}
-	  else { $score += $g_open+$g_ext;}
-	  $gap1 = 1;
+	  if ($gap1) {
+	    $m_score = $g_ext;
+	  }
+	  else {
+	    $m_score = $g_open+$g_ext;
+	    $gap1 = 1;
+	  }
+	  $score += $m_score;
 	  $qix++;
 	}
       }
       else {	# mismatch
-	$m_score = $matrix_2d->{$seq0}{$seq1};
+	my ($seq0_map, $seq1_map) = ($aa_map{$seq0},$aa_map{$seq1});
+	$seq0_map = $aa_map{'X'} unless defined($seq0_map);
+	$seq1_map = $aa_map{'X'} unless defined($seq1_map);
+
+	$m_score = $matrix_2d->[$seq0_map][$seq1_map];
 	$score += $m_score;
 	if ($sdom_ix < $sdom_nx && $six == $dom_r->{sd_start}) {
 	  push @aligned_domains, $dom_r;
@@ -458,6 +532,7 @@ sub sub_alignment_score {
 	$gap0 = $gap1 = 0;
       }
     }
+#    print join(":",($qix, $six, $score)),"\n";
   }
 
   # all done, finish any domain stuff
@@ -567,9 +642,17 @@ sub format_dom_info {
 
   my ($score_scale, $fsub_score) = ($hit_r->{score}/$raw_score, $dom_r->{score}/$raw_score);
 
-  my ($ns_score, $s_bit, $qval) = (int($dom_r->{score} * $score_scale+0.5),
-				   int($hit_r->{bits} * $fsub_score +0.5),
-				   -10.0*log($hit_r->{evalue})*$fsub_score/(log(10.0)));
+  my $qval = 0.0;
+  if ($hit_r->{evalue} == 0.0) {
+    $qval = 3000.0
+  }
+  else {
+    $qval = -10.0*log($hit_r->{evalue})*$fsub_score/(log(10.0))
+  }
+
+  my ($ns_score, $s_bit) = (int($dom_r->{score} * $score_scale+0.5),
+			      int($hit_r->{bits} * $fsub_score +0.5),
+			     );
   $qval = 0 if $qval < 0;
 
   #	print join(":",($dom_r->{asd_start},$dom_r->{asd_end},$ns_score, $s_bit, sprintf("%.1f",$qval))),"\n";

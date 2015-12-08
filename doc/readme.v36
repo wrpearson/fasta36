@@ -6,6 +6,26 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov. 24, 2015   [re-released as fasta-36.3.8c]
+[mshowalign2.c]
+Correct first_line logic to display >>seqid description on first
+alignment line, but >- on remaining lines.
+
+>>Nov. 23, 2015   [released as fasta-36.3.8c]
+[cal_cons2.c, mshowalign2.c, scripts/annot_blast_btop.pl, scripts/ann*_e.pl]
+Fix the problem that lalign36 no longer displayed the library/subject
+accession/description.  Correct some problems introduced with BTOP
+alignment encoding.
+
+A new script, scripts/annot_blast_btop.pl, is available to provide -V
+type sub-alignment scoring to BLASTP BTOP alignments stored in tabular
+files.  In addition, the scripts/ann*.pl scripts were modified to work
+as part of a unix pipe, and the ann*_e.pl scripts replace the older
+non "_e.pl" scripts, and were renamed with out the "_e" (thus,
+ann_pfam_www.pl was removed, and ann_pfam_www_e.pl was renamed
+ann_pfam_www.pl).
+
+
 >>Nov. 6, 2015
 [cal_cons2.c, initfa.c, mshowbest.c, dropfx2.c, dropfz3.c]
 Implement BLAST+ BTOP alignment format, available with -m 8CB or -m 9B.
