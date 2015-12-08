@@ -45,11 +45,11 @@ my $hostname = `/bin/hostname`;
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $shelp, $help) = 
-  (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $bound_comment, $shelp, $help) = 
+  (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0);
 
 my $color_sep_str = " :";
-#$color_sep_str = '~';
+$color_sep_str = '~';
 
 my ($min_nodom, $min_vdom) = (10,10);
 
@@ -61,6 +61,7 @@ GetOptions(
     "port=i" => \$port,
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
+    "bound_comment" => \$bound_comment,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
     "no-clans" => \$no_clans,
@@ -201,10 +202,16 @@ for my $seq_annot (@annots) {
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
       my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
+      $annot->[-1] = $a_name;
+      my $tmp_a_num = $a_num;
+      $tmp_a_num =~ s/v$//;
       if ($acc_comment) {
-	$annot->[-1] .= "{$domain_list[$a_num]}";
+	$annot->[-1] .= "{$domain_list[$tmp_a_num]}";
       }
-      $annot->[-1] = $a_name.$color_sep_str.$a_num;
+      if ($bound_comment) {
+	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
+      }
+      $annot->[-1] .= $color_sep_str.$a_num;
     }
     print join("\t",@$annot),"\n";
   }
@@ -626,7 +633,7 @@ sub domain_num {
   my ($value, $number) = @_;
   if ($value =~ m/^@/) {
     $value =~ s/^@/v/;
-#    $number = $number."v";
+    $number = $number."v";
   }
   return ($value, $number);
 }
