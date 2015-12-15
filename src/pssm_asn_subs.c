@@ -385,7 +385,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
   int v_len;
   char tmp_str[64];
 
-  asnp->abp = chk_asn_buf(asnp,2);
+  asnp->abp = chk_asn_buf(asnp,4);
 
   if (*asnp->abp++ != ASN_IS_REAL) { /* check for packed float */
     fprintf(stderr,"*** error [%s:%d] - float missing\n",__FILE__,__LINE__);
@@ -425,7 +425,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
 unsigned char *
 get_astr_packedint(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
 
-  asnp->abp = chk_asn_buf(asnp,2);
+  asnp->abp = chk_asn_buf(asnp,4);
   ABPP = get_astr_int(asnp, l_val_p);
   return asnp->abp;
 }
@@ -435,7 +435,7 @@ get_astr_str(struct asn_bstruct *asnp, char *text, int t_len) {
 
   int v_len, tv_len;
 
-  asnp->abp = chk_asn_buf(asnp,2);
+  asnp->abp = chk_asn_buf(asnp,4);
 
   if (text != NULL) text[0] = '\0';
 
@@ -474,7 +474,7 @@ get_astr_octstr(struct asn_bstruct *asnp,
 
   int q_len, v_len;
 
-  asnp->abp = chk_asn_buf(asnp,2);
+  asnp->abp = chk_asn_buf(asnp,4);
 
   if (ABP == ASN_IS_OCTSTR || ABP == ASN_IS_OCTSSTR) {
     ABPP++;
@@ -544,7 +544,7 @@ get_astr_iseqd(struct asn_bstruct *asnp,
 	       unsigned char *query,
 	       int nq) {
 
-  asnp->abp = chk_asn_buf(asnp,2);
+  asnp->abp = chk_asn_buf(asnp,4);
 
   /* check for the sequence type - NCBIstdaa or NCBIstdeaa */
 
