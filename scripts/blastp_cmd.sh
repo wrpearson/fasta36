@@ -20,7 +20,9 @@ blt_out="$OUTNAME.bl_tab"
 
 # echo "OUTFILE = ${OUTNAME}"
 
-blastp -outfmt 11 $cmd > $bl_asn
-blast_formatter -archive $bl_asn -outfmt 0 -html > $bl0_out
-blast_formatter -archive $bl_asn -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop'  > $blt_out
+export BLAST_PATH="/ebi/extserv/bin/ncbi-blast+/bin"
+
+$BLAST_PATH/blastp -outfmt 11 $cmd > $bl_asn
+$BLAST_PATH/blast_formatter -archive $bl_asn -outfmt 0 -html > $bl0_out
+$BLAST_PATH/blast_formatter -archive $bl_asn -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop'  > $blt_out
 

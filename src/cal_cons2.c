@@ -632,13 +632,11 @@ calc_cons_u( /* inputs */
 
       /* now we have done all the ?modified identity checks, display
 	 potential site annotations */
-      /*
       if (have_ann && calc_func_mode == CALC_CODE) {
 	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp0a_p, *sp1a_p,
 			 q_offset + seq_pos(i0,aln->qlrev,0), l_offset+seq_pos(i1,aln->llrev,0),
 			 sim_sym[*spa_p], annot_var_dyn);
       }
-      */
 
       if (have_push_features && calc_func_mode != CALC_ID) {
 	display_push_features(annot_stack, annot_var_dyn,
