@@ -76,11 +76,11 @@ pod2usage(1) unless @ARGV || $data_file || -p STDIN || -f STDIN;
 
 #my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
 
-my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
-		   polypeptide_region mutated_variant_site natural_variant_site);
+my @feat_keys = qw(active_site_residue posttranslation_modification binding_site metal_binding
+		   polypeptide_region site mutated_variant_site natural_variant_site);
 
 my %feats_text = ();
-@feats_text{@feat_keys} = ('Active site', '', 'Substrate binding', 'Metal binding', 'Site', '','');
+@feats_text{@feat_keys} = ('Active site', '', 'Substrate binding', 'Metal binding', 'Site', '','','');
 
 my %feats_label;
 @feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding', 'Site', '','');
