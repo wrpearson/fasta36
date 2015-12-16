@@ -248,9 +248,9 @@ sub gff2_annots {
       }
 
       # select comments with 'Note='
-      @comments = grep {/Note /} @comments;
+      @comments = grep {/Note /i} @comments;
       for my $comment ( @comments) {
-	$comment =~ s/^Note\s+//;
+	$comment =~ s/^Note\s+//i;
 	$comment =~ s/"//g;
       }
 
