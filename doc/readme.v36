@@ -10,6 +10,8 @@ BLAST could show multiple HSPs, FASTA did not.
 [pssm_asn_subs.c]
 Fixed another problem parsing ASN.1 because of reading past the end of
 the buffer.
+[cal_cons2.c]
+Fix a serious bug that prevented display of annotated sites using -m9c/-m8CC
 
 >>Nov. 24, 2015   [re-released as fasta-36.3.8c]
 [mshowalign2.c]

@@ -185,6 +185,7 @@ while (1) {
 	sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			    $hit, \@blosum62, \@blosum62_diag, $hit->{domains});
     } else {		   # no alignment info, just check for overlap
+      $hit->{raw_score} = 0;
       for my $dom_r (@{$hit->{domains}}) {
 	next if $dom_r->{sd_end} < $hit->{s_start}; # before start
 	last if $dom_r->{sd_start} > $hit->{s_end}; # after end
@@ -639,6 +640,11 @@ sub last_annot_match {
 
 sub format_dom_info {
   my ($hit_r, $raw_score, $dom_r) = @_;
+
+  unless ($raw_score) {
+    warn "no raw_score at: ".$hit_r->{s_seqid}."\n";
+    $raw_score = $hit_r->{score};
+  }
 
   my ($score_scale, $fsub_score) = ($hit_r->{score}/$raw_score, $dom_r->{score}/$raw_score);
 
