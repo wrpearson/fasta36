@@ -50,7 +50,7 @@ else {
 }
 
 my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0);
-my ($min_nodom) = (0);
+my ($min_nodom) = (10);
 
 my $color_sep_str = " :";
 $color_sep_str = '~';
@@ -339,6 +339,7 @@ sub domain_name {
     $value =~ s/;.*$//;
     $value =~ s/\.\s*$//;
     $value =~ s/\s+\d+$//;
+    $value =~ s/\s+/_/;
     if (!defined($domains{$value})) {
       $domain_cnt++;
       $domains{$value} = $domain_cnt;
