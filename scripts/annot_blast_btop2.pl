@@ -183,6 +183,9 @@ while (1) {
 	($hit->{raw_score}, $hit->{aligned_domains_r}) = 
 	  sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			      $hit, \@blosum62, \@blosum62_diag, $hit->{domains}, 1);
+
+	$hit->{aligned_sites_r} = site_align($query_lib_r->{$hit->{q_seqid}},
+					     $hit, \@blosum62, $hit->{sites}, 1);
       }
 
       # calculate sub-alignment scores in query coordinates
@@ -190,14 +193,7 @@ while (1) {
 	($hit->{raw_score}, $hit->{q_aligned_domains_r}) = 
 	  sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			      $hit, \@blosum62, \@blosum62_diag, $q_hit->{domains}, 0);
-      }
 
-      if ($hit->{domains}) {
-	$hit->{aligned_sites_r} = site_align($query_lib_r->{$hit->{q_seqid}},
-					     $hit, \@blosum62, $hit->{sites}, 1);
-      }
-
-     if ($q_hit->{domains}) {
 	$hit->{q_aligned_sites_r} =  site_align($query_lib_r->{$hit->{q_seqid}},
 						$hit, \@blosum62, $q_hit->{sites}, 0);
       }
@@ -346,6 +342,7 @@ sub parse_query_lib {
       $sequence = uc($sequence);
       $header =~ s/\s.*$//;
       my @seq = split(//,$sequence);
+      unshift @seq,"";	# @seq is now 1-based
       $query_seqs{$header} =  \@seq;
     }
   }
@@ -488,13 +485,11 @@ sub sub_alignment_score {
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
   my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
-  my ($qix, $six)  = ($q_start-1, $s_start); # $qix starts from zero, but $six stays 1-based
+  my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
   my $ds_ix = \$six;	# use to track the subject position
 
   # reverse coordinate names if $target==0
   unless ($target) {
-    ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(s_start s_end q_start q_end)};
-    ($qix, $six)  = ($q_start-1, $s_start);
     $ds_ix = \$qix;	# track query position
   }
 
@@ -523,17 +518,24 @@ sub sub_alignment_score {
   for my $btop (@{$btop_enc_r}) {
 
     if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
-      for (my $i=0; $i < $btop; $i++) {
+      for (my $i=0; $i < $btop; $i++) {  # $i is used to count through BTOP, not to index anything.
 
-	my $seq0_map = $aa_map{$query_r->[$qix]};
-	$seq0_map = $aa_map{'X'} unless defined($seq0_map);
+	my $seq0_map = $aa_map{'X'};
+	unless ($query_r->[$qix]) {
+	  warn "qix: $qix out of range";
+	}
+	else {
+	  $seq0_map = $aa_map{$query_r->[$qix]} if exists($aa_map{$query_r->[$qix]});
+#	  print "$qix:$six : ",$query_r->[$qix],"\n";
+	}
+
 
 	$m_score = $matrix_diag->[$seq0_map];
 	$score += $m_score;
 
 	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	  push @aligned_domains, $dom_r;
-	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
 	  $dom_ix++;
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
@@ -542,7 +544,7 @@ sub sub_alignment_score {
 	  $dom_score += $m_score;
 	  $id_cnt++;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -554,6 +556,8 @@ sub sub_alignment_score {
     }
     else {
       ($seq0, $seq1) = split(//,$btop);
+
+#      print "$qix:$six : $btop\n";
 
       if ($btop=~ m/\-/) {
 	if ($seq0 eq '-') {  # gap in seq0
@@ -570,7 +574,7 @@ sub sub_alignment_score {
 	  if ($target) {	# subject domains
 	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	      push @aligned_domains, $dom_r;
-	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
 	      $dom_ix++;
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
@@ -578,7 +582,7 @@ sub sub_alignment_score {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -598,7 +602,7 @@ sub sub_alignment_score {
 	  unless ($target) {	# query domains
 	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	      push @aligned_domains, $dom_r;
-	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
 	      $dom_ix++;
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
@@ -606,7 +610,7 @@ sub sub_alignment_score {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -623,7 +627,7 @@ sub sub_alignment_score {
 	$score += $m_score;
 	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	  push @aligned_domains, $dom_r;
-	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
 	  $dom_ix++;
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
@@ -631,7 +635,7 @@ sub sub_alignment_score {
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix+1, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -663,8 +667,8 @@ sub push_annot_match {
 
   $dom_r->{ident} = 0;
   $dom_r->{score} = 0;
-  $dom_r->{qa_start} = $q_pos;
-  $dom_r->{sa_start} = $s_pos;
+  $dom_r->{qa_start} = $dom_r->{qa_pos} = $q_pos;
+  $dom_r->{sa_start} = $dom_r->{sa_pos} = $s_pos;
 
   # no previous domains, just initialize
   unless (scalar(@$active_doms_r)) {
@@ -713,8 +717,8 @@ sub pop_annot_match {
     my $cur_r = shift @$active_doms_r;
     # convert identity count to identity fraction
     $cur_r->{ident} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
-    $cur_r->{qa_end} = $q_pos;
-    $cur_r->{sa_end} = $s_pos;
+    $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
+    $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
   }
   if (scalar(@$active_doms_r)) {
     return $active_doms_r->[0]->{d_end};
@@ -735,8 +739,8 @@ sub last_annot_match {
     $cur_r->{ident} += $c_ident;
     $cur_r->{score} += $c_score;
     $cur_r->{ident} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
-    $cur_r->{qa_end} = $q_pos;
-    $cur_r->{sa_end} = $s_pos;
+    $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
+    $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
 
   }
 
@@ -763,7 +767,6 @@ sub site_align {
 
   unless ($target) {
     ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(s_start s_end q_start q_end)};
-    ($qix, $six)  = ($q_start-1, $s_start);
     $ds_ix = \$qix;	# track query position
   }
 
@@ -797,9 +800,9 @@ sub site_align {
 	  my $c_pos = $$ds_ix;
 	  $qix += $s_r->{d_pos} - $c_pos;
 	  $six += $s_r->{d_pos} - $c_pos;
-	  $seq0 = $query_r->[$qix-1];
+	  $seq0 = $query_r->[$qix];
 
-	  @{$s_r}{qw(annot_ix q_pos s_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq0, match_symb($seq0, $seq0, $matrix_2d));
+	  @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb d_end)} = ($site_ix, $qix, $six, $seq0, $seq0, match_symb($seq0, $seq0, $matrix_2d));
 	  push @aligned_sites, $s_r;
 	  $site_ix++;
 	  $s_r=$site_r->[$site_ix];
@@ -812,7 +815,7 @@ sub site_align {
 	if ($seq0 eq '-') {
 	  if ($target) {
 	    while ($site_ix < $site_nx && $s_r->{d_pos} == $six) {
-	      @{$s_r}{qw(annot_ix q_pos s_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq0, match_symb($seq0, $seq1, $matrix_2d));
+	      @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	      push @aligned_sites, $s_r;
 	      $site_ix++;  $s_r=$site_r->[$site_ix];
 	    }
@@ -822,7 +825,7 @@ sub site_align {
 	else {  # gap in seq1, cannot match domain
 	  unless ($target) {
 	    while ($site_ix < $site_nx && $s_r->{d_pos} == $qix) {
-	      @{$s_r}{qw(annot_ix q_pos s_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq0, match_symb($seq0, $seq1, $matrix_2d));
+	      @{$s_r}{qw(annot_ix qq_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	      push @aligned_sites, $s_r;
 	      $site_ix++;  $s_r=$site_r->[$site_ix];
 	    }
@@ -832,7 +835,7 @@ sub site_align {
       }
       else {	# mismatch
 	while ($site_ix < $site_nx && $s_r->{d_pos} == $$ds_ix) {
-	  @{$s_r}{qw(annot_ix q_pos s_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq0, match_symb($seq0, $seq1, $matrix_2d));
+	  @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	  push @aligned_sites, $s_r;
 	  $site_ix++;  $s_r=$site_r->[$site_ix];
 	}
@@ -877,12 +880,52 @@ sub merge_annots {
   my ($hit_r) = @_;
 
   my @merged_array = ();
+
+  # merge the sites arrays first, so that conserved annotated sites are juxtaposed
+
+  my ($qs_ix, $ss_ix, $qs_nx, $ss_nx) = (0,0,0,0);
+
+  $ss_nx = scalar(@{$hit_r->{aligned_sites_r}}) if (exists($hit_r->{aligned_sites_r}));
+  $qs_nx = scalar(@{$hit_r->{q_aligned_sites_r}}) if (exists($hit_r->{q_aligned_sites_r}));
+
+  if ($ss_nx && $qs_nx) {  # have sites on both sequences
+    # find out how many positions match between {q_aligned_sites_r} and {aligned_sites_r}
+    for ($qs_ix=0; $qs_ix < $qs_nx; $qs_ix++) {
+      my $qs_ref = $hit_r->{q_aligned_sites_r}[$qs_ix];
+      $qs_ref->{merged} = 0;
+      for ($ss_ix = 0; $ss_ix < $ss_nx; $ss_ix++) {
+	my $ss_ref = $hit_r->{aligned_sites_r}[$ss_ix];
+	$ss_ref->{merged} = 0;
+	next if ($ss_ref->{qa_pos} < $qs_ref->{qa_pos});
+	last if ($ss_ref->{qa_pos} > $qs_ref->{qa_pos});
+
+	if ($qs_ref->{qa_pos} == $ss_ref->{qa_pos} && $qs_ref->{type} eq $ss_ref->{type}) {
+	  $qs_ref->{merged} = $ss_ref->{merged} = 1;
+	  $qs_ref->{target} = $ss_ref->{target} = 2;
+	}
+      }
+    }
+
+    my @uniq_sites = grep { $_->{merged}==1 } @{$hit_r->{aligned_sites_r}};
+    @uniq_sites = grep { $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
+    push @merged_array, @uniq_sites;
+    @uniq_sites = grep { $_->{merged}==0 } @{$hit_r->{q_aligned_sites_r}};
+    push @merged_array, @uniq_sites;
+  }
+  elsif ($ss_nx) {
+    push @merged_array, @{$hit_r->{aligned_sites_r}};
+  }
+  elsif ($qs_nx) {
+    push @merged_array, @{$hit_r->{q_aligned_sites_r}};
+  }
+
+  @merged_array = sort { $a->{qa_pos} <=> $b->{qa_pos} } @merged_array;
+
+
   push @merged_array, @{$hit_r->{aligned_domains_r}} if (exists($hit_r->{aligned_domains_r}));
   push @merged_array, @{$hit_r->{q_aligned_domains_r}} if (exists($hit_r->{q_aligned_domains_r}));
-  push @merged_array, @{$hit_r->{aligned_sites_r}} if (($hit_r->{aligned_sites_r}));
-  push @merged_array, @{$hit_r->{q_aligned_sites_r}} if (defined($hit_r->{q_aligned_sites_r}));
 
-  @merged_array = sort { $a->{d_end} <=> $b->{d_end} } @merged_array;
+  @merged_array = sort { $a->{qa_pos} <=> $b->{qa_pos} } @merged_array;
 
   return \@merged_array;
 }
@@ -966,13 +1009,17 @@ sub format_annot_info {
 			      sprintf("Q=%.1f",$qval),$annot_r->{descr}));
     }
     else {	# site annotation
-      my $site_str = "|X".$annot_r->{type};
-      unless ($annot_r->{target}) {
-	$site_str = "|".$annot_r->{type}."X";
+      my $ann_type = $annot_r->{type};
+      my $site_str = "|".$ann_type . "X";
+      if ($annot_r->{target} == 1) {
+	$site_str = "|X".$ann_type;
+      }
+      elsif ($annot_r->{target} == 2) {
+	$site_str = "|$ann_type$ann_type";
       }
 
       $annot_str .= "$site_str:" . sprintf("%d%s%s%d%s",
-					   $annot_r->{q_pos}, $annot_r->{q_res}, $annot_r->{m_symb}, $annot_r->{s_pos}, $annot_r->{s_res});
+					   $annot_r->{qa_pos}, $annot_r->{q_res}, $annot_r->{m_symb}, $annot_r->{sa_pos}, $annot_r->{s_res});
 
     }
   }
