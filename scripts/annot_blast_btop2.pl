@@ -51,7 +51,7 @@ use Getopt::Long;
 
 # and report the domain content ala -m 8CC
 
-my ($matrix, $ann_script, $q_ann_script, $shelp, $help) = ("BLOSUM62", "ann_feats_up_www2.pl --neg", "", 0, 0);
+my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "ann_feats_up_www2.pl --neg", "", 0, 0, 0);
 my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
@@ -72,6 +72,7 @@ GetOptions(
     "out_fields:s" => \$out_field_str,
     "script:s" => \$ann_script,
     "q_script:s" => \$q_ann_script,
+    "raw_score" => \$show_raw,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -90,8 +91,10 @@ my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_s
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
-push @out_tab_fields, "raw_score";
+if ($show_raw) {
+  push @out_tab_fields, "raw_score";
 
+}
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
 }
@@ -178,22 +181,27 @@ while (1) {
     # then I can calculate sub-alignment scores
     if (defined($hit->{BTOP}) && $query_lib_r && $query_lib_r->{$hit->{q_seqid}}) {
 
+      $hit->{raw_score} = 0;  # initialize in case no domains and raw_score requested
       # calculate sub-alignment scores in subject/library coordinates
-      if ($hit->{domains}) {
+      if (scalar(@{$hit->{domains}})) {
 	($hit->{raw_score}, $hit->{aligned_domains_r}) = 
 	  sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			      $hit, \@blosum62, \@blosum62_diag, $hit->{domains}, 1);
+      }
 
+      if (scalar(@{$hit->{sites}})) {
 	$hit->{aligned_sites_r} = site_align($query_lib_r->{$hit->{q_seqid}},
 					     $hit, \@blosum62, $hit->{sites}, 1);
       }
 
       # calculate sub-alignment scores in query coordinates
-      if ($q_hit->{domains}) {
+      if (scalar(@{$q_hit->{domains}})) {
 	($hit->{raw_score}, $hit->{q_aligned_domains_r}) = 
 	  sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			      $hit, \@blosum62, \@blosum62_diag, $q_hit->{domains}, 0);
+      }
 
+      if (scalar(@{$q_hit->{sites}})) {
 	$hit->{q_aligned_sites_r} =  site_align($query_lib_r->{$hit->{q_seqid}},
 						$hit, \@blosum62, $q_hit->{sites}, 0);
       }
@@ -907,9 +915,8 @@ sub merge_annots {
     }
 
     my @uniq_sites = grep { $_->{merged}==1 } @{$hit_r->{aligned_sites_r}};
-    @uniq_sites = grep { $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
     push @merged_array, @uniq_sites;
-    @uniq_sites = grep { $_->{merged}==0 } @{$hit_r->{q_aligned_sites_r}};
+    @uniq_sites = grep { $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
     push @merged_array, @uniq_sites;
   }
   elsif ($ss_nx) {
