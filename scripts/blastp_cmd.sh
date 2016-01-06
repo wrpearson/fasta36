@@ -20,7 +20,8 @@ blt_out="$OUTNAME.bl_tab"
 
 # echo "OUTFILE = ${OUTNAME}"
 
-export BLAST_PATH="/ebi/extserv/bin/ncbi-blast+/bin"
+#export BLAST_PATH="/ebi/extserv/bin/ncbi-blast+/bin"
+export BLAST_PATH="/seqprg/bin"
 
 $BLAST_PATH/blastp -outfmt 11 $cmd > $bl_asn
 $BLAST_PATH/blast_formatter -archive $bl_asn -outfmt 0 -html > $bl0_out

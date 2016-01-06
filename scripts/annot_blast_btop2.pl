@@ -183,25 +183,25 @@ while (1) {
 
       $hit->{raw_score} = 0;  # initialize in case no domains and raw_score requested
       # calculate sub-alignment scores in subject/library coordinates
-      if (scalar(@{$hit->{domains}})) {
+      if (defined($hit->{domains}) && scalar(@{$hit->{domains}})) {
 	($hit->{raw_score}, $hit->{aligned_domains_r}) = 
 	  sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			      $hit, \@blosum62, \@blosum62_diag, $hit->{domains}, 1);
       }
 
-      if (scalar(@{$hit->{sites}})) {
+      if (defined($hit->{sites}) && scalar(@{$hit->{sites}})) {
 	$hit->{aligned_sites_r} = site_align($query_lib_r->{$hit->{q_seqid}},
 					     $hit, \@blosum62, $hit->{sites}, 1);
       }
 
       # calculate sub-alignment scores in query coordinates
-      if (scalar(@{$q_hit->{domains}})) {
+      if (defined($q_hit->{domains}) && scalar(@{$q_hit->{domains}})) {
 	($hit->{raw_score}, $hit->{q_aligned_domains_r}) = 
 	  sub_alignment_score($query_lib_r->{$hit->{q_seqid}},
 			      $hit, \@blosum62, \@blosum62_diag, $q_hit->{domains}, 0);
       }
 
-      if (scalar(@{$q_hit->{sites}})) {
+      if (defined($q_hit->{sites}) && scalar(@{$q_hit->{sites}})) {
 	$hit->{q_aligned_sites_r} =  site_align($query_lib_r->{$hit->{q_seqid}},
 						$hit, \@blosum62, $q_hit->{sites}, 0);
       }
