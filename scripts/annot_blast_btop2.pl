@@ -917,6 +917,9 @@ sub merge_annots {
       }
     }
 
+    # save merged sites
+    push @merged_array, @uniq_sites;
+
     # save unmerged subject
     @uniq_sites = grep { !defined($_->{merged}) || $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
     push @merged_array, @uniq_sites;
