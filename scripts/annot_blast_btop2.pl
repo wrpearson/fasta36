@@ -898,11 +898,12 @@ sub merge_annots {
 
   if ($ss_nx && $qs_nx) {  # have sites on both sequences
     # find out how many positions match between {q_aligned_sites_r} and {aligned_sites_r}
-    for ($qs_ix=0; $qs_ix < $qs_nx; $qs_ix++) {
-      my $qs_ref = $hit_r->{q_aligned_sites_r}[$qs_ix];
+
+    my @uniq_sites = ();
+
+    for my $qs_ref (@{$hit_r->{q_aligned_sites_r}}) {
       $qs_ref->{merged} = 0;
-      for ($ss_ix = 0; $ss_ix < $ss_nx; $ss_ix++) {
-	my $ss_ref = $hit_r->{aligned_sites_r}[$ss_ix];
+      for my $ss_ref ( @{$hit_r->{aligned_sites_r}} ) {
 	$ss_ref->{merged} = 0;
 	next if ($ss_ref->{qa_pos} < $qs_ref->{qa_pos});
 	last if ($ss_ref->{qa_pos} > $qs_ref->{qa_pos});
@@ -910,13 +911,18 @@ sub merge_annots {
 	if ($qs_ref->{qa_pos} == $ss_ref->{qa_pos} && $qs_ref->{type} eq $ss_ref->{type}) {
 	  $qs_ref->{merged} = $ss_ref->{merged} = 1;
 	  $qs_ref->{target} = $ss_ref->{target} = 2;
+	  # save match
+	  push @uniq_sites, $qs_ref;
 	}
       }
     }
 
-    my @uniq_sites = grep { $_->{merged}==1 } @{$hit_r->{aligned_sites_r}};
+    # save unmerged subject
+    @uniq_sites = grep { !defined($_->{merged}) || $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
     push @merged_array, @uniq_sites;
-    @uniq_sites = grep { $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
+
+    # save unmerged query
+    @uniq_sites = grep { !defined($_->{merged}) || $_->{merged}==0 } @{$hit_r->{q_aligned_sites_r}};
     push @merged_array, @uniq_sites;
   }
   elsif ($ss_nx) {
@@ -976,7 +982,7 @@ sub format_annot_info {
 
   my $raw_score = 0;
 
-  if  (defined($hit_r->{raw_score})) {
+  if  ($hit_r->{raw_score} ) {
     $raw_score = $hit_r->{raw_score};
   }
   else {
