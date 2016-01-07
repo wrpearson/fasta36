@@ -18,9 +18,9 @@
 ################################################################
 
 ################################################################
-# annot_blast_btop.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
+# annot_blast_btop2.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
 ################################################################
-# annot_blast_btop.pl associates domain annotation information and
+# annot_blast_btop2.pl associates domain annotation information and
 # subalignment scores with a blast tabular (-outfmt 6 or -outfmt 7)
 # file that contains the raw score and the BTOP alignment encoding
 # This file can be generated from "blastp/n" or "blast_formatter"
@@ -1048,37 +1048,51 @@ __END__
 
 =head1 NAME
 
-annot_blast_btop.pl
+annot_blast_btop2.pl
 
 =head1 SYNOPSIS
 
- annot_blast_btop --ann_script ann_pfam_www_e.pl [--query_file query.fasta] --out_fields "q_seqid s_seqid percid evalue" blast_tabular_file
+ annot_blast_btop2 --ann_script ann_pfam_www_e.pl [--query_file query.fasta] --out_fields "q_seqid s_seqid percid evalue" blast_tabular_file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
 
- --ann_script -- annotation script returning domain locations
+ --ann_script -- annotation script returning site/domain locations for subject sequences
+              -- same as --script
+
+ --q_ann_script -- annotation script for query sequences
+                -- same as --q_script
+
  --query_file -- fasta query sequence
+              -- same as --query, --query_lib
+                 (can contain multiple sequences for multi-sequence search)
+
  --out_fields -- blast tabular fields shown before domain information
+
+ --raw_score -- add the raw_score used to normalized domain scores to
+                tabular output (raw_scores are only calculated for domains)
 
 =head1 DESCRIPTION
 
-C<annot_blast_btop.pl> runs the script specified by C<--ann_script> to
-annotate the domain content of the sequences specified by the subject
-seqid field of blast tabular format (-outfmt 6 or 7) or FASTA blast
-tabular format (-m 8).  The C<--ann_script> file is run to produce
-domain boundary coordinates; if no C<--ann_script> is provided, domains
-are downloaded from UniProt (ann_feats_up_www2.pl).
+C<annot_blast_btop2.pl> runs the script specified by
+C<--ann_script/--q_ann_script> to annotate functional sites domain
+content of the sequences specified by the subject/query seqid field of
+blast tabular format (-outfmt 6 or 7) or FASTA blast tabular format
+(-m 8).  The C<--ann_script/--q_ann_script> file is run to produce
+domain boundary coordinates; if no C<--ann_script> is provided,
+domains are downloaded from UniProt by default using
+C<ann_feats_up_www2.pl>.  (To disable subject annotations, use
+C<--ann_script=''>.)
 
-The tab file is read and parsed, and then the subject seqid is used to
-capture domain locations in the subject sequence.  If the domains
+The tab file is read and parsed, and then the subject/query seqid is used to
+capture domain locations in the subject/query sequence.  If the domains
 overlap the aligned region, the domain names are appended to the
 intput.
 
 If a C<--query_file> is specified and two additional fields, C<score>
-and C<btop> are present, C<annot_blast_btop.pl> calculates
+and C<btop> are present, C<annot_blast_btop2.pl> calculates
 sub-alignment scores, including fraction identity, bit score, and
 Q-value (-log10(E-value)), partitioning the alignment score, identity,
 and bit score across the overlapping domains.
