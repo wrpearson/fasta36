@@ -51,7 +51,7 @@ use Getopt::Long;
 
 # and report the domain content ala -m 8CC
 
-my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "ann_feats_up_www2.pl --neg", "", 0, 0, 0);
+my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0);
 my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
@@ -833,7 +833,7 @@ sub site_align {
 	else {  # gap in seq1, cannot match domain
 	  unless ($target) {
 	    while ($site_ix < $site_nx && $s_r->{d_pos} == $qix) {
-	      @{$s_r}{qw(annot_ix qq_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
+	      @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	      push @aligned_sites, $s_r;
 	      $site_ix++;  $s_r=$site_r->[$site_ix];
 	    }
@@ -934,6 +934,12 @@ sub merge_annots {
   elsif ($qs_nx) {
     push @merged_array, @{$hit_r->{q_aligned_sites_r}};
   }
+
+#  for my $ann_r ( @merged_array) {
+#    unless ($ann_r->{qa_pos}) {
+#      print STDERR "missing qa_pos:",join(":",@{$ann_r}{qw(q_seqid s_seqid)}),"\n";
+#    }
+#  }
 
   @merged_array = sort { $a->{qa_pos} <=> $b->{qa_pos} } @merged_array;
 
@@ -1081,10 +1087,11 @@ C<--ann_script/--q_ann_script> to annotate functional sites domain
 content of the sequences specified by the subject/query seqid field of
 blast tabular format (-outfmt 6 or 7) or FASTA blast tabular format
 (-m 8).  The C<--ann_script/--q_ann_script> file is run to produce
-domain boundary coordinates; if no C<--ann_script> is provided,
-domains are downloaded from UniProt by default using
-C<ann_feats_up_www2.pl>.  (To disable subject annotations, use
-C<--ann_script=''>.)
+domain boundary coordinates.  For searches against SwissProt
+sequences, C<--ann_script ann_feats_up_www2.pl> will acquire features
+and domains from Uniprot.  C<--ann_script ann_pfam_www.pl --neg> will
+get domain information from Pfam, and score non-domain (NODOM)
+regions.
 
 The tab file is read and parsed, and then the subject/query seqid is used to
 capture domain locations in the subject/query sequence.  If the domains

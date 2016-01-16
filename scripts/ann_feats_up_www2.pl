@@ -76,17 +76,21 @@ pod2usage(1) unless @ARGV || $data_file || -p STDIN || -f STDIN;
 
 #my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
 
-my @feat_keys = qw(active_site_residue posttranslation_modification binding_site metal_binding
+# old version
+#my @feat_keys = qw( active_site_residue posttranslation_modification binding_site metal_binding
+#		   polypeptide_region site mutated_variant_site natural_variant_site);
+
+# Jan, 2016 version
+my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
 		   polypeptide_region site mutated_variant_site natural_variant_site);
 
 my %feats_text = ();
 @feats_text{@feat_keys} = ('Active site', '', 'Substrate binding', 'Metal binding', 'Site', '','','');
 
 my %feats_label;
-@feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding', 'Site', '','');
+@feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding','Site', '','');
 
 my @feat_vals = ( '=','*','#','^','@','V','V');
-
 
 my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
