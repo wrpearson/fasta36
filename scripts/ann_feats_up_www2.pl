@@ -44,7 +44,7 @@ my $domain_cnt = 0;
 
 my $hostname = `/bin/hostname`;
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_over, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0,0);
+my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_vars, $no_over, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
 
 my $color_sep_str = " :";
@@ -56,6 +56,9 @@ GetOptions(
 	   "no_doms" => \$no_doms,
 	   "no-doms" => \$no_doms,
 	   "nodoms" => \$no_doms,
+	   "no_vars" => \$no_vars,
+	   "no-vars" => \$no_vars,
+	   "novars" => \$no_vars,
 	   "neg" => \$neg_doms,
 	   "neg_doms" => \$neg_doms,
 	   "neg-doms" => \$neg_doms,
@@ -77,20 +80,27 @@ pod2usage(1) unless @ARGV || $data_file || -p STDIN || -f STDIN;
 #my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
 
 # old version
-#my @feat_keys = qw( active_site_residue posttranslation_modification binding_site metal_binding
+my @feat_keys = qw( active_site_residue posttranslation_modification binding_site metal_binding
+		   polypeptide_region site);
+my @feat_vals = ( '=','*','#','^','#', '@');
+my @feat_names = ('Active site', 'Modified', 'Substrate binding', 'Site', 'Metal binding');
+
+unless ($no_vars) {
+  push @feat_keys, qw(mutated_variant_site natural_variant_site variant);
+  push @feat_vals, ('V','V','V');
+  push @feat_names, ("", "", "");
+}
+
+# Jan, 2016 temporary version
+#my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
 #		   polypeptide_region site mutated_variant_site natural_variant_site);
 
-# Jan, 2016 version
-my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
-		   polypeptide_region site mutated_variant_site natural_variant_site);
-
 my %feats_text = ();
-@feats_text{@feat_keys} = ('Active site', '', 'Substrate binding', 'Metal binding', 'Site', '','','');
+@feats_text{@feat_keys} = @feat_names;
+$feats_text{'posttranslational_modification'} = "";
 
 my %feats_label;
-@feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding','Site', '','');
-
-my @feat_vals = ( '=','*','#','^','@','V','V');
+@feats_label{@feat_keys} = @feat_names;
 
 my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
@@ -268,7 +278,7 @@ sub gff2_annots {
 	push @feats2, [$pos, "-", $end, $value];
       } elsif ($label =~ m/Beta/) {
 	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/mutated_variant_site/ || $label =~ m/natural_variant_site/) {
+      } elsif ($label =~ m/variant/ ) {
 	next unless $value;
 	my ($mutant) = ($value =~ m/->\s(\w)/);
 	next unless $mutant;
@@ -278,7 +288,12 @@ sub gff2_annots {
 	  $info = "Mutant: $info";
 	}
 	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
-      } else {
+      } 
+#      elsif ($label =~ m/polypeptide_region/ && $pos != $end) {
+#	  next;
+#      }
+      else {
+	next unless ($pos == $end);
 	$value = '' unless $value;
 	#	print join("\t",($pos, $annot_types->{$label})),"\n";
 	#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";

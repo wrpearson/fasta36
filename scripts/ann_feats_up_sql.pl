@@ -2,7 +2,7 @@
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
-# Visitors of the University of Virginia */
+# Visitors of the University of Virginia
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 # software distributed under this License is distributed on an "AS
 # IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied.  See the License for the specific language
-# governing permissions and limitations under the License. 
+# governing permissions and limitations under the License.
 ################################################################
 
-# ann_feats2l.pl gets an annotation file from fasta36 -V with a line of the form:
+# ann_feats_up_sql.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
 #
@@ -28,6 +28,7 @@
 #
 
 # this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
+# modified 18-Jan-2016 to produce annotation symbols consistent with ann_feats_up_www2.pl
 
 use strict;
 
@@ -49,7 +50,7 @@ else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0);
+my ($sstr, $lav, $neg_doms, $no_vars, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
 
 my $color_sep_str = " :";
@@ -65,6 +66,9 @@ GetOptions(
     "no_doms" => \$no_doms,
     "no-doms" => \$no_doms,
     "nodoms" => \$no_doms,
+    "no_var" => \$no_vars,
+    "no-var" => \$no_vars,
+    "novar" => \$no_vars,
     "neg" => \$neg_doms,
     "neg_doms" => \$neg_doms,
     "neg-doms" => \$neg_doms,
@@ -92,8 +96,18 @@ my $dbh = DBI->connect($connect,
 		       $pass
 		      ) or die $DBI::errstr;
 
-my @feat_keys = qw(ACT_SITE MOD_RES BINDING SITE METAL VARIANT MUTAGEN);
-my @feat_vals = ( '=','*','#','^','!','V','V');
+
+my @feat_keys = qw(ACT_SITE MOD_RES BINDING SITE METAL);
+my @feat_vals = ( '=','*','#','^','!');
+my @feat_names = ('Active site', 'Modified', 'Substrate binding', 'Site', 'Metal binding');
+unless ($no_vars) {
+  push @feat_keys, qw(VARIANT MUTAGEN);
+  push @feat_vals, ('V','V');
+  push @feat_names, ('','');
+}
+
+my %feat_label = ();
+@feat_label{@feat_keys} = @feat_names;
 
 my @dom_keys = qw( DOMAIN REPEAT );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
@@ -131,12 +145,19 @@ my $get_annots_sql = $get_annots_id;
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
 unless ($no_feats || $sstr) {
-  print "=*:phosphorylation\n";
-  print "==".":active site\n";
-  print "=@".":site\n";
-  print "=^:binding\n";
-  print "=!:metal binding\n";
+  for my $i ( 0 .. $#feat_keys) {
+    next unless $feat_label{$feat_keys[$i]};
+    print "=",$feat_vals[$i],":",$feat_label{$feat_keys[$i]},"\n";
+  }
 }
+
+# unless ($no_feats || $sstr) {
+#   print "=*:phosphorylation\n";
+#   print "==".":active site\n";
+#   print "=@".":site\n";
+#   print "=^:binding\n";
+#   print "=!:metal binding\n";
+# }
 
 # get the query
 my ($query, $seq_len) =  @ARGV;
@@ -249,6 +270,7 @@ sub get_fasta_annots {
 	my ($aa_res, $comment) = split(/: /,$value);
 	next if ($comment =~ /MISSING/);
 	my ($vfrom, $vto) = split(/\->/,$aa_res);
+	next if (length($vfrom) > 1 || length($vto) > 1);
 	if ($vto) {
 	  my @vto_list = split(/,/,$vto);
 	  $value = $vto;
@@ -351,26 +373,25 @@ sub domain_name {
   }
 }
 
-
-
 __END__
 
 =pod
 
 =head1 NAME
 
-ann_feats2l.pl
+ann_feats_up_sql.pl
 
 =head1 SYNOPSIS
 
- ann_feats2l.pl --no_doms --no_feats --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_feats_up_sql.pl --no_doms --no_feats --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
  --no-doms  do not show domain boundaries (domains are always shown with --lav)
- --no-feats do not show feature (variants, active sites, phospho-sites)
+ --no-feats do not show features (variants, active sites, phospho-sites)
+ --no-var   do not show variant sites (--no_var, --novar)
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
  --neg-doms,  -- report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
@@ -379,39 +400,36 @@ ann_feats2l.pl
 
 =head1 DESCRIPTION
 
-C<ann_feats2l.pl> extracts feature, domain, and repeat information from
+C<ann_feats_up_sql.pl> extracts feature, domain, and repeat information from
 a msyql database (default name, uniprot) built by parsing the
 uniprot_sprot.dat and uniprot_trembl.dat feature tables.  Given a
 command line argument that contains a sequence accession (P09488) or
 identifier (GSTM1_HUMAN), the program looks up the features available
 for that sequence and returns them in a tab-delimited format:
 
->sp|P09488|GSTM1_HUMAN
-2	[	-	GST N-terminal :1
-7	V	F	Mutagen: Reduces catalytic activity 100- fold.
-23	*	-	MOD_RES: Phosphotyrosine (By similarity).
-33	*	-	MOD_RES: Phosphotyrosine (By similarity).
-34	*	-	MOD_RES: Phosphothreonine (By similarity).
-88	]	-	
-90	[	-	GST C-terminal :2
-108	V	Q	Mutagen: Reduces catalytic activity by half.
-108	V	S	Mutagen: Changes the properties of the enzyme toward some substrates.
-109	V	I	Mutagen: Reduces catalytic activity by half.
-116	#	-	BINDING: Substrate.
-116	V	A	Mutagen: Reduces catalytic activity 10-fold.
-116	V	F	Mutagen: Slight increase of catalytic activity.
-173	V	N	in allele GSTM1B; dbSNP:rs1065411.
-208	]	-	
-210	V	T	in dbSNP:rs449856.
+ >sp|P09488|GSTM1_HUMAN
+ 2	-	88	GST_N-terminal~1
+ 7	V	F	Mutagen: Reduces catalytic activity 100- fold. {ECO:0000269|PubMed:16548513}.
+ 34	*	-	MOD_RES: Phosphothreonine. {ECO:0000250|UniProtKB:P10649}.
+ 90	-	208	GST_C-terminal~2
+ 108	V	S	Mutagen: Changes the properties of the enzyme toward some substrates. {ECO:0000269|PubMed:16548513, ECO:0000269|PubMed:9930979}.
+ 108	V	Q	Mutagen: Reduces catalytic activity by half. {ECO:0000269|PubMed:16548513, ECO:0000269|PubMed:9930979}.
+ 109	V	I	Mutagen: Reduces catalytic activity by half. {ECO:0000269|PubMed:16548513}.
+ 116	#	-	BINDING: Substrate.
+ 116	V	A	Mutagen: Reduces catalytic activity 10-fold. {ECO:0000269|PubMed:16548513}.
+ 116	V	F	Mutagen: Slight increase of catalytic activity. {ECO:0000269|PubMed:16548513}.
+ 173	V	N	in allele GSTM1B; dbSNP:rs1065411. {ECO:0000269|Ref.3, ECO:0000269|Ref.5}.
+ 210	*	-	MOD_RES: Phosphoserine. {ECO:0000250|UniProtKB:P04905}.
+ 210	V	T	in dbSNP:rs449856.
 
 If features are provided, then a legend of feature symbols is provided
 as well:
 
- =*:phosphorylation
- ==:active site
- =@:site
- =^:binding
- =!:metal binding
+ ==:Active site
+ =*:Modified
+ =#:Substrate binding
+ =^:Site
+ =!:Metal binding
 
 If the C<--lav> option is specified, domain and repeat features are
 presented in a different format for the C<lav2plt.pl> program:
@@ -420,9 +438,11 @@ presented in a different format for the C<lav2plt.pl> program:
   2	88	GST N-terminal.
   90	208	GST C-terminal.
 
-C<ann_feats2l.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_feats2l.pl> option.  It can also be used with the lav2plt.pl
-program with the C<--xA "\!ann_feats2l.pl --lav"> or C<--yA "\!ann_feats2l.pl --lav"> options.
+C<ann_feats_up_sql.pl> is designed to be used by the B<FASTA> programs
+with the C<-V \!ann_feats_up_sql.pl> option, or by the
+C<annot_blast_btop.pl> script.  It can also be used with the
+lav2plt.pl program with the C<--xA "\!ann_feats_up_sql.pl --lav"> or
+C<--yA "\!ann_feats_up_sql.pl --lav"> options.
 
 =head1 AUTHOR
 
