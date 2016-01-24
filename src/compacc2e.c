@@ -4211,7 +4211,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   total_bits = zs_to_bit(zscore, n0, n1);
 
   if ((n_stack = get_stack_len(annot_stack)) > 5) {
-    fprintf(stderr," *** error [%s:%d] -- annot stack too long: %d\n",__FILE__, __LINE__, n_stack);
+    fprintf(stderr," *** error [%s:%d] -- annot stack too long: %d: n0: %d; n1: %d\n",__FILE__, __LINE__, n_stack,n0,n1);
   }
 
   while ((this_dom_p = (struct domfeat_data *)pop_stack(annot_stack))!=NULL) {

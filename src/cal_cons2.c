@@ -397,6 +397,9 @@ calc_cons_u( /* inputs */
 
   /* now get the middle */
   have_ann = 0;	/* default no annotation */
+  left_domain_head0 = left_domain_head1 = NULL;
+  left_domain_list0 = left_domain_list1 = NULL;
+
   /* have_ann encodes which sequences are annotated */
   if ((annot0_p && annot0_p->n_annot > 0) || (aa0a != NULL)) { have_ann |= 1;}
   if ((annot1_p && annot1_p->n_annot > 0) || (aa1a != NULL)) { have_ann |= 2;}
@@ -439,9 +442,6 @@ calc_cons_u( /* inputs */
   have_push_features=0;
 
   if (have_ann) {  /* initialize annotation variables */
-    left_domain_head0 = left_domain_head1 = NULL;
-    left_domain_list0 = left_domain_list1 = NULL;
-
     if (calc_func_mode == CALC_CONS) {
       sp0a_p = seqc0a+mins;
       sp1a_p = seqc1a+mins;
@@ -830,7 +830,7 @@ calc_cons_u( /* inputs */
     lenc = mins + lenc + nd;
   }
 
-  if (annot0_p || annot1_p) {
+  if (have_ann) {
     if (left_domain_list0) free(left_domain_list0);
     if (left_domain_list1) free(left_domain_list1);
     annot_stack = free_stack(annot_stack);
