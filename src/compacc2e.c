@@ -3846,7 +3846,7 @@ init_domfeat_data(const struct annot_str *annot_p) {
 }
 
 void
-close_annot_match (int ia, void *annot_stack, int *have_push_features,
+close_annot_match (int ia, void *annot_stack, int *have_push_features_p,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
 		   struct domfeat_data **left_domain_head_p,
 		   long *left_end_p, int init_score) {
@@ -3860,7 +3860,7 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features,
     this_dom_p->score += *d_score_p;
     this_dom_p->n_ident += *d_ident_p;
     this_dom_p->n_alen += *d_alen_p;
-    if (have_push_features) *have_push_features = 1;
+    if (have_push_features_p) *have_push_features_p = 1;
     push_stack(annot_stack, this_dom_p);
   }
 
@@ -3886,7 +3886,7 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features,
    i_annot -- current annotation index in annot0_p->annot_arr_p[i_annot]
    annot_arr = annot0/1_p->annot_arr_p
    annot_stack = save current annotation
-   *have_push_features = set for annotations pushed in stack (not 'V')
+   *have_push_features_p = set for annotations pushed in stack (not 'V')
    *v_delta = change in score from variant at this position
    **region_p = set for '[' region start
    init_score -- used to initialize tmp_region_p->score.
@@ -3910,7 +3910,7 @@ int
 process_annot_match(int *itmp, int *pam2aa0v, 
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		    struct annot_entry *annot_arr_p, int n_annots, char **ann_comment,
-		    void *annot_stack, int *have_push_features, int *v_delta,
+		    void *annot_stack, int *have_push_features_p, int *v_delta,
 		    int *d_score_p, int *d_ident_p, int *d_alen_p, 
 		    struct domfeat_data **left_domain_head_p,
 		    struct domfeat_data *left_domain_p,
@@ -3924,7 +3924,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
   }
     
   if (ip == *left_end_p) { /* do this first before starting any new domains */
-    close_annot_match(ip, annot_stack, have_push_features, 
+    close_annot_match(ip, annot_stack, have_push_features_p, 
 		      d_score_p, d_ident_p, d_alen_p,
 		      left_domain_head_p, left_end_p, init_score);
     *d_ident_p = *d_alen_p = 0;
@@ -4013,8 +4013,8 @@ process_annot_match(int *itmp, int *pam2aa0v,
       *left_end_p = (*left_domain_head_p)->end_pos;
     }/* all done with '[' */
     else if (annot_stack) {	/* not [-]V -- residue feature */
-      if (have_push_features) *have_push_features = 1;
-      push_stack(annot_stack, left_domain_p);
+      if (have_push_features_p) { *have_push_features_p = 1; }
+	push_stack(annot_stack, left_domain_p);
     }
     return 1;
   }
@@ -4024,7 +4024,7 @@ int
 next_annot_match(int *itmp, int *pam2aa0v, 
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
-		 void *annot_stack, int *have_push_features, int *v_delta,
+		 void *annot_stack, int *have_push_features_p, int *v_delta,
 		 int *d_score_p, int *d_ident_p, int *d_alen_p,
 		 struct domfeat_data **left_domain_head_p,
 		 struct domfeat_data *left_domain_p,
@@ -4036,7 +4036,7 @@ next_annot_match(int *itmp, int *pam2aa0v,
   while ((i_annot < n_annot && ip == annot_arr[i_annot]->pos) || ip == *left_end_p) {
     i_annot += process_annot_match(itmp, pam2aa0v, ip, ia, sp1, sp1a, sq,
 				   annot_arr[i_annot], n_annot, ann_comment,
-				   annot_stack, have_push_features, v_delta,
+				   annot_stack, have_push_features_p, v_delta,
 				   d_score_p, d_ident_p, d_alen_p, 
 				   left_domain_head_p, &left_domain_p[i_annot],
 				   left_end_p, init_score);
@@ -4210,9 +4210,14 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   zscore = find_z(tot_score, 1.0, n1, comp, pstat_void);
   total_bits = zs_to_bit(zscore, n0, n1);
 
-  if ((n_stack = get_stack_len(annot_stack)) > 5) {
-    fprintf(stderr," *** error [%s:%d] -- annot stack too long: %d: n0: %d; n1: %d\n",__FILE__, __LINE__, n_stack,n0,n1);
+  /* this warning will be displayed if a site has more than 8
+   * annotations, and is being annotated both on the query and
+   * subject -- so it has been disabled */
+  /*
+  if ((n_stack = get_stack_len(annot_stack)) > 16) {
+    fprintf(stderr," *** warning [%s:%d] - annot stack >16: %d: n0: %d; n1: %d\n",__FILE__, __LINE__, n_stack,n0,n1);
   }
+  */
 
   while ((this_dom_p = (struct domfeat_data *)pop_stack(annot_stack))!=NULL) {
 

@@ -88,7 +88,7 @@ extern void	/* in compacc2e.c */
 process_annot_match(int *itmp, int *pam2aa0v, 
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		    struct annot_entry *annot_arr_p, int n_domains, char **ann_comment,
-		    void *annot_stack, int *have_push_features, int *v_delta,
+		    void *annot_stack, int *have_push_features_p, int *v_delta,
 		    int *d_score_p, int *d_ident_p, int *d_alen_p, 
 		    struct domfeat_data **left_domain_head_p,
 		    struct domfeat_data *left_domain_p,
@@ -98,13 +98,13 @@ extern int	/* in compacc2e.c */
 next_annot_match(int *itmp, int *pam2aa0v, 
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
-		 void *annot_stack, int *have_push_features, int *v_delta,
+		 void *annot_stack, int *have_push_features_p, int *v_delta,
 		 int *d_score_p, int *d_ident_p, int *d_alen_p,
 		  struct domfeat_data **left_domain_head_p, struct domfeat_data *left_domain_p,
 		 long *left_domain_end, int init_score);
 
 extern void	/* in compacc2e.c */
-close_annot_match (int ia, void *annot_stack, int *have_push_features,
+close_annot_match (int ia, void *annot_stack, int *have_push_features_p,
 		   int *d_score_p, int *d_ident_p, int *d_alen_p,
 		   struct domfeat_data **left_domain_p,
 		   long *left_end_p, int init_score);
