@@ -494,8 +494,8 @@ sub sub_alignment_score {
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
   my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
   my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
-  my $ds_ix = \$six;	# use to track the subject position
 
+  my $ds_ix = \$six;	# use to track the subject position
   # reverse coordinate names if $target==0
   unless ($target) {
     $ds_ix = \$qix;	# track query position
@@ -804,10 +804,11 @@ sub site_align {
 	$six += $btop;
       }
       else {      # yes site in region, jump to it
+	my $c_pos;
 	while ($site_ix < $site_nx && $s_r->{d_pos} <= $bt_end) {
-	  my $c_pos = $$ds_ix;
-	  $qix += $s_r->{d_pos} - $c_pos;
-	  $six += $s_r->{d_pos} - $c_pos;
+	  $c_pos = $$ds_ix;	# must be inside loop because $ds_ix points to $qix or $six
+	  $qix += $s_r->{d_pos} - $c_pos;	# jump forward to site
+	  $six += $s_r->{d_pos} - $c_pos;	# jump forward to site
 	  $seq0 = $query_r->[$qix];
 
 	  @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb d_end)} = ($site_ix, $qix, $six, $seq0, $seq0, match_symb($seq0, $seq0, $matrix_2d));
@@ -815,6 +816,10 @@ sub site_align {
 	  $site_ix++;
 	  $s_r=$site_r->[$site_ix];
 	}
+	# past the last site annotation, but not done with $btop;
+	$c_pos = ($bt_end - $$ds_ix + 1);
+	$qix += $c_pos;
+	$six += $c_pos;
       }
     }
     else {	# sequence does not match -- must check each position
@@ -825,7 +830,8 @@ sub site_align {
 	    while ($site_ix < $site_nx && $s_r->{d_pos} == $six) {
 	      @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	      push @aligned_sites, $s_r;
-	      $site_ix++;  $s_r=$site_r->[$site_ix];
+	      $site_ix++;
+	      $s_r=$site_r->[$site_ix];
 	    }
 	  }
 	  $six++;
@@ -835,14 +841,15 @@ sub site_align {
 	    while ($site_ix < $site_nx && $s_r->{d_pos} == $qix) {
 	      @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	      push @aligned_sites, $s_r;
-	      $site_ix++;  $s_r=$site_r->[$site_ix];
+	      $site_ix++;
+	      $s_r=$site_r->[$site_ix];
 	    }
 	  }
 	  $qix++;
 	}
       }
-      else {	# mismatch
-	while ($site_ix < $site_nx && $s_r->{d_pos} == $$ds_ix) {
+      else {	# mismatch; $btop string is twice length of covered region
+	while ($s_r->{d_pos} == $$ds_ix && $site_ix < $site_nx ) {
 	  @{$s_r}{qw(annot_ix qa_pos sa_pos q_res s_res m_symb)} = ($site_ix, $qix, $six, $seq0, $seq1, match_symb($seq0, $seq1, $matrix_2d));
 	  push @aligned_sites, $s_r;
 	  $site_ix++;  $s_r=$site_r->[$site_ix];
@@ -904,10 +911,8 @@ sub merge_annots {
     for my $qs_ref (@{$hit_r->{q_aligned_sites_r}}) {
       $qs_ref->{merged} = 0;
       for my $ss_ref ( @{$hit_r->{aligned_sites_r}} ) {
-	$ss_ref->{merged} = 0;
 	next if ($ss_ref->{qa_pos} < $qs_ref->{qa_pos});
 	last if ($ss_ref->{qa_pos} > $qs_ref->{qa_pos});
-
 	if ($qs_ref->{qa_pos} == $ss_ref->{qa_pos} && $qs_ref->{type} eq $ss_ref->{type}) {
 	  $qs_ref->{merged} = $ss_ref->{merged} = 1;
 	  $qs_ref->{target} = $ss_ref->{target} = 2;
@@ -921,11 +926,17 @@ sub merge_annots {
     push @merged_array, @uniq_sites;
 
     # save unmerged subject
-    @uniq_sites = grep { !defined($_->{merged}) || $_->{merged}==0 } @{$hit_r->{aligned_sites_r}};
+    @uniq_sites = ();
+    for my $ss_ref ( @{$hit_r->{aligned_sites_r}} ) {
+      push @uniq_sites, $ss_ref if (!defined($ss_ref->{merged}) || $ss_ref->{merged} == 0);
+    }
     push @merged_array, @uniq_sites;
 
     # save unmerged query
-    @uniq_sites = grep { !defined($_->{merged}) || $_->{merged}==0 } @{$hit_r->{q_aligned_sites_r}};
+    @uniq_sites = ();
+    for my $qs_ref ( @{$hit_r->{aligned_sites_r}} ) {
+      push @uniq_sites, $qs_ref if (!defined($qs_ref->{merged}) || $qs_ref->{merged} == 0);
+    }
     push @merged_array, @uniq_sites;
   }
   elsif ($ss_nx) {
