@@ -4197,7 +4197,7 @@ void comment_var (long i0_pos, char sp0, long i1_pos, char sp1, char o_sp1,
 void
 display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym,
-		      int tot_score, double comp, int n0, int n1,
+		      int tot_score, double comp, int sw_score, int n0, int n1,
 		      void *pstat_void, int d_type) {
   struct domfeat_data *this_dom_p;
   double lbits, total_bits, zscore, lprob, lpercid;
@@ -4205,7 +4205,10 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   char tmp_lstr[MAX_LSTR], ctarget, tmp_str[MAX_STR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
+  double tot_sw_norm;
   int n_stack;
+
+  tot_sw_norm = (double)tot_score/(double)sw_score;
 
   zscore = find_z(tot_score, 1.0, n1, comp, pstat_void);
   total_bits = zs_to_bit(zscore, n0, n1);
@@ -4238,8 +4241,8 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 	lprob = 1.0;
       }
       else {
-	lbits = total_bits * (double)this_dom_p->score/tot_score;
-	zscore = find_z(this_dom_p->score, 1.0, n1, comp, pstat_void);
+	lbits = total_bits * (double)this_dom_p->score/sw_score;
+	zscore = find_z(this_dom_p->score * tot_sw_norm, 1.0, n1, comp, pstat_void);
 	lprob = zs_to_p(zscore);
       }
 

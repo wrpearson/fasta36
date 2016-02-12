@@ -2774,7 +2774,7 @@ comment_var(long i0, char sp0, long i1, char sp1, char o_sp1, char sim_char,
 void
 display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym, 
-		      int score, double comp, int n0, int n1,
+		      int score, double comp, int sw_score, int n0, int n1,
 		      void *pstat_void, int d_type);
 
 #define DP_FULL_FMT 1	/* Region: score: bits: id: ... */
@@ -3143,7 +3143,8 @@ calc_cons_u( /* inputs */
 			      i0_offset+seq_pos(i0,aln->llrev,0), *sp1_p,
 #endif
 			      sim_sym[*spa_p],
-			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, a_res->sw_score,
+			      n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
 
@@ -3259,7 +3260,8 @@ calc_cons_u( /* inputs */
 			      i0_offset+seq_pos(i0,aln->llrev,0), *sp1_p,
 #endif
 			      sim_sym[*spa_p],
-			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, a_res->sw_score,
+			      n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
 
@@ -3360,7 +3362,8 @@ calc_cons_u( /* inputs */
 			      i0_offset+seq_pos(i0,aln->llrev,0), *sp1_p,
 #endif
 			      sim_sym[*spa_p], 
-			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, a_res->sw_score,
+			      n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
 
@@ -3461,7 +3464,8 @@ calc_cons_u( /* inputs */
 			      i0_offset+seq_pos(i0,aln->llrev,0), *sp1_p,
 #endif
 			      sim_sym[*spa_p], 
-			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, a_res->sw_score,
+			      n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
 
@@ -3499,7 +3503,8 @@ calc_cons_u( /* inputs */
 			      i0_offset+seq_pos(i0,aln->llrev,0), *sp1_p,
 #endif
 			      sim_sym[*spa_p], 
-			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, n0, n1, pstat_void, annot_fmt);
+			      a_res->rst.score[ppst->score_ix], a_res->rst.comp, a_res->sw_score,
+			      n0, n1, pstat_void, annot_fmt);
 	have_push_features = 0;
       }
     }
