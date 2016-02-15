@@ -23,7 +23,7 @@ CC= xlc_r
 #CC= gcc -g -Wall
 #
 
-CFLAGS= -O3 -qtune=auto -qarch=auto -DUNIX -DTIMES -DBIGMEM -DMAX_WORKERS=4 -DSFCHAR="':'" -DTHR_EXIT=pthread_exit -DPROGRESS -DUSE_MMAP -DIS_BIG_ENDIAN -DSAMP_STATS -DPGM_DOC -D_LARGE_FILES -DHAS_INTTYPES -D__pLinux__ -DFASTA_HOST='"fasta.bioch.virginia.edu/fasta/cgi"' -I/usr/include/mysql -DMYSQL_DB   
+CFLAGS= -O3 -qtune=auto -qarch=auto -DUNIX -DTIMES -DBIGMEM -DMAX_WORKERS=4 -DSFCHAR="':'" -DTHR_EXIT=pthread_exit  -DUSE_MMAP -DIS_BIG_ENDIAN -DSAMP_STATS -DPGM_DOC -D_LARGE_FILES -DHAS_INTTYPES -D__pLinux__ -DFASTA_HOST='"fasta.bioch.virginia.edu/fasta/cgi"' -I/usr/include/mysql -DMYSQL_DB   
 #
 #(-DMYSQL_DB for mySQL databases)  (also requires change to Makefile35.common)
 

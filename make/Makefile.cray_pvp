@@ -15,9 +15,7 @@ NFLAGS= -o
 LIB_M=
 #
 
-CFLAGS= -DUNIX -DTIMES -DSFCHAR="':'" -DMAX_WORKERS=4
--DTHR_EXIT=pthread_exit -DPROGRESS
--DFASTA_HOST='"crick.med.virginia.edu/fasta/cgi"' -DIS_BIG_ENDIAN
+CFLAGS= -DUNIX -DTIMES -DSFCHAR="':'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DIS_BIG_ENDIAN
 
 THR_SUBS = pthr_subs
 THR_LIBS = -lpthread

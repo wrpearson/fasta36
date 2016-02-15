@@ -30,10 +30,6 @@
 #define DEF_PROT_LIB "q"
 #endif
 
-#ifndef FASTA_HOST
-#define FASTA_HOST "your.fasta.host.here/fasta/cgi"
-#endif
-
 extern int seq_pos(int pos, int rev, int off);
 
 char *display_domains(char, struct annot_entry **s_annot_arr_p, int n_domains);

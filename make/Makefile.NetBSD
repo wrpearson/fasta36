@@ -9,7 +9,7 @@ CC= cc -O
 #CC= gcc -g -Wall
 #
 # standard line for normal searching
-CFLAGS= -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your.host.here/fasta/cgi"' -DUSE_MMAP
+CFLAGS= -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit  -DFASTA_HOST='"your.host.here/fasta/cgi"' -DUSE_MMAP
 
 # special options for SUPERFAMLIES
 #CFLAGS= -DM10_CONS -DUNIX -DTIMES -DHZ=60 -DSFCHAR="'|'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -DPROGRESS -DSUPERFAMNUM -DUSE_MMAP

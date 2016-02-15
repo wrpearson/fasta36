@@ -20,7 +20,7 @@ CC= gcc -g -O3 -arch ppc -falign-loops=32 -O3 -maltivec -mpim-altivec -force_cpu
 #CC= cc -g -Wall -pedantic -faltivec
 #
 # standard line for normal searching
-CFLAGS= -DSHOW_HELP -DSHOWSIM -DM10_CONS -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=2 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"fasta.bioch.virginia.edu/fasta_www2"' -DUSE_MMAP -DUSE_FSEEKO -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DBIG_LIB64 -DMAX_MEMK=2*1024*1024
+CFLAGS= -DSHOW_HELP -DSHOWSIM -DM10_CONS -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=2 -DTHR_EXIT=pthread_exit  -DFASTA_HOST='"fasta.bioch.virginia.edu/fasta_www2"' -DUSE_MMAP -DUSE_FSEEKO -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DBIG_LIB64 -DMAX_MEMK=2*1024*1024
 
 # -DSUPERFAMNUM -DSFCHAR="'|'"
 

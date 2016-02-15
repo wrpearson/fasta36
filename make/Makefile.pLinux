@@ -23,7 +23,7 @@ CC= xlc_r
 #CC= gcc -g -Wall
 #
 # standard line for normal searching
-CFLAGS= -O3 -qtune=auto -qarch=auto -DUNIX -DTIMES -DBIGMEM -DMAX_WORKERS=4 -DSFCHAR="':'" -DTHR_EXIT=pthread_exit -DPROGRESS -DUSE_MMAP -DIS_BIG_ENDIAN -DSAMP_STATS -DPGM_DOC -D_LARGE_FILES -DHAS_INTTYPES -D__pLinux__ -DBIG_LIB64
+CFLAGS= -O3 -qtune=auto -qarch=auto -DUNIX -DTIMES -DBIGMEM -DMAX_WORKERS=4 -DSFCHAR="':'" -DTHR_EXIT=pthread_exit  -DUSE_MMAP -DIS_BIG_ENDIAN -DSAMP_STATS -DPGM_DOC -D_LARGE_FILES -DHAS_INTTYPES -D__pLinux__ -DBIG_LIB64
 #
 #(-DMYSQL_DB for mySQL databases)  (also requires change to Makefile35.common)
 
