@@ -137,7 +137,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct rstruct rst;
   int l_score0, ngap;
   double lzscore, lzscore2, lbits;
-  float percent, gpercent;
+  float percent, gpercent, ng_percent;
   struct a_struct *aln_p;
   struct a_res_str *cur_ares_p;
   struct rstruct *rst_p;
@@ -535,9 +535,10 @@ l1:
 	annot_str = cur_ares_p->annot_code;
 	annot_str_len = cur_ares_p->annot_code_n;
 
-        percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
-
 	ngap = cur_ares_p->aln.ngap_q + cur_ares_p->aln.ngap_l;
+        percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
+        ng_percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
+
 #ifndef SHOWSIM
 	gpercent = calc_fpercent_id(100.0, aln_p->nident, aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 #else
@@ -580,7 +581,7 @@ l1:
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
 	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
-		    percent,aln_p->lc,aln_p->nmismatch,
+		    ng_percent,aln_p->lc,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,

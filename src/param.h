@@ -168,6 +168,7 @@ struct domfeat_data {
   int score;	/* score of current region */
   int n_ident;	/* count for percent id */
   int n_alen; 	/* align len for percent id */
+  int n_gaplen;	/* number of gap residues in alignment */
 };
 
 /* seq_record has the data required to do a calculation */
