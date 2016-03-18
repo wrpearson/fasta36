@@ -7,8 +7,11 @@ This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
 >>Mar. 18, 2016
-[scripts/m8_btop_msa.pl]
-scripts/m8_btop_msa.pl takes a fasta36 -m 8CB output file and produce
+[scripts/m8_btop_msa.pl, m9B_btop_msa.pl]
+scripts/m8_btop_msa.pl takes a fasta36 -m 8CB output file and produces
+a multiple sequence alignment that can be used with psi-blast.
+
+scripts/m9B_btop_msa.pl takes a fasta36 -m 9B output file and produces
 a multiple sequence alignment that can be used with psi-blast.
 
 >>Feb. 15, 2016 [re-released as fasta-36.3.8d]
