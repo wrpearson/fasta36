@@ -6,6 +6,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Mar. 18, 2016
+[scripts/m8_btop_msa.pl]
+scripts/m8_btop_msa.pl takes a fasta36 -m 8CB output file and produce
+a multiple sequence alignment that can be used with psi-blast.
+
 >>Feb. 15, 2016 [re-released as fasta-36.3.8d]
 [mshowbest.c, compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
 Modify logic for calculating percent identity in sub-alignments to use
