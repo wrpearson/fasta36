@@ -55,13 +55,13 @@ use Getopt::Long;
 # and report the domain content ala -m 8CC
 
 my ($shelp, $help, $evalue) = (0, 0, 0.001);
-my ($query_name) = ("");  # if $query_lib_name, do not use $query_file_name
+my ($query_file) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
 
 GetOptions(
-    "query:s" => \$query_name,
-    "query_file:s" => \$query_name,
+    "query:s" => \$query_file,
+    "query_file:s" => \$query_file,
     "evalue:f" => \$evalue,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -75,24 +75,24 @@ unless (-f STDIN || -p STDIN || @ARGV) {
 
 my ($query_acc, $query_seq_r, $query_len);
 
-if ($query_name) {
-  ($query_acc, $query_seq_r) = parse_query_lib($query_name);
+if ($query_file) {
+  ($query_acc, $query_seq_r) = parse_query_lib($query_file);
   $query_len = scalar(@$query_seq_r)-1;  # -1 for ' ' 1: offset
 }
 
-if (! $query_name || !$query_len) {
+if (! $query_file || !$query_len) {
   die "query sequence required";
 }
 
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
 
-
 my @hit_list = ();
-
 my @multi_align = ();
 my @multi_names = ();
 
-my $max_sseqid_len = 0;
+push @multi_names, $query_acc;
+push @multi_align, btop2alignment($query_seq_r, $query_len, {BTOP=>$query_len, q_start=>1, q_end=>$query_len});
+my $max_sseqid_len = length($query_acc);
 
 while (my $line = <>) {
   if ($line =~ m/^# Fields:/ && $line !~ m/bit score, score, BTOP/)  {
@@ -234,6 +234,8 @@ sub parse_query_lib {
 
   $sequence =~ s/[^A-Za-z\*]//g;    # remove everything but letters
   $sequence = uc($sequence);
+
+  $header =~ s/^>//;
   $header =~ s/\s.*$//;
   my @seq = split(//,$sequence);
   unshift @seq,"";	# @seq is now 1-based

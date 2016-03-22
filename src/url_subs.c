@@ -147,7 +147,7 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
 
   SAFE_STRNCPY(my_l_name,lbp,sizeof(my_l_name));
 
-  if (pgm[0]=='t' || !strcmp(pgm,"fx") || !strcmp(pgm,"fy")==0 ) {
+  if (pgm[0]=='t' || !strcmp(pgm,"fx") || !strcmp(pgm,"fy") ) {
     if ((lbp=strchr(my_l_name,':'))!=NULL) *lbp='\0';
     lbp = &my_l_name[strlen(my_l_name)-2];
     if ( *lbp == '_' ) *lbp = '\0';

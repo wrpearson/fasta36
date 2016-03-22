@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8d Feb, 2016 MPI";
+char *verstr="36.3.8d Mar, 2016 MPI";
 #else
-char *verstr="36.3.8d Feb, 2016";
+char *verstr="36.3.8d Mar, 2016";
 #endif
 
 static int mktup=3;
@@ -2554,11 +2554,12 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
   char dline[512];
   char matrix[MAX_SSTR];
   double psi2_lambda;
-  double freq, **wfreq2d, **freq2d, lambda, new_lambda;
+  double freq, **wfreq2d=NULL, **freq2d=NULL, lambda, new_lambda;
   double scale, scale_high, scale_low;
-  int **iscores2d;
+  int **iscores2d=NULL;
   int gap_open, gap_extend;
   int n_rows, n_cols;
+
 
   pam2p = ppst->pam2p[0];
 
@@ -2570,10 +2571,9 @@ read_asn_pssm(unsigned char *aa0, int n0, int nsq,
 
   /* not using wfreq2d[][] right now, free it */
   if (wfreq2d != NULL) {
-    free(wfreq2d[0]);
+    if (wfreq2d[0] != NULL) {free(wfreq2d[0]);}
     free(wfreq2d);
   }
-
 
   /* do we have a query sequence */
   if (query == NULL) { query = aa0;}

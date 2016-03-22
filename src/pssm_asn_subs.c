@@ -538,6 +538,7 @@ get_astr_junk(struct asn_bstruct *asnp) {
 
 #define ASN_SEQINST_NCBIEAA 167
 #define ASN_SEQINST_NCBISTDAA 169
+#define ASN_SEQINST_IUPACAA 161
 
 unsigned char *
 get_astr_iseqd(struct asn_bstruct *asnp,
@@ -555,6 +556,10 @@ get_astr_iseqd(struct asn_bstruct *asnp,
   else if (ABP == ASN_SEQINST_NCBISTDAA) {
     ABP_INC2;
     return get_astr_octstr(asnp, query, nq) + 2;
+  }
+  else if (ABP == ASN_SEQINST_IUPACAA) {
+    ABP_INC2;
+    return get_astr_str(asnp, (char *)query, nq) + 2;
   }
   else {
     return asn_error("get_astr_iseqd","",-1,asnp,4);
@@ -1547,8 +1552,8 @@ parse_pssm_asn(FILE *afd,
   int i;
   long itmp;
   int have_rows=0, have_cols=0, by_col=0;
-  double **my_freqs, **my_wfreqs, dtmp;
-  int **my_iscores;
+  double **my_freqs=NULL, **my_wfreqs=NULL, dtmp;
+  int **my_iscores=NULL;
   struct asn_bstruct *asnp;
 
   *wfreqs = NULL;
