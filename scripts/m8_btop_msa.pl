@@ -55,14 +55,17 @@ use Getopt::Long;
 # and report the domain content ala -m 8CC
 
 my ($shelp, $help, $evalue) = (0, 0, 0.001);
-my ($query_file) = ("");  # if $query_lib_name, do not use $query_file_name
+my ($query_file, $bound_file) = ("","");
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
 
 GetOptions(
-    "query:s" => \$query_file,
-    "query_file:s" => \$query_file,
-    "evalue:f" => \$evalue,
+    "query=s" => \$query_file,
+    "query_file=s" => \$query_file,
+    "evalue=f" => \$evalue,
+    "bound_file=s" => \$bound_file,
+    "bound=s" => \$bound_file,
+    "seqbdr=s" => \$bound_file,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -73,8 +76,14 @@ unless (-f STDIN || -p STDIN || @ARGV) {
  pod2usage(1);
 }
 
-my ($query_acc, $query_seq_r, $query_len);
+my @hit_list = ();
+my @multi_align = ();
+my @multi_names = ();
 
+################
+# get query sequence, and insert into MSA
+#
+my ($query_acc, $query_seq_r, $query_len);
 if ($query_file) {
   ($query_acc, $query_seq_r) = parse_query_lib($query_file);
   $query_len = scalar(@$query_seq_r)-1;  # -1 for ' ' 1: offset
@@ -84,15 +93,20 @@ if (! $query_file || !$query_len) {
   die "query sequence required";
 }
 
-my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
-
-my @hit_list = ();
-my @multi_align = ();
-my @multi_names = ();
-
 push @multi_names, $query_acc;
 push @multi_align, btop2alignment($query_seq_r, $query_len, {BTOP=>$query_len, q_start=>1, q_end=>$query_len});
 my $max_sseqid_len = length($query_acc);
+
+################
+# get sequence boundaries if available
+#
+my $seq_bound_hr = 0;
+
+if ($bound_file) {
+  $seq_bound_hr = parse_bound_file($bound_file)
+}
+
+my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
 
 while (my $line = <>) {
   if ($line =~ m/^# Fields:/ && $line !~ m/bit score, score, BTOP/)  {
@@ -116,8 +130,17 @@ while (my $line = <>) {
   if (length($hit_data{s_seqid}) > $max_sseqid_len) {
     $max_sseqid_len = length($hit_data{s_seqid});
   }
-  push @multi_names, $hit_data{s_seqid};
-  push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
+
+  if ($bound_file) {
+    if (defined($seq_bound_hr->{$hit_data{subj_acc}})) {
+      push @multi_names, $hit_data{s_seqid};
+      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$hit_data{subj_acc}}}{qw(start end)});
+    }
+  }
+  else {  # no sequence boundaries
+    push @multi_names, $hit_data{s_seqid};
+    push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
+  }
 }
 
 # final MSA output
@@ -189,13 +212,9 @@ sub btop2alignment {
 	push @alignment, $query_seq_r->[$qix++];
       }
     }
-    else {
+    else {  # could be: TS/-S/T-
       ($seq0, $seq1) = split(//,$btop);
-      if ($seq1 eq '-') {
-	push @alignment, $seq1;
-	$qix++;
-      }
-      elsif ($seq0 ne '-') {
+      if ($seq0 ne '-') {
 	push @alignment, $seq1;
 	$qix++;
       }
@@ -204,6 +223,67 @@ sub btop2alignment {
   # all done with alignment, double check that $qix = $hit_data_hr->{q_end}
   unless ($qix == $hit_data_hr->{q_end}+1) {
     warn "$qix != ".$hit_data_hr->{q_end}+1;
+  }
+
+  for (my $i = $hit_data_hr->{q_end}+1; $i <= $query_len; $i++) {
+    push @alignment, "-";
+  }
+
+  return \@alignment;
+}
+
+sub bound_btop2alignment {
+  my ($query_seq_r, $query_len, $hit_data_hr, $sb_start, $sb_end) = @_;
+
+  # $query_seq_r is 1: based
+  my @alignment = ();
+
+  # the left unaligned region gets " ";
+  for (my $i=1; $i < $hit_data_hr->{q_start}; $i++) {
+    push @alignment, "-";
+  }
+
+  my $btop_align_r = decode_btop($hit_data_hr->{BTOP});
+
+  my ($seq0, $seq1) = ("","");
+  my ($qix, $six) = @{$hit_data_hr}{qw(q_start s_start)};
+
+  for my $btop (@{$btop_align_r}) {
+    if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
+      for (my $i=0; $i < $btop; $i++) {
+	if ($six >= $sb_start && $six <= $sb_end) {
+	  push @alignment, $query_seq_r->[$qix];
+	}
+	else {
+	  push @alignment, '-';
+	}
+	$qix++; $six++;
+      }
+    }
+    else {  # could be: TS/-S/T-
+      ($seq0, $seq1) = split(//,$btop);
+      if ($seq1 eq '-') {  # gap in subject
+	push @alignment, '-';
+	$qix++;
+      }
+      elsif ($seq0 ne '-') {  # mismatch
+	if ($six >= $sb_start && $six <= $sb_end) {
+	  push @alignment, $seq1;
+	}
+	else {
+	  push @alignment, '-';
+	}
+	$qix++;
+	$six++;
+      }
+      else {  # gap in query, consume $six
+	$six++;
+      }
+    }
+  }
+  # all done with alignment, double check that $qix = $hit_data_hr->{q_end}
+  unless ($qix == $hit_data_hr->{q_end}+1) {
+    warn $qix." != ".$hit_data_hr->{q_end}+1;
   }
 
   for (my $i = $hit_data_hr->{q_end}+1; $i <= $query_len; $i++) {

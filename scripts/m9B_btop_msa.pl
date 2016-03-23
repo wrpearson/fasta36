@@ -52,14 +52,17 @@ use Getopt::Long;
 # and report the domain content ala -m 8CC
 
 my ($shelp, $help, $evalue) = (0, 0, 0.001);
-my ($query_file) = ("");  # if $query_lib_name, do not use $query_file_name
+my ($query_file, $bound_file) = ("","");
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
 
 GetOptions(
-    "query:s" => \$query_file,
-    "query_file:s" => \$query_file,
-    "evalue:f" => \$evalue,
+    "query=s" => \$query_file,
+    "query_file=s" => \$query_file,
+    "evalue=f" => \$evalue,
+    "bound_file=s" => \$bound_file,
+    "bound=s" => \$bound_file,
+    "seqbdr=s" => \$bound_file,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -76,8 +79,10 @@ my @hit_list = ();
 my @multi_align = ();
 my @multi_names = ();
 
+################
+# get query sequence, and insert into MSA
+#
 my ($query_acc, $query_seq_r, $query_len);
-
 if ($query_file) {
   ($query_acc, $query_seq_r) = parse_query_lib($query_file);
   $query_len = scalar(@$query_seq_r)-1;  # -1 for ' ' 1: offset
@@ -88,12 +93,21 @@ if (! $query_file || !$query_len) {
 }
 
 push @multi_names, $query_acc;
-push @multi_align, btop2alignment($query_seq_r, $query_len, {BTOP=>$query_len, q_start=>1, q_end=>$query_len});
+push @multi_align, btop2alignment($query_seq_r, $query_len, {BTOP=>$query_len, q_start=>1, q_end=>$query_len}, 0);
 my $max_sseqid_len = length($query_acc);
 
+################
+# get sequence boundaries if available
+#
+my $seq_bound_hr = 0;
 
-# skip down to
+if ($bound_file) {
+  $seq_bound_hr = parse_bound_file($bound_file)
+}
 
+################
+# skip down to "The best scores are:"
+#
 my ($q_num, $query_descr, $q_len, $lib_cnt, $lib_len, $best_yes) = skip_to_results();
 warn "Cannot find the best scores are:"  unless $query_descr;
 
@@ -135,7 +149,11 @@ while (my $line = <>) {
 
   @hit_data{@m9_field_names} = split(/\s+/,$right);
   @hit_data{qw(bits evalue)} = @fields[-2,-1];
-  @hit_data{qw(s_seqid subj_acc)} = (join('|',($ldb, $l_acc, $l_id)), $l_acc);
+
+  #
+  # currently preselbdr files have $ldb|$l_acc, not full s_seqid, so construct it
+  #
+  @hit_data{qw(s_seqid subj_acc)} = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
   @hit_data{qw(query_id query_acc)} = ($query_descr, $q_acc);
   $hit_data{BTOP} = $align_f;
   
@@ -147,8 +165,16 @@ while (my $line = <>) {
   if (length($hit_data{s_seqid}) > $max_sseqid_len) {
     $max_sseqid_len = length($hit_data{s_seqid});
   }
-  push @multi_names, $hit_data{s_seqid};
-  push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
+  if ($bound_file) {
+    if (defined($seq_bound_hr->{$hit_data{subj_acc}})) {
+      push @multi_names, $hit_data{s_seqid};
+      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$hit_data{subj_acc}}}{qw(start end)});
+    }
+  }
+  else {  # no sequence boundaries
+    push @multi_names, $hit_data{s_seqid};
+    push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
+  }
 }
 
 # final MSA output
@@ -197,13 +223,10 @@ sub decode_btop {
 
 
 sub btop2alignment {
-  my ($query_seq_r, $query_len, $hit_data_hr) = @_;
+  my ($query_seq_r, $query_len, $hit_data_hr, $seq_bound_hr) = @_;
 
   # $query_seq_r is 1: based
   my @alignment = ();
-
-  # make a local copy
-  # my @query_seq = @{$query_seq_r};
 
   # the left unaligned region gets " ";
   for (my $i=1; $i < $hit_data_hr->{q_start}; $i++) {
@@ -220,13 +243,9 @@ sub btop2alignment {
 	push @alignment, $query_seq_r->[$qix++];
       }
     }
-    else {
+    else {  # could be: TS/-S/T-
       ($seq0, $seq1) = split(//,$btop);
-      if ($seq1 eq '-') {
-	push @alignment, $seq1;
-	$qix++;
-      }
-      elsif ($seq0 ne '-') {
+      if ($seq0 ne '-') {
 	push @alignment, $seq1;
 	$qix++;
       }
@@ -235,6 +254,67 @@ sub btop2alignment {
   # all done with alignment, double check that $qix = $hit_data_hr->{q_end}
   unless ($qix == $hit_data_hr->{q_end}+1) {
     warn "$qix != ".$hit_data_hr->{q_end}+1;
+  }
+
+  for (my $i = $hit_data_hr->{q_end}+1; $i <= $query_len; $i++) {
+    push @alignment, "-";
+  }
+
+  return \@alignment;
+}
+
+sub bound_btop2alignment {
+  my ($query_seq_r, $query_len, $hit_data_hr, $sb_start, $sb_end) = @_;
+
+  # $query_seq_r is 1: based
+  my @alignment = ();
+
+  # the left unaligned region gets " ";
+  for (my $i=1; $i < $hit_data_hr->{q_start}; $i++) {
+    push @alignment, "-";
+  }
+
+  my $btop_align_r = decode_btop($hit_data_hr->{BTOP});
+
+  my ($seq0, $seq1) = ("","");
+  my ($qix, $six) = @{$hit_data_hr}{qw(q_start s_start)};
+
+  for my $btop (@{$btop_align_r}) {
+    if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
+      for (my $i=0; $i < $btop; $i++) {
+	if ($six >= $sb_start && $six <= $sb_end) {
+	  push @alignment, $query_seq_r->[$qix];
+	}
+	else {
+	  push @alignment, '-';
+	}
+	$qix++; $six++;
+      }
+    }
+    else {  # could be: TS/-S/T-
+      ($seq0, $seq1) = split(//,$btop);
+      if ($seq1 eq '-') {  # gap in subject
+	push @alignment, '-';
+	$qix++;
+      }
+      elsif ($seq0 ne '-') {  # mismatch
+	if ($six >= $sb_start && $six <= $sb_end) {
+	  push @alignment, $seq1;
+	}
+	else {
+	  push @alignment, '-';
+	}
+	$qix++;
+	$six++;
+      }
+      else {  # gap in query, consume $six
+	$six++;
+      }
+    }
+  }
+  # all done with alignment, double check that $qix = $hit_data_hr->{q_end}
+  unless ($qix == $hit_data_hr->{q_end}+1) {
+    warn $qix." != ".$hit_data_hr->{q_end}+1;
   }
 
   for (my $i = $hit_data_hr->{q_end}+1; $i <= $query_len; $i++) {
@@ -275,25 +355,26 @@ sub parse_query_lib {
   return ($header, \@seq);
 }
 
-sub parse_query_file {
-  my ($query_file) = @_;
+sub parse_bound_file {
+  my ($bound_file) = @_;
 
-  my $seq_data = "";
+  my %seq_bound = ();
 
-  open(my $qfd, $query_file);
+  open(my $qfd, $bound_file) || return 0;
+
   while (my $line = <$qfd>) {
-    next if $line =~ m/^>/;
-    next if $line =~ m/^;/;
+    next if ($line =~ m/^#/);
     chomp $line;
-    $line =~ s/[^A-Za-z\*]//g;
-    $seq_data .= $line
+    my @data = split(/\t/,$line);
+    if (!defined($seq_bound{$data[0]})) {
+      $seq_bound{$data[0]} = {start=>$data[1], end=>$data[2]};
+    }
+    else {
+      warn "multiple boundaries for $data[0]";
+    }
   }
 
-  $seq_data = uc($seq_data);
-
-  my @seq = split(//,$seq_data); 
-
-  return \@seq;
+  return \%seq_bound;
 }
 
 sub skip_to_results {
@@ -334,60 +415,42 @@ __END__
 
 =head1 NAME
 
-annot_blast_btop2.pl
+ m9B_btop_msa.pl
 
 =head1 SYNOPSIS
 
- annot_blast_btop2 --ann_script ann_pfam_www_e.pl [--query_file query.fasta] --out_fields "q_seqid s_seqid percid evalue" blast_tabular_file
+ m9B_btop_msa.pl --query_file query.fasta [--bound_file seqbdr.tab] fasta_m9_output.file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
 
- --ann_script -- annotation script returning site/domain locations for subject sequences
-              -- same as --script
+ --query_file -- query sequence file
+              -- same as --query
+                 (only one sequence per file)
 
- --q_ann_script -- annotation script for query sequences
-                -- same as --q_script
-
- --query_file -- fasta query sequence
-              -- same as --query, --query_lib
-                 (can contain multiple sequences for multi-sequence search)
-
- --out_fields -- blast tabular fields shown before domain information
-
- --raw_score -- add the raw_score used to normalized domain scores to
-                tabular output (raw_scores are only calculated for domains)
+ --bound_file -- tab delimited accession<tab>start<tab>end that
+                 specifies MSA boundaries WITHIN alignment
 
 =head1 DESCRIPTION
 
-C<annot_blast_btop2.pl> runs the script specified by
-C<--ann_script/--q_ann_script> to annotate functional sites domain
-content of the sequences specified by the subject/query seqid field of
-blast tabular format (-outfmt 6 or 7) or FASTA blast tabular format
-(-m 8).  The C<--ann_script/--q_ann_script> file is run to produce
-domain boundary coordinates.  For searches against SwissProt
-sequences, C<--ann_script ann_feats_up_www2.pl> will acquire features
-and domains from Uniprot.  C<--ann_script ann_pfam_www.pl --neg> will
-get domain information from Pfam, and score non-domain (NODOM)
-regions.
+C<m9B_btop_msa.pl> takes a fasta36/ssearch36 -m 9B ouput file, which
+includes a BTOP encoded alignment string, and produces the multiple
+sequence alignment (MSA) implied by the query sequence, alignment
+boundaries, and pairwise alignments.  The alignment does not allow
+gaps in the query sequence, only in the subject sequences.
 
-The tab file is read and parsed, and then the subject/query seqid is used to
-capture domain locations in the subject/query sequence.  If the domains
-overlap the aligned region, the domain names are appended to the
-intput.
+The C<--query_file> must be specified, and the query sequence is
+provided as the first sequence in the MSA.
 
-If a C<--query_file> is specified and two additional fields, C<score>
-and C<btop> are present, C<annot_blast_btop2.pl> calculates
-sub-alignment scores, including fraction identity, bit score, and
-Q-value (-log10(E-value)), partitioning the alignment score, identity,
-and bit score across the overlapping domains.
+If a C<--bound_file> is provided, then the ends of the alignments are
+reduced to the coordinates specified by the C<bound_file>.  In
+addition, only sequences included in the C<bound_file> are included in
+the MSA.
 
-The C<--out_fields> specifies the blast tabular fields that can be
-returned.  By default, C<q_seqid s_seqid percid alen mismatch gopen
-q_start q_end s_start s_end evalue bits> (but not C<score> and
-C<BTOP>) are shown.
+Output: A clustal-like interleaved multiple sequence alignment that
+can be used as input (using the C<-in_msa> option) to C<psiblast>.
 
 =head1 AUTHOR
 
