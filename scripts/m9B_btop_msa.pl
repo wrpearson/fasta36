@@ -51,18 +51,25 @@ use Getopt::Long;
 
 # and report the domain content ala -m 8CC
 
-my ($shelp, $help, $evalue) = (0, 0, 0.001);
-my ($query_file, $bound_file) = ("","");
-my ($out_field_str) = ("");
+my ($shelp, $help, $evalue, $qvalue, $domain_bound) = (0, 0, 0.001, 30.0,0);
+my ($query_file, $bound_file, $bound_out_file) = ("","","");
 my $query_lib_r = 0;
 
 GetOptions(
     "query=s" => \$query_file,
     "query_file=s" => \$query_file,
     "evalue=f" => \$evalue,
+    "expect=f" => \$evalue,
+    "qvalue=f" => \$qvalue,
     "bound_file=s" => \$bound_file,
     "bound=s" => \$bound_file,
+    "domain_bound" => \$domain_bound,
+    "domain" => \$domain_bound,
+    "bound_in=s" => \$bound_file,
+    "bound_out=s" => \$bound_out_file,
+    "bound_out_file=s" => \$bound_out_file,
     "seqbdr=s" => \$bound_file,
+    "seqbdr_out=s" => \$bound_out_file,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -100,9 +107,18 @@ my $max_sseqid_len = length($query_acc);
 # get sequence boundaries if available
 #
 my $seq_bound_hr = 0;
+my @seq_bound_accs = ();
 
 if ($bound_file) {
   $seq_bound_hr = parse_bound_file($bound_file)
+}
+elsif ($domain_bound) {
+  my %seq_bound = ();
+  $seq_bound_hr = \%seq_bound;
+}
+elsif ($bound_out_file) {
+  my %seq_bound = ();
+  $seq_bound_hr = \%seq_bound;
 }
 
 ################
@@ -153,18 +169,51 @@ while (my $line = <>) {
   #
   # currently preselbdr files have $ldb|$l_acc, not full s_seqid, so construct it
   #
-  @hit_data{qw(s_seqid subj_acc)} = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
+  my ($s_seqid, $subj_acc) = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
+  @hit_data{qw(s_seqid subj_acc)} = ($s_seqid, $subj_acc);
   @hit_data{qw(query_id query_acc)} = ($query_descr, $q_acc);
   $hit_data{BTOP} = $align_f;
-  
+
+  if ($domain_bound) {
+    my $hit_doms_ar = parse_hit_domains($annot_f);
+    # scan from left to right to make domain boundaries based on $qvalue
+    my ($left_bound, $right_bound) = @hit_data{qw(s_end s_start)};
+    foreach my $dom_r ( @$hit_doms_ar ) {
+      next unless $dom_r->{target} eq 'subj';
+      next if $dom_r->{virtual};
+      next unless $dom_r->{qval} > $qvalue;
+
+      if ($dom_r->{s_start} < $left_bound) {
+	$left_bound = $dom_r->{s_start};
+      }
+
+      if ($dom_r->{s_end} > $right_bound) {
+	$right_bound = $dom_r->{s_end};
+      }
+    }
+
+    if (defined($seq_bound_hr->{$subj_acc})) {
+      @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = ($left_bound, $right_bound);
+    }
+    else {
+      $seq_bound_hr->{$subj_acc} = {start=>$left_bound, end=>$right_bound};
+      push @seq_bound_accs, $subj_acc;
+    }
+  }
+  elsif ($bound_out_file) {
+    next if $seq_bound_hr->{$subj_acc};
+    @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_start s_end)};
+    push @seq_bound_accs, $subj_acc;
+  }
+
   # must have separate @hit_list that can be sorted, for searches with multiple alignment results
 
   last if ($hit_data{evalue} > $evalue);
 
-#  push @hit_list, \%hit_data;
   if (length($hit_data{s_seqid}) > $max_sseqid_len) {
     $max_sseqid_len = length($hit_data{s_seqid});
   }
+
   if ($bound_file) {
     if (defined($seq_bound_hr->{$hit_data{subj_acc}})) {
       push @multi_names, $hit_data{s_seqid};
@@ -178,7 +227,7 @@ while (my $line = <>) {
 }
 
 # final MSA output
-$max_sseqid_len += 4;
+$max_sseqid_len += 2;
 
 print "SSEARCHm9B multiple sequence alignment\n\n\n";
 
@@ -193,6 +242,15 @@ for (my $j = 0; $j < $query_len/60; $j++) {
   print "\n\n";
 }
 
+################
+# if bound_out_file provide it
+if ($bound_out_file) {
+  open(my $bound_fd, ">", $bound_out_file) || die "cannot open $bound_out_file";
+  for my $s_acc ( @seq_bound_accs ) {
+    print $bound_fd join("\t", ($s_acc, @{$seq_bound_hr->{$s_acc}}{qw(start end)})),"\n";
+  }
+  close($bound_fd);
+}
 
 # input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
 # returns a list_ref of tokens: (1, "VA", 60, "TS", 7, "KG, 10, "RK", 27)
@@ -219,6 +277,74 @@ sub decode_btop {
   }
 
   return \@out_tokens;
+}
+
+sub parse_hit_domains {
+  my ($annot_str) = @_;
+
+## annot_str looks like: "|RX:6-65:6-65:s=311;b=125.4;I=1.000;Q=339.6;C=C.HTH~1
+#                         |XR:6-65:6-65:s=311;b=125.4;I=1.000;Q=339.6;C=C.HTH~1
+#                         |RX:66-297:66-297:s=1200;b=483.7;I=1.000;Q=1409.6;C=NODOM~0
+#                         |XR:66-297:66-297:s=1200;b=483.7;I=1.000;Q=1409.6;C=NODOM~0
+
+  return 0 unless ($annot_str);
+
+  my @hit_annots = ();
+
+  my @annots = split(/\|/,$annot_str);
+  shift @annots;	# remove first blank
+
+  for my $annot ( @annots ) {
+    my %dom_info = ();
+
+    # parse an entry:
+    # |RX:6-65:6-65:s=311;b=125.4;I=1.000;Q=339.6;C=C.HTH~1
+    my @d_fields = split(";",$annot);
+
+    ($dom_info{dom}) = ($d_fields[4] =~ m/C=(.+?)~?\d*v?$/);   # also remove virtual domain symbols
+    next if ($dom_info{dom} =~ m/NODOM/);
+
+    ################
+    # parse @d_fields
+    if ($d_fields[4] =~ m/v$/) {
+      $dom_info{virtual} = 1;
+    }
+    else {
+      $dom_info{virtual} = 0;
+    }
+
+    ($dom_info{bits}) = ($d_fields[1] =~ m/b=(\-?\d+\.?\d*)/);
+    unless (defined($dom_info{bits})) {
+	warn "missing score info - annot: $annot\n  annot_str: $annot_str";
+	$dom_info{bits} = '\N';
+    }
+    ($dom_info{percid}) = ($d_fields[2] =~ m/I=(\-?[\d\.]+)/);
+    unless (defined($dom_info{percid})) {
+	warn "missing percid info - annot: $annot\n  annot_str: $annot_str";
+	$dom_info{percid} = '\N';
+    }
+
+    ($dom_info{qval}) = ($d_fields[3] =~ m/Q=([\d\.]+)/);
+
+    ################
+    # parse @c_fields
+    my @c_fields = split(":",$d_fields[0]);
+
+    if ($c_fields[0] =~ m/RX/) {$dom_info{target} = 'query';}
+    else {$dom_info{target} = 'subj';}
+
+    @dom_info{qw(q_start q_end)} = ($c_fields[1] =~ m/(\d+)\-(\d+)/);
+    @dom_info{qw(s_start s_end)} = ($c_fields[2] =~ m/(\d+)\-(\d+)/);
+    ($dom_info{score}) = ($c_fields[3] =~ m/s=(\-?\d+)/);
+    unless (defined($dom_info{score})) {
+	warn "missing score info - annot: $annot\n  annot_str: $annot_str";
+	$dom_info{score} = '\N';
+    }
+
+    push @hit_annots, \%dom_info;
+  }
+
+  return \@hit_annots;
 }
 
 
@@ -368,6 +494,7 @@ sub parse_bound_file {
     my @data = split(/\t/,$line);
     if (!defined($seq_bound{$data[0]})) {
       $seq_bound{$data[0]} = {start=>$data[1], end=>$data[2]};
+      push @seq_bound_accs, $data[0];
     }
     else {
       warn "multiple boundaries for $data[0]";
@@ -398,7 +525,6 @@ sub skip_to_results {
  have_query:
   while (my $line = <>) {
     $best_yes = 0;
-
 
     if ($line =~ m/^The best scores are:/) {
       $best_yes = 1;
@@ -432,6 +558,11 @@ __END__
 
  --bound_file -- tab delimited accession<tab>start<tab>end that
                  specifies MSA boundaries WITHIN alignment
+
+ --bound_file_out -- "--bound_file" for next iteration of psisearch2
+
+ --domain_bound  parse domain annotations (-V) from m9B file
+ --domain
 
 =head1 DESCRIPTION
 
