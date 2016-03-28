@@ -52,7 +52,7 @@ use Getopt::Long;
 # and report the domain content ala -m 8CC
 
 my ($shelp, $help, $evalue, $qvalue, $domain_bound) = (0, 0, 0.001, 30.0,0);
-my ($query_file, $bound_file, $bound_out_file) = ("","","");
+my ($query_file, $bound_file_in, $bound_file_only, $bound_file_out) = ("","","","");
 my $query_lib_r = 0;
 
 GetOptions(
@@ -61,15 +61,14 @@ GetOptions(
     "evalue=f" => \$evalue,
     "expect=f" => \$evalue,
     "qvalue=f" => \$qvalue,
-    "bound_file=s" => \$bound_file,
-    "bound=s" => \$bound_file,
+    "bound_file_in=s" => \$bound_file_in,
+    "bound_file_only=s" => \$bound_file_only,
+    "bound_file_out=s" => \$bound_file_out,
     "domain_bound" => \$domain_bound,
     "domain" => \$domain_bound,
-    "bound_in=s" => \$bound_file,
-    "bound_out=s" => \$bound_out_file,
-    "bound_out_file=s" => \$bound_out_file,
-    "seqbdr=s" => \$bound_file,
-    "seqbdr_out=s" => \$bound_out_file,
+    "bound_in=s" => \$bound_file_in,
+    "bound_only=s" => \$bound_file_only,
+    "bound_out=s" => \$bound_file_out,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -109,14 +108,17 @@ my $max_sseqid_len = length($query_acc);
 my $seq_bound_hr = 0;
 my @seq_bound_accs = ();
 
-if ($bound_file) {
-  $seq_bound_hr = parse_bound_file($bound_file)
+if ($bound_file_in) {
+  $seq_bound_hr = parse_bound_file($bound_file_in);
+}
+elsif ($bound_file_only) {
+  $seq_bound_hr = parse_bound_file($bound_file_only);
 }
 elsif ($domain_bound) {
   my %seq_bound = ();
   $seq_bound_hr = \%seq_bound;
 }
-elsif ($bound_out_file) {
+elsif ($bound_file_out) {
   my %seq_bound = ();
   $seq_bound_hr = \%seq_bound;
 }
@@ -174,6 +176,13 @@ while (my $line = <>) {
   @hit_data{qw(query_id query_acc)} = ($query_descr, $q_acc);
   $hit_data{BTOP} = $align_f;
 
+  last if ($hit_data{evalue} > $evalue);
+
+  if (length($s_seqid) > $max_sseqid_len) {
+    $max_sseqid_len = length($s_seqid);
+  }
+
+  my $have_dom = 0;
   if ($domain_bound) {
     my $hit_doms_ar = parse_hit_domains($annot_f);
     # scan from left to right to make domain boundaries based on $qvalue
@@ -185,44 +194,53 @@ while (my $line = <>) {
 
       if ($dom_r->{s_start} < $left_bound) {
 	$left_bound = $dom_r->{s_start};
+	$have_dom = 1;
       }
 
       if ($dom_r->{s_end} > $right_bound) {
 	$right_bound = $dom_r->{s_end};
+	$have_dom = 1;
       }
     }
 
-    if (defined($seq_bound_hr->{$subj_acc})) {
-      @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = ($left_bound, $right_bound);
+    if ($have_dom) {
+      if (defined($seq_bound_hr->{$subj_acc})) {
+	@{$seq_bound_hr->{$subj_acc}}{qw(start end)} = ($left_bound, $right_bound);
+      }
+      else {
+	$seq_bound_hr->{$subj_acc} = {start=>$left_bound, end=>$right_bound};
+	push @seq_bound_accs, $subj_acc;
+      }
     }
-    else {
-      $seq_bound_hr->{$subj_acc} = {start=>$left_bound, end=>$right_bound};
-      push @seq_bound_accs, $subj_acc;
-    }
-  }
-  elsif ($bound_out_file) {
-    next if $seq_bound_hr->{$subj_acc};
-    @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_start s_end)};
-    push @seq_bound_accs, $subj_acc;
   }
 
   # must have separate @hit_list that can be sorted, for searches with multiple alignment results
 
-  last if ($hit_data{evalue} > $evalue);
-
-  if (length($hit_data{s_seqid}) > $max_sseqid_len) {
-    $max_sseqid_len = length($hit_data{s_seqid});
+  if ($bound_file_only || $have_dom) {
+    if (defined($seq_bound_hr->{$subj_acc})) {
+      push @multi_names, $s_seqid;
+      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
+    }
   }
-
-  if ($bound_file) {
-    if (defined($seq_bound_hr->{$hit_data{subj_acc}})) {
-      push @multi_names, $hit_data{s_seqid};
-      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$hit_data{subj_acc}}}{qw(start end)});
+  elsif ($bound_file_in) {
+    if (defined($seq_bound_hr->{$subj_acc})) {
+      push @multi_names, $s_seqid;
+      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
+    }
+    else {
+      push @multi_names, $s_seqid;
+      push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data, );
+      @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_end s_start)};
+      push @seq_bound_accs, $subj_acc;
     }
   }
   else {  # no sequence boundaries
-    push @multi_names, $hit_data{s_seqid};
+    push @multi_names, $s_seqid;
     push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
+    if (!$have_dom && $bound_file_out) {
+      @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_start s_end)};
+      push @seq_bound_accs, $subj_acc;
+    }
   }
 }
 
@@ -243,9 +261,9 @@ for (my $j = 0; $j < $query_len/60; $j++) {
 }
 
 ################
-# if bound_out_file provide it
-if ($bound_out_file) {
-  open(my $bound_fd, ">", $bound_out_file) || die "cannot open $bound_out_file";
+# if bound_file_out provide it
+if ($bound_file_out) {
+  open(my $bound_fd, ">", $bound_file_out) || die "cannot open $bound_file_out";
   for my $s_acc ( @seq_bound_accs ) {
     print $bound_fd join("\t", ($s_acc, @{$seq_bound_hr->{$s_acc}}{qw(start end)})),"\n";
   }
@@ -556,8 +574,14 @@ __END__
               -- same as --query
                  (only one sequence per file)
 
- --bound_file -- tab delimited accession<tab>start<tab>end that
-                 specifies MSA boundaries WITHIN alignment
+ --bound_file_in -- tab delimited accession<tab>start<tab>end that
+                    specifies MSA boundaries WITHIN alignment.
+                    Additional hits use alignment (or domain)
+                    boundaries.
+
+ --bound_file_only -- tab delimited accession<tab>start<tab>end that
+                      specifies MSA boundaries WITHIN alignment.
+                      Only sequences in --bound_file_only will be in the MSA.
 
  --bound_file_out -- "--bound_file" for next iteration of psisearch2
 
