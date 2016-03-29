@@ -14,7 +14,7 @@
 # software distributed under this License is distributed on an "AS
 # IS" BASIS, WITHOUT WRRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied.  See the License for the specific language
-# governing permissions and limitations under the License. 
+# governing permissions and limitations under the License.
 ################################################################
 
 ################################################################
@@ -28,7 +28,7 @@
 # (because BLAST BTOP encoding provides the mismatched residues, the
 # library sequences are not required to produce the MSA -- they are
 # available in the BTOP string)
-# 
+#
 # The BTOP alignment encoding file generated from "blastp/n" or
 # "blast_formatter" using the command: blast_formatter -archive
 # blast_output.asn -outfmt '7 qseqid sseqid pident length mismatch
@@ -230,7 +230,7 @@ while (my $line = <>) {
     else {
       push @multi_names, $s_seqid;
       push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data, );
-      @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_end s_start)};
+      @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_start s_end)};
       push @seq_bound_accs, $subj_acc;
     }
   }
@@ -290,7 +290,7 @@ sub decode_btop {
       my @mis_tokens = split(/(..)/,$token);
       for my $mis (@mis_tokens) {
 	if ($mis) {push @out_tokens, $mis};
-      }	
+      }
     }
   }
 
