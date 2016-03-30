@@ -244,6 +244,17 @@ while (my $line = <>) {
   }
 }
 
+# check to see whether any sequences have no data
+for (my $i_seq=0; $i_seq < scalar(@multi_names); $i_seq++) {
+    my $align = join("",$multi_align[$i_seq]);
+    if ($align =~ m/^\-*$/) {
+	warn "$multi_names[$i_seq] -- no alignment sequence";
+	$multi_names[$i_seq] = "";
+    }
+}
+
+
+
 # final MSA output
 $max_sseqid_len += 2;
 
@@ -254,6 +265,7 @@ for (my $j = 0; $j < $query_len/60; $j++) {
   my $i_end = $i_pos + 59;
   if ($i_end > $query_len) {$i_end = $query_len-1;}
   for (my $n = 0; $n < scalar(@multi_names); $n++) {
+    next unless $multi_names[$n];
     printf("%-".$max_sseqid_len."s %s\n",$multi_names[$n],join("",@{$multi_align[$n]}[$i_pos .. $i_end]));
   }
   $i_pos += 60;
