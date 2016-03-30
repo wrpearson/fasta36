@@ -204,7 +204,7 @@ while (my $line = <>) {
     }
 
     if ($have_dom) {
-      if (defined($seq_bound_hr->{$subj_acc})) {
+      if (exists($seq_bound_hr->{$subj_acc})) {
 	@{$seq_bound_hr->{$subj_acc}}{qw(start end)} = ($left_bound, $right_bound);
       }
       else {
@@ -217,15 +217,22 @@ while (my $line = <>) {
   # must have separate @hit_list that can be sorted, for searches with multiple alignment results
 
   if ($bound_file_only || $have_dom) {
-    if (defined($seq_bound_hr->{$subj_acc})) {
-      push @multi_names, $s_seqid;
-      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
+    if (exists($seq_bound_hr->{$subj_acc})) {
+      my ($status, $alignment) = bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
+      if ($status) {	# aligment is within boundary
+	push @multi_names, $s_seqid;
+	push @multi_align, $alignment;
+      }
+      # do not delete entry, because it needs to be preserved 
     }
   }
   elsif ($bound_file_in) {
-    if (defined($seq_bound_hr->{$subj_acc})) {
-      push @multi_names, $s_seqid;
-      push @multi_align, bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
+    if (exists($seq_bound_hr->{$subj_acc})) {
+      my ($status, $alignment) = bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
+      if ($status) {
+	push @multi_names, $s_seqid;
+	push @multi_align, $alignment;
+      }
     }
     else {
       push @multi_names, $s_seqid;
@@ -243,17 +250,6 @@ while (my $line = <>) {
     }
   }
 }
-
-# check to see whether any sequences have no data
-for (my $i_seq=0; $i_seq < scalar(@multi_names); $i_seq++) {
-    my $align = join("",$multi_align[$i_seq]);
-    if ($align =~ m/^\-*$/) {
-	warn "$multi_names[$i_seq] -- no alignment sequence";
-	$multi_names[$i_seq] = "";
-    }
-}
-
-
 
 # final MSA output
 $max_sseqid_len += 2;
@@ -419,11 +415,17 @@ sub btop2alignment {
   return \@alignment;
 }
 
+################
+# generates MSA alignment entry between $sb_start and $sb_end
+# if there are no aligned residues between these locations, return $status=0
+
 sub bound_btop2alignment {
   my ($query_seq_r, $query_len, $hit_data_hr, $sb_start, $sb_end) = @_;
 
   # $query_seq_r is 1: based
   my @alignment = ();
+
+  my $have_aligned_res = 0;
 
   # the left unaligned region gets " ";
   for (my $i=1; $i < $hit_data_hr->{q_start}; $i++) {
@@ -440,6 +442,7 @@ sub bound_btop2alignment {
       for (my $i=0; $i < $btop; $i++) {
 	if ($six >= $sb_start && $six <= $sb_end) {
 	  push @alignment, $query_seq_r->[$qix];
+	  $have_aligned_res=1;
 	}
 	else {
 	  push @alignment, '-';
@@ -455,6 +458,7 @@ sub bound_btop2alignment {
       }
       elsif ($seq0 ne '-') {  # mismatch
 	if ($six >= $sb_start && $six <= $sb_end) {
+	  $have_aligned_res=1;
 	  push @alignment, $seq1;
 	}
 	else {
@@ -477,7 +481,7 @@ sub bound_btop2alignment {
     push @alignment, "-";
   }
 
-  return \@alignment;
+  return ($have_aligned_res, \@alignment);
 }
 
 sub parse_query_lib {
