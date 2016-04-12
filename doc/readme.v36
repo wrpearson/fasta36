@@ -6,10 +6,15 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Apr. 12, 2016
+>>Apr. 12, 2016  [released as fasta-36.3.8d]
 [src/pssm_asn_subs.c]
 Fix another problem with binary ASN.1 file processing where the
 asnp->abp buffer was not refilled in time.
+
+[initfa.c] - version date updated to Apr, 2016
+
+[upam.h] - changes to default gap penalties for VT40 (from -14/-2 to
+-13/-1), VT80 (from -14/-2 to -11/-1), and VT120 (from -10/-1 to 11/-1).
 
 >>Mar. 30, 2016
 [scripts/m9B_btop_msa.pl]
@@ -31,7 +36,7 @@ a multiple sequence alignment that can be used with psi-blast.
 scripts/m9B_btop_msa.pl takes a fasta36 -m 9B output file and produces
 a multiple sequence alignment that can be used with psi-blast.
 
->>Feb. 15, 2016 [re-released as fasta-36.3.8d]
+>>Feb. 15, 2016
 [mshowbest.c, compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
 Modify logic for calculating percent identity in sub-alignments to use
 the BLASTP strategy, which does not could gapped regions as part of
