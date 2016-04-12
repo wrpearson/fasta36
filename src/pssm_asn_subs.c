@@ -385,7 +385,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
   int v_len;
   char tmp_str[64];
 
-  asnp->abp = chk_asn_buf(asnp,4);
+  asnp->abp = chk_asn_buf(asnp,8);
 
   if (*asnp->abp++ != ASN_IS_REAL) { /* check for packed float */
     fprintf(stderr,"*** error [%s:%d] - float missing\n",__FILE__,__LINE__);
@@ -399,7 +399,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
       fprintf(stderr,"*** error [%s:%d] - real string too long: %d\n",__FILE__,__LINE__,v_len);
     }
 
-    asnp->abp = chk_asn_buf(asnp,v_len);
+    asnp->abp = chk_asn_buf(asnp,v_len+8);
 
     if (v_len == 2  && *asnp->abp == '\0' && *(asnp->abp+1)=='0') {
       ABP_INC2;
@@ -412,7 +412,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
 	return asnp->abp;
       }
       asnp->abp++;
-      strncpy(tmp_str, (char *)asnp->abp, sizeof(tmp_str)-1);
+      strncpy(tmp_str, (char *)asnp->abp, v_len);
       tmp_str[v_len-1] = '\0';
       tmp_str[63] = '\0';
       sscanf(tmp_str,"%lg", d_val_p);
