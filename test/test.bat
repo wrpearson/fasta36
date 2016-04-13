@@ -69,5 +69,5 @@ rem "starting tfastxy3"
 rem "done"
 rem "starting fasts36"
 ..\bin\fasts36 -q -V '@?*' ..\seq\ngts.aa q > results\test_m1.fs1
-..\bin\fasts36 -q ..\seq\ngt.aa q > results\ ..\seq\test_m1.fs
+..\bin\fasts36 -q ..\seq\ngt.aa q > results\test_m1.fs
 rem "done"
