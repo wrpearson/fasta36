@@ -52,7 +52,7 @@ use Getopt::Long;
 # and report the domain content ala -m 8CC
 
 my ($shelp, $help, $evalue, $qvalue, $domain_bound) = (0, 0, 0.001, 30.0,0);
-my ($query_file, $bound_file_in, $bound_file_only, $bound_file_out) = ("","","","");
+my ($query_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out) = ("","","","","");
 my $query_lib_r = 0;
 
 GetOptions(
@@ -64,6 +64,8 @@ GetOptions(
     "bound_file_in=s" => \$bound_file_in,
     "bound_file_only=s" => \$bound_file_only,
     "bound_file_out=s" => \$bound_file_out,
+    "masked_library_out=s" => \$masked_lib_out,
+    "masked_lib_out=s" => \$masked_lib_out,
     "domain_bound" => \$domain_bound,
     "domain" => \$domain_bound,
     "bound_in=s" => \$bound_file_in,
@@ -82,7 +84,7 @@ unless (-f STDIN || -p STDIN || @ARGV) {
 my @m9_field_names = qw(percid perc_sim raw_score a_len q_start q_end qc_start qc_end s_start s_end sc_start sc_end gap_q gap_l fs);
 
 my @hit_list = ();
-my @multi_align = ();
+my %multi_align = ();
 my @multi_names = ();
 
 ################
@@ -99,7 +101,7 @@ if (! $query_file || !$query_len) {
 }
 
 push @multi_names, $query_acc;
-push @multi_align, btop2alignment($query_seq_r, $query_len, {BTOP=>$query_len, q_start=>1, q_end=>$query_len}, 0);
+$multi_align{$query_acc} = btop2alignment($query_seq_r, $query_len, {BTOP=>$query_len, q_start=>1, q_end=>$query_len}, 0);
 my $max_sseqid_len = length($query_acc);
 
 ################
@@ -221,7 +223,7 @@ while (my $line = <>) {
       my ($status, $alignment) = bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
       if ($status) {	# aligment is within boundary
 	push @multi_names, $s_seqid;
-	push @multi_align, $alignment;
+	$multi_align{$s_seqid} = $alignment;
       }
       # do not delete entry, because it needs to be preserved 
     }
@@ -231,20 +233,23 @@ while (my $line = <>) {
       my ($status, $alignment) = bound_btop2alignment($query_seq_r, $query_len, \%hit_data, @{$seq_bound_hr->{$subj_acc}}{qw(start end)});
       if ($status) {
 	push @multi_names, $s_seqid;
-	push @multi_align, $alignment;
+	$multi_align{$s_seqid} = $alignment;
+#	push @multi_align, $alignment;
       }
     }
     else {
       push @multi_names, $s_seqid;
-      push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data, );
+#      push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data, );
+      $multi_align{$s_seqid} = btop2alignment($query_seq_r, $query_len, \%hit_data);
       @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_start s_end)};
       push @seq_bound_accs, $subj_acc;
     }
   }
   else {  # no sequence boundaries
     push @multi_names, $s_seqid;
-    push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
-    if (!$have_dom && $bound_file_out) {
+    $multi_align{$s_seqid} = btop2alignment($query_seq_r, $query_len, \%hit_data);
+#    push @multi_align, btop2alignment($query_seq_r, $query_len, \%hit_data);
+    if (!$have_dom && ($bound_file_out)) {
       @{$seq_bound_hr->{$subj_acc}}{qw(start end)} = @hit_data{qw(s_start s_end)};
       push @seq_bound_accs, $subj_acc;
     }
@@ -260,9 +265,9 @@ my $i_pos = 0;
 for (my $j = 0; $j < $query_len/60; $j++) {
   my $i_end = $i_pos + 59;
   if ($i_end > $query_len) {$i_end = $query_len-1;}
-  for (my $n = 0; $n < scalar(@multi_names); $n++) {
-    next unless $multi_names[$n];
-    printf("%-".$max_sseqid_len."s %s\n",$multi_names[$n],join("",@{$multi_align[$n]}[$i_pos .. $i_end]));
+  for my $acc (@multi_names) {
+    next unless $acc;
+    printf("%-".$max_sseqid_len."s %s\n",$acc,join("",@{$multi_align{$acc}}[$i_pos .. $i_end]));
   }
   $i_pos += 60;
   print "\n\n";
@@ -276,6 +281,23 @@ if ($bound_file_out) {
     print $bound_fd join("\t", ($s_acc, @{$seq_bound_hr->{$s_acc}}{qw(start end)})),"\n";
   }
   close($bound_fd);
+}
+
+if ($masked_lib_out) {
+  open(my $masked_fd, ">", $masked_lib_out) || die "cannot open $masked_lib_out";
+
+  for my $s_acc ( @multi_names ) {
+    print $masked_fd ">$s_acc\n";
+    my $seq_lines = join('',@{$multi_align{$s_acc}});
+
+    # currently, simply remove all '-' insertions --
+    # other options would be to make external '-'s 'X's
+    $seq_lines =~ s/\-//g;
+
+    $seq_lines =~ s/(.{60})/$1\n/g; 
+    print $masked_fd "$seq_lines\n";
+  }
+  close($masked_fd);
 }
 
 # input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
@@ -603,6 +625,8 @@ __END__
 
  --domain_bound  parse domain annotations (-V) from m9B file
  --domain
+
+ --masked_lib_out -- FASTA format library of MSA sequences
 
 =head1 DESCRIPTION
 
