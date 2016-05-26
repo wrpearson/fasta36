@@ -231,9 +231,9 @@ sub show_annots {
   $use_acc = 1;
   $get_annots_sql = $get_pfam_acc;
 
-  if ($annot_line =~ m/^pf26\|/) {
-    ($sdb, $gi, $acc, $id) = split(/\|/,$annot_line);
-    $dbh->do("use RPD2_pfam");
+  if ($annot_line =~ m/^pf\d+\|/) {
+    ($sdb, $gi, $pfamA_acc, $acc, $id) = split(/\|/,$annot_line);
+#    $dbh->do("use RPD2_pfam");
   }
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
@@ -257,10 +257,14 @@ sub show_annots {
   unless ($use_acc) {
     $get_annots_sql = $get_pfam_id;
     $get_annots_sql->execute($id);
-  }
-  else {
-    $acc =~ s/\.\d+$//;
-    $get_annots_sql->execute($acc);
+  } else {
+    unless ($acc) {
+      warn "missing acc in $annot_line";
+      next;
+    } else {
+      $acc =~ s/\.\d+$//;
+      $get_annots_sql->execute($acc);
+    }
   }
 
   $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
