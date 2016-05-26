@@ -6,6 +6,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>May 25, 2016
+[scripts/ann_pfam28.pl]
+Implement --split_over command option, which takes overlapping domains
+and produces virtual like domains from the overlap region.
+
 >>Apr. 12, 2016  [released as fasta-36.3.8d]
 [src/pssm_asn_subs.c]
 Fix another problem with binary ASN.1 file processing where the
