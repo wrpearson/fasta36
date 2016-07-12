@@ -178,7 +178,7 @@ while (my $line = <>) {
   @hit_data{qw(query_id query_acc)} = ($query_descr, $q_acc);
   $hit_data{BTOP} = $align_f;
 
-  last if ($hit_data{evalue} > $evalue);
+  next if ($hit_data{evalue} > $evalue);
 
   if (length($s_seqid) > $max_sseqid_len) {
     $max_sseqid_len = length($s_seqid);

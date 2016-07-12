@@ -124,7 +124,7 @@ while (my $line = <>) {
 
   @hit_data{@tab_fields} = split(/\t/,$line);
 
-  last if ($hit_data{evalue} > $evalue);
+  next if ($hit_data{evalue} > $evalue);
 
 #  push @hit_list, \%hit_data;
   if (length($hit_data{s_seqid}) > $max_sseqid_len) {
