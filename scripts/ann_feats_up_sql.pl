@@ -340,6 +340,7 @@ sub get_lav_annots {
   my %annot = ();
   while (($acc, $pos, $end, $label, $value) = $get_annots_sql->fetchrow_array()) {
     next unless ($label =~ m/^DOMAIN/ || $label =~ m/^REPEAT/);
+    $value =~ s/\s?\{.+\}\.?$//;
     $value = domain_name($label,$value);
     push @feats, [$pos, $end, $value];
   }
