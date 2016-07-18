@@ -12,9 +12,9 @@ includes programs for aligning translated DNA sequences against
 proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
 `tfasty` are similar to `tblastn`).
 
-####July, 2015
+####April, 2016
 
-The current FASTA version is fasta-36.3.8.
+The current FASTA version is fasta-36.3.8d.
 
 As of November, 2014, the FASTA program code is available under the
 Apache 2.0 open source license.

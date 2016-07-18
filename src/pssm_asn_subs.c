@@ -385,7 +385,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
   int v_len;
   char tmp_str[64];
 
-  asnp->abp = chk_asn_buf(asnp,4);
+  asnp->abp = chk_asn_buf(asnp,8);
 
   if (*asnp->abp++ != ASN_IS_REAL) { /* check for packed float */
     fprintf(stderr,"*** error [%s:%d] - float missing\n",__FILE__,__LINE__);
@@ -399,7 +399,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
       fprintf(stderr,"*** error [%s:%d] - real string too long: %d\n",__FILE__,__LINE__,v_len);
     }
 
-    asnp->abp = chk_asn_buf(asnp,v_len);
+    asnp->abp = chk_asn_buf(asnp,v_len+8);
 
     if (v_len == 2  && *asnp->abp == '\0' && *(asnp->abp+1)=='0') {
       ABP_INC2;
@@ -412,7 +412,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
 	return asnp->abp;
       }
       asnp->abp++;
-      strncpy(tmp_str, (char *)asnp->abp, sizeof(tmp_str)-1);
+      strncpy(tmp_str, (char *)asnp->abp, v_len);
       tmp_str[v_len-1] = '\0';
       tmp_str[63] = '\0';
       sscanf(tmp_str,"%lg", d_val_p);
@@ -538,6 +538,7 @@ get_astr_junk(struct asn_bstruct *asnp) {
 
 #define ASN_SEQINST_NCBIEAA 167
 #define ASN_SEQINST_NCBISTDAA 169
+#define ASN_SEQINST_IUPACAA 161
 
 unsigned char *
 get_astr_iseqd(struct asn_bstruct *asnp,
@@ -555,6 +556,10 @@ get_astr_iseqd(struct asn_bstruct *asnp,
   else if (ABP == ASN_SEQINST_NCBISTDAA) {
     ABP_INC2;
     return get_astr_octstr(asnp, query, nq) + 2;
+  }
+  else if (ABP == ASN_SEQINST_IUPACAA) {
+    ABP_INC2;
+    return get_astr_str(asnp, (char *)query, nq) + 2;
   }
   else {
     return asn_error("get_astr_iseqd","",-1,asnp,4);
@@ -1547,8 +1552,8 @@ parse_pssm_asn(FILE *afd,
   int i;
   long itmp;
   int have_rows=0, have_cols=0, by_col=0;
-  double **my_freqs, **my_wfreqs, dtmp;
-  int **my_iscores;
+  double **my_freqs=NULL, **my_wfreqs=NULL, dtmp;
+  int **my_iscores=NULL;
   struct asn_bstruct *asnp;
 
   *wfreqs = NULL;

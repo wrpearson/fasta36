@@ -3847,7 +3847,7 @@ init_domfeat_data(const struct annot_str *annot_p) {
 
 void
 close_annot_match (int ia, void *annot_stack, int *have_push_features_p,
-		   int *d_score_p, int *d_ident_p, int *d_alen_p,
+		   int *d_score_p, int *d_ident_p, int *d_alen_p, int *d_gaplen_p,
 		   struct domfeat_data **left_domain_head_p,
 		   long *left_end_p, int init_score) {
 
@@ -3860,6 +3860,7 @@ close_annot_match (int ia, void *annot_stack, int *have_push_features_p,
     this_dom_p->score += *d_score_p;
     this_dom_p->n_ident += *d_ident_p;
     this_dom_p->n_alen += *d_alen_p;
+    this_dom_p->n_gaplen += *d_gaplen_p;
     if (have_push_features_p) *have_push_features_p = 1;
     push_stack(annot_stack, this_dom_p);
   }
@@ -3911,7 +3912,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 		    long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		    struct annot_entry *annot_arr_p, int n_annots, char **ann_comment,
 		    void *annot_stack, int *have_push_features_p, int *v_delta,
-		    int *d_score_p, int *d_ident_p, int *d_alen_p, 
+		    int *d_score_p, int *d_ident_p, int *d_alen_p, int *d_gaplen_p,
 		    struct domfeat_data **left_domain_head_p,
 		    struct domfeat_data *left_domain_p,
 		    long *left_end_p, int init_score) {
@@ -3925,9 +3926,9 @@ process_annot_match(int *itmp, int *pam2aa0v,
     
   if (ip == *left_end_p) { /* do this first before starting any new domains */
     close_annot_match(ip, annot_stack, have_push_features_p, 
-		      d_score_p, d_ident_p, d_alen_p,
+		      d_score_p, d_ident_p, d_alen_p, d_gaplen_p,
 		      left_domain_head_p, left_end_p, init_score);
-    *d_ident_p = *d_alen_p = 0;
+    *d_ident_p = *d_alen_p = *d_gaplen_p = 0;
     *d_score_p = init_score;
     return 0;
   }
@@ -3977,6 +3978,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 	  this_dom->score += *d_score_p;
 	  this_dom->n_ident += *d_ident_p;
 	  this_dom->n_alen += *d_alen_p;
+	  this_dom->n_gaplen += *d_gaplen_p;
 
 	  /* then we check for an insertion location */
 	  if (this_dom->end_pos > new_left_domain_end) {
@@ -3987,7 +3989,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 	}
 	/* all the scores are updated and new_dom is NULL (for beginning/end) or insertion location */
 
-	*d_ident_p = *d_alen_p = 0;
+	*d_ident_p = *d_alen_p = *d_gaplen_p = 0;
 	*d_score_p = init_score;
 
 	/* initialize this dom_entry */
@@ -4025,7 +4027,7 @@ next_annot_match(int *itmp, int *pam2aa0v,
 		 long ip, long ia, char *sp1, char *sp1a, const unsigned char *sq,
 		 int i_annot, int n_annot, struct annot_entry **annot_arr, char **ann_comment,
 		 void *annot_stack, int *have_push_features_p, int *v_delta,
-		 int *d_score_p, int *d_ident_p, int *d_alen_p,
+		 int *d_score_p, int *d_ident_p, int *d_alen_p, int *d_gaplen_p,
 		 struct domfeat_data **left_domain_head_p,
 		 struct domfeat_data *left_domain_p,
 		 long *left_end_p, int init_score)  {
@@ -4037,7 +4039,7 @@ next_annot_match(int *itmp, int *pam2aa0v,
     i_annot += process_annot_match(itmp, pam2aa0v, ip, ia, sp1, sp1a, sq,
 				   annot_arr[i_annot], n_annot, ann_comment,
 				   annot_stack, have_push_features_p, v_delta,
-				   d_score_p, d_ident_p, d_alen_p, 
+				   d_score_p, d_ident_p, d_alen_p, d_gaplen_p,
 				   left_domain_head_p, &left_domain_p[i_annot],
 				   left_end_p, init_score);
   }
@@ -4197,7 +4199,7 @@ void comment_var (long i0_pos, char sp0, long i1_pos, char sp1, char o_sp1,
 void
 display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 		      long i0_pos, char sp0, long i1_pos, char sp1, char sym,
-		      int tot_score, double comp, int n0, int n1,
+		      int tot_score, double comp, int sw_score, int n0, int n1,
 		      void *pstat_void, int d_type) {
   struct domfeat_data *this_dom_p;
   double lbits, total_bits, zscore, lprob, lpercid;
@@ -4205,7 +4207,10 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
   char tmp_lstr[MAX_LSTR], ctarget, tmp_str[MAX_STR];
   int q_min, q_max, l_min, l_max;
   char *dt1_fmt, *dt2_fmt;
+  double tot_sw_norm;
   int n_stack;
+
+  tot_sw_norm = (double)tot_score/(double)sw_score;
 
   zscore = find_z(tot_score, 1.0, n1, comp, pstat_void);
   total_bits = zs_to_bit(zscore, n0, n1);
@@ -4238,8 +4243,8 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 	lprob = 1.0;
       }
       else {
-	lbits = total_bits * (double)this_dom_p->score/tot_score;
-	zscore = find_z(this_dom_p->score, 1.0, n1, comp, pstat_void);
+	lbits = total_bits * (double)this_dom_p->score/sw_score;
+	zscore = find_z(this_dom_p->score * tot_sw_norm, 1.0, n1, comp, pstat_void);
 	lprob = zs_to_p(zscore);
       }
 
@@ -4247,8 +4252,8 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       else if (lprob < 1e-300) lprob = 3000.0;
       else lprob = -10.0*log(lprob)/log(10.0);
 
-      if (this_dom_p->n_alen > 0) {
-	lpercid = ((double)this_dom_p->n_ident)/(double)this_dom_p->n_alen;
+      if (this_dom_p->n_alen - this_dom_p->n_gaplen > 0) {
+	lpercid = ((double)this_dom_p->n_ident)/(double)(this_dom_p->n_alen-this_dom_p->n_gaplen);
       }
       else lpercid = -1.0;
 

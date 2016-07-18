@@ -6,6 +6,65 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>July 12, 2016
+[src/mshowbest.c]
+Modified -m8/-m 8CB output to include "eval2" when a second E()-value
+is available (when -z > 20).  "eval2" is shown after the bit score,
+but before BTOP and annotations.
+
+>>May 25, 2016
+[scripts/ann_pfam28.pl]
+Implement --split_over command option, which takes overlapping domains
+and produces virtual like domains from the overlap region.
+
+>>Apr. 12, 2016  [released as fasta-36.3.8d]
+[src/pssm_asn_subs.c]
+Fix another problem with binary ASN.1 file processing where the
+asnp->abp buffer was not refilled in time.
+
+[initfa.c] - version date updated to Apr, 2016
+
+[upam.h] - changes to default gap penalties for VT40 (from -14/-2 to
+-13/-1), VT80 (from -14/-2 to -11/-1), and VT120 (from -10/-1 to 11/-1).
+
+>>Mar. 30, 2016
+[scripts/m9B_btop_msa.pl]
+Provide --bound_file_only, --bound_file_in, --bound_file_out.
+Ensure that alignments outside boundaries are NOT included in MSA.
+
+>>Mar. 22, 2016
+[scripts/m8_btop_msa.pl, m9B_btop_msa.pl]
+Ensure that full length query sequence is included in MSA.
+[pssm_asn_subs.c]
+Fixes to allow IUPACAA sequences in ASN.1 PSSM.  Other fixes to ensure
+that arrays not allocated are not freed when wfreqs2d[] is not available.
+
+>>Mar. 18, 2016
+[scripts/m8_btop_msa.pl, m9B_btop_msa.pl]
+scripts/m8_btop_msa.pl takes a fasta36 -m 8CB output file and produces
+a multiple sequence alignment that can be used with psi-blast.
+
+scripts/m9B_btop_msa.pl takes a fasta36 -m 9B output file and produces
+a multiple sequence alignment that can be used with psi-blast.
+
+>>Feb. 15, 2016
+[mshowbest.c, compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
+Modify logic for calculating percent identity in sub-alignments to use
+the BLASTP strategy, which does not could gapped regions as part of
+the alignment length.  Fix the -m 8 display (BLAST tabular output) to
+use ungapped alignment length for percent identity (as -m BB does).
+
+[initfa.c] - version date updated to Feb, 2016
+
+>>Feb. 12, 2016
+[compacc2e.c, cal_cons2.c, dropfx2.c, dropfz3.c]
+Modify display_push_features() to use both the rst.score[score_ix],
+which is used to calculate the zscore and bitscore, and also sw_score,
+which is the correct divisor for sub-alignment scores.  Previously,
+only the rst.score[score_ix] was used, which caused some bit scores to
+be out of range, and produced erroneous Q-value scores for
+sub-alignments.
+
 >>Jan. 24, 2016
 [cal_cons2.c]
 Ensure left_domain_link[01] set to NULL before initialized.

@@ -137,7 +137,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct rstruct rst;
   int l_score0, ngap;
   double lzscore, lzscore2, lbits;
-  float percent, gpercent;
+  float percent, gpercent, ng_percent;
   struct a_struct *aln_p;
   struct a_res_str *cur_ares_p;
   struct rstruct *rst_p;
@@ -243,6 +243,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
     fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    if (ppst->zsflag > 20) {fprintf(fp,", eval2");}
     if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp,", aln_code");}
     else if ((m_msp->show_code & SHOW_CODE_BTOP)==SHOW_CODE_BTOP) { fprintf(fp,", BTOP");}
 
@@ -535,9 +536,10 @@ l1:
 	annot_str = cur_ares_p->annot_code;
 	annot_str_len = cur_ares_p->annot_code_n;
 
-        percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
-
 	ngap = cur_ares_p->aln.ngap_q + cur_ares_p->aln.ngap_l;
+        percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
+        ng_percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
+
 #ifndef SHOWSIM
 	gpercent = calc_fpercent_id(100.0, aln_p->nident, aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 #else
@@ -580,12 +582,15 @@ l1:
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
 	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
-		    percent,aln_p->lc,aln_p->nmismatch,
+		    ng_percent,aln_p->lc,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
+	    if (ppst->zsflag > 20) {
+	      fprintf(fp,"\t%.2g",zs_to_E(lzscore2, n1, ppst->dnaseq, ppst->zdb_size, m_msp->db));
+	    }
 	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR+SHOW_CODE_BTOP)) && seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
 	      if (annot_str_len > 0 && annot_str != NULL) {

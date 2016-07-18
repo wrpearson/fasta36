@@ -45,8 +45,9 @@ my $hostname = `/bin/hostname`;
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $no_over, $acc_comment, $bound_comment, $shelp, $help) = 
-  (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0);
+my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
+  (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
+my ($no_over, $split_over, $over_fract) = (0, 0, 3.0);
 
 my $color_sep_str = " :";
 $color_sep_str = '~';
@@ -64,6 +65,10 @@ GetOptions(
     "bound_comment" => \$bound_comment,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
+    "split-over" => \$split_over,
+    "split_over" => \$split_over,
+    "over_fract" => \$over_fract,
+    "over-fract" => \$over_fract,
     "no-clans" => \$no_clans,
     "no_clans" => \$no_clans,
     "neg" => \$neg_doms,
@@ -231,9 +236,9 @@ sub show_annots {
   $use_acc = 1;
   $get_annots_sql = $get_pfam_acc;
 
-  if ($annot_line =~ m/^pf26\|/) {
-    ($sdb, $gi, $acc, $id) = split(/\|/,$annot_line);
-    $dbh->do("use RPD2_pfam");
+  if ($annot_line =~ m/^pf\d+\|/) {
+    ($sdb, $gi, $pfamA_acc, $acc, $id) = split(/\|/,$annot_line);
+#    $dbh->do("use RPD2_pfam");
   }
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
@@ -257,10 +262,14 @@ sub show_annots {
   unless ($use_acc) {
     $get_annots_sql = $get_pfam_id;
     $get_annots_sql->execute($id);
-  }
-  else {
-    $acc =~ s/\.\d+$//;
-    $get_annots_sql->execute($acc);
+  } else {
+    unless ($acc) {
+      warn "missing acc in $annot_line";
+      next;
+    } else {
+      $acc =~ s/\.\d+$//;
+      $get_annots_sql->execute($acc);
+    }
   }
 
   $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
@@ -338,66 +347,128 @@ sub get_pfam_annots {
     }
     push @j_domains, $prev_dom;
     @pf_domains = @j_domains;
-  }
 
-  if($no_over && scalar(@pf_domains) > 1) {
 
-    my @tmp_domains = @pf_domains;
-    my @save_domains = ();
+    if ($no_over) {	# for either $no_over or $split_over, check for overlapping domains and edit/split them
 
-    my $prev_dom = shift @tmp_domains;
+      my @tmp_domains = @pf_domains;	# allow shifts from copy of @pf_domains
+      my @save_domains = ();		# where the new domains go
 
-    while (my $curr_dom = shift @tmp_domains) {
+      my $prev_dom = shift @tmp_domains;
 
-      my @overlap_domains = ($prev_dom);
+      while (my $curr_dom = shift @tmp_domains) {
 
-      my $diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
-      # check for overlap > domain_length/3
+	my @overlap_domains = ($prev_dom);
 
-      my ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
-      my $inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
-		       (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
+	my $diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
 
-      my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+	my ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1,
+				    $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
 
-      while ($inclusion || ($diff > 0 && $diff > $longer_len/3)) {
-	push @overlap_domains, $curr_dom;
-	$curr_dom = shift @tmp_domains;
-	last unless $curr_dom;
-	$diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
-	($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
-	$longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
-	$inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
-		      (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
-      }
+	my $inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start})    # start is right && end is left 
+			  && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) || # -- curr inside prev
+			 (($curr_dom->{seq_start} <= $prev_dom->{seq_start})    # start is left && end is right
+			  && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));  # -- prev is inside curr
 
-      # check for overlapping domains; >1 because $prev_dom is always there
-      if (scalar(@overlap_domains) > 1 ) {
-	# if $rpd2_fams, check for a chosen one
+	my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
 
-	for my $dom ( @overlap_domains) {
-	  $dom->{evalue} = 1.0 unless defined($dom->{evalue});
+	# check for overlap > domain_length/$over_fract
+	while ($inclusion || ($diff > 0 && $diff > $longer_len/$over_fract)) {
+	  push @overlap_domains, $curr_dom;
+	  $curr_dom = shift @tmp_domains;
+	  last unless $curr_dom;
+	  $diff = $prev_dom->{seq_end} - $curr_dom->{seq_start};
+	  ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
+	  $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+	  $inclusion = ((($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})) ||
+			(($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})));
 	}
 
-	@overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
-	$prev_dom = $overlap_domains[0];
+	# check for overlapping domains; >1 because $prev_dom is always there
+	if (scalar(@overlap_domains) > 1 ) {
+	  # if $rpd2_fams, check for a chosen one
+
+	  for my $dom ( @overlap_domains) {
+	    $dom->{evalue} = 1.0 unless defined($dom->{evalue});
+	  }
+
+	  @overlap_domains = sort { $a->{evalue} <=> $b->{evalue} } @overlap_domains;
+	  $prev_dom = $overlap_domains[0];
+	}
+
+	# $prev_dom should be the best of the overlaps, and we are no longer overlapping > dom_length/3
+	push @save_domains, $prev_dom;
+	$prev_dom = $curr_dom;
       }
 
-      # $prev_dom should be the best of the overlaps, and we are no longer overlapping > dom_length/3
-      push @save_domains, $prev_dom;
-      $prev_dom = $curr_dom;
+      if ($prev_dom) {
+	push @save_domains, $prev_dom;
+      }
+
+      @pf_domains = @save_domains;
+
+      # now check for smaller overlaps
+      for (my $i=1; $i < scalar(@pf_domains); $i++) {
+	if ($pf_domains[$i-1]->{seq_end} >= $pf_domains[$i]->{seq_start}) {
+	  my $overlap = $pf_domains[$i-1]->{seq_end} - $pf_domains[$i]->{seq_start};
+	  $pf_domains[$i-1]->{seq_end} -= int($overlap/2);
+	  $pf_domains[$i]->{seq_start} = $pf_domains[$i-1]->{seq_end}+1;
+	}
+      }
     }
-    if ($prev_dom) {push @save_domains, $prev_dom;}
+    elsif ($split_over) {   # here, everything that overlaps by > $min_vdom should be split into a separate domain
+      my @save_domains = ();		# where the new domains go
 
-    @pf_domains = @save_domains;
+      # check to see if one domain is included (or overlapping) more
+      # than xx% of the other.  If so, pick the longer one
 
-    # now check for smaller overlaps
-    for (my $i=1; $i < scalar(@pf_domains); $i++) {
-      if ($pf_domains[$i-1]->{seq_end} >= $pf_domains[$i]->{seq_start}) {
-	my $overlap = $pf_domains[$i-1]->{seq_end} - $pf_domains[$i]->{seq_start};
-	$pf_domains[$i-1]->{seq_end} -= int($overlap/2);
-	$pf_domains[$i]->{seq_start} = $pf_domains[$i-1]->{seq_end}+1;
+      my ($prev_dom, $curr_dom) = ($pf_domains[0],0) ;
+      for (my $i=1; $i < scalar(@pf_domains); $i++) {
+	$curr_dom = $pf_domains[$i];
+
+	my ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
+	my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
+
+	if (($curr_dom->{seq_start} >= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} <= $prev_dom->{seq_end})
+	   && $cur_len / $prev_len > 0.80) {
+	  # $prev_dom stays the same, $curr_dom deleted
+	  next;
+	}
+	elsif (($curr_dom->{seq_start} <= $prev_dom->{seq_start}) && ($curr_dom->{seq_end} >= $prev_dom->{seq_end})
+	      && $prev_len / $cur_len > 0.80) {
+	  $prev_dom = $curr_dom; # this should delete $prev_dom
+	  next;
+	}
+
+	if ($prev_dom->{seq_end} >= $curr_dom->{seq_start} + $min_vdom) {
+	  my ($l_seq_end, $r_seq_start) = ($curr_dom->{seq_start}-1, $prev_dom->{seq_end}+1);
+
+	  $prev_dom->{seq_end} = $l_seq_end;
+	  push @save_domains, $prev_dom;
+	  my $new_dom = {seq_start => $l_seq_end+1, seq_end=>$r_seq_start-1, 
+			 model_length => -1,
+			 pfamA_acc=>$prev_dom->{pfamA_acc}."/".$curr_dom->{pfamA_acc},
+			 pfamA_id=>$prev_dom->{pfamA_id}."/".$curr_dom->{pfamA_id},
+			 };
+
+	  if ($pf_acc) {
+	    $new_dom->{info} = $new_dom->{pfamA_acc};
+	  }
+	  else {
+	    $new_dom->{info} = $new_dom->{pfamA_id};
+	  }
+
+	  push @save_domains, $new_dom;
+	  $curr_dom->{seq_start} = $r_seq_start;
+	  $prev_dom = $curr_dom;
+	}
+	else {
+	  push @save_domains, $prev_dom;
+	  $prev_dom = $curr_dom;
+	}
       }
+      push @save_domains, $prev_dom;
+      @pf_domains = @save_domains;
     }
   }
 
@@ -427,6 +498,10 @@ sub get_pfam_annots {
 
       # my $min_vdom = $curr_dom->{model_length} / 10;
 
+      if ($curr_dom->{model_length} < $min_vdom) {
+	push @vpf_domains, $curr_dom;
+	next;
+      }
       if ($prev_dom->{pfamA_acc}) { # look for previous domain
 	$prev_dom_end = $prev_dom->{seq_end};
       }
@@ -656,6 +731,7 @@ ann_pfam28.pl
  -h	short help
  --help include description
  --no-over  : generate non-overlapping domains (equivalent to ann_pfam.pl)
+ --split-over  : overlaps of two domains generate a new hybrid domain
  --no-clans : do not use clans with multiple families from same clan
  --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
@@ -679,12 +755,17 @@ C<ann_pfam28.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
 information on a protein. 
 
-If the "--no-over" option is set, overlapping domains are selected and
+If the C<--no-over> option is set, overlapping domains are selected and
 edited to remove overlaps.  For proteins with multiple overlapping
 domains (domains overlap by more than 1/3 of the domain length),
 C<auto_pfam28.pl> selects the domain annotation with the best
 C<domain_evalue_score>.  When domains overlap by less than 1/3 of the
 domain length, they are shortened to remove the overlap.
+
+If the C<--split-over> option is set, if two domains overlap, the
+overlapping region is split out of the domains and labeled as a new,
+virtual-lie, domain.  If one domain is internal to another and spans
+80% of the domain, the shorter domain is removed.
 
 C<ann_pfam28.pl> is designed to be used by the B<FASTA> programs with
 the C<-V \!ann_pfam28.pl> or C<-V "\!ann_pfam28.pl --neg"> option.

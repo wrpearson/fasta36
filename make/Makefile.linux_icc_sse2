@@ -1,4 +1,4 @@
-# $Id: Makefile.linux_icc_sse2 1162 2013-05-27 16:48:11Z wrp $
+ # $Id: Makefile.linux_icc_sse2 1162 2013-05-27 16:48:11Z wrp $
 #
 # makefile for fasta3, fasta3_t using the Intel icc compiler
 #
@@ -9,7 +9,7 @@
 
 SHELL=/bin/bash
 
-CC= icc -O3
+CC= icc -O3 -g
 #CC = icc -g -DDEBUG
 
 #CC=gcc -Wall -pedantic -ansi -g -O
@@ -18,7 +18,7 @@ CC= icc -O3
 # this file works for x86 LINUX
 
 # standard options
-CFLAGS= -DSHOW_HELP -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=8 -DTHR_EXIT=pthread_exit -DPROGRESS -DFASTA_HOST='"your_fasta_host_here"' -DUSE_MMAP -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DPGM_DOC -DBIG_LIB64 -DSAMP_STATS
+CFLAGS= -DSHOW_HELP -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=8 -DTHR_EXIT=pthread_exit  -DUSE_MMAP -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DPGM_DOC -DBIG_LIB64 -DSAMP_STATS
 # -I/usr/include/mysql -DMYSQL_DB
 #(for mySQL databases)  (also requires change to Makefile36.common)
 

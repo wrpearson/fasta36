@@ -30,10 +30,6 @@
 #define DEF_PROT_LIB "q"
 #endif
 
-#ifndef FASTA_HOST
-#define FASTA_HOST "your.fasta.host.here/fasta/cgi"
-#endif
-
 extern int seq_pos(int pos, int rev, int off);
 
 char *display_domains(char, struct annot_entry **s_annot_arr_p, int n_domains);
@@ -151,7 +147,7 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
 
   SAFE_STRNCPY(my_l_name,lbp,sizeof(my_l_name));
 
-  if (pgm[0]=='t' || !strcmp(pgm,"fx") || !strcmp(pgm,"fy")==0 ) {
+  if (pgm[0]=='t' || !strcmp(pgm,"fx") || !strcmp(pgm,"fy") ) {
     if ((lbp=strchr(my_l_name,':'))!=NULL) *lbp='\0';
     lbp = &my_l_name[strlen(my_l_name)-2];
     if ( *lbp == '_' ) *lbp = '\0';

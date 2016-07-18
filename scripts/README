@@ -1,25 +1,60 @@
 
 22-Jan-2014
-12-Nov-2015 updated
+13-Apr-2016 updated
 
 fasta36/scripts
 
 Perl scripts for annotating sequences and expanding libraries
 
--- Sequence alignment annotation
+-- Sequence alignment scoring/annotation
 
-Two program scripts have been added to support sub-alignment scoring
-of BLASTP alignments.
+Two program scripts -- annot_blast_btop2.pl and blastp_cmd.sh -- have
+been added to support sub-alignment scoring of BLASTP alignments.
 
-annot_blast_btop.pl takes three inputs: (1) a query sequence file; (2)
+annot_blast_btop2.pl takes three inputs: (1) a query sequence file; (2)
 a domain annotation script (see below), and (3) a BLAST tabular format
 output with two additional fields, "score" and "btop":
 
-annot_blast_btop.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
+annot_blast_btop2.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
 
 The blast_tab_btop_file can be produced using the blastp_cmd.sh shell
 script, which uses ASN.1 output and blast_formatter to produce both a
 standard alignment file and the modified blast tabular btop file.
+
+-- Implied Multiple sequence alignment --
+
+As part of a strategy to improve PSSM-based similarity searching, two
+scripts that use a BTOP encoded alignment string from either -m 8CB or
+-m 9B output files to produce a Clustal-like multiple sequence
+alignment (MSA) that can be used as input to psiblast to produce an
+ASN.1 text file (which can be converted with datatool to ASN.1 binary,
+which can be read by ssearch36 -P "file.asn1 2").  We used the BTOP
+encoding, rather than the more common CIGAR string (-m 9C), or the
+older alignment encoding (-m 9c), because the BTOP encoding only
+requires the query sequence to reproduce both the query and subject
+aligned residues.  Thus:
+
+m8_btop_msa.pl --query gstt1_drome.aa gstt1_sp.bl_btop > gstt1_sp.ss_msa
+
+where "gstt1_sp.bl_btop" is "-m 8CB" output, produces:
+  ====
+  SSEARCHm8 multiple sequence alignment
+
+
+  sp|P20432|GSTT1_DROME     MVDFYYLPGSSPCRSVIMTAKAVGVELNKKLLNLQAGEHLKPEFLKINPQHTIPTLVDNG
+  sp|P04907|GSTF3_MAIZE     ---LYGMPLSPNVVRVATVLNEKGLDFEIVPVDLTTGAHKQPDFLALNPFGQIPALVDGD
+  sp|P12653|GSTF1_MAIZE     -------------------------------INFATAEHKSPEHLVRNPFGQVPALQDGD
+  sp|P0ACA5|SSPA_ECO57      ------------------------------------------DLIDLNPNQSVPTLVDRE
+  sp|P00502|GSTA1_RAT       VLHYFNARGRMECIRWLLA--AAGVEFDEKFI--QSPEDL--EKLKKDGNDQVPMVEIDG
+
+
+  ...
+  ====
+
+which can be used with psiblast -in_msa gstt1_sp.ss_msa.
+m9B_btop_msa.pl does the same for "-m 9B" output.
+
+-- Domain annotation --
 
 (Nov. 2015) These domain annotation scripts allow overlapping domains,
 and must be used with versions of the FASTA programs that support the
