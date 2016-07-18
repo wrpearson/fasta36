@@ -361,6 +361,7 @@ sub domain_name {
 
   if ($label =~ /DOMAIN|REPEAT/) {
     $value =~ s/;.*$//;
+    $value =~ s/\s+\d+\.?$//;
     $value =~ s/\.\s*$//;
     $value =~ s/\s+\d+\.\s+.*$//;
     $value =~ s/\s+/_/;
