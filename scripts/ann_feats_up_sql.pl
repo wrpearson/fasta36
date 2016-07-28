@@ -340,6 +340,7 @@ sub get_lav_annots {
   my %annot = ();
   while (($acc, $pos, $end, $label, $value) = $get_annots_sql->fetchrow_array()) {
     next unless ($label =~ m/^DOMAIN/ || $label =~ m/^REPEAT/);
+    $value =~ s/\s?\{.+\}\.?$//;
     $value = domain_name($label,$value);
     push @feats, [$pos, $end, $value];
   }
@@ -360,8 +361,9 @@ sub domain_name {
 
   if ($label =~ /DOMAIN|REPEAT/) {
     $value =~ s/;.*$//;
+    $value =~ s/\s+\d+\.?$//;
     $value =~ s/\.\s*$//;
-    $value =~ s/\s+\d+$//;
+    $value =~ s/\s+\d+\.\s+.*$//;
     $value =~ s/\s+/_/;
     if (!defined($domains{$value})) {
       $domain_cnt++;
