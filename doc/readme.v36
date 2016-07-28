@@ -6,6 +6,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>July 28, 2016
+[src/pssm_asn_subs.c]
+Fix another problem with binary ASN.1 file processing where the
+asnp->abp buffer was not refilled in time.
+
 >>May 25, 2016
 [scripts/ann_pfam28.pl]
 Implement --split_over command option, which takes overlapping domains
@@ -388,7 +393,7 @@ Modified save_best2() to correctly exclude sequences outside
 >>Nov. 8, 2013   (re-released as fasta-36.3.6d)
 [ncbl2_mlib.c]
 Fix problem with src_long8_read() where int/uint64_t seems to cause
-problems with Linux intel icc. Using int/unsigned int solves the problem. 
+problems with Linux intel icc. Using int/unsigned int solves the problem.
 
 >>Nov. 1, 2013
 [apam.c, ncbl2_mlib.c, map_db.c]
@@ -431,7 +436,7 @@ Fix bug in comp_lib9.c/new_seqr_chain() that prevented memory from
 being allocated to the chain if a memory mapped database was followed
 by a non-memory mapped database.
 
->>Aug. 9, 2013 
+>>Aug. 9, 2013
 [scaleswn.c]
 Ensure shift to MLE_STATS if too many scores are excluded by trimming.
 
@@ -571,7 +576,7 @@ ann_feats2l.pl has been extended to allow the --neg
 between the domain annotations provided by the database.
 
 >>Mar. 7, 2013
-(cal_cons.c) 
+(cal_cons.c)
 Modify update code to properly begin global alignments that start with
 insertions or deletions.
 
@@ -795,10 +800,10 @@ e.g: "gi|121746|sp|P09211|GSTP1_HUMAN Glutathione S-transferase P (GST
 class-pi) (GSTP1-1)", and is expected to return a tab-delimited file:
 ====
 pos label value
-23	*	
-33	*	
-34	*	
-116	^	
+23	*
+33	*
+34	*
+116	^
 173	V	N
 210	V	T
 ====
@@ -983,7 +988,7 @@ files, all the standard library syntax can be included.  Thus, if
 cat_db.sh contains the command 'echo /seqdb/swissprot.lseg', the
 command:
 
-  fasta36 query.aa '\!@cat_db.sh' 
+  fasta36 query.aa '\!@cat_db.sh'
 
 will cause cat_db.sh to produce a temporary file with the line
 "swissprot.lseg"; the temporary file will be interpreted as an
@@ -1065,7 +1070,7 @@ available.
 (mshowbest.c)
 Fix problems that prevented "-b align_number" properly limit output
 with "-z -1".  "-z -1" also broke multiple HSPs (since no threshold
-could be calculated); fixed.  
+could be calculated); fixed.
 (dropnfa.c)
 Fix some offset arithmetic that prevented FASTA alignments from
 extending to full length in do_walign().
@@ -1179,7 +1184,7 @@ versions (like comp_lib7) that keep the entire database in memory; the
 files must be kept open to allow ranlib() to get long descriptions
 (alternatively, a long description could be read initially).
 
-(comp_lib5.c, comp_lib7.c, comp_lib7e.c) 
+(comp_lib5.c, comp_lib7.c, comp_lib7e.c)
 Fix query offset coordinates for long queries that are broken up.
 Allow query library to have zero-length sequences without stopping
 (queries now stop when end-of-file is reached).
@@ -2006,7 +2011,7 @@ to be set properly for lalign for DNA.
 The functions that return multiple sub-alignments (HSPs) after the
 best alignment have been modified to ensure that alignments are
 returned sorted by score, by merging the list of alignments found to
-the left and right of the best alignment. 
+the left and right of the best alignment.
 
 >>April 28, 2009
 
@@ -2069,7 +2074,7 @@ more of the places where an int64_t might is required.
 >>March 17, 2009
 
 (list_db.c) Fix a bug in list_db that caused it to misread the maximum
-sequence length, and then be off by 4-bytes for all the offsets.  
+sequence length, and then be off by 4-bytes for all the offsets.
 Include list_db with map_db in the list of auxiliary programs.
 
 >>Mar. 8, 2009		fa35_04_06
@@ -2106,7 +2111,7 @@ multiple sub-alignments.
 >>Sep. 25, 2008
 
 Modify the syntax for the -E option to allow the repeat E()-value
-cutoff to be specified in either of two ways. 
+cutoff to be specified in either of two ways.
 
        -E "e_cut e_rep"
 
@@ -2119,7 +2124,7 @@ E()-value threshold for additional local domains, for example:
 Alternatively, if e_rep >= 1.0, it is taken as a divisor for the
 E()-value threshold, thus:
 
-	-E "1.0 10.0" 
+	-E "1.0 10.0"
 
 Sets the E()-value threshold for additional local alignments to
 1.0/10.0 = 0.1.
