@@ -286,7 +286,7 @@ get_astr_bool(struct asn_bstruct *asnp, int *val) {
 
   int v_len, v;
 
-  asnp->abp = chk_asn_buf(asnp,5);
+  asnp->abp = chk_asn_buf(asnp,16);
 
   v = 0;
   if (*asnp->abp++ != 1) { /* check for int */
@@ -311,7 +311,7 @@ get_astr_int(struct asn_bstruct *asnp, long *val) {
 
   v = 0;
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (*asnp->abp++ != ASN_IS_INT) { /* check for int */
     return asn_error("get_astr_int", "ASN_IS_INT", ASN_IS_INT, asnp, 4);
@@ -336,7 +336,7 @@ get_astr_real(struct asn_bstruct *asnp,
 	    double *val) {
 
   int v_len, v;
-  asnp->abp = chk_asn_buf(asnp,16);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (ABP != ASN_IS_REAL) {
     fprintf(stderr," real missing\n");
@@ -364,7 +364,7 @@ get_astr_enum(struct asn_bstruct *asnp, int *val) {
 
   int v_len, v;
 
-  asnp->abp = chk_asn_buf(asnp,5);
+  asnp->abp = chk_asn_buf(asnp,16);
 
   v = 0;
   if (*asnp->abp++ != ASN_IS_ENUM) { /* check for int */
@@ -385,7 +385,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
   int v_len;
   char tmp_str[64];
 
-  asnp->abp = chk_asn_buf(asnp,16);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (*asnp->abp++ != ASN_IS_REAL) { /* check for packed float */
     fprintf(stderr,"*** error [%s:%d] - float missing\n",__FILE__,__LINE__);
@@ -399,7 +399,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
       fprintf(stderr,"*** error [%s:%d] - real string too long: %d\n",__FILE__,__LINE__,v_len);
     }
 
-    asnp->abp = chk_asn_buf(asnp,v_len+8);
+    asnp->abp = chk_asn_buf(asnp,v_len+16);
 
     if (v_len == 2  && *asnp->abp == '\0' && *(asnp->abp+1)=='0') {
       ABP_INC2;
@@ -425,7 +425,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
 unsigned char *
 get_astr_packedint(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
   ABPP = get_astr_int(asnp, l_val_p);
   return asnp->abp;
 }
@@ -435,7 +435,7 @@ get_astr_str(struct asn_bstruct *asnp, char *text, int t_len) {
 
   int v_len, tv_len;
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (text != NULL) text[0] = '\0';
 
@@ -448,7 +448,7 @@ get_astr_str(struct asn_bstruct *asnp, char *text, int t_len) {
   if (v_len > 128) { /* need to read the length from the next bytes */
     tv_len = v_len &0x7f;
 
-    asnp->abp = chk_asn_buf(asnp,tv_len);
+    asnp->abp = chk_asn_buf(asnp,tv_len+32);
 
     for (v_len =0; tv_len; tv_len--) { v_len = (v_len << 8) + *asnp->abp++; }
   }
@@ -474,7 +474,7 @@ get_astr_octstr(struct asn_bstruct *asnp,
 
   int q_len, v_len;
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (ABP == ASN_IS_OCTSTR || ABP == ASN_IS_OCTSSTR) {
     ABPP++;
@@ -482,7 +482,7 @@ get_astr_octstr(struct asn_bstruct *asnp,
     if (ABP > 128) {
       v_len = *asnp->abp++ & 0x7f;
 
-      asnp->abp = chk_asn_buf(asnp,v_len);
+      asnp->abp = chk_asn_buf(asnp,v_len+32);
 
       q_len = 0;
       while (v_len-- > 0) {
@@ -545,7 +545,7 @@ get_astr_iseqd(struct asn_bstruct *asnp,
 	       unsigned char *query,
 	       int nq) {
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   /* check for the sequence type - NCBIstdaa or NCBIstdeaa */
 
@@ -571,7 +571,7 @@ get_astr_objid(struct asn_bstruct *asnp, int *type, int *val, char *text, int t_
 
   long local_ival;
 
-  asnp->abp = chk_asn_buf(asnp,16);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (text != NULL) text[0] = '\0';
   if (val != NULL) *val = 0;
@@ -658,7 +658,7 @@ get_astr_userfld_data(struct asn_bstruct *asnp) {
   long ival;
   int bool;
 
-  ABPP = chk_asn_buf(asnp, 16);
+  ABPP = chk_asn_buf(asnp, 32);
 
   switch (ABP) {
   case ASN_USERFLD_D_STR :
@@ -702,7 +702,7 @@ get_astr_userfld(struct asn_bstruct *asnp) {
   long num;
   int type, in_seq=0;
 
-  asnp->abp = chk_asn_buf(asnp, 16);
+  asnp->abp = chk_asn_buf(asnp, 32);
 
   if (ABP == ASN_SEQ) { in_seq = 1; ABP_INC2;}
 
@@ -727,7 +727,7 @@ get_astr_userfld(struct asn_bstruct *asnp) {
     asnp->abp = get_astr_userfld_data(asnp)+2;
   }
 
-  asnp->abp = chk_asn_buf(asnp,4);
+  asnp->abp = chk_asn_buf(asnp,8);
   if (in_seq) ABP_INC2;
   return asnp->abp;
 }
@@ -741,7 +741,7 @@ get_astr_user(struct asn_bstruct *asnp) {
   int type;
 
   char *func = "get_astr_user";
-  asnp->abp = chk_asn_buf(asnp,16);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   ABP_INC2;	/* skip SEQ */
   if (ABP == ASN_USER_CLASS) {
@@ -761,7 +761,7 @@ get_astr_user(struct asn_bstruct *asnp) {
   }
   else {
     asnp->abp += 4;	/* skip over, data, SEQ */
-    asnp->abp = chk_asn_buf(asnp,8);
+    asnp->abp = chk_asn_buf(asnp,32);
     asnp->abp = get_astr_userfld(asnp);
     asnp->abp += 4;
   }
@@ -779,7 +779,7 @@ get_astr_seqdescr(struct asn_bstruct *asnp,
   /* get string */
   /* pop nulls */
 
-  asnp->abp = chk_asn_buf(asnp,6);
+  asnp->abp = chk_asn_buf(asnp,16);
 
   if (ABP == ASN_SEQOF) {
     end_seq++;
@@ -805,7 +805,7 @@ get_astr_seqdescr(struct asn_bstruct *asnp,
     }
   }
 
-  asnp->abp = chk_asn_buf(asnp,4);
+  asnp->abp = chk_asn_buf(asnp,8);
 
   if (end_seq) ABP_INC2;
 
@@ -829,7 +829,7 @@ get_astr_seqinst(struct asn_bstruct *asnp,
   /* get 65/len+128/len/octet_string */
   /* pop nulls */
 
-  asnp->abp = chk_asn_buf(asnp,12);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (ABP == ASN_SEQ) {
     end_seq++;
@@ -899,7 +899,7 @@ get_astr_textid( struct asn_bstruct *asnp,
   long ver;
   char this_func[]="get_astr_textid";
 
-  chk_asn_buf(asnp,16);
+  chk_asn_buf(asnp,32);
 
   if (ABP != ASN_SEQ) {
     fprintf(stderr, "*** error [%s:%d] - %s - Expected ASN_SEQ: %0x %0x\n",__FILE__,__LINE__,this_func,ABP, asnp->abp[1]);
@@ -995,7 +995,7 @@ get_astr_bioseq(struct asn_bstruct *asnp,
 
   int end_seq = 0;
 
-  asnp->abp = chk_asn_buf(asnp,32);
+  asnp->abp = chk_asn_buf(asnp,64);
 
   if (ABP == ASN_SEQ) {
     end_seq++;
@@ -1064,7 +1064,7 @@ get_pssm_intermed_null(struct asn_bstruct *asnp,
   int i_rows, i_cols;
   int in_seq = 0;
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (ABP == ASN_SEQ) {
     ABP_INC2;
@@ -1086,7 +1086,7 @@ get_pssm_intermed_null(struct asn_bstruct *asnp,
     }
   }
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
   if (in_seq) {asnp->abp +=2;}	/* skip nulls */
   ABP_INC2;
   return asnp->abp;
@@ -1104,7 +1104,7 @@ get_pssm_freqs(struct asn_bstruct *asnp,
   long l_val;
   double f_val;
 
-  asnp->abp = chk_asn_buf(asnp,32);
+  asnp->abp = chk_asn_buf(asnp,64);
 
   if (ABP == ASN_SEQ) {
     ABP_INC2;
@@ -1128,7 +1128,7 @@ get_pssm_freqs(struct asn_bstruct *asnp,
     }
   }
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
   if (in_seq) {asnp->abp +=2;}	/* skip nulls */
   ABP_INC2;
   return asnp->abp;
@@ -1146,7 +1146,7 @@ get_pssm_intermed(struct asn_bstruct *asnp,
   double real_data;
   int i;
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (ABP == ASN_SEQ) {
     ABP_INC2;
@@ -1247,14 +1247,14 @@ get_pssm_rpsparams(struct asn_bstruct *asnp,
   int end_seq=0;
   long l_val;
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,32);
 
   if (ABP == ASN_SEQ) {
     ABP_INC2;
     end_seq++;
   }
 
-  asnp->abp = chk_asn_buf(asnp,16);
+  asnp->abp = chk_asn_buf(asnp,32);
   if (ABP == ASN_PSSM_RPSPARAMS_MATRIX) {
     ABP_INC2;
     asnp->abp = get_astr_str(asnp, matrix, MAX_SSTR) + 2;
@@ -1263,7 +1263,7 @@ get_pssm_rpsparams(struct asn_bstruct *asnp,
     strncpy(matrix,"BLOSUM62", MAX_SSTR);
   }
 
-  asnp->abp = chk_asn_buf(asnp,6);
+  asnp->abp = chk_asn_buf(asnp,16);
   if (ABP == ASN_PSSM_RPSPARAMS_GAPOPEN) {
     ABP_INC2;
     asnp->abp = get_astr_int(asnp, &l_val)+2;
@@ -1271,7 +1271,7 @@ get_pssm_rpsparams(struct asn_bstruct *asnp,
   }
   else {*gap_open_p = -11;}
 
-  asnp->abp = chk_asn_buf(asnp,6);
+  asnp->abp = chk_asn_buf(asnp,16);
   if (ABP == ASN_PSSM_RPSPARAMS_GAPEXT) {
     ABP_INC2;
     asnp->abp = get_astr_int(asnp, &l_val)+2;
@@ -1279,7 +1279,7 @@ get_pssm_rpsparams(struct asn_bstruct *asnp,
   }
   else {*gap_ext_p = -1;}
 
-  if (end_seq) { chk_asn_buf(asnp,end_seq * 2); }
+  if (end_seq) { chk_asn_buf(asnp,(end_seq * 2)+16); }
   while (end_seq-- > 0) { ABP_INC2; }
   return asnp->abp;
 }
@@ -1325,7 +1325,7 @@ get_pssm_final_scores(struct asn_bstruct *asnp, int ***iscores, int n_rows, int 
     }
   }
 
-  asnp->abp = chk_asn_buf(asnp,8);
+  asnp->abp = chk_asn_buf(asnp,16);
   if (in_seq) {asnp->abp +=2;}	/* skip nulls */
   ABP_INC2;
   return asnp->abp;
@@ -1341,7 +1341,7 @@ get_pssm_params(struct asn_bstruct *asnp,
   int end_seq=0;
   long l_val;
 
-  asnp->abp = chk_asn_buf(asnp,6);
+  asnp->abp = chk_asn_buf(asnp,16);
 
   if (ABP == ASN_SEQ) {
     ABP_INC2;
@@ -1431,7 +1431,7 @@ get_pssm2_intermed(struct asn_bstruct *asnp,
   *wfreqs = my_wfreqs;
   *freqs = my_freqs;
 
-  chk_asn_buf(asnp, 8);
+  chk_asn_buf(asnp, 16);
 
   return get_pssm_freqs(asnp, my_freqs, n_rows, n_cols, 0);
 }
