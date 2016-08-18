@@ -541,7 +541,7 @@ sub get_pfam_annots {
       if ( $right_dom_len > $min_vdom) {
 	my %new_dom = (seq_start=> $curr_dom->{seq_end}+1,
 		       seq_end=> $curr_dom->{seq_end}+$right_dom_len,
-		       info=>'@'.$pfamA,
+		       info=>'@'.$curr_dom->{info},
 		       model_length => $curr_dom->{model_length},
 		       pfamA_acc=> $pfamA,
 		      );
