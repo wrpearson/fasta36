@@ -225,7 +225,7 @@ exit(0);
 sub show_annots {
   my ($query_length, $get_annot_sub) = @_;
 
-  my ($annot_line, $seq_length) = split(/\s+/,$query_length);
+  my ($annot_line, $seq_length) = split(/\t/,$query_length);
 
   my %annot_data = (seq_info=>$annot_line);
 
@@ -252,6 +252,11 @@ sub show_annots {
     $use_acc = 0;
     $sdb = 'tr';
     $id = $1;
+  }
+  elsif ($annot_line !~ m/\|/) {  # new NCBI swissprot format
+    $use_acc =1;
+    $sdb = 'sp';
+    ($acc) = split(/\s+/,$annot_line);
   } else {
     $use_acc = 1;
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
