@@ -35,15 +35,15 @@ use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
 use XML::Twig;
+use JSON qw(decode_json);
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb';
-my $gff_post = "gff2";
+my $up_base = 'http://www.ebi.ac.uk/uniprot/api/features';
 
 my %domains = ();
 my $domain_cnt = 0;
 
-my ($lav, $neg_doms, $no_doms, $no_feats, $no_over, $shelp, $help) = (0,0,0,0,0,0,0);
+my ($lav, $neg_doms, $no_doms, $no_feats, $no_over, $shelp, $help, $no_vars) = (0,0,0,0,0,0,0,0);
 my ($auto_reg, $vdoms, $no_clans, $pf_acc_flag, $acc_comment) =  (0, 0, 0, 0, 0);
 
 my ($min_nodom, $min_vdom) = (10,10);
@@ -52,17 +52,12 @@ GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
     "no-over" => \$no_over,
-    "no_doms" => \$no_doms,
-    "no-doms" => \$no_doms,
-    "nodoms" => \$no_doms,
+    "no_doms|no-doms|nodoms" => \$no_doms,
     "neg" => \$neg_doms,
-    "neg_doms" => \$neg_doms,
-    "neg-doms" => \$neg_doms,
-    "negdoms" => \$neg_doms,
+    "neg_doms|neg-doms|negdoms" => \$neg_doms,
     "min_nodom=i" => \$min_nodom,
-    "no_feats" => \$no_feats,
-    "no-feats" => \$no_feats,
-    "nofeats" => \$no_feats,
+    "no_feats|no-feats|nofeats" => \$no_feats,
+    "no-vars|no_vars" => \$no_vars,
     "vdoms" => \$vdoms,
     "v_doms" => \$vdoms,
     "pfacc" => \$pf_acc_flag,
@@ -76,10 +71,15 @@ pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
 pod2usage(1) unless (@ARGV || -f STDIN || -p STDIN);
 
-#my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
+my @feat_keys = qw( ACT_SITE MOD_RES BINDING METAL SITE );
+my @feat_vals = ( '=','*','#','^','@');
+my @feat_names = ('Active site', 'Modified', 'Binding', 'Metal binding', 'Site');
 
-my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
-		   polypeptide_region mutated_variant_site natural_variant_site);
+unless ($no_vars) {
+  push @feat_keys, qw(MUTAGEN VARIANT);
+  push @feat_vals, ('V','V',);
+  push @feat_names, ("","",);
+}
 
 my %feats_text = ();
 @feats_text{@feat_keys} = ('Active site', '', 'Substrate binding', 'Metal binding', 'Site', '','');
@@ -87,13 +87,13 @@ my %feats_text = ();
 my %feats_label;
 @feats_label{@feat_keys} = ('Active site', 'Modified', 'Substrate binding', 'Metal binding', 'Site', '','');
 
-my @feat_vals = ( '=','*','#','^','@','V','V');
+# my @feat_vals = ( '=','*','#','^','@','V','V');
 
 
-my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
+my @dom_keys = qw( DOMAIN REPEAT );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
 
-my @ssr_keys = qw(beta_strand alpha_helix);
+my @ssr_keys = qw(STRAND HELIX);
 my @ssr_vals = ( [ '[', ']']);
 
 my %annot_types = ();
@@ -146,10 +146,10 @@ unless ($query && $query =~ m/[\|:]/) {
     while (my $a_line = <>) {
 	$a_line =~ s/^>//;
 	chomp $a_line;
-	push @annots, upfeats_pfam_www($a_line, \&up_gff2_annots, \&get_pfam_www);
+	push @annots, upfeats_pfam_www($a_line, \&up_json_annots, \&get_pfam_www);
     }
 } else {
-  push @annots, upfeats_pfam_www("$query\t$seq_len", \&up_gff2_annots, \&get_pfam_www);
+  push @annots, upfeats_pfam_www("$query\t$seq_len", \&up_json_annots, \&get_pfam_www);
 }
 
 for my $seq_annot (@annots) {
@@ -179,17 +179,21 @@ sub upfeats_pfam_www {
 
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
-  } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+  } elsif ($annot_line =~ m/^(SP|TR):(\w+)\s(\w+)/) {
     $sdb = lc($1);
     $id = $2;
-    $use_acc = 0;
+    $acc = $3;
+    $use_acc = 1;
 #     $acc = $2;
   } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
     $id = $2;
 #    $acc = $2;
-  } else {
+  } elsif ($annot_line =~ m/\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  }
+  else {
+    ($acc) = split(/\s+/,$annot_line);
   }
 
   $acc =~ s/\.\d+// if ($acc);
@@ -197,9 +201,7 @@ sub upfeats_pfam_www {
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc/$gff_post");
-  } elsif ($id && ($id =~ m/^\w+$/)) {
-    $lwp_features = get("$up_base/$id/$gff_post");
+    $lwp_features = get("$up_base/$acc");
   }
 
   my @annots = ();
@@ -223,75 +225,37 @@ sub upfeats_pfam_www {
 }
 
 # parses www.uniprot.org gff feature table
-sub up_gff2_annots {
+sub up_json_annots {
   my ($annot_types, $annot_data, $seq_len) = @_;
 
+  my $json_ref = decode_json($annot_data);
+
   my ($acc, $pos, $end, $label, $value, $comment, $len);
-  my ($seq_acc, $seq_start, $seq_end, $tmp);
 
   $seq_len = 0;
 
   my @sites = ();  # sites with one position
 
-  my @gff_lines = split(/\n/m,$annot_data);
+  my ($seq_str, $seq_acc, $seq_id)  = @{$json_ref}{qw(sequence accession entryName)};
 
-  my $gff_line = shift @gff_lines; # skip ##gff
-  shift @gff_lines;		   # ##Type Protein
-  shift @gff_lines;		   # ''
-  $gff_line = shift @gff_lines;
-  ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
-  $seq_len = $seq_end if ($seq_end > $seq_len);
+  for my $feat ( @{$json_ref->{features}} ) {
+    next unless ($annot_types->{$feat->{type}});
 
-  while ($gff_line = shift(@gff_lines)) {
-    next if ($gff_line =~ m/^#/);
-    chomp($gff_line);
+    my ($label, $pos, $end, $value)  = @{$feat}{qw(type begin end description)};
 
-    my @gff_line_arr = split(/\t/,$gff_line);
-    ($acc, $label, $pos, $end, $comment) = @gff_line_arr[(0,2,3,4,-1)];
-
-    # combine different binding sites
-    if ($annot_types->{$label}) {
-
-      my @comments = ();
-      if ($comment =~ m/;/) {
-	@comments = split(/\s*;\s*/,$comment);
-      } else {
-	$comments[0] = $comment;
-      }
-
-      # select comments with 'Note='
-      @comments = grep {/Note /} @comments;
-      for my $comment ( @comments) {
-	$comment =~ s/^Note\s+//;
-	$comment =~ s/"//g;
-      }
-
-      # select first comment
-      $value = $comments[0];
-
-      if ($label =~ m/mutated_variant_site/ || $label =~ m/natural_variant_site/) {
-	next unless $value;
-	my ($mutant) = ($value =~ m/->\s(\w)/);
-	next unless $mutant;
-	my $info = $comments[2];
-	$info = '' unless $info;
-	if ($label =~ m/mutated_variant_site/) {
-	  $info = "Mutant: $comments[1]";
+    if ($label =~ m/VARIANT/ || $label =~ m/MUTAGEN/) {
+      push @sites, [$pos, $annot_types->{$label}, $feat->{alternativeSequence}, $value];
+    }
+    else {
+      next unless ($pos == $end);
+      if ($feats_text{$label}) {
+	my $info = $feats_text{$label};
+	if ($value) {
+	  $info .= ": $value";
 	}
-	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
+	push @sites, [$pos, $annot_types->{$label}, "-", $info];
       } else {
-	$value = '' unless $value;
-	#	print join("\t",($pos, $annot_types->{$label})),"\n";
-	#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
-	if ($feats_text{$label}) {
-	  my $info = $feats_text{$label};
-	  if ($value) {
-	    $info .= ": $value";
-	  }
-	  push @sites, [$pos, $annot_types->{$label}, "-", $info];
-	} else {
-	  push @sites, [$pos, $annot_types->{$label}, "-", $value];
-	}
+	push @sites, [$pos, $annot_types->{$label}, "-", $value];
       }
     }
   }

@@ -243,6 +243,10 @@ sub show_annots {
     ($sdb, $id) = split(/:/,$annot_line);
     $use_acc = 0;
   }
+  else {
+    $use_acc = 1;
+    ($acc) = split(/\s+/,$annot_line);
+  }
 
   # remove version number
   unless ($use_acc) {

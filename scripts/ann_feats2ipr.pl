@@ -228,20 +228,20 @@ sub show_annots {
   }
   elsif ($annot_line =~ m/SP:(\w+)/) {
     $use_acc = 0;
-    $sdb = 'sp';;
+    $sdb = 'sp';
     $id = $1;
   } elsif ($annot_line =~ m/TR:(\w+)/) {
     $use_acc = 0;
     $sdb = 'tr';
     $id = $1;
   }
-  elsif ($annot_line !~ m/\|/) {  # new NCBI swissprot format
+  elsif ($annot_line =~ m/\|/) {  # new NCBI swissprot format
+    $use_acc = 1;
+    ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  } else {
     $use_acc =1;
     $sdb = 'sp';
     ($acc) = split(/\s+/,$annot_line);
-  } else {
-    $use_acc = 1;
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
 
   # remove version number

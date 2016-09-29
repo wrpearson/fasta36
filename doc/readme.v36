@@ -16,6 +16,11 @@ psisearch2_msa.py programs.  These programs perform iterative PSIBLAST
 (or SSEARCH) searches, but with an option (--query_seed) that
 dramatically reduces false-positives.
 
+Modified most of the scripts/ann_*.pl files to work with new NCBI
+Swissprot accession format.  Modified scripts/ann_feats_up_www2.pl and
+scripts/ann_upfeats_pfam_e.pl to work with JSON format Uniprot
+descriptions.
+
 >>July 28, 2016
 [src/pssm_asn_subs.c]
 Fix another problem with binary ASN.1 file processing where the

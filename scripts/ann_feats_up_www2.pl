@@ -17,6 +17,9 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
+## modified 29-Sept-2016 to use Uniprot JSON URL:
+## http://www.ebi.ac.uk/uniprot/api/features/p12345
+
 # ann_feats_up_www2.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # SP:GSTM1_HUMAN P09488 218
@@ -34,10 +37,11 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
+use JSON qw(decode_json);
+
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb';
-my $gff_post = "gff2";
+my $up_base = 'http://www.ebi.ac.uk/uniprot/api/features';
 
 my %domains = ();
 my $domain_cnt = 0;
@@ -77,40 +81,31 @@ pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
 pod2usage(1) unless @ARGV || $data_file || -p STDIN || -f STDIN;
 
-#my @feat_keys = ('Acive site','Modified residue', 'Binding', 'Metal', 'Site');
-
-# old version
-my @feat_keys = qw( active_site_residue posttranslation_modification binding_site metal_binding
-		   polypeptide_region site);
-my @feat_vals = ( '=','*','#','^','#', '@');
-my @feat_names = ('Active site', 'Modified', 'Substrate binding', 'Site', 'Metal binding');
+my @feat_keys = qw( ACT_SITE MOD_RES BINDING METAL SITE );
+my @feat_vals = ( '=','*','#','^','@');
+my @feat_names = ('Active site', 'Modified', 'Binding', 'Metal binding', 'Site');
 
 unless ($no_vars) {
-  push @feat_keys, qw(mutated_variant_site natural_variant_site variant);
-  push @feat_vals, ('V','V','V');
-  push @feat_names, ("", "", "");
+  push @feat_keys, qw(MUTAGEN VARIANT);
+  push @feat_vals, ('V','V',);
+  push @feat_names, ("","",);
 }
-
-# Jan, 2016 temporary version
-#my @feat_keys = qw(catalytic_residue posttranslation_modification binding_motif metal_contact
-#		   polypeptide_region site mutated_variant_site natural_variant_site);
 
 my %feats_text = ();
 @feats_text{@feat_keys} = @feat_names;
-$feats_text{'posttranslational_modification'} = "";
 
 my %feats_label;
 @feats_label{@feat_keys} = @feat_names;
 
-my @dom_keys = qw( polypeptide_domain polypeptide_repeat );
+my @dom_keys = qw( DOMAIN REPEAT );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
 
-my @ssr_keys = qw(beta_strand alpha_helix);
+my @ssr_keys = qw(STRAND HELIX);
 my @ssr_vals = ( [ '[', ']']);
 
 my %annot_types = ();
 
-my $get_annot_sub = \&gff2_annots;
+my $get_annot_sub = \&json_annots;
 if ($lav) {
   $no_feats = 1;
 }
@@ -201,8 +196,11 @@ sub lwp_annots {
     $sdb = lc($1);
     $id = $2;
 #    $acc = $2;
-  } else {
+  } elsif ($annot_line =~ m/\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  }
+  else {
+    ($acc) = ($annot_line =~ m/^(\S+)/);
   }
 
   $acc =~ s/\.\d+// if ($acc);
@@ -211,92 +209,56 @@ sub lwp_annots {
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc/$gff_post");
-  } elsif ($id && ($id =~ m/^\w+$/)) {
-    $lwp_features = get("$up_base/$id/$gff_post");
+    $lwp_features = get("$up_base/$acc");
   }
+#  elsif ($id && ($id =~ m/^\w+$/)) {
+#    $lwp_features = get("$up_base/$id/$gff_post");
+#  }
 
   if ($lwp_features && ($lwp_features !~ /ERROR/)) {
-    $annot_data{list} = $get_annot_sub->(\%annot_types, $lwp_features, $seq_len);
+    my $annot_json = decode_json($lwp_features);
+    $annot_data{list} = $get_annot_sub->(\%annot_types, $annot_json, $seq_len);
   }
 
   return \%annot_data;
 }
 
-# parses www.uniprot.org gff feature table
-sub gff2_annots {
-  my ($annot_types, $annot_data, $seq_len) = @_;
+####
+# parses www.ebi.ac.uk/uniprot/api json
+#
+sub json_annots {
+  my ($annot_types, $json_ref, $seq_len) = @_;
 
   my ($acc, $pos, $end, $label, $value, $comment, $len);
-  my ($seq_acc, $seq_start, $seq_end, $tmp);
 
   $seq_len = 0;
 
   my @feats2 = (); # features with start/stop, for checking overlap, adding negative
   my @sites = ();  # sites with one position
 
-  my @gff_lines = split(/\n/m,$annot_data);
+  my ($seq_str, $seq_acc, $seq_id)  = @{$json_ref}{qw(sequence accession entryName)};
+  $seq_len = length($seq);
 
-  my $gff_line = shift @gff_lines; # skip ##gff
-  shift @gff_lines;		   # ##Type Protein
-  shift @gff_lines;		   # ''
-  $gff_line = shift @gff_lines;
-  ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
-  $seq_len = $seq_end if ($seq_end > $seq_len);
+  for my $feat ( @{$json_ref->{features}} ) {
+    if ($annot_types->{$feat->{type}}) {
 
-  while ($gff_line = shift(@gff_lines)) {
-    next if ($gff_line =~ m/^#/);
-    chomp($gff_line);
+      my ($label, $pos, $end, $value)  = @{$feat}{qw(type begin end description)};
 
-    my @gff_line_arr = split(/\t/,$gff_line);
-    ($acc, $label, $pos, $end, $comment) = @gff_line_arr[(0,2,3,4,-1)];
+      $pos =~ s/[<>]//g;
+      $end =~ s/[<>]//g;
 
-    # combine different binding sites
-    if ($annot_types->{$label}) {
-
-      my @comments = ();
-      if ($comment =~ m/;/) {
-	@comments = split(/\s*;\s*/,$comment);
-      } else {
-	$comments[0] = $comment;
-      }
-
-      # select comments with 'Note='
-      @comments = grep {/Note /i} @comments;
-      for my $comment ( @comments) {
-	$comment =~ s/^Note\s+//i;
-	$comment =~ s/"//g;
-      }
-
-      # select first comment
-      $value = $comments[0];
-
-      if ($label =~ m/polypeptide_domain/ || $label =~ m/polypeptide_repeat/) {
+      if ($label =~ m/DOMAIN/ || $label =~ m/REPEAT/) {
 	$value = domain_name($label,$value);
 	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Helix/) {
+      } elsif ($label =~ m/HELIX/) {
 	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Beta/) {
+      } elsif ($label =~ m/BETA/) {
 	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/variant/ ) {
-	next unless $value;
-	my ($mutant) = ($value =~ m/->\s(\w)/);
-	next unless $mutant;
-	my $info = $comments[1];
-	$info = '' unless $info;
-	if ($label =~ m/mutated_variant_site/) {
-	  $info = "Mutant: $info";
-	}
-	push @sites, [$pos, $annot_types->{$label}, $mutant, $info];
+      } elsif ($label =~ m/VARIANT/ || $label =~ m/MUTAGEN/) {
+	push @sites, [$pos, $annot_types->{$label}, $feat->{alternativeSequence}, $value];
       } 
-#      elsif ($label =~ m/polypeptide_region/ && $pos != $end) {
-#	  next;
-#      }
       else {
 	next unless ($pos == $end);
-	$value = '' unless $value;
-	#	print join("\t",($pos, $annot_types->{$label})),"\n";
-	#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
 	if ($feats_text{$label}) {
 	  my $info = $feats_text{$label};
 	  if ($value) {

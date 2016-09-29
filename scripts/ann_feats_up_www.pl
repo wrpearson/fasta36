@@ -161,8 +161,11 @@ sub lwp_annots {
     $id = $2;
     $acc = $3;
   }
+  elsif ($annot_line =~ m/\|/) {
+    ($sdb, $acc, $id) = split(/[\|\s]/,$annot_line);
+  }
   else {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
+    ($acc) = ($annot_line =~ m/^(\S+)/);
   }
 
   $annot_data{list} = [];
@@ -172,7 +175,7 @@ sub lwp_annots {
     $lwp_features = get("$up_base/$acc.$gff_post");
   }
 
-  if ($lwp_features && ($lwp_features !~ /ERROR/)) {
+  unless ($lwp_features) {
     $annot_data{list} = $get_annot_sub->(\%annot_types, $lwp_features, $seq_len);
   }
   else {
