@@ -7,6 +7,15 @@ This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
 
+>>Sept 29, 2016
+[psisearch2/]
+
+Added a new sub-directory, psisearch2/, which includes scripts and
+documentation for the new iterative psisearch2_msa.pl and
+psisearch2_msa.py programs.  These programs perform iterative PSIBLAST
+(or SSEARCH) searches, but with an option (--query_seed) that
+dramatically reduces false-positives.
+
 >>July 28, 2016
 [src/pssm_asn_subs.c]
 Fix another problem with binary ASN.1 file processing where the
