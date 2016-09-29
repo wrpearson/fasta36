@@ -12,7 +12,7 @@ includes programs for aligning translated DNA sequences against
 proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
 `tfasty` are similar to `tblastn`).
 
-####April, 2016
+####September, 2016
 
 The current FASTA version is fasta-36.3.8d.
 
@@ -45,7 +45,7 @@ dir | description
 `doc/` | documentation files
 `make/` | make files
 `misc/` | perl scripts to reformat -m 9 output, convert -R search.res files for 'R', and embed domains in shuffled sequences
-`psisearch2` | perl/python scripts implementing the new `psisearch2_msa` iterative PSSM search
+`psisearch2/` | perl/python scripts implementing the new `psisearch2_msa` iterative PSSM search
 `scripts/` |  perl scripts for -V (annotate alignments) and -E (expand library) options
 `seq/` | test sequences
 `src/` | source code
