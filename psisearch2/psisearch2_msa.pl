@@ -116,7 +116,7 @@ pod2usage(exitstatus => 0, verbose => 2) if $help;
 pod2usage(1) unless $query_file && -r $query_file;  # need a query
 pod2usage(1) unless $db_file ;        # need a database
 
-my @del_file_ext = qw(msa asntxt psibl_out hit_db asntxt asnbin);
+my @del_file_ext = qw(msa psibl_out hit_db asntxt asnbin);
 
 if ($srch_pgm =~ m/psiblast/) {
   pop(@del_file_ext);
