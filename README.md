@@ -14,7 +14,12 @@ proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
 
 ####September, 2016
 
-The current FASTA version is fasta-36.3.8d.
+The current FASTA version is fasta-36.3.8e.
+
+The fasta-36.3.6e version includes a new directory, `psisearch2`, with
+scripts to run iterative PSSM (PSI-BLAST or SSEARCH36) searches using
+an improved strategy for reducing PSSM contamination due to alignment
+over-extension.
 
 As of November, 2014, the FASTA program code is available under the
 Apache 2.0 open source license.

@@ -6,8 +6,7 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
-
->>Sept 29, 2016
+>>Sept 30, 2016 [released as fasta-36.3.8e]
 [psisearch2/]
 
 Added a new sub-directory, psisearch2/, which includes scripts and
