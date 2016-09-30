@@ -44,13 +44,17 @@ my %domains = ();
 my $domain_cnt = 0;
 
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_over, $shelp, $help, $no_vars) = (0,0,0,0,0,0,0,0);
-my ($auto_reg, $vdoms, $no_clans, $pf_acc_flag, $acc_comment) =  (0, 0, 0, 0, 0);
+my ($auto_reg, $vdoms, $no_clans, $pf_acc_flag, $acc_comment, $bound_comment) =  (0, 0, 0, 0, 0, 0);
+
+my $color_sep_str = " :";
+$color_sep_str = '~';
 
 my ($min_nodom, $min_vdom) = (10,10);
 
 GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
+    "bound_comment" => \$bound_comment,
     "no-over" => \$no_over,
     "no_doms|no-doms|nodoms" => \$no_doms,
     "neg" => \$neg_doms,
@@ -157,10 +161,14 @@ for my $seq_annot (@annots) {
   for my $annot (@{$seq_annot->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
       my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
+      $annot->[-1] = $a_name;
       if ($acc_comment) {
 	$annot->[-1] .= "{$domain_list[$a_num]}";
       }
-      $annot->[-1] = "$a_name :$a_num";
+      if ($bound_comment) {
+	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
+      }
+      $annot->[-1] .= $color_sep_str.$a_num;
     }
     print join("\t",@$annot),"\n";
   }
