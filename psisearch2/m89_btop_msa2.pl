@@ -270,6 +270,7 @@ while (my $line = <>) {
   if ($domain_bound && $hit_data{annot}) {
     my $hit_doms_ar = parse_hit_domains($hit_data{annot});
     # scan from left to right to make domain boundaries based on $qvalue
+    # the following seems reversed, but it is putting upper (and lower) limits on boundaries
     my ($left_bound, $right_bound) = @hit_data{qw(s_end s_start)};
     foreach my $dom_r ( @$hit_doms_ar ) {
       next unless $dom_r->{target} eq 'subj';
@@ -307,7 +308,7 @@ while (my $line = <>) {
 	push @multi_names, $hit_data{s_seqid_u};
 	$multi_align{$hit_data{s_seqid_u}} = $alignment;
       }
-      # do not delete entry, because it needs to be preserved 
+      # do not delete entry, because it needs to be preserved
     }
   }
   elsif ($bound_file_in) {
@@ -402,7 +403,7 @@ if ($masked_lib_out) {
 	    $masked_seq[$i] = $multi_align{$query_acc}[$i];
 	  }
 	}
-      } 
+      }
       else {
 	my $li = 0;
 	for ( ; $li < $n_res; $li++) {
@@ -429,7 +430,7 @@ if ($masked_lib_out) {
 	    $masked_seq[$i] = $random_res[int(rand($n_rand_res))];
 	  }
 	}
-      } 
+      }
       else {
 	for (my $i=0; $i < $n_res; $i++) {
 	  last if ($masked_seq[$i] ne '-') ;
@@ -450,7 +451,7 @@ if ($masked_lib_out) {
       $masked_seq =~ s/\-//g;
     }
 
-    $masked_seq =~ s/(.{60})/$1\n/g; 
+    $masked_seq =~ s/(.{60})/$1\n/g;
     print $masked_fd "$masked_seq\n";
   }
   close($masked_fd);
@@ -758,11 +759,11 @@ sub skip_to_m8results {
   my @last_fields = ();
 
   while (my $line = <>) {
-    if ($line =~ m/^# Query:/) {  # Query: 
+    if ($line =~ m/^# Query:/) {  # Query:
       ($query_desc) = ($line =~ m/^# Query:\s+(\S+)/);
       $query_desc = 'unnamed' unless ($query_desc);
 #      ($q_len) = ($line =~ m/(\d+) aa$/);
-      $line = <>;	# Database: 
+      $line = <>;	# Database:
       $line = <>;	# Fields:
 
       unless ($line =~ m/# Fields:/) {
@@ -784,7 +785,7 @@ sub skip_to_m8results {
 	push @last_fields, qw(BTOP);
       }
 
-      $line = <>; 	# NNN fits found or 
+      $line = <>; 	# NNN fits found or
       if ($line =~ m/^#\s+\d+\s+hits found/) {
 	$best_yes = 1;
       }

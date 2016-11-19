@@ -101,7 +101,7 @@ my @dom_keys = qw( DOMAIN REPEAT );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
 
 my @ssr_keys = qw(STRAND HELIX);
-my @ssr_vals = ( [ '[', ']']);
+my @ssr_vals = ( [ '[', ']'], [ '[', ']']);
 
 my %annot_types = ();
 
@@ -237,7 +237,7 @@ sub json_annots {
   my @sites = ();  # sites with one position
 
   my ($seq_str, $seq_acc, $seq_id)  = @{$json_ref}{qw(sequence accession entryName)};
-  $seq_len = length($seq);
+  $seq_len = length($seq_str);
 
   for my $feat ( @{$json_ref->{features}} ) {
     if ($annot_types->{$feat->{type}}) {
@@ -251,9 +251,9 @@ sub json_annots {
 	$value = domain_name($label,$value);
 	push @feats2, [$pos, "-", $end, $value];
       } elsif ($label =~ m/HELIX/) {
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/BETA/) {
-	push @feats2, [$pos, "-", $end, $value];
+	push @feats2, [$pos, "-", $end, $label];
+      } elsif ($label =~ m/STRAND/) {
+	push @feats2, [$pos, "-", $end, $label];
       } elsif ($label =~ m/VARIANT/ || $label =~ m/MUTAGEN/) {
 	push @sites, [$pos, $annot_types->{$label}, $feat->{alternativeSequence}, $value];
       } 
