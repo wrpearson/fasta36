@@ -157,6 +157,9 @@ build_ares_code(unsigned char *aa0, int n0,
 	}
 
 	if (align_code_dyn != NULL) {
+	  if (seq_code && cur_ares_p->aln_code == seq_code) {
+	    free(seq_code);	/* free it since it is replaced below */
+	  }
 	  seq_code_len = strlen(align_code_dyn->string);
 	  cur_ares_p->aln_code = (char *)calloc(seq_code_len+2,sizeof(char));
 	  cur_ares_p->aln_code_n = seq_code_len+2;
@@ -240,5 +243,6 @@ build_ares_code(unsigned char *aa0, int n0,
     /* this should be all the information we need on the alignment */
   } /* end for (cur_ares_p;) */
   free_dyn_string(annot_str_dyn);
+  free_dyn_string(align_code_dyn);
   return my_ares_p;
 }

@@ -273,7 +273,7 @@ while (my $line = <>) {
     my ($left_bound, $right_bound) = @hit_data{qw(s_end s_start)};
     foreach my $dom_r ( @$hit_doms_ar ) {
       next unless $dom_r->{target} eq 'subj';
-      next if $dom_r->{virtual};
+      # next if $dom_r->{virtual};	# should be controlled by annotation process
       next unless $dom_r->{qval} > $qvalue;
 
       if ($dom_r->{s_start} < $left_bound) {
@@ -346,7 +346,7 @@ printf "BTOP%s multiple sequence alignment\n\n\n",$m_format;
 my $i_pos = 0;
 for (my $j = 0; $j < $query_len/60; $j++) {
   my $i_end = $i_pos + 59;
-  if ($i_end > $query_len) {$i_end = $query_len-1;}
+  if ($i_end >= $query_len) {$i_end = $query_len-1;}
   for my $acc (@multi_names) {
     next unless $acc;
     printf("%-".$max_sseqid_len."s %s\n",$acc,join("",@{$multi_align{$acc}}[$i_pos .. $i_end]));

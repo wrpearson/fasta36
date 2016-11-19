@@ -273,6 +273,7 @@ sub show_annots {
 
   $use_acc = 1;
   $get_annots_sql = $get_pfam_acc;
+
   my $get_annots_sql_u = $get_upfam_acc;
 
   if ($annot_line =~ m/^pf\d+\|/) {
@@ -302,6 +303,10 @@ sub show_annots {
     $use_acc = 1;
     ($acc) = split(/\s+/,$annot_line);
   }
+  # deal with no-database SwissProt/NR
+  else {
+    ($acc)=($annot_line =~ /^(\S+)/);
+  }
 
   # remove version number
   my $numRows = 0;
@@ -322,7 +327,7 @@ sub show_annots {
       $get_annots_sql->execute($acc);
       unless ($get_annots_sql->rows()) {
 	$get_annots_sql = $get_annots_sql_u;
-	$get_annots_sql->execute($id);
+	$get_annots_sql->execute($acc);
       }
     }
   }
