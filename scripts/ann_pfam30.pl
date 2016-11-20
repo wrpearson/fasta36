@@ -152,7 +152,7 @@ EOSQL
 my $get_upfam_refacc = $dbh->prepare(<<EOSQL);
 SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM uniprot
-JOIN uniprot_reg_full using(pfamseq_acc)
+JOIN uniprot_reg_full using(uniprot_acc)
 JOIN pfamA USING (pfamA_acc)
 JOIN seqdb_demo2.annot as sa1 on(sa1.acc=uniprot_acc and sa1.db='sp')
 JOIN seqdb_demo2.annot as sa2 using(prot_id)
