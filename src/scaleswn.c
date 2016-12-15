@@ -142,6 +142,12 @@ int proc_hist_a(struct stat_str *sptr, int nstats, struct score_count_s s_info,
 		struct pstruct *ppst, struct hist_str *histp, int do_trim,
 		struct pstat_str *);
 
+#ifdef NORMAL_DIST
+int proc_hist_anorm(struct stat_str *sptr, int nstats, struct score_count_s s_info,
+		struct pstruct *ppst, struct hist_str *histp, int do_trim,
+		struct pstat_str *);
+#endif
+
 #define REG2_STATS 5	/* length regression on mean + variance */
 double find_zr2(int score, double escore, int len, double comp, struct pstat_str *);
 int proc_hist_ri(struct stat_str *sptr, int nstats, struct score_count_s s_info,
@@ -166,7 +172,11 @@ double (*find_z_arr[7])(int score, double escore, int len, double comp, struct p
   find_zn, 	/* AVE_STATS zsflag ==0 */
   find_zr,	/* REG_STATS zsflag ==1 */
   find_ze,	/* MLE_STATS, zsflag==2 */
+#ifndef NORMAL_DIST
   find_za,	/* AG_STATS, zsflag==3 */
+#else
+  find_zn, 	/* AVE_STATS zsflag ==0 */
+#endif  
   find_zr,	/* REGI_STATS, zsflag==4 */
   find_zr2,	/* REG2_STATS, zsflag==5 */
   find_ze2,	/* MLE2_STATS, zsflag==6 */
@@ -322,7 +332,12 @@ process_hist(struct stat_str *sptr, int nstats,
     ps_s->zsflag=r_zsflag = proc_hist_r(sptr, nstats, m_msp->s_info, ppst, histp, do_trim,  ps_s);
   }
   else if (zsflag==AG_STATS) {	/* -z 3 */
+#ifndef NORMAL_DIST
     ps_s->zsflag=r_zsflag = proc_hist_a(sptr, nstats, m_msp->s_info, ppst, histp, do_trim,  ps_s);
+#else
+    ps_s->zsflag=r_zsflag = proc_hist_anorm(sptr, nstats, m_msp->s_info, ppst, histp, do_trim,  ps_s);
+#endif
+
   }
   else if (zsflag==REGI_STATS) {	/* -z 4, iterated outlier removal */
     ps_s->zsflag=r_zsflag = proc_hist_ri(sptr,nstats, m_msp->s_info, ppst, histp, do_trim,  ps_s);
@@ -758,6 +773,51 @@ look_p(struct alt_p parm[], int gap, int ext,
   }
   return 0;
 }
+
+#ifdef NORMAL_DIST
+int
+proc_hist_anorm(struct stat_str *sptr, int nstats, struct score_count_s s_info,
+		struct pstruct *ppst, struct hist_str *histp,
+		int do_trim, struct pstat_str *pu)
+{
+  char s_string[128];
+  char *f_string;
+  int med_ix, q1_ix, q3_ix;
+  double iqr_sd;
+
+  f_string = histp->stat_info;
+
+  if (ppst->zsflag < 10) s_string[0]='\0';
+  else if (ppst->zs_win > 0) {
+    sprintf(s_string,"(shuffled [%d], win: %d)",nstats,ppst->zs_win);
+  }
+  else {
+    sprintf(s_string,"(shuffled [%d])",nstats);
+  }
+
+  /* find median, 1st/3rd quartile */
+  
+  med_ix = nstats/2;
+  q3_ix = med_ix - med_ix/2;
+  q1_ix = med_ix + med_ix/2;
+
+  st_sort(sptr,nstats);
+
+  pu->r_u.rg.mu = sptr[med_ix].score;
+
+  iqr_sd = (sptr[q1_ix].score - sptr[q3_ix].score)/1.35;
+
+  pu->r_u.rg.mean_var_sqrt = iqr_sd;
+  pu->r_u.rg.mean_var = iqr_sd * iqr_sd;
+  pu->r_u.rg.n_trimmed = 0;
+
+  sprintf(f_string,
+	  "%s Unscaled normal (median, IQR) statistics: mu= %6.4f  var=%6.4f Ztrim: %d",
+	  s_string, pu->r_u.rg.mu,pu->r_u.rg.mean_var, pu->r_u.rg.n_trimmed
+	  );
+  return AG_STATS;
+}
+#endif
 
 /* uncensored and censored maximum likelihood estimates developed
    by Aaron Mackey based on a preprint from Sean Eddy */
@@ -1632,10 +1692,12 @@ proc_hist_n(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   }
 
   if (ppst->zsflag < 10) s_string[0]='\0';
-  else if (ppst->zs_win > 0)
+  else if (ppst->zs_win > 0) {
     sprintf(s_string,"(shuffled [%d], win: %d)",nstats,ppst->zs_win);
-  else 
+  }
+  else {
     sprintf(s_string,"(shuffled [%d])",nstats);
+  }
 
   sprintf(f_string,
 #ifndef NORMAL_DIST

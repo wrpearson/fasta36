@@ -6,6 +6,14 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Dec 14, 2016
+[initfa.c/scaleswn.c]
+Change required shuffle count (down to 100) and introduce an
+median/IQR strategy to robustly estimate mean and S.D. for ggsearch
+(normal) comparisons (-z 3, in place of Altschul-Gish statistics).
+
+Modify version string to Dec., 2016.
+
 >>Nov 18, 2016
 [build_ares.c]
 fix sequence encoding memory leak

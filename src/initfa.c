@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8e Sep, 2016 MPI";
+char *verstr="36.3.8e Dec, 2016 MPI";
 #else
-char *verstr="36.3.8e Sep, 2016";
+char *verstr="36.3.8e Dec, 2016";
 #endif
 
 static int mktup=3;
@@ -927,7 +927,11 @@ f_initenv (struct mngmsg *m_msp, struct pstruct *ppst, unsigned char **aa0) {
   m_msp->arelv = m_msg_def.arelv;
   m_msp->stages = m_msg_def.stages;
   m_msp->shuff_wid = 0;
+#if defined(GGSEARCH)
+  m_msp->shuff_max = 100;
+#else
   m_msp->shuff_max = MAX_RSTATS;
+#endif
   m_msp->shuff_max_save = m_msp->shuff_max;
 
   /* see param.h for the definition of all these */
