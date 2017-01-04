@@ -137,15 +137,13 @@ EOSQL
 
 my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
 SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
-FROM pfamseq
-JOIN $pfamA_reg_full using(pfamseq_acc)
-JOIN pfamA USING (pfamA_acc)
-JOIN seqdb_demo2.annot as sa1 on(sa1.acc=pfamseq_acc and sa1.db='sp')
-JOIN seqdb_demo2.annot as sa2 using(prot_id)
-WHERE in_full = 1
-AND  sa2.acc=?
-AND  sa2.db='ref'
-ORDER BY seq_start
+  FROM $pfamA_reg_full
+  JOIN pfamseq using(pfamseq_acc)
+  JOIN pfamA USING (pfamA_acc)
+  JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=pfamseq_acc)
+ WHERE in_full = 1
+   AND rf2up.refseq_acc=?
+ ORDER BY seq_start
 
 EOSQL
 
@@ -154,11 +152,9 @@ SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfam
 FROM uniprot
 JOIN uniprot_reg_full using(uniprot_acc)
 JOIN pfamA USING (pfamA_acc)
-JOIN seqdb_demo2.annot as sa1 on(sa1.acc=uniprot_acc and sa1.db='sp')
-JOIN seqdb_demo2.annot as sa2 using(prot_id)
+JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=uniprot_acc)
 WHERE in_full = 1
-AND  sa2.acc=?
-AND  sa2.db='ref'
+AND  refseq_acc=?
 ORDER BY seq_start
 
 EOSQL
@@ -265,7 +261,7 @@ exit(0);
 sub show_annots {
   my ($query_len, $get_annot_sub) = @_;
 
-  my ($annot_line, $seq_len) = split(/\t/,$query_len);
+  my ($annot_line, $seq_len) = split(/\s/,$query_len);
 
   my $pfamA_acc;
 
