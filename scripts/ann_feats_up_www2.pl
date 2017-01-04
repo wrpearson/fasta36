@@ -51,6 +51,7 @@ my $hostname = `/bin/hostname`;
 my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_vars, $no_over, $data_file, $shelp, $help) = (0,0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
 
+my ($show_color) = (1);
 my $color_sep_str = " :";
 $color_sep_str = '~';
 
@@ -72,6 +73,7 @@ GetOptions(
 	   "no-feats" => \$no_feats,
 	   "nofeats" => \$no_feats,
 	   "data:s" => \$data_file,
+    	   "color!" => \$show_color,
 	   "sstr" => \$sstr,
 	   "h|?" => \$shelp,
 	   "help" => \$help,
@@ -170,7 +172,7 @@ unless ($data_file) {
 for my $seq_annot (@annots) {
   print ">",$seq_annot->{seq_info},"\n";
   for my $annot (@{$seq_annot->{list}}) {
-    if (!$lav && defined($domains{$annot->[-1]})) {
+    if (!$lav && $show_color && defined($domains{$annot->[-1]})) {
       $annot->[-1] .= $color_sep_str.$domains{$annot->[-1]};
     }
     print join("\t",@$annot),"\n";

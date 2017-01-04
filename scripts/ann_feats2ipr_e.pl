@@ -58,7 +58,7 @@ unless ($hostname =~ m/ebi/) {
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc, $bound_comment) = 
     (0,0,0,0,0,0,0,0,0,0,0,0,0);
 
-my $color_sep_str = " :";
+my ($show_color, $color_sep_str) = (1," :");
 $color_sep_str = '~';
 
 GetOptions(
@@ -69,6 +69,7 @@ GetOptions(
 	   "port=i" => \$port,
 	   "lav" => \$lav,
 	   "bound_comment" => \$bound_comment,
+	   "color!" => \$show_color,
 	   "no_mod" => \$no_mod,
 	   "no-mod" => \$no_mod,
 	   "no-doms" => \$no_doms,
@@ -198,7 +199,7 @@ unless ($query && $query =~ m/[\|:]/ ) {
     push @annots, $annots_ref if ($annots_ref);
   }
 } else {
-  my $annots_ref = show_annots("$query $seq_len", $get_annot_sub);
+  my $annots_ref = show_annots("$query\t$seq_len", $get_annot_sub);
   push @annots, $annots_ref if ($annots_ref);
 }
 
@@ -209,7 +210,9 @@ for my $seq_annot (@annots) {
       if ($bound_comment) {
 	$annot->[-2] .= $color_sep_str.$annot->[0].":".$annot->[2];
       }
-      $annot->[-2] .= $color_sep_str.$domains{$annot->[4]};
+      elsif ($show_color) {
+	$annot->[-2] .= $color_sep_str.$domains{$annot->[4]};
+      }
     }
     if ($lav) {
       print join("\t",@$annot[0 .. 2]),"\n";

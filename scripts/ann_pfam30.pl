@@ -235,7 +235,7 @@ unless ($query && $query =~ m/[\|:]/) {
   }
 }
 else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
 }
 
 for my $seq_annot (@annots) {
@@ -265,7 +265,7 @@ exit(0);
 sub show_annots {
   my ($query_len, $get_annot_sub) = @_;
 
-  my ($annot_line, $seq_len) = split(/\s/,$query_len);
+  my ($annot_line, $seq_len) = split(/\t/,$query_len);
 
   my $pfamA_acc;
 

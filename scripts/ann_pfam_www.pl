@@ -41,6 +41,7 @@ use XML::Twig;
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_clans, $pf_acc_flag, $shelp, $help, $no_over, $acc_comment, $bound_comment, $pfamB) =
   (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+my ($show_color) = (1);
 my ($min_nodom, $min_vdom) = (10, 10);
 
 my $color_sep_str = " :";
@@ -58,6 +59,7 @@ GetOptions(
     "no_over" => \$no_over,
     "no-clans" => \$no_clans,
     "no_clans" => \$no_clans,
+    "color!" => \$show_color,
     "pfamB" => \$pfamB,
     "vdoms" => \$vdoms,
     "v_doms" => \$vdoms,
@@ -108,7 +110,7 @@ unless ($query && $query =~ m/[\|:]/) {
   }
 }
 else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
 }
 
 for my $seq_annot (@annots) {
@@ -125,7 +127,9 @@ for my $seq_annot (@annots) {
       if ($bound_comment) {
 	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
       }
-      $annot->[-1] .= $color_sep_str.$a_num;
+      elsif ($show_color) {
+	$annot->[-1] .= $color_sep_str.$a_num;
+      }
     }
     print join("\t",@$annot),"\n";
   }
