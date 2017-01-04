@@ -49,6 +49,7 @@ my $hostname = `/bin/hostname`;
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
+my ($show_color) = (1);
 my ($no_over, $split_over, $over_fract) = (0, 0, 3.0);
 
 my $color_sep_str = " :";
@@ -65,6 +66,7 @@ GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
     "bound_comment" => \$bound_comment,
+    "color!" => \$show_color,
     "no-over" => \$no_over,
     "no_over" => \$no_over,
     "split-over" => \$split_over,
@@ -254,7 +256,9 @@ for my $seq_annot (@annots) {
       if ($bound_comment) {
 	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
       }
-      $annot->[-1] .= $color_sep_str.$a_num;
+      elsif ($show_color) {
+	  $annot->[-1] .= $color_sep_str.$a_num;
+      }
     }
     print join("\t",@$annot),"\n";
   }

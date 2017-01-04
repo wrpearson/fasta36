@@ -15,7 +15,6 @@ SHELL=/bin/bash
 CC = gcc -g -O -msse2
 #CC= gcc -pg -g -O -msse2 -ffast-math
 #CC = gcc -g -DDEBUG -msse2
-
 #CC=gcc -Wall -pedantic -ansi -g -msse2 -DDEBUG
 
 # EBI uses the following with pgcc, -O3 does not work:
