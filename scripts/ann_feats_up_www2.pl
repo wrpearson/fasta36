@@ -17,8 +17,8 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-## modified 29-Sept-2016 to use Uniprot JSON URL:
-## http://www.ebi.ac.uk/uniprot/api/features/p12345
+## modified 29-Sept-2016 to use EBI/proteins JSON URL:
+## http://www.ebi.ac.uk/proteins/api/features/p12345
 
 # ann_feats_up_www2.pl gets an annotation file from fasta36 -V with a line of the form:
 
@@ -41,7 +41,7 @@ use JSON qw(decode_json);
 
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/uniprot/api/features';
+my $up_base = 'http://www.ebi.ac.uk/proteins/api/features';
 
 my %domains = ();
 my $domain_cnt = 0;
