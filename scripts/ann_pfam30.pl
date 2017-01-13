@@ -49,10 +49,9 @@ my $hostname = `/bin/hostname`;
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
-my ($show_color) = (1);
 my ($no_over, $split_over, $over_fract) = (0, 0, 3.0);
 
-my $color_sep_str = " :";
+my ($color_sep_str, $show_color) = (" :",1);
 $color_sep_str = '~';
 
 my ($min_nodom, $min_vdom) = (10,10);

@@ -30,6 +30,10 @@
 # If the BTOP field or query_file is not available, the script
 # produces domain content without sub-alignment scores.
 ################################################################
+## 13-Jan-2017
+# modified to provide query/subject coordinates and identities if no
+# query sequence -- does not decrement for reverse-complement fastx/blastx DNA
+################################################################
 ## 16-Nov-2015
 # modify to allow multi-query blast searches
 ################################################################
@@ -205,8 +209,14 @@ while (1) {
 	$hit->{q_aligned_sites_r} =  site_align($query_lib_r->{$hit->{q_seqid}},
 						$hit, \@blosum62, $q_hit->{sites}, 0);
       }
-
-    } else {		   # no alignment info, just check for overlap
+    }
+    elsif (defined($hit->{BTOP})) {
+      if (defined($hit->{domains}) && scalar(@{$hit->{domains}})) {
+	$hit->{aligned_domains_r} = 
+	  sub_alignment_pos($hit, $hit->{domains}, 1);
+      }
+    }
+    else {		   # no alignment info, can provide domain overlap, and subject coordinates
       $hit->{raw_score} = 0;
       for my $dom_r (@{$hit->{domains}}) {
 	next if $dom_r->{d_end} < $hit->{s_start}; # before start
@@ -462,6 +472,8 @@ sub alignment_score {
   return $score;
 }
 
+################################################################
+# sub_alignment_score()
 # input: $query_r : a query sequence;
 #        $hit_r->{BTOP} : an encoded alignment;
 #        $matrix_2d, $matrix_diag : a scoring matrix
@@ -474,11 +486,7 @@ sub alignment_score {
 #             ->{score} --matrix raw similarity score
 #             ->{qa_start,qa_end}  domain boundaries in query
 #             ->{sa_start, sa_end} domain boundaries in subject
-
-# as initially written, this code assumes that annotation coordinates
-# are for the subject sequence.  A more general function must be aware
-# of domain annotations on both sequences.
-
+#
 sub sub_alignment_score {
   my ($query_r, $hit_r, $matrix_2d, $matrix_diag, $domain_r, $target) = @_;
 
@@ -642,6 +650,162 @@ sub sub_alignment_score {
 	}
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
+	  if ($$ds_ix == $left_active_end) {
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $dom_score = $id_cnt = 0;
+	  }
+	}
+	$qix++;
+	$six++;
+	$gap0 = $gap1 = 0;
+      }
+    }
+#    print join(":",($qix, $six, $score)),"\n";
+  }
+
+  # all done, finish any domain stuff
+  if (@active_dom_list) {
+    last_annot_match(\@active_dom_list, $q_end, $q_end, $id_cnt, $dom_score);
+  }
+
+  return ($score, \@aligned_domains);
+}
+
+################################################################
+# sub_alignment_pos
+# input: $hit_r->{BTOP} : an encoded alignment;
+#        $domain_r : domain boundaries in query (target=0) or subject (target=1)
+#        $target : 0=query, 1=target
+#
+# updates $domain_r in place with new values:
+# domain_r->[]->{ident} (as fraction identical),
+#             ->{sa_start, sa_end} domain boundaries in subject
+#
+sub sub_alignment_pos {
+  my ($hit_r, $domain_r, $target) = @_;
+
+  return (0, $domain_r) unless ($domain_r && scalar(@$domain_r));
+
+  my $btop_enc_r = decode_btop($hit_r->{BTOP});
+
+  my ($gap0, $gap1) = (0,0);
+
+  my @active_dom_list = ();
+  my @aligned_domains = ();
+
+  my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
+  my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
+  my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
+
+  my $ds_ix = \$six;	# use to track the subject position
+  # reverse coordinate names if $target==0
+  unless ($target) {
+    $ds_ix = \$qix;	# track query position
+  }
+
+  my ($score, $m_score) = 0;
+  my ($seq0, $seq1) = ("","");
+
+  # find the first overlapping domain
+  my ($dom_ix, $dom_nx) = (0,scalar(@$domain_r));
+  my $dom_r = $domain_r->[0];
+
+  # skip over domains that do not overlap alignment
+  # capture first domain that alignment overlaps
+  for ($dom_ix=0; $dom_ix < $dom_nx; $dom_ix++) {
+    if ($domain_r->[$dom_ix]->{d_end} >= $s_start) {  # if {d_end} < $_start, cannot overlap
+      $dom_r = $domain_r->[$dom_ix];
+      if ($dom_r->{d_pos} <= $s_start) {  # {d_pos} is less, {d_end} is greater, overlap
+	push @aligned_domains, $dom_r;
+	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
+      }
+      else { last; }
+    }
+  }
+
+  my ($dom_score, $id_cnt) = (0,0);
+
+  for my $btop (@{$btop_enc_r}) {
+
+    if ($btop =~ m/^\d+$/) {  # matching query sequence, add it up
+      for (my $i=0; $i < $btop; $i++) {  # $i is used to count through BTOP, not to index anything.
+
+	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
+	  push @aligned_domains, $dom_r;
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	  $dom_ix++;
+	  $dom_r = $domain_r->[$dom_ix];
+	  ($dom_score, $id_cnt) = (0,0);
+	}
+	if (@active_dom_list) {
+	  $id_cnt++;
+	  if ($$ds_ix == $left_active_end) {
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $dom_score = $id_cnt = 0;
+	  }
+	}
+
+	$qix++;
+	$six++;
+	$gap0 = $gap1 = 0;
+      }
+    }
+    else {
+      ($seq0, $seq1) = split(//,$btop);
+
+#      print "$qix:$six : $btop\n";
+
+      if ($btop=~ m/\-/) {
+	if ($seq0 eq '-') {  # gap in seq0
+
+	  if ($target) {	# subject domains
+	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
+	      push @aligned_domains, $dom_r;
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      $dom_ix++;
+	      $dom_r = $domain_r->[$dom_ix];
+	      ($dom_score, $id_cnt) = (0,0);
+	    }
+	    if (@active_dom_list) {
+	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$dom_score = $id_cnt = 0;
+	      }
+	    }
+	  }
+	  $six++;
+	}
+	else {  # gap in seq1
+
+	  unless ($target) {	# query domains
+	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
+	      push @aligned_domains, $dom_r;
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      $dom_ix++;
+	      $dom_r = $domain_r->[$dom_ix];
+	      ($dom_score, $id_cnt) = (0,0);
+	    }
+	    if (@active_dom_list) {
+	      $dom_score += $m_score;
+	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$dom_score = $id_cnt = 0;
+	      }
+	    }
+	  }
+	  $qix++;
+	}
+      }
+      else {	# mismatch
+	my ($seq0_map, $seq1_map) = ($aa_map{$seq0},$aa_map{$seq1});
+	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
+	  push @aligned_domains, $dom_r;
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	  $dom_ix++;
+	  $dom_r = $domain_r->[$dom_ix];
+	  ($dom_score, $id_cnt) = (0,0);
+	}
+	if (@active_dom_list) {
 	  if ($$ds_ix == $left_active_end) {
 	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
@@ -1097,12 +1261,12 @@ C<annot_blast_btop2.pl> runs the script specified by
 C<--ann_script/--q_ann_script> to annotate functional sites domain
 content of the sequences specified by the subject/query seqid field of
 blast tabular format (-outfmt 6 or 7) or FASTA blast tabular format
-(-m 8).  The C<--ann_script/--q_ann_script> file is run to produce
-domain boundary coordinates.  For searches against SwissProt
-sequences, C<--ann_script ann_feats_up_www2.pl> will acquire features
-and domains from Uniprot.  C<--ann_script ann_pfam_www.pl --neg> will
-get domain information from Pfam, and score non-domain (NODOM)
-regions.
+(-m 8).  The C<--ann_script/--q_ann_script> script produces domain
+boundary coordinates, which are mapped to the alignment.  For searches
+against SwissProt sequences, C<--ann_script ann_feats_up_www2.pl> will
+acquire features and domains from Uniprot.  C<--ann_script
+ann_pfam_www.pl --neg> will get domain information from Pfam, and
+score non-domain (NODOM) regions.
 
 The tab file is read and parsed, and then the subject/query seqid is used to
 capture domain locations in the subject/query sequence.  If the domains
@@ -1119,6 +1283,10 @@ The C<--out_fields> specifies the blast tabular fields that can be
 returned.  By default, C<q_seqid s_seqid percid alen mismatch gopen
 q_start q_end s_start s_end evalue bits> (but not C<score> and
 C<BTOP>) are shown.
+
+Currently, this program is fully functional only for blastp (or
+blastn) searches.  For translated searches (blastx) domain content,
+location and identity is provided, but not bit-scores or Q-values.
 
 =head1 AUTHOR
 
