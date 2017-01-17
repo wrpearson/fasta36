@@ -34,15 +34,18 @@
 
 # modified 15-Jan-2017 to reduce the number of calls when the same
 # accession is present multiple times.  Accessions are saved in a hash
-# than ensures uniqueness.  (Could also speed things up by creating temporary table.)
+# than ensures uniqueness.
 #
-
+# Uses tmp_annot.temporary table for more rapid joins.  $user must have
+# create temporary tables/select permissions for tmp_annot
+#
 
 use strict;
 
 use DBI;
 use Getopt::Long;
 use Pod::Usage;
+use File::Temp qw/tempfile/;
 
 use vars qw($host $db $port $user $pass);
 
@@ -115,78 +118,77 @@ my $domain_cnt = 0;
 my $pfamA_reg_full = 'pfamA_reg_full_significant';
 my $uniprot_reg_full = 'uniprot_reg_full';
 
-my $get_annot_sub = \&get_pfam_annots;
-
-my @pfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_pfamA_reg_full domain_evalue_score as evalue length);
-my @upfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_uniprot_reg_full domain_evalue_score as evalue length);
+my @pfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_pfamA_reg_full evalue length);
+my @upfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_uniprot_reg_full length);
 
 my $get_pfam_acc = $dbh->prepare(<<EOSQL);
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT t_acc, seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
 JOIN pfamA_reg_full_significant using(pfamseq_acc)
 JOIN pfamA USING (pfamA_acc)
+JOIN tmp_annot.targets on(pfamseq_acc=t_acc)
 WHERE in_full = 1
-AND  pfamseq_acc=?
-ORDER BY seq_start
+ORDER BY t_acc,seq_start
 
 EOSQL
 
 my $get_upfam_acc = $dbh->prepare(<<EOSQL);
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT t_acc, seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM uniprot
 JOIN uniprot_reg_full using(uniprot_acc)
 JOIN pfamA USING (pfamA_acc)
+JOIN tmp_annot.targets on(uniprot_acc=t_acc)
 WHERE in_full = 1
-AND  uniprot_acc=?
-ORDER BY seq_start
+ORDER BY t_acc, seq_start
 
 EOSQL
 
 my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+SELECT t_acc, seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
   FROM $pfamA_reg_full
   JOIN pfamseq using(pfamseq_acc)
   JOIN pfamA USING (pfamA_acc)
   JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=pfamseq_acc)
+  JOIN tmp_annot.targets on(rf2up.refseq_acc=t_acc)
  WHERE in_full = 1
-   AND rf2up.refseq_acc=?
- ORDER BY seq_start
+ ORDER BY t_acc, seq_start
 
 EOSQL
 
 my $get_upfam_refacc = $dbh->prepare(<<EOSQL);
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
-FROM uniprot
-JOIN uniprot_reg_full using(uniprot_acc)
-JOIN pfamA USING (pfamA_acc)
-JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=uniprot_acc)
+SELECT t_acc,seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
+  FROM uniprot
+  JOIN uniprot_reg_full using(uniprot_acc)
+  JOIN pfamA USING (pfamA_acc)
+  JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=uniprot_acc)
+  JOIN tmp_annot.targets on(rf2up.refseq_acc=t_acc)
 WHERE in_full = 1
-AND  refseq_acc=?
-ORDER BY seq_start
+ORDER BY t_acc, seq_start
 
 EOSQL
 
 my $get_annots_sql = $get_pfam_acc;
+my $get_annots_sql_u = $get_upfam_acc;
 
 my $get_pfam_id = $dbh->prepare(<<EOSQL);
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
-FROM pfamseq
-JOIN $pfamA_reg_full using(pfamseq_acc)
-JOIN pfamA USING (pfamA_acc)
+SELECT t_acc, seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+  FROM pfamseq
+  JOIN $pfamA_reg_full using(pfamseq_acc)
+  JOIN pfamA USING (pfamA_acc)
+  JOIN tmp_annot.targets on(pfamseq_id=t_acc)
 WHERE in_full=1
-AND  pfamseq_id=?
-ORDER BY seq_start
+ORDER BY t_acc, seq_start
 
 EOSQL
 
 my $get_upfam_id = $dbh->prepare(<<EOSQL);
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
-FROM uniprot
-JOIN uniprot_reg_full using(pfamseq_acc)
-JOIN pfamA USING (pfamA_acc)
+SELECT t_acc, seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
+  FROM uniprot
+  JOIN uniprot_reg_full using(pfamseq_acc)
+  JOIN pfamA USING (pfamA_acc)
+  JOIN tmp_annot.targets on(uniprot_id=t_acc)
 WHERE in_full=1
-AND  uniprot_id=?
-ORDER BY seq_start
+ORDER BY t_acc, seq_start
 
 EOSQL
 
@@ -207,10 +209,22 @@ WHERE clan is not NULL
 
 EOSQL
 
+$dbh->do(<<EOSQL);
+create temporary table tmp_annot.targets (t_acc char(10) primary key)
+EOSQL
+
 # -- LEFT JOIN clan_membership USING (auto_pfamA)
 # -- LEFT JOIN clans using(auto_clan)
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
+
+my @lav_list = qw(seq_start seq_end info);
+my @no_lav_list = qw(seq_start dash seq_end info);
+my $out_list_r = \@no_lav_list;
+if ($lav) {
+  $show_color = 0;
+  $out_list_r = \@lav_list;
+}
 
 # get the query
 my ($query, $seq_len) = @ARGV;
@@ -237,11 +251,49 @@ unless ($query && $query =~ m/[\|:]/) {
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
-    push @annots, show_annots($a_line, $get_annot_sub);
+    push @annots, show_annots($a_line);
   }
 }
 else {
-  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len");
+}
+
+# @annots has a list of id's or annotations
+# write to temporary file, load data local infile, join to get results
+
+my ($fh, $temp_file) = tempfile(TEMPLATE=>'accannXXXXX');
+my @u_annots = keys %annot_set;
+print $fh join("\n",@u_annots);
+close($fh);
+
+$dbh->do("load data local infile '$temp_file' into table tmp_annot.targets");
+
+unlink($temp_file);
+
+# $get_annots_sql->execute();
+# while (my $annot_ar = $get_annots_sql->fetchrow_arrayref()) {
+#   my %annot_data = ();
+#   @annot_data{@pfam_fields} = @{$annot_ar}[1..10];
+#   if (!defined($annot_set{$annot_ar->[0]}->{list})) {
+#     $annot_set{$annot_ar->[0]}->{list} = [\%annot_data];
+#   }
+#   else {
+#     push @{$annot_set{$annot_ar->[0]}->{list}}, \%annot_data;
+#   }
+# }
+
+$get_annots_sql_u->execute();
+while (my $annot_hr = $get_annots_sql_u->fetchrow_hashref()) {
+  if (!defined($annot_set{$annot_hr->{t_acc}}->{list})) {
+    $annot_set{$annot_hr->{t_acc}}->{list} = [$annot_hr];
+  }
+  else {
+    push @{$annot_set{$annot_hr->{t_acc}}->{list}}, $annot_hr;
+  }
+}
+
+for my $u_acc (@u_annots) {
+  map_pfam_annots($annot_set{$u_acc});
 }
 
 for my $seq_annot (@annots) {
@@ -249,29 +301,30 @@ for my $seq_annot (@annots) {
   my $annot_r = $annot_set{$seq_annot};
   print ">",$annot_r->{seq_info},"\n";
   for my $annot (@{$annot_r->{list}}) {
-    if (!$lav && defined($domains{$annot->[-1]})) {
-      my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
-      $annot->[-1] = $a_name;
+    $annot->{dash} = '-';
+    if (defined($domains{$annot->{info}})) {
+      my ($a_name, $a_num) = domain_num($annot->{info},$domains{$annot->{info}});
+      $annot->{info} = $a_name;
       my $tmp_a_num = $a_num;
       $tmp_a_num =~ s/v$//;
       if ($acc_comment) {
-	$annot->[-1] .= "{$domain_list[$tmp_a_num]}";
+	$annot->{info} .= "{$domain_list[$tmp_a_num]}";
       }
       if ($bound_comment) {
-	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
+	$annot->{info} .= $color_sep_str.$annot->{seq_start}.":".$annot->{seq_end};
       }
       elsif ($show_color) {
-	  $annot->[-1] .= $color_sep_str.$a_num;
+	  $annot->{info} .= $color_sep_str.$a_num;
       }
     }
-    print join("\t",@$annot),"\n";
+    print join("\t",@{$annot}{@{$out_list_r}}),"\n";
   }
 }
 
 exit(0);
 
 sub show_annots {
-  my ($query_len, $get_annot_sub) = @_;
+  my ($query_len) = @_;
 
   my ($annot_line, $seq_len) = split(/\t/,$query_len);
 
@@ -279,8 +332,7 @@ sub show_annots {
 
   $use_acc = 1;
   $get_annots_sql = $get_pfam_acc;
-
-  my $get_annots_sql_u = $get_upfam_acc;
+  $get_annots_sql_u = $get_upfam_acc;
 
   if ($annot_line =~ m/^pf\d+\|/) {
     ($sdb, $gi, $pfamA_acc, $acc, $id) = split(/\|/,$annot_line);
@@ -316,7 +368,7 @@ sub show_annots {
 
   # here we have an $acc or an $id: check to see if we have the data
 
-  my %annot_data = (seq_info=>$annot_line);
+  my %annot_data = (seq_info=>$annot_line, length=>$seq_len);
   my $annot_key = '';
   unless ($use_acc) {
     next if ($annot_set{$id});
@@ -324,12 +376,8 @@ sub show_annots {
     $annot_key = $id;
 
     $get_annots_sql = $get_pfam_id;
-    $get_annots_sql->execute($id);
-    unless ($get_annots_sql->rows()) {
-      $get_annots_sql = $get_annots_sql_u;
-      $get_annots_sql->execute($id);
-    }
-  } else {
+  }
+  else {
     unless ($acc) {
       warn "missing acc in $annot_line";
       return "";
@@ -340,61 +388,41 @@ sub show_annots {
       next if ($annot_set{$acc});
       $annot_set{$acc} = \%annot_data;
       $annot_key = $acc;
-
-      $get_annots_sql->execute($acc);
-      unless ($get_annots_sql->rows()) {
-	$get_annots_sql = $get_annots_sql_u;
-	$get_annots_sql->execute($acc);
-      }
     }
   }
-
-  $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
 
   return $annot_key;
 }
 
-sub get_pfam_annots {
-  my ($get_annots, $seq_length) = @_;
+sub map_pfam_annots {
+  my ($annot_ref) = @_;
 
-  $seq_length = 0 unless $seq_length;
+  my $seq_length = $annot_ref->{length};
+  my $pf_domains_r = $annot_ref->{list};
 
-  my @pf_domains = ();
+  my $row_href=$annot_ref->{list}[0];
+  if ($row_href->{length} && $row_href->{length} > $seq_length && $seq_length == 0) {
+      $annot_ref->{length} = $seq_length = $row_href->{length};
+    }
 
-  # get the list of domains, sorted by start
-
-  # $row_href has: seq_start, seq_end, model_start, model_end, model_length, 
-  #                pfamA_acc, pfamA_id, auto_pfamA_reg_full,
-  #                domain_evalue_score as evalue, length
-
-  while ( my $row_href = $get_annots->fetchrow_hashref()) {
+  # fill in {info} field
+  for my $pf_dom (@$pf_domains_r) {
     if ($auto_reg) {
-      $row_href->{info} = $row_href->{auto_pfamA_reg_full};
+      $pf_dom->{info} = $pf_dom->{auto_pfamA_reg_full};
     } elsif ($pf_acc) {
-      $row_href->{info} = $row_href->{pfamA_acc};
+      $pf_dom->{info} = $pf_dom->{pfamA_acc};
     } else {
-      $row_href->{info} = $row_href->{pfamA_id};
+      $pf_dom->{info} = $pf_dom->{pfamA_id};
     }
-
-    if ($row_href && $row_href->{length} > $seq_length && $seq_length == 0) {
-      $seq_length = $row_href->{length};
-    }
-
-    next if ($row_href->{seq_start} >= $seq_length);
-    if ($row_href->{seq_end} > $seq_length) {
-      $row_href->{seq_end} = $seq_length;
-    }
-
-    push @pf_domains, $row_href
   }
 
   # before checking for domain overlap, check for "split-domains"
   # (self-unbound) by looking for runs of the same domain that are
   # ordered by model_start
 
-  if (scalar(@pf_domains) > 1) {
+  if (scalar(@{$pf_domains_r}) > 1) {
     my @j_domains;		#joined domains
-    my @tmp_domains = @pf_domains;
+    my @tmp_domains = @{$pf_domains_r};
 
     my $prev_dom = shift(@tmp_domains);
 
@@ -423,12 +451,12 @@ sub get_pfam_annots {
       }
     }
     push @j_domains, $prev_dom;
-    @pf_domains = @j_domains;
+    @{$pf_domains_r} = @j_domains;
 
 
     if ($no_over) {	# for either $no_over or $split_over, check for overlapping domains and edit/split them
 
-      my @tmp_domains = @pf_domains;	# allow shifts from copy of @pf_domains
+      my @tmp_domains = @{$pf_domains_r};	# allow shifts from copy of @pf_domains
       my @save_domains = ();		# where the new domains go
 
       my $prev_dom = shift @tmp_domains;
@@ -482,14 +510,14 @@ sub get_pfam_annots {
 	push @save_domains, $prev_dom;
       }
 
-      @pf_domains = @save_domains;
+      @{$pf_domains_r} = @save_domains;
 
       # now check for smaller overlaps
-      for (my $i=1; $i < scalar(@pf_domains); $i++) {
-	if ($pf_domains[$i-1]->{seq_end} >= $pf_domains[$i]->{seq_start}) {
-	  my $overlap = $pf_domains[$i-1]->{seq_end} - $pf_domains[$i]->{seq_start};
-	  $pf_domains[$i-1]->{seq_end} -= int($overlap/2);
-	  $pf_domains[$i]->{seq_start} = $pf_domains[$i-1]->{seq_end}+1;
+      for (my $i=1; $i < scalar(@{$pf_domains_r}); $i++) {
+	if ($pf_domains_r->[$i-1]->{seq_end} >= $pf_domains_r->[$i]->{seq_start}) {
+	  my $overlap = $pf_domains_r->[$i-1]->{seq_end} - $pf_domains_r->[$i]->{seq_start};
+	  $pf_domains_r->[$i-1]->{seq_end} -= int($overlap/2);
+	  $pf_domains_r->[$i]->{seq_start} = $pf_domains_r->[$i-1]->{seq_end}+1;
 	}
       }
     }
@@ -499,9 +527,9 @@ sub get_pfam_annots {
       # check to see if one domain is included (or overlapping) more
       # than xx% of the other.  If so, pick the longer one
 
-      my ($prev_dom, $curr_dom) = ($pf_domains[0],0) ;
-      for (my $i=1; $i < scalar(@pf_domains); $i++) {
-	$curr_dom = $pf_domains[$i];
+      my ($prev_dom, $curr_dom) = ($pf_domains_r->[0],0) ;
+      for (my $i=1; $i < scalar(@{$pf_domains_r}); $i++) {
+	$curr_dom = $pf_domains_r->[$i];
 
 	my ($prev_len, $cur_len) = ($prev_dom->{seq_end}-$prev_dom->{seq_start}+1, $curr_dom->{seq_end}-$curr_dom->{seq_start}+1);
 	my $longer_len = ($prev_len > $cur_len) ? $prev_len : $cur_len;
@@ -545,7 +573,7 @@ sub get_pfam_annots {
 	}
       }
       push @save_domains, $prev_dom;
-      @pf_domains = @save_domains;
+      @{$pf_domains_r} = @save_domains;
     }
   }
 
@@ -555,18 +583,18 @@ sub get_pfam_annots {
   # each domain (but must also check for bounded-ness)
   # only add when 10% or more is missing and missing length > $min_nodom
 
-  if ($vdoms && scalar(@pf_domains)) {
+  if ($vdoms && scalar(@{$pf_domains_r})) {
     my @vpf_domains;
 
-    my $curr_dom = $pf_domains[0];
+    my $curr_dom = $pf_domains_r->[0];
     my $length = $curr_dom->{length};
 
     my $prev_dom={seq_end=>0, pfamA_acc=>''};
     my $prev_dom_end = 0;
     my $next_dom_start = $length+1;
 
-    for (my $dom_ix=0; $dom_ix < scalar(@pf_domains); $dom_ix++ ) {
-      $curr_dom = $pf_domains[$dom_ix];
+    for (my $dom_ix=0; $dom_ix < scalar(@{$pf_domains_r}); $dom_ix++ ) {
+      $curr_dom = $pf_domains_r->[$dom_ix];
 
       my $pfamA =  $curr_dom->{pfamA_acc};
 
@@ -602,9 +630,9 @@ sub get_pfam_annots {
       push @vpf_domains, $curr_dom;
       $prev_dom = $curr_dom;
 
-      if ($dom_ix < $#pf_domains) { # there is a domain to the right
+      if ($dom_ix < scalar(@$pf_domains_r)-1) { # there is a domain to the right
 	# first, give all the extra space to the first domain (no splitting)
-	$next_dom_start = $pf_domains[$dom_ix+1]->{seq_start};
+	$next_dom_start = $pf_domains_r->[$dom_ix+1]->{seq_start};
       }
       else {
 	$next_dom_start = $length;
@@ -627,7 +655,7 @@ sub get_pfam_annots {
       }
     }				# all done, check for last one
 
-    # $curr_dom=$pf_domains[-1];
+    # $curr_dom=$pf_domains_r->[-1];
     # # my $min_vdom = $curr_dom->{model_length}/10;
 
     # my $right_dom_len = min($length - $curr_dom->{seq_end}+1,  # space available 
@@ -646,14 +674,14 @@ sub get_pfam_annots {
     #   push @vpf_domains, \%new_dom;
     # }
 
-    # @vpf_domains has both old @pf_domains and new neg-domains
-    @pf_domains = @vpf_domains;
+    # @vpf_domains has both old @{$pf_domains_r} and new neg-domains
+    @{$pf_domains_r} = @vpf_domains;
   }
 
   if ($neg_doms) {
     my @npf_domains;
     my $prev_dom={seq_end=>0};
-    for my $curr_dom ( @pf_domains) {
+    for my $curr_dom ( @{$pf_domains_r}) {
       if ($curr_dom->{seq_start} - $prev_dom->{seq_end} > $min_nodom) {
 	my %new_dom = (seq_start=>$prev_dom->{seq_end}+1, seq_end => $curr_dom->{seq_start}-1, info=>'NODOM');
 	push @npf_domains, \%new_dom;
@@ -669,27 +697,14 @@ sub get_pfam_annots {
     }
 
     # @npf_domains has both old @pf_domains and new neg-domains
-    @pf_domains = @npf_domains;
+    @{$pf_domains_r} = @npf_domains;
   }
 
   # now make sure we have useful names: colors
 
-  for my $pf (@pf_domains) {
+  for my $pf (@{$pf_domains_r}) {
     $pf->{info} = domain_name($pf->{info}, $pf->{pfamA_acc});
   }
-
-  my @feats = ();
-  for my $d_ref (@pf_domains) {
-    if ($lav) {
-      push @feats, [$d_ref->{seq_start}, $d_ref->{seq_end}, $d_ref->{info}];
-    } else {
-      push @feats, [$d_ref->{seq_start}, '-', $d_ref->{seq_end},  $d_ref->{info} ];
-      #      push @feats, [$d_ref->{seq_end}, ']', '-', ""];
-    }
-
-  }
-
-  return \@feats;
 }
 
 sub min {
@@ -797,11 +812,11 @@ __END__
 
 =head1 NAME
 
-ann_pfam30.pl
+ann_pfam30_tmptbl.pl
 
 =head1 SYNOPSIS
 
- ann_pfam30.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_pfam30_tmptbl.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
@@ -820,7 +835,7 @@ ann_pfam30.pl
 
 =head1 DESCRIPTION
 
-C<ann_pfam30.pl> extracts domain information from the pfam msyql
+C<ann_pfam30_tmptbl.pl> extracts domain information from the pfam msyql
 database. Currently, the program works with database
 sequence descriptions in several formats:
 
@@ -828,7 +843,7 @@ sequence descriptions in several formats:
  >sp|P09488|GSTM1_HUMAN
  >sp:CALM_HUMAN 
 
-C<ann_pfam30.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
+C<ann_pfam30_tmptbl.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
 information on a protein. 
 
@@ -844,8 +859,12 @@ overlapping region is split out of the domains and labeled as a new,
 virtual-lie, domain.  If one domain is internal to another and spans
 80% of the domain, the shorter domain is removed.
 
-C<ann_pfam30.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam30.pl> or C<-V "\!ann_pfam30.pl --neg"> option.
+C<ann_pfam30_tmptbl.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_pfam30_tmptbl.pl> or C<-V "\!ann_pfam30_tmptbl.pl --neg"> option.
+
+C<ann_pfam30_tmptbl.pl> requires an additional database, C<tmp_annot>,
+with C<create temporary tables>, C<insert>, and C<select> privileges
+for the default user.
 
 =head1 AUTHOR
 

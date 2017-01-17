@@ -6,6 +6,12 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jan 17, 2016
+[scripts/ann_pfam30_tmptbl.pl]
+ann_pfam30_tmptbl.pl is a modification of ann_pfam30.pl that loads a
+temporary tables of accessions to be annotated, rather than asking for
+one sequence at a time.
+
 >>Dec 14, 2016
 [initfa.c/scaleswn.c]
 Change required shuffle count (down to 100) and introduce an
