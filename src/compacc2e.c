@@ -1985,6 +1985,12 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       last_left_bracket = -1;
     }
 
+    if (f_end < f_pos) {
+	fprintf(stderr,"*** error [%s:%d] -- %s: domain start (%d) > domain end (%d)\n",
+		__FILE__,__LINE__, annot_acc, f_pos+1, f_end+1);
+	continue;
+    }
+
     if (tmp_comment[0]) {
       if ((tmp_ann_entry_arr[n_annot].comment=(char *)calloc(strlen(tmp_comment)+1,sizeof(char)))!=NULL) {
 	strncpy(tmp_ann_entry_arr[n_annot].comment,tmp_comment,strlen(tmp_comment));
@@ -2145,6 +2151,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
   struct annot_mstr mtmp_annot;
 
 #ifndef UNIX
+  /* need pipes, system() */
   return 0;
 #else
 

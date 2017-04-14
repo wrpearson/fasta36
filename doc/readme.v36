@@ -6,7 +6,16 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Jan 17, 2016
+>>April 14, 2017
+[src/compacc2e.c, scripts/ann_exons_up_www.pl]
+
+Provide a new script to annotate exon positions in Uniprot Proteins
+(scripts/ann_exons_up_www.pl) that uses the EBI proteins/api/coordinate service.
+
+Provide additional error checking on annotates to ensure that domain
+start is always <= domain end.
+
+>>Jan 17, 2017
 [scripts/ann_pfam30_tmptbl.pl]
 ann_pfam30_tmptbl.pl is a modification of ann_pfam30.pl that loads a
 temporary tables of accessions to be annotated, rather than asking for
