@@ -35,7 +35,7 @@ use Getopt::Long;
 use LWP::Simple;
 use LWP::UserAgent;
 use Pod::Usage;
-use JSON::Parse ':all';
+use JSON qw(decode_json);
 
 use vars qw($host $db $port $user $pass);
 
@@ -129,7 +129,7 @@ sub parse_json_up_exons {
 
   my @exons = ();
 
-  my $acc_exons = parse_json($exon_json);
+  my $acc_exons = decode_json($exon_json);
 
   my $exon_num = 1;
   for my $exon ( @{$acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'exon'}} ) {

@@ -888,7 +888,7 @@ sub pop_annot_match {
   while ($pop_count-- > 0) {
     my $cur_r = shift @$active_doms_r;
     # convert identity count to identity fraction
-    $cur_r->{ident} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
+    $cur_r->{percid} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
     $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
     $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
   }
@@ -910,10 +910,9 @@ sub last_annot_match {
   for my $cur_r (@$active_doms_r) {
     $cur_r->{ident} += $c_ident;
     $cur_r->{score} += $c_score;
-    $cur_r->{ident} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
+    $cur_r->{percid} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
     $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
     $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
-
   }
 
   $active_doms_r = [];
@@ -1156,7 +1155,7 @@ sub format_dom_info {
 			   $dom_r->{qa_start},$dom_r->{qa_end},
 			   $dom_r->{sa_start},$dom_r->{sa_end},$ns_score),
 		   sprintf("b=%.1f",$s_bit),
-		   sprintf("I=%.3f",$dom_r->{ident}),
+		   sprintf("I=%.3f",$dom_r->{percid}),
 		   sprintf("Q=%.1f",$qval),$dom_r->{descr}));
 }
 
@@ -1202,7 +1201,7 @@ sub format_annot_info {
 				      $annot_r->{qa_start},$annot_r->{qa_end},
 				      $annot_r->{sa_start},$annot_r->{sa_end},$ns_score),
 			      sprintf("b=%.1f",$s_bit),
-			      sprintf("I=%.3f",$annot_r->{ident}),
+			      sprintf("I=%.3f",$annot_r->{percid}),
 			      sprintf("Q=%.1f",$qval),$annot_r->{descr}));
     }
     else {	# site annotation

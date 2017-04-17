@@ -18,7 +18,7 @@ echo "starting fastxy36" `date`
 ../bin/fasty36 -V \!../scripts/ann_feats2ipr.pl -S -q -z 21 ../seq/gstm1b_human.nt q > results/test2V_m1.yk2z21
 echo "done"
 echo "starting ssearch36" `date`
-../bin/ssearch36 -V q\!../scripts/ann_pfam28.pl -V \!../scripts/ann_pfam28.pl -m 9c -S -z 22 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9cz22
+../bin/ssearch36 -V q\!../scripts/ann_pfam30.pl -V \!../scripts/ann_pfam30.pl -m 9c -S -z 22 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9cz22
 ../bin/ssearch36 -V q\!../scripts/ann_pfam_www.pl -V \!../scripts/ann_pfam_www.pl -m 9C -S -z 21 -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm9Cz21
 ../bin/ssearch36 -V q\!../scripts/ann_pfam_www.pl -V \!../scripts/ann_pfam_www.pl -m 8CC -S  -q ../seq/gstm1_human.vaa  q > results/test2V_m1.ssm8CC
 echo "done" `date`

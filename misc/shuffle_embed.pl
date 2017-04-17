@@ -142,4 +142,7 @@ reads the sequence, shuffles it, splits the shuffled sequence in the
 middle, and embeds the unshuffled sequence between the two halves of
 the shuffled sequence.
 
+With --insert 0, the sequences produced are random, no unshuffled
+sequence is embedded.
+
 =cut

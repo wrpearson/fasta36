@@ -48,7 +48,7 @@ use vars qw($host $db $port $user $pass);
 
 my $hostname = `/bin/hostname`;
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam30", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam31", 0, "web_user", "fasta_www");
 #$host = 'xdb';
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
@@ -293,7 +293,7 @@ sub show_annots {
 	$get_annots_sql_u = $get_upfam_refacc;
     }
   }
-  elsif ($annot_line =~ m/^(sp|tr)\|/) {
+  elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
   elsif ($annot_line =~ m/^ref\|/) {

@@ -4262,7 +4262,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       if (this_dom_p->n_alen - this_dom_p->n_gaplen > 0) {
 	lpercid = ((double)this_dom_p->n_ident)/(double)(this_dom_p->n_alen-this_dom_p->n_gaplen);
       }
-      else lpercid = -1.0;
+      else lpercid = 0.0;	/* was -1.0, but 0.0 for consistency with annot_blast_btop2.pl */
 
       if (d_type == 1) {
 	if (this_dom_p->annot_entry_p->target == 0) {

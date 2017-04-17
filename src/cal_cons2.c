@@ -559,7 +559,7 @@ calc_cons_u( /* inputs */
 	if (aa1a) *sp1a_p = ann_arr[aa1a[i1]];
 
 	if (s_annot1_arr_p) {
-	  if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos || i1+l_offset == i1_left_end) {
+	  if (i1+l_offset == s_annot1_arr_p[i1_annot]->pos) {
 
 	    i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
 					q_offset + seq_pos(i0,aln->qlrev,0), sp1_p, sp1a_p, sq, 
@@ -588,7 +588,7 @@ calc_cons_u( /* inputs */
 	}
 
 	if (s_annot0_arr_p) {
-	  if (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos || i0 + q_offset == i0_left_end) {
+	  if (i0 + q_offset == s_annot0_arr_p[i0_annot]->pos) {
 
 	    i0_annot = next_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0),
 					l_offset + seq_pos(i1,aln->llrev,0), sp0_p, sp0a_p, sq, 
@@ -626,6 +626,24 @@ calc_cons_u( /* inputs */
       if (*spa_p == M_IDENT) {
 	d1_ident++;
 	d0_ident++;
+      }
+
+      if (s_annot1_arr_p && (i1 + l_offset == i1_left_end)) {
+	i1_annot = next_annot_match(&itmp, aa0_pam2_p, l_offset+seq_pos(i1,aln->llrev,0),
+				    q_offset + seq_pos(i0,aln->qlrev,0), sp1_p, sp1a_p, sq, 
+				    i1_annot, annot1_p->n_annot, s_annot1_arr_p,
+				    &ann_comment, annot_stack, have_push_features_p, &v_delta,
+				    &d1_score, &d1_ident, &d1_alen, &d1_gaplen,
+				    &left_domain_head1, left_domain_list1, &i1_left_end, 0);
+      }
+
+      if (s_annot0_arr_p && (i0 + q_offset == i0_left_end)) {
+	i0_annot = next_annot_match(&itmp, aa0_pam2_p, q_offset+seq_pos(i0,aln->qlrev,0),
+				    l_offset + seq_pos(i1,aln->llrev,0), sp0_p, sp0a_p, sq, 
+				    i0_annot, annot0_p->n_annot, s_annot0_arr_p,
+				    &ann_comment, annot_stack, have_push_features_p, &v_delta,
+				    &d0_score, &d0_ident, &d0_alen, &d0_gaplen,
+				    &left_domain_head0, left_domain_list0, &i0_left_end, 0);
       }
 
       if (calc_func_mode == CALC_CODE) {

@@ -34,21 +34,22 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
-## use IO::String;
+use LWP::UserAgent;
+use JSON qw(decode_json);
 
-my $up_base = 'http://www.uniprot.org/uniprot';
-my $gff_post = "gff";
+## use IO::String;
 
 my %domains = ();
 my $domain_cnt = 0;
 
-my $hostname = `/bin/hostname`;
-
-my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $shelp, $help) = (0,0,0,0,0,0,0);
+my ($sstr, $lav, $neg_doms, $no_doms, $no_feats, $no_vars, $shelp, $help) = (0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);
 
 my $color_sep_str = " :";
 $color_sep_str = '~';
+
+my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
+my $uniprot_url = 'https://www.ebi.ac.uk/proteins/api/features/';
 
 GetOptions(
     "lav" => \$lav,
@@ -63,6 +64,9 @@ GetOptions(
     "no_feats" => \$no_feats,
     "no-feats" => \$no_feats,
     "nofeats" => \$no_feats,
+    "novars" => \$no_vars,
+    "no_vars" => \$no_vars,
+    "no-vars" => \$no_vars,
     "sstr" => \$sstr,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -72,14 +76,17 @@ pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
 pod2usage(1) unless (@ARGV || -p STDIN || -f STDIN);
 
-my @feat_keys = ('Active site','Modified residue', 'Binding', 'Metal', 'Site');
-
+my @feat_keys = ('ACT_SITE','MOD_RES', 'BINDING', 'METAL', 'SITE');
 my @feat_vals = ( '=','*','#','^','!');
+unless ($no_vars) {
+  push @feat_keys, qw(VARIANT MUTAGEN);
+  push @feat_vals, ('V','V');
+}
 
-my @dom_keys = qw( Domain Repeat );
+my @dom_keys = qw( DOMAIN REPEAT );
 my @dom_vals = ( [ '[', ']'],[ '[', ']']);
 
-my @ssr_keys = ('Beta strand', 'Helix');
+my @ssr_keys = ('STRAND', 'HELIX');
 my @ssr_vals = ( [ '[', ']']);
 
 my %annot_types = ();
@@ -156,6 +163,9 @@ sub lwp_annots {
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
+  elsif ($annot_line =~ m/^(sp|tr|up)\|\w+\|\w+\s/) {
+    ($sdb, $acc, $id) = split(/[\|\s]/,$annot_line);
+  }
   elsif ($annot_line =~ m/^(SP|TR):(\w+)\s(\w+)/) {
     $sdb = lc($1);
     $id = $2;
@@ -168,15 +178,14 @@ sub lwp_annots {
     ($acc) = ($annot_line =~ m/^(\S+)/);
   }
 
+  $acc =~ s/\.\d+$//;
+
+  my $upfeats_json = get_https($uniprot_url.$acc);
+
   $annot_data{list} = [];
-  my $lwp_features = "";
 
-  if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc.$gff_post");
-  }
-
-  unless ($lwp_features) {
-    $annot_data{list} = $get_annot_sub->(\%annot_types, $lwp_features, $seq_len);
+  unless (!$upfeats_json || $upfeats_json =~ m/errorMessage/ || $upfeats_json =~ m/Can not find/) {
+    $annot_data{list} = parse_json_up_feats(\%annot_types,$upfeats_json,$seq_len);
   }
   else {
     $annot_data{list} = [];
@@ -185,8 +194,8 @@ sub lwp_annots {
   return \%annot_data;
 }
 
-# parses www.uniprot.org gff feature table
-sub gff2_annots {
+# parses EBI/proteins/features
+sub parse_json_up_feats {
   my ($annot_types, $annot_data, $seq_len) = @_;
 
   my ($acc, $pos, $end, $label, $value, $comment, $len);
@@ -199,51 +208,44 @@ sub gff2_annots {
 
 #  my $io = IO::String->new($annot_data);
 
-  my @gff_lines = split(/\n/m,$annot_data);
+  my $acc_upfeats = decode_json($annot_data);
 
-  my $gff_line = shift @gff_lines; # skip ##gff
-  $gff_line = shift @gff_lines;	# get sequence-region
-  ($tmp, $seq_acc, $seq_start, $seq_end) = split(/\s+/,$gff_line);
-  $seq_len = $seq_end if ($seq_end > $seq_len);
+  # for my $feat ( @{$acc_upfeats->{features}}) {
+  #   print join("\t",@{$feat}{qw(type begin end)});
+  #   if (defined($feat->{description})) {
+  #     print "\t",$feat->{description};
+  #   }
+  #   if (defined($feat->{alternativeSequence})) {
+  #     print "\t",$feat->{alternativeSequence};
+  #   }
+  #   print "\n";
+  # }
 
-  while ($gff_line = shift(@gff_lines)) {
-    chomp($gff_line);
+  for my $feat ( @{$acc_upfeats->{features}}) {
 
-    my @gff_line_arr = split(/\t/,$gff_line);
-    ($acc, $label, $pos, $end, $comment) = @gff_line_arr[(0,2,3,4,-1)];
-
-    # combine different binding sites
-    if ($label =~ /^Metal/) { $label = 'Metal';}
-    elsif ($label =~ /binding/i) { $label = 'Binding';}
-
+    $label = $feat->{type};
     if ($annot_types->{$label}) {
+      my $value = "";
+      my ($pos, $end)  = @{$feat}{qw(begin end)};
 
-      my @comments = ();
-      if ($comment =~ m/;/) {
-	@comments = split(/;/,$comment);
-      } else {
-	$comments[0] = $comment;
+      if (defined($feat->{description})) {
+	$value = $feat->{description};
       }
 
-      # select first comment with 'Note='
-      ($value) = grep {/Note=/} @comments;
-      if ($value) {
-	$value =~ s/^Note=//;
-	$value =~ s/\%3B//g;
-      }
-      else { $value = "";}
-
-      if ($label =~ m/Domain/ || $label =~ m/Repeat/) {
+      if ($label =~ m/DOMAIN/ || $label =~ m/REPEAT/) {
 	$value = domain_name($label,$value);
 	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Helix/) {
-	push @feats2, [$pos, "-", $end, $value];
-      } elsif ($label =~ m/Beta/) {
-	push @feats2, [$pos, "-", $end, $value];
+      }
+      elsif ($label =~ m/HELIX/) {
+	push @feats2, [$pos, "-", $end, $label];
+      }
+      elsif ($label =~ m/BETA/) {
+	push @feats2, [$pos, "-", $end, $label];
+      }
+      elsif ($label =~ m/VARIANT/ || $label =~ m/MUTAGEN/) {
+	push @sites, [$pos, "V", $feat->{alternativeSequence}, $value];
       }
       else {
-#	print join("\t",($pos, $annot_types->{$label})),"\n";
-#	print join("\t",($pos, $annot_types->{$label}, "-", "$label: $value")),"\n";
 	push @sites, [$pos, $annot_types->{$label}, "-", "$label: $value"];
       }
     }
@@ -325,6 +327,21 @@ sub get_lav_annots {
   return \@feats;
 }
 
+sub get_https {
+  my ($url) = @_;
+
+  my $result = "";
+  my $response = $ua->get($url);
+
+  if ($response->is_success) {
+    $result = $response->decoded_content;
+  } else {
+    $result = '';
+  }
+  return $result;
+}
+
+
 # domain name takes a uniprot domain label, removes comments ( ;
 # truncated) and numbers and returns a canonical form. Thus:
 # Cortactin 6.
@@ -336,10 +353,12 @@ sub domain_name {
 
   my ($label, $value) = @_;
 
-  if ($label =~ /Domain|Repeat/i) {
+  if ($label =~ /DOMAIN|REPEAT/i) {
     $value =~ s/;.*$//;
+    $value =~ s/\s+\d+\.?$//;
     $value =~ s/\.\s*$//;
-    $value =~ s/\s+\d+$//;
+    $value =~ s/\s+\d+\.\s+.*$//;
+    $value =~ s/\s+/_/;
     if (!defined($domains{$value})) {
       $domain_cnt++;
       $domains{$value} = $domain_cnt;
