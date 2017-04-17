@@ -337,9 +337,11 @@ sub show_annots {
     else {
       $acc =~ s/\.\d+$//;
 
-      next if ($annot_set{$acc});
-      $annot_set{$acc} = \%annot_data;
       $annot_key = $acc;
+      if ($annot_set{$acc}) {
+	goto ret_label;
+      }
+      $annot_set{$acc} = \%annot_data;
 
       $get_annots_sql->execute($acc);
       unless ($get_annots_sql->rows()) {
@@ -351,6 +353,7 @@ sub show_annots {
 
   $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
 
+ret_label:
   return $annot_key;
 }
 

@@ -73,6 +73,7 @@ $seq_len = 0 unless defined($seq_len);
 $query =~ s/^>// if ($query);
 
 my @annots = ();
+my %annot_set = (); # re-use annotations if they are available (not yet implemented)
 
 #if it's a file I can open, read and parse it
 unless ($query && $query =~ m/[\|:]/ ) {
