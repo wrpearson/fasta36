@@ -76,7 +76,7 @@ my @annots = ();
 my %annot_set = (); # re-use annotations if they are available (not yet implemented)
 
 #if it's a file I can open, read and parse it
-unless ($query && $query =~ m/[\|:]/ ) {
+unless ($query && ($query =~ m/[\|:] || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
 
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
