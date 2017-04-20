@@ -129,7 +129,7 @@ $query =~ s/^>// if ($query);
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-unless ($query && ($query =~ m/[\|:] || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
+unless ($query && ($query =~ m/[\|:]/ || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
 
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
