@@ -500,13 +500,14 @@ sub sub_alignment_score {
   my @aligned_domains = ();
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
-  my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
+  my ($q_start, $s_start, $h_start) = @{$hit_r}{qw(q_start s_start s_start)};
   my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
 
   my $ds_ix = \$six;	# use to track the subject position
   # reverse coordinate names if $target==0
   unless ($target) {
     $ds_ix = \$qix;	# track query position
+    $h_start = $hit_r->{q_start};
   }
 
   my ($score, $m_score) = 0;
@@ -519,9 +520,9 @@ sub sub_alignment_score {
   # skip over domains that do not overlap alignment
   # capture first domain that alignment overlaps
   for ($dom_ix=0; $dom_ix < $dom_nx; $dom_ix++) {
-    if ($domain_r->[$dom_ix]->{d_end} >= $s_start) {  # if {d_end} < $_start, cannot overlap
+    if ($domain_r->[$dom_ix]->{d_end} >= $h_start) {  # if {d_end} < $_start, cannot overlap
       $dom_r = $domain_r->[$dom_ix];
-      if ($dom_r->{d_pos} <= $s_start) {  # {d_pos} is less, {d_end} is greater, overlap
+      if ($dom_r->{d_pos} <= $h_start) {  # {d_pos} is less, {d_end} is greater, overlap
 	push @aligned_domains, $dom_r;
 	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
@@ -551,7 +552,7 @@ sub sub_alignment_score {
 
 	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	  push @aligned_domains, $dom_r;
-	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	  $dom_ix++;
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
@@ -560,7 +561,7 @@ sub sub_alignment_score {
 	  $dom_score += $m_score;
 	  $id_cnt++;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -590,7 +591,7 @@ sub sub_alignment_score {
 	  if ($target) {	# subject domains
 	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	      push @aligned_domains, $dom_r;
-	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	      $dom_ix++;
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
@@ -598,7 +599,7 @@ sub sub_alignment_score {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -618,7 +619,7 @@ sub sub_alignment_score {
 	  unless ($target) {	# query domains
 	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	      push @aligned_domains, $dom_r;
-	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	      $dom_ix++;
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
@@ -626,7 +627,7 @@ sub sub_alignment_score {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -643,7 +644,7 @@ sub sub_alignment_score {
 	$score += $m_score;
 	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	  push @aligned_domains, $dom_r;
-	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	  $dom_ix++;
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
@@ -651,7 +652,7 @@ sub sub_alignment_score {
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -665,7 +666,7 @@ sub sub_alignment_score {
 
   # all done, finish any domain stuff
   if (@active_dom_list) {
-    last_annot_match(\@active_dom_list, $q_end, $q_end, $id_cnt, $dom_score);
+    last_annot_match(\@active_dom_list, $hit_r->{q_end}, $hit_r->{s_end}, $id_cnt, $dom_score);
   }
 
   return ($score, \@aligned_domains);
@@ -694,13 +695,14 @@ sub sub_alignment_pos {
   my @aligned_domains = ();
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
-  my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
+  my ($q_start, $s_start, $h_start) = @{$hit_r}{qw(q_start s_start s_start)};
   my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
 
   my $ds_ix = \$six;	# use to track the subject position
   # reverse coordinate names if $target==0
   unless ($target) {
     $ds_ix = \$qix;	# track query position
+    $h_start = $hit_r->{q_start};
   }
 
   my ($score, $m_score) = 0;
@@ -713,9 +715,9 @@ sub sub_alignment_pos {
   # skip over domains that do not overlap alignment
   # capture first domain that alignment overlaps
   for ($dom_ix=0; $dom_ix < $dom_nx; $dom_ix++) {
-    if ($domain_r->[$dom_ix]->{d_end} >= $s_start) {  # if {d_end} < $_start, cannot overlap
+    if ($domain_r->[$dom_ix]->{d_end} >= $h_start) {  # if {d_end} < $_start, cannot overlap
       $dom_r = $domain_r->[$dom_ix];
-      if ($dom_r->{d_pos} <= $s_start) {  # {d_pos} is less, {d_end} is greater, overlap
+      if ($dom_r->{d_pos} <= $h_start) {  # {d_pos} is less, {d_end} is greater, overlap
 	push @aligned_domains, $dom_r;
 	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
@@ -821,7 +823,7 @@ sub sub_alignment_pos {
 
   # all done, finish any domain stuff
   if (@active_dom_list) {
-    last_annot_match(\@active_dom_list, $q_end, $q_end, $id_cnt, $dom_score);
+    last_annot_match(\@active_dom_list, $hit_r->{q_end}, $hit_r->{s_end}, $id_cnt, $dom_score);
   }
 
   return ($score, \@aligned_domains);
