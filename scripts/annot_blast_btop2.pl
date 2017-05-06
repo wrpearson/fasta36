@@ -500,7 +500,7 @@ sub sub_alignment_score {
   my @aligned_domains = ();
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
-  my ($q_start, $s_start, $h_start) = @{$hit_r}{qw(q_start s_start s_start)};
+  my ($q_start, $s_start, $h_start, $h_end) = @{$hit_r}{qw(q_start s_start s_start s_end)};
   my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
 
   my $ds_ix = \$six;	# use to track the subject position
@@ -508,6 +508,7 @@ sub sub_alignment_score {
   unless ($target) {
     $ds_ix = \$qix;	# track query position
     $h_start = $hit_r->{q_start};
+    $h_end = $hit_r->{q_end};
   }
 
   my ($score, $m_score) = 0;
@@ -546,7 +547,6 @@ sub sub_alignment_score {
 #	  print "$qix:$six : ",$query_r->[$qix],"\n";
 	}
 
-
 	$m_score = $matrix_diag->[$seq0_map];
 	$score += $m_score;
 
@@ -557,11 +557,12 @@ sub sub_alignment_score {
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
 	}
+
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  $id_cnt++;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -599,7 +600,7 @@ sub sub_alignment_score {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -627,7 +628,7 @@ sub sub_alignment_score {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -652,7 +653,7 @@ sub sub_alignment_score {
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -742,7 +743,7 @@ sub sub_alignment_pos {
 	if (@active_dom_list) {
 	  $id_cnt++;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -770,7 +771,7 @@ sub sub_alignment_pos {
 	    }
 	    if (@active_dom_list) {
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -790,7 +791,7 @@ sub sub_alignment_pos {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -809,7 +810,7 @@ sub sub_alignment_pos {
 	}
 	if (@active_dom_list) {
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -875,7 +876,7 @@ sub push_annot_match {
 #                   return left-most right boundary
 
 sub pop_annot_match {
-  my ($active_doms_r, $q_pos, $s_pos, $c_ident, $c_score) = @_;
+  my ($active_doms_r, $q_pos, $s_pos, $d_pos, $c_ident, $c_score) = @_;
 
   my $nx = scalar(@$active_doms_r);
 
@@ -884,7 +885,7 @@ sub pop_annot_match {
   for my $cur_r (@$active_doms_r) {
     $cur_r->{ident} += $c_ident;
     $cur_r->{score} += $c_score;
-    $pop_count++ if ($cur_r->{d_end} == $s_pos);
+    $pop_count++ if ($cur_r->{d_end} == $d_pos);
   }
 
   while ($pop_count-- > 0) {
@@ -894,8 +895,15 @@ sub pop_annot_match {
     $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
     $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
   }
+
   if (scalar(@$active_doms_r)) {
-    return $active_doms_r->[0]->{d_end};
+    my $leftmost_end = $active_doms_r->[0]->{d_end};
+    for (my $lix = 1; $lix < scalar(@$active_doms_r); $lix++) {
+      if ($active_doms_r->[$lix]->{d_end} < $leftmost_end) {
+	$leftmost_end = $active_doms_r->[$lix]->{d_end};
+      }
+    }
+    return $leftmost_end;
   }
   else {
     return -1;
