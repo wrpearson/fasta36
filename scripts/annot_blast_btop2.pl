@@ -599,7 +599,7 @@ sub sub_alignment_score {
 	    }
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
-	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
+	      if ($$ds_ix == $left_active_end) {
 		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
@@ -625,9 +625,10 @@ sub sub_alignment_score {
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
 	    }
+
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
-	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
+	      if ($$ds_ix == $left_active_end) {
 		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
@@ -650,6 +651,7 @@ sub sub_alignment_score {
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
 	}
+
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  if ($$ds_ix == $left_active_end) {
