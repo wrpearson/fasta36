@@ -3967,6 +3967,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 
       if (*left_domain_head_p == NULL) {
 	*left_domain_head_p = left_domain_p;
+	*d_score_p = init_score;
       }
       else { 
 	/* we already have a domain list - update scores for "live"

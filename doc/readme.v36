@@ -6,6 +6,17 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>May 8, 2017
+[compacc2e.c]
+Address problem where initial domain annotation similarity
+score/identity not properly reset.
+
+[scripts/annot_blast_btop2.pl]
+Fix various problems with domain scores, particularly in gaps, and
+domain coordinates.
+
+Modify version string to May, 2017
+
 >>April 18, 2017
 [cal_cons2.c]
 Address problem where identity count not correctly assigned to
