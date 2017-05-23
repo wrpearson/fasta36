@@ -154,14 +154,16 @@ sub show_annots {
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^sp\|/) {
+  elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+    $use_acc = 1;
   }
-  elsif ($annot_line =~ m/^tr\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, $3);
+    $use_acc = 1;
   }
-  elsif ($annot_line =~ m/^(SP|TR):/i) {
-    ($sdb, $id) = split(/:/,$annot_line);
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, "");
     $use_acc = 0;
   }
   elsif ($annot_line !~ m/\|/ && $annot_line !~ m/:/) {

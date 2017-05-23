@@ -211,10 +211,10 @@ sub lwp_annots {
 
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
+  } elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    ($sdb, $id, $acc)  = (lc($1), $2, $3);
   } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
-    $sdb = lc($1);
-    $id = $2;
-#     $acc = $2;
+    ($sdb, $id, $acc)  = (lc($1), $2, "");
   } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
     $id = $2;

@@ -17,7 +17,7 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-# ann_exons_ens.pl gets an annotation file from fasta36 -V with a line of the form:
+# ann_exons_up_www.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # gi|23065544|ref|NP_000552.2| 
 #
@@ -29,11 +29,14 @@
 # (3) get exon information from EBI/Uniprot
 # (4) return the tab delimited exon boundaries
 
+# 22-May-2017 -- use get("http://"), not get_https("https://"), because EBI does not have LWP::Protocol:https
+
 use strict;
 
 use Getopt::Long;
 use LWP::Simple;
 use LWP::UserAgent;
+# use LWP::Protocol::https;
 use Pod::Usage;
 use JSON qw(decode_json);
 
@@ -63,8 +66,8 @@ my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 my $get_annot_sub = \&get_up_www_exons;
 
 my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
-my $uniprot_url = 'https://www.ebi.ac.uk/proteins/api/coordinates/';
-
+my $uniprot_url = 'http://www.ebi.ac.uk/proteins/api/coordinates/';
+my $uniprot_suff = ".json";
 
 # get the query
 my ($query, $seq_len) = @ARGV;
@@ -86,7 +89,7 @@ unless ($query && ($query =~ m/[\|:]/ ||
   }
 }
 else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
 }
 
 for my $seq_annot (@annots) {
@@ -101,7 +104,7 @@ exit(0);
 sub show_annots {
   my ($query_len, $get_annot_sub) = @_;
 
-  my ($annot_line, $seq_len) = split(/\s+/,$query_len);
+  my ($annot_line, $seq_len) = split(/\t/,$query_len);
 
   my %annot_data = (seq_info=>$annot_line);
 
@@ -113,10 +116,17 @@ sub show_annots {
   elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
+  elsif ($annot_line =~ m/^(SP|TR):/) {
+    ($sdb, $id, $acc) = ($annot_line =~ m/^(\w+):(\w+) (\w+)/);
+    $sdb = lc($sdb);
+  }
+  else {
+    ($acc) = ($annot_line =~ m/^(\S+)/);
+  }
 
   $acc =~ s/\.\d+$//;
 
-  my $exon_json = get_https($uniprot_url.$acc);
+  my  $exon_json = get($uniprot_url.$acc.$uniprot_suff);
 
   unless (!$exon_json || $exon_json =~ m/errorMessage/ || $exon_json =~ m/Can not find/) {
     $annot_data{list} = parse_json_up_exons($exon_json);

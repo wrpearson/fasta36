@@ -190,10 +190,11 @@ sub lwp_annots {
 
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
+  } elsif ($annot_line =~ m/^(SP|TR):(\w+)\s(\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, $3);
   } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
-    $sdb = lc($1);
-    $id = $2;
-#     $acc = $2;
+    ($sdb, $id, $acc) = (lc($1), $2, "");
+    warn("$0 requires accession: $annot_line\n");
   } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
     $id = $2;
@@ -211,7 +212,7 @@ sub lwp_annots {
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc");
+    $lwp_features = get("$up_base/$acc.json");
   }
 #  elsif ($id && ($id =~ m/^\w+$/)) {
 #    $lwp_features = get("$up_base/$id/$gff_post");

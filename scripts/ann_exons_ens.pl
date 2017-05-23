@@ -110,7 +110,7 @@ unless ($query && $query =~ m/[\|:]/ ) {
   }
 }
 else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
 }
 
 for my $seq_annot (@annots) {
@@ -128,7 +128,7 @@ exit(0);
 sub show_annots {
   my ($query_len, $get_annot_sub) = @_;
 
-  my ($annot_line, $seq_len) = split(/\s+/,$query_len);
+  my ($annot_line, $seq_len) = split(/\t/,$query_len);
 
   my $pfamA_acc;
 
@@ -142,6 +142,19 @@ sub show_annots {
   }
   elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  }
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, $3);
+  }
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, "");
+    $use_acc=0;
+  }
+  elsif ($annot_line =~ m/\|/) {
+    ($sdb, $acc, $db) = split(/\|/,$annot_line);
+  }
+  else {
+    ($acc) = ($annot_line =~ m/^(\S+)/);
   }
 
   $acc =~ s/\.\d+$//;

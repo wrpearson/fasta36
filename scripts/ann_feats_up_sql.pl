@@ -48,7 +48,7 @@ unless ($hostname =~ m/ebi/) {
 #  $host = 'xdb';
 }
 else {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
+  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
 my ($sstr, $lav, $neg_doms, $no_vars, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0,0,0);
@@ -208,15 +208,15 @@ sub show_annots {
     $use_acc = 1;
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/SP:(\w+)/) {
-    $use_acc = 0;
-    $sdb = 'sp';;
-    $id = $1;
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    ($sdb, $id, $acc) = ($1,$2,$3);
+    $use_acc = 1;
+    $sdb = lc($sdb)
   }
-  elsif ($annot_line =~ m/TR:(\w+)/) {
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    ($sdb, $id) = ($1,$2);
     $use_acc = 0;
-    $sdb = 'tr';
-    $id = $1;
+    $sdb = lc($sdb)
   }
   elsif ($annot_line !~ m/\|/) {  # new NCBI swissprot format
     $use_acc =1;

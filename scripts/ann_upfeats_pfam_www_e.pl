@@ -38,7 +38,7 @@ use XML::Twig;
 use JSON qw(decode_json);
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/uniprot/api/features';
+my $up_base = 'http://www.ebi.ac.uk/proteins/api/features';
 
 my %domains = ();
 my $domain_cnt = 0;
@@ -188,11 +188,8 @@ sub upfeats_pfam_www {
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   } elsif ($annot_line =~ m/^(SP|TR):(\w+)\s(\w+)/) {
-    $sdb = lc($1);
-    $id = $2;
-    $acc = $3;
+    ($sdb, $id, $acc) = (lc($1), $2, $3);
     $use_acc = 1;
-#     $acc = $2;
   } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
     $id = $2;
@@ -209,13 +206,13 @@ sub upfeats_pfam_www {
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc");
+    $lwp_features = get("$up_base/$acc.json");
   }
 
   my @annots = ();
 
   if ($lwp_features && ($lwp_features !~ /ERROR/)) {
-    push @annots, $get_upfeats_sub->(\%annot_types, $lwp_features, $seq_len);
+    push @annots, up_json_annots(\%annot_types, $lwp_features, $seq_len);
   }
 
   unless ($use_acc) {
