@@ -143,7 +143,9 @@ my @annots = ();
 #if it's a file I can open, read and parse it
 
 unless ($data_file) {
-  unless ($query && ($query =~ m/[\|:]/ || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
+  unless ($query && ($query =~ m/[\|:]/ 
+		     || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/
+		     || $query =~ m/^(XN)(MP)_\d+/)) {
 
     while (my $a_line = <>) {
       $a_line =~ s/^>//;
@@ -194,7 +196,7 @@ sub lwp_annots {
     ($sdb, $id, $acc) = (lc($1), $2, $3);
   } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
     ($sdb, $id, $acc) = (lc($1), $2, "");
-    warn("$0 requires accession: $annot_line\n");
+    warn("*** $0 accession required: $annot_line\n");
   } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
     $id = $2;

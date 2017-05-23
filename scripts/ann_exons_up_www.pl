@@ -116,9 +116,15 @@ sub show_annots {
   elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^(SP|TR):/) {
-    ($sdb, $id, $acc) = ($annot_line =~ m/^(\w+):(\w+) (\w+)/);
-    $sdb = lc($sdb);
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+      ($sdb, $id, $acc) = (lc($1), $2, $3);
+  }
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, "");
+    warn "*** $0 - accession required: $annot_line";
+  }
+  elsif ($annot_line =~ m/\|/) {
+    ($sdb, $acc) = split(/\|/,$annot_line);
   }
   else {
     ($acc) = ($annot_line =~ m/^(\S+)/);

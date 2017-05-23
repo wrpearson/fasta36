@@ -164,7 +164,9 @@ my @annots = ();
 #if it's a file I can open, read and parse it
 
 unless ($data_file) {
-    unless ($query && ($query =~ m/[\|:]/ || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
+    unless ($query && ($query =~ m/[\|:]/ 
+		       || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/
+		       || $query =~ m/^(NX)(MP)_\d+/)) {
 
     while (my $a_line = <>) {
       $a_line =~ s/^>//;
@@ -219,8 +221,10 @@ sub lwp_annots {
     $sdb = lc($1);
     $id = $2;
 #    $acc = $2;
-  } else {
+  } elsif ($annot_line =~ m/\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  } else {
+    ($acc) = ($annot_line =~ m/^(\S+)/);
   }
 
   $acc =~ s/\.\d+// if ($acc);

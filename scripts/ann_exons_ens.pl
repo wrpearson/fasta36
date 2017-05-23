@@ -88,6 +88,17 @@ ORDER BY seq_start
 
 EOSQL
 
+my $get_exons_id = $dbh->prepare(<<EOSQL);
+
+SELECT ex_num, ex_p_start as seq_start, ex_p_end as seq_end
+FROM ens_exons
+JOIN ens2up USING(ensp)
+JOIN annot2 using(acc)
+WHERE  id=?
+ORDER BY seq_start
+
+EOSQL
+
 my $get_annots_sql = $get_exons_acc;
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
@@ -101,7 +112,9 @@ $query =~ s/^>// if ($query);
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-unless ($query && $query =~ m/[\|:]/ ) {
+unless ($query && ( $query =~ m/[\|:]/ 
+		    || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/
+		    || $query =~ m/^(XN)(MP)_\d+/)) {
 
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
@@ -158,7 +171,13 @@ sub show_annots {
   }
 
   $acc =~ s/\.\d+$//;
-  $get_annots_sql->execute($acc);
+  if ($use_acc) {
+    $get_annots_sql->execute($acc);
+  }
+  else {
+    $get_annots_sql = $get_exons_id;
+    $get_annots_sql->execute($id);
+  }
 
   $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
 
