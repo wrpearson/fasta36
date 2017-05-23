@@ -66,7 +66,7 @@
 #define XTERNAL
 #include "uascii.h"
 
-char *mp_verstr="(preload9)";
+char *mp_verstr="";
 
 /********************************/
 /* extern variable declarations */

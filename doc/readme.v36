@@ -7,13 +7,12 @@ This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
 >>May 23, 2017
-scripts/ann_feats2ipr.pl ann_feats_up_www2.pl src/defs.h
-
+[scripts/ann_feats2ipr.pl,ann_feats_up_www2.pl,test_ann_scripts.sh  src/defs.h]
 Changes to ensure that EBI format databases, which place the ID before
 the accession, e.g.  SP:GSTM1_HUMAN P09388, can be processed properly
 by annotation scripts.  This involved displaying more of the
 description line, so that the accession field is included, in the
-annot_XXXXX file.
+annot_XXXXX file.  
 
 >>May 8, 2017
 [compacc2e.c]
