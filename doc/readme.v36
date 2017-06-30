@@ -6,7 +6,7 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>May 23, 2017
+>>May 23, 2017 [released as fasta-36.3.8f]
 [scripts/ann_feats2ipr.pl,ann_feats_up_www2.pl,test_ann_scripts.sh  src/defs.h]
 Changes to ensure that EBI format databases, which place the ID before
 the accession, e.g.  SP:GSTM1_HUMAN P09388, can be processed properly
