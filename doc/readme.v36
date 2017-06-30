@@ -7,6 +7,15 @@ This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
 >>May 23, 2017 [released as fasta-36.3.8f]
+[url_subs.c]
+A small, but major change in the output available to the $SRCH_URL and
+$SRCH_URL2 strings, which are used to enable re-searching, and now
+pairwise alignment. (It would be better to provide a json string of
+the information, rather than using fprintf().)  An additional value,
+the name of the query sequence, is provided to these urls so that
+pairwise alignment becomes possible.
+
+>>May 23, 2017
 [scripts/ann_feats2ipr.pl,ann_feats_up_www2.pl,test_ann_scripts.sh  src/defs.h]
 Changes to ensure that EBI format databases, which place the ID before
 the accession, e.g.  SP:GSTM1_HUMAN P09388, can be processed properly
