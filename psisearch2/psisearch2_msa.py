@@ -120,7 +120,7 @@ def get_psiblast_cmd(query_file, db_file, pssm_file) :
 #
 # always produce a bound_file_out file to test for convergence
 #
-def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, args, error_log) :
+def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_log) :
 
   (this_msa, this_hit_db, this_pssm_asntxt, this_pssm_asnbin, this_psibl_out, this_bound_out) =  (this_file_out+".msa",this_file_out+".hit_db",this_file_out+".asntxt",this_file_out+".asnbin",this_file_out+".psibl_out",this_file_out+".bnd_out")
 
