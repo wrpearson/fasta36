@@ -25,21 +25,20 @@ use Pod::Usage;
 # implementation of simple shell script to do iterative searches
 #
 # logic:
-# (1) do initial search
+# (1) do initial search or take results from previous search with --prev_m89res
 # (2) use results of initial search to produce MSA/PSSM for next search
 # (3) do PSSM search
-# (4) use results of PSSM search to produce MSA/PSSM for iterative step 3
+# (4) repeat at step (2)
 #
 ################
 #
 # command:
-# psisearch2_msa.pl --query query_file --db database --num_iter N --evalue 0.002 --no_msa --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast
+# psisearch2_msa.pl --query query.file --db database.file --num_iter N --evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
 #
 ################
 
-use vars qw( $query_file $db_file $num_iter $evalue $int_mask $end_mask $query_mask $no_msa $tmp_dir $dom_flag $align_flag $suffix $srch_pgm $file_out $help $shelp $error_log $rm_flag $annot_type $quiet);
-use vars qw( $prev_msa $next_msa $prev_hitdb $next_hitdb $prev_pssm $next_pssm $prev_bound_in $next_bound_out $tmp_file_list $save_all $delete_bnd $delete_tmp);
-
+use vars qw( $query_file $db_file $num_iter $evalue $int_mask $end_mask $query_mask $tmp_dir $dom_flag $align_flag $suffix $srch_pgm $file_out $help $shelp $error_log $rm_flag $annot_type $quiet);
+use vars qw( $prev_m89res $prev_sel_res $this_iter $prev_msa $next_msa $prev_hitdb $next_hitdb $prev_pssm $next_pssm $prev_bound $next_bound_out $tmp_file_list $save_all $delete_bnd $delete_tmp);
 
 ################
 # locations of required programs:
@@ -68,10 +67,10 @@ my %annot_cmds = ('rpd3' => qq("\!../scripts/ann_pfam28.pl --pfacc --db RPD3 --v
 ($num_iter, $evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
   ( 5, 0.002, 0, 0, 'none', 'none', 0, 'ssearch','',0, 0, "", 0);
 ($save_all, $tmp_file_list, $delete_bnd, $delete_tmp) = (0, "", 0, 0);
+($prev_m89res, $prev_sel_res, $prev_bound, $this_iter) = ("","","", 1);
 
-
-my $pgm_command =  "#".join(" ",($0,@ARGV));
-print STDERR "#",join(" ",($0,@ARGV)),"\n" if ($error_log);
+my $pgm_command =  "# ".join(" ",($0,@ARGV));
+print STDERR "# ",join(" ",($0,@ARGV)),"\n" if ($error_log);
 
 GetOptions(
 	   'query|sequence=s' => \$query_file,
@@ -81,17 +80,19 @@ GetOptions(
 	   'evalue=f' => \$evalue,
 	   'annot_db=s' => \$annot_type,
            'out_name=s' => \$file_out,
+    	   'this_iter=s' => \$this_iter,
 	   'iter=i' => \$num_iter,
+    	   'prev_m89res=s' => \$prev_m89res,
+           'sel_res_in=s' => \$prev_sel_res,
 	   # 'in_msa=s' => \$prev_msa,
 	   # 'out_msa=s' => \$next_msa,
 	   # 'in_hitdb=s' => \$prev_hitdb,
 	   # 'out_hitdb=s' => \$next_hitdb,
 	   'in_pssm=s' => \$prev_pssm,
 	   # 'out_pssm=s' => \$next_pssm,
-	   'in_bounds=s' => \$prev_bound_in,
+	   'prev_bounds=s' => \$prev_bound,
 	   'out_bounds=s' => \$next_bound_out,
 	   'num_iter|max_iter=i' => \$num_iter,
-           # 'no_msa' => \$no_msa,
 	   'dom|domain' => \$dom_flag,
 	   'align' => \$align_flag,
     	   'query_seed|query_mask' => \$query_mask,
@@ -115,6 +116,8 @@ pod2usage(exitstatus => 0, verbose => 2) if $help;
 
 pod2usage(1) unless $query_file && -r $query_file;  # need a query
 pod2usage(1) unless $db_file ;        # need a database
+
+my %sel_hits = ();
 
 my @del_file_ext = qw(msa psibl_out hit_db asntxt asnbin);
 
@@ -155,45 +158,66 @@ if ($tmp_file_list) {
 
 print "$pgm_command\n" unless ($quiet);
 
-my $this_iter = "it1";
+####
+# generate output filenames
 
 my ($query_pref) = ($query_file =~ m/([\w\.]+)$/);
 
 $file_out = $query_pref unless $file_out;
 
-my $this_file_pref = "$file_out.$this_iter";
+my $this_file_pref = "$file_out.it$this_iter";
 $this_file_pref = "$this_file_pref.$suffix" if ($suffix);
 my $this_file_out = $this_file_pref;
 $this_file_out = "$tmp_dir/$this_file_out" if ($tmp_dir);
 
-my $prev_file_out = $this_file_out;
+my $prev_file_out = "";
 
 ####
-# parse output to build PSSM
-# generate output filenames
+# do the first search or use $prev_m89res
+my $first_iter = 0;
+my $iter_val = $this_iter;
+my $search = "";
 
-# do the first search
-my $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
-log_system("$search > $this_file_out 2> $this_file_out.err");
+my @del_err_files = ();
 
-my ($this_pssm, $this_bound_out) = build_msa_pssm($query_file, $this_file_out, $prev_bound_in);
+unless ($prev_m89res) {
+  $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
+  log_system("$search > $this_file_out 2> $this_file_out.err");
+  push @del_err_files, "$this_file_out.err";
+  $first_iter++;
+}
+else {
+  $this_file_out = $prev_m89res;
+}
+
+my ($this_pssm, $this_bound_out) = ("","");
 
 # now have necessary files for next iteration
 
-for (my $it=2; $it <= $num_iter; $it++) {
+for (my $it=$first_iter; $it < $num_iter; $it++) {
 
-  $prev_pssm = $this_pssm;
-  $prev_bound_in = $this_bound_out;
+  ####
+  # build the PSSM for the current search
+
+  my ($this_pssm, $this_bound_out) = build_msa_pssm($query_file, $this_file_out, $prev_bound, $prev_sel_res);
+  $prev_file_out = $this_file_out;
+  $prev_sel_res = "";
+
+  $iter_val = $this_iter + $it;
+
   ####
   # build filename for this iteration
-  $this_file_pref = $this_file_out = "$file_out.it$it";
+  $this_file_pref = $this_file_out = "$file_out.it$iter_val";
   $this_file_out = "$this_file_pref.$suffix" if ($suffix);
   $this_file_out = "$tmp_dir/$this_file_out" if ($tmp_dir);
 
-  $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
+  $search = $srch_subs{$srch_pgm}($query_file, $db_file, $this_pssm);
   log_system("$search > $this_file_out 2> $this_file_out.err");
+  push @del_err_files, "$this_file_out.err";
 
+  ####
   # here, we are done with previous .msa, .asntxt, .asnbin, etc files.  Delete them if desired
+
   if (@del_file_ext) {
     my @del_file_list = ();
     for my $ext (@del_file_ext) {
@@ -201,35 +225,20 @@ for (my $it=2; $it <= $num_iter; $it++) {
     }
     log_system("rm ".join(" ",@del_file_list));
   }
-  $prev_file_out = $this_file_out;
+  log_system("rm $prev_bound") if ($delete_bnd);
 
-  ($this_pssm, $this_bound_out) = build_msa_pssm($query_file, $this_file_out, $prev_bound_in);
-
-  if (has_converged($prev_bound_in, $this_bound_out)) {
-    print STDERR "$0 $srch_pgm $query_file $db_file converged ($it iterations)\n" unless ($quiet);
-
-    if (@del_file_ext) {
-      my @del_file_list = ();
-      for my $ext (@del_file_ext) {
-	push @del_file_list, "$prev_file_out.$ext";
-      }
-      log_system("rm ".join(" ",@del_file_list));
-      log_system("rm $prev_bound_in $this_bound_out") if ($delete_bnd);
-    }
-    exit(0);
+  if (has_converged($prev_bound, $this_bound_out)) {
+    print STDERR "$0 $srch_pgm $query_file $db_file converged ($iter_val iterations)\n" unless ($quiet);
+    last;
   }
-  log_system("rm $prev_bound_in") if ($delete_bnd);
+  $prev_bound = $this_bound_out
 }
 
-if (@del_file_ext) {
-  my @del_file_list = ();
-  for my $ext (@del_file_ext) {
-    push @del_file_list, "$prev_file_out.$ext";
-  }
-  log_system("rm ".join(" ",@del_file_list));
+if (@del_err_files) {
+  log_system("rm ".join(" ",@del_err_files));
 }
 
-log_system("rm $this_bound_out") if ($delete_bnd);
+log_system("rm $prev_bound") if ($delete_bnd);
 
 unless ($quiet) {
   print STDERR "$0 $srch_pgm $query_file $db_file finished ($num_iter iterations)\n";
@@ -296,7 +305,7 @@ sub get_psiblast_cmd {
 # always produce a $bound_file_out file to test for convergence
 #
 sub build_msa_pssm {
-  my ($query_file, $this_file_out,$prev_bound_in) = @_;
+  my ($query_file, $this_file_out,$prev_bound_in, $prev_sel_in) = @_;
 
   my ($this_msa, $this_hit_db, $this_pssm_asntxt, $this_pssm_asnbin, $this_psibl_out, $this_bound_out) =
     ("$this_file_out.msa",
@@ -308,7 +317,14 @@ sub build_msa_pssm {
     );
 
   my $blastdb_err = "$this_file_out.mkbldb_err";
-  my $aln2msa_cmd = qq($align2msa_lib --query $query_file --evalue $evalue --masked_lib_out=$this_hit_db);
+  my $aln2msa_cmd = qq($align2msa_lib --query $query_file --masked_lib_out=$this_hit_db);
+
+  if ($prev_sel_in) {
+    $aln2msa_cmd .= qq( --sel_file_in $prev_sel_in);
+  }
+  else {
+    $aln2msa_cmd .= qq( --evalue $evalue);
+  }
 
   if ($int_mask) {
     $aln2msa_cmd .= qq( --int_mask_type $int_mask);
@@ -342,7 +358,7 @@ sub build_msa_pssm {
   log_system("rm $this_hit_db.p* $blastdb_err");
 
   # remove uninformative error logs
-  log_system("rm $this_psibl_out.err $this_file_out.err") unless $error_log;
+  log_system("rm $this_psibl_out.err") unless $error_log;
 
   unless ($srch_pgm eq 'psiblast') {
     my $asn2asn_cmd = "$datatool_bin -v $this_pssm_asntxt -e $this_pssm_asnbin";
@@ -360,6 +376,8 @@ sub build_msa_pssm {
 #
 sub has_converged {
   my ($file1, $file2) = @_;
+
+  return 0 unless ($file1 && $file2);
 
   my @f1_names = ();
   my @f2_names = ();
