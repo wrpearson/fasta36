@@ -34,7 +34,7 @@ import re
 ################
 #
 # command:
-# psisearch2_msa.py --query query_file --db database --num_iter N --evalue 0.002 --no_msa --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --suffix M8CB --pgm ssearch/psiblast --prev_m89res pre_iter.out --this_iter # --num_iter #
+# psisearch2_msa.py --query query_file --db database --num_iter N --pssm_evalue 0.002 --no_msa --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --suffix M8CB --pgm ssearch/psiblast --prev_m89res pre_iter.out --this_iter # --num_iter #
 #
 ################
 
@@ -58,7 +58,6 @@ annot_cmds = {'rpd3': '"!../scripts/ann_pfam28.pl --pfacc --db RPD3 --vdoms --sp
               'pfam':'"!../scripts/ann_pfam30.pl --pfacc --vdoms --split_over"'}
 
 num_iter = 5
-evalue = 0.002
 srch_pgm = 'ssearch'
 error_log = 0
 rm_flag = 0
@@ -80,9 +79,9 @@ def log_system (cmd, error_log):
 # sub get_ssearch_cmd()
 # builds an ssearch command line with query, db, and pssm
 #
-def get_ssearch_cmd(query_file, db_file, pssm_file) :
+def get_ssearch_cmd(query_file, db_file, pssm_file, args) :
 
-  search_cmd = '%s -S -m 8CB -d 0 -E "1.0 0" -s BP62' % (ssearch_bin)
+  search_cmd = '%s -S -m 8CB -d 0 -E "%f 0" -s BP62' % (ssearch_bin, args.srch_evalue)
 
   if (args.annot_type) :
       search_cmd += " -V %s" % (annot_cmds[args.annot_type])
@@ -99,9 +98,9 @@ def get_ssearch_cmd(query_file, db_file, pssm_file) :
 # sub get_psiblast_cmd()
 # builds an ssearch command line with query, db, and pssm
 #
-def get_psiblast_cmd(query_file, db_file, pssm_file) :
+def get_psiblast_cmd(query_file, db_file, pssm_file, args) :
 
-  search_cmd = "%s -num_threads 4 -max_target_seqs 5000 -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' -inclusion_ethresh %f -num_iterations 1 -db %s" % (psiblast_bin, args.evalue, db_file)
+  search_cmd = "%s -num_threads 4 -max_target_seqs 5000 -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' -inclusion_ethresh %f -evalue %f -num_iterations 1 -db %s" % (psiblast_bin, args.pssm_evalue, args.srch_evalue, db_file)
 
   if (pssm_file) :
       search_cmd += " -in_pssm %s" % (pssm_file)
@@ -130,7 +129,7 @@ def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_
   if (prev_sel_res) :
     aln2msa_cmd += " --sel_res %s" % (prev_sel_res)
   else:
-    aln2msa_cmd += " --evalue %f" % (args.evalue)
+    aln2msa_cmd += " --evalue %f" % (args.pssm_evalue)
     
   if (args.int_mask) :
       aln2msa_cmd += " --int_mask_type %s" % (args.int_mask)
@@ -222,7 +221,8 @@ arg_parse.add_argument('--sequence', dest='query_file', action='store',help='que
 arg_parse.add_argument('--db', dest='db_file', action='store',help='sequence database name')
 arg_parse.add_argument('--database', dest='db_file', action='store',help='sequence database name')
 arg_parse.add_argument('--dir', dest='tmp_dir', action='store',help='directory for result and tmp_file output')
-arg_parse.add_argument('--evalue', dest='evalue', default=0.002, type=float, action='store',help='E()-value threshold for inclusion in PSSM')
+arg_parse.add_argument('--pssm_evalue', dest='pssm_evalue', default=0.002, type=float, action='store',help='E()-value threshold for inclusion in PSSM')
+arg_parse.add_argument('--search_evalue', dest='srch_evalue', default=5.0, type=float, action='store',help='E()-value threshold for search display')
 arg_parse.add_argument('--annot_db', dest='annot_type', action='store',help='source of domain annotations')
 arg_parse.add_argument('--suffix', dest='suffix', action='store',help='suffix for result output')
 arg_parse.add_argument('--out_name', dest='file_out', action='store',help='result file name')
@@ -319,7 +319,7 @@ del_err_files = []
 
 # do the first search
 if (not args.prev_m89res):
-  search_str = srch_subs[srch_pgm](args.query_file, args.db_file, args.prev_pssm)
+  search_str = srch_subs[srch_pgm](args.query_file, args.db_file, args.prev_pssm, args)
   log_system(search_str+" > "+this_file_out+" 2> "+this_file_out+".err", error_log)
   del_err_files.append(this_file_out+".err")
   first_iter += 1
@@ -348,7 +348,7 @@ while (it < args.num_iter) :
   if (args.tmp_dir) :
       this_file_out = args.tmp_dir+"/"+this_file_out
 
-  search_str = srch_subs[srch_pgm](args.query_file, args.db_file, prev_pssm)
+  search_str = srch_subs[srch_pgm](args.query_file, args.db_file, prev_pssm, args)
   log_system("%s > %s 2> %s" % (search_str,this_file_out,this_file_out+".err"), error_log)
   del_err_files.append(this_file_out+".err")
 

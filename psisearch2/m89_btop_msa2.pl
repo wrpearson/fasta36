@@ -65,6 +65,7 @@ GetOptions(
     "selected_file_in=s" => \$sel_file,
     "sel_file_in=s" => \$sel_file,
     "sel_file=s" => \$sel_file,
+    "sel_accs=s" => \$sel_file,
     "m_format=s" => \$m_format,
     "mformat=s" => \$m_format,
     "bound_file_in=s" => \$bound_file_in,
@@ -228,7 +229,7 @@ while (my $line = <>) {
   my $annot_f='NULL';
 
   if ($m_format =~ m/^m9/i) {
-    last if $line =~ m/>>>/;
+    last if $line =~ m/>>>/ || $line =~ m/^<\/pre>/;
     next if $line =~ m/^\+\-/; # skip over HSPs
     my ($left, $right, $align_f) = ("","",'NULL');
     ($left, $right, $align_f, $annot_f) = split(/\t/,$line);
@@ -236,16 +237,24 @@ while (my $line = <>) {
     $align_f= 'NULL' unless $align_f;
     $annot_f= 'NULL' unless $annot_f;
 
-    my @fields = split(/\s+/,$left);
-    my ($ldb, $l_id, $l_acc) = ("","","");
-    if ($fields[0] =~ m/:/) {
-      ($ldb, $l_id) = split(/:/,$fields[0]);
-      ($l_acc) = $fields[1];
-    } else {
-      ($ldb, $l_acc,$l_id) = split(/\|/,$fields[0]);
+    if ($left =~ m/<font/) {
+      $left =~ s/<font color="darkred">//;
+      $left =~ s/<\/font>//;
     }
 
+    my @fields = split(/\s+/,$left);
+    $subj_acc = $s_seqid = $fields[0];
+
+    # my ($ldb, $l_id, $l_acc) = ("","","");
+    # if ($fields[0] =~ m/:/) {
+    #   ($ldb, $l_id) = split(/:/,$fields[0]);
+    #   ($l_acc) = $fields[1];
+    # } else {
+    #   ($ldb, $l_acc,$l_id) = split(/\|/,$fields[0]);
+    # }
+
     @hit_data{@m9_field_names} = split(/\s+/,$right);
+
     if ($eval2_fmt) {
       @hit_data{qw(bits evalue eval2)} = @fields[-3, -2,-1];
     }
@@ -256,7 +265,7 @@ while (my $line = <>) {
     #
     # currently preselbdr files have $ldb|$l_acc, not full s_seqid, so construct it
     #
-    ($s_seqid, $subj_acc) = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
+    # ($s_seqid, $subj_acc) = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
     @hit_data{qw(s_seqid subj_acc)} = ($s_seqid, $subj_acc);
     @hit_data{qw(query_id query_acc)} = ($query_descr, $q_acc);
     $hit_data{BTOP} = $align_f;
@@ -266,7 +275,10 @@ while (my $line = <>) {
     last if $line =~ m/^#/;
     @hit_data{@m8_field_names} = split(/\t/,$line);
     $subj_acc = $hit_data{'s_seqid'};
-    $subj_acc =~ s/^gi\|\d+\|(\w+\|\w+)\|?\w+/$1/;
+    # remove gi number
+    if ($subj_acc =~ m/^gi|\d+\|/) {
+      $subj_acc =~ s/^gi\|\d+\|//;
+    }
   }
 
   if ($have_sel_accs) {
