@@ -155,7 +155,7 @@ sub parse_json_up_exons {
     my ($g_begin, $g_end) = ($exon->{'genomeLocation'}{'begin'}{'position'},$exon->{'genomeLocation'}{'end'}{'position'});
 
     my $phase_fix = 0;
-    if (!defined($g_begin) || !defined($g_end)) {
+    if (defined($g_begin) && defined($g_end)) {
       $phase_fix = ($g_end - $g_begin + 1) % 3;
     }
 
