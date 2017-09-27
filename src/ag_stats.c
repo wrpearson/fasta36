@@ -34,11 +34,11 @@ ag_parm(char *pam_type, int gdelval, int ggapval)
       r_v = look_p(p250_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_type,"P120")==0)
       r_v = look_p(p120_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-  else if (strcmp(pam_type,"MD10")==0)
+  else if (strcmp(pam_type,"MD10")==0 || strcmp(pam_type,"VT10")==0)
       r_v = look_p(md10_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-  else if (strcmp(pam_type,"MD20")==0)
+  else if (strcmp(pam_type,"MD20")==0 || strcmp(pam_type,"VT20")==0)
       r_v = look_p(md20_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
-  else if (strcmp(pam_type,"MD40")==0)
+  else if (strcmp(pam_type,"MD40")==0 || strcmp(pam_type,"VT40")==0)
       r_v = look_p(md40_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_type,"DNA")==0 || strcmp(pam_type,"+5/-4")==0)
       r_v = look_p(nt54_p,t_gdelval,t_ggapval,&K,&Lambda,&H);

@@ -6,6 +6,18 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Sept. 26, 2017
+[comp_lib9.c, compacc2e.c]
+Previously, if the query sequence was all lower-case letters (seg-ed)
+and the '-S' option specified, the search would effectively be done
+with a zero-length sequence, which broke the statistics.  The code has
+been modified to convert all lower-case queries to upper-case when -S
+is used.
+
+[scaleswn.c]
+Fixed problem with scaleswn.c/ag_stats() not setting parameters
+properly when matrix was unknown.
+
 >>May 23, 2017 [released as fasta-36.3.8f]
 [url_subs.c]
 A small, but major change in the output available to the $SRCH_URL and

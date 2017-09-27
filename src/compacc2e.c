@@ -4314,3 +4314,28 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
     }
   }
 }
+
+int count_not_seg(unsigned char *aa0, int n0, struct pstruct *ppst) {
+  int i;
+  int nseg_cnt = 0;
+  if (ppst->ext_sq_set != 1) {
+    return n0;
+  }
+  else {
+    for (i=0; i<n0; i++) {
+      if (aa0[i] < ppst->nsq) {nseg_cnt++;}
+    }
+    return nseg_cnt;
+  }
+}
+
+void upper_seq(unsigned char *aa0, int n0, int *xascii, unsigned char *sqx) {
+  int i;
+
+  for (i=0; i<n0; i++) {
+    if (sqx[aa0[i]] >= 'a' && sqx[aa0[i]] <= 'z') {
+      aa0[i] = xascii[sqx[aa0[i]] - ('a' - 'A')];
+    }
+  }
+}
+
