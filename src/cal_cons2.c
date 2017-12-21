@@ -899,7 +899,7 @@ calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, struct f_struct 
 }
 
 static struct update_code_str *
-init_update_data(show_code) {
+init_update_data(int show_code) {
 
   struct update_code_str *update_data_p;
 

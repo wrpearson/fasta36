@@ -159,6 +159,8 @@ extern void ptime (FILE *, long);
 
 #define GETLIB (m_file_p->getlib)
 
+extern void upper_seq(unsigned char *aa0, int n0, int *xascii, unsigned char *sqx);
+
 int samp_stats_idx (int *pre_nstats, int nstats, void *rand_state);
 
 void

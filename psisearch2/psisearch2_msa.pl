@@ -33,12 +33,12 @@ use Pod::Usage;
 ################
 #
 # command:
-# psisearch2_msa.pl --query query.file --db database.file --num_iter N --evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
+# psisearch2_msa.pl --query query.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
 #
 ################
 
-use vars qw( $query_file $db_file $num_iter $evalue $int_mask $end_mask $query_mask $tmp_dir $dom_flag $align_flag $suffix $srch_pgm $file_out $help $shelp $error_log $rm_flag $annot_type $quiet);
-use vars qw( $prev_m89res $prev_sel_res $this_iter $prev_msa $next_msa $prev_hitdb $next_hitdb $prev_pssm $next_pssm $prev_bound $next_bound_out $tmp_file_list $save_all $delete_bnd $delete_tmp);
+use vars qw( $query_file $db_file $num_iter $pssm_evalue $srch_evalue $int_mask $end_mask $query_mask $tmp_dir $dom_flag $align_flag $suffix $srch_pgm $file_out $help $shelp $error_log $rm_flag $annot_type $quiet);
+use vars qw( $prev_m89res $m_format $prev_sel_res $this_iter $prev_msa $next_msa $prev_hitdb $next_hitdb $prev_pssm $next_pssm $prev_bound $next_bound_out $tmp_file_list $save_all $delete_bnd $delete_tmp $use_stdout);
 
 ################
 # locations of required programs:
@@ -53,21 +53,22 @@ my $ssearch_bin = "$pgm_bin/ssearch36";
 my $psiblast_bin = "$pgm_bin/psiblast";
 my $makeblastdb_bin = "$pgm_bin/makeblastdb";
 my $datatool_bin = "$pgm_bin/datatool -m $pgm_data/NCBI_all.asn";
-my $align2msa_lib = "m89_btop_msa2.pl";
+my $align2msa_lib = "$pgm_bin/m89_btop_msa2.pl";
 
 my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
 		 'psiblast' => \&get_psiblast_cmd,
 		);
 
-my %annot_cmds = ('rpd3' => qq("\!../scripts/ann_pfam28.pl --pfacc --db RPD3 --vdoms --split_over"),
-		  'rpd3nv' => qq("\!../scripts/ann_pfam28.pl --pfacc --db RPD3 --split_over"),
-		  'rpd3nvn' => qq("\!../scripts/ann_pfam28.pl --pfacc --db RPD3 --split_over --neg"),
-		  'pfam' => qq("\!../scripts/ann_pfam30.pl --pfacc --vdoms --split_over"));
+my %annot_cmds = ('rpd3' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --vdoms --split_over"),
+		  'rpd3nv' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --split_over"),
+		  'rpd3nvn' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --split_over --neg"),
+		  'pfam' => qq("\!ann_pfam30.pl --vdoms --split_over --neg")
+    );
 
-($num_iter, $evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
-  ( 5, 0.002, 0, 0, 'none', 'none', 0, 'ssearch','',0, 0, "", 0);
+($num_iter, $pssm_evalue, $srch_evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
+  ( 5, 0.002, 5.0, 0, 0, 'none', 'none', 0, 'ssearch','',0, 0, "", 0);
 ($save_all, $tmp_file_list, $delete_bnd, $delete_tmp) = (0, "", 0, 0);
-($prev_m89res, $prev_sel_res, $prev_bound, $this_iter) = ("","","", 1);
+($prev_m89res, $m_format, $prev_sel_res, $prev_bound, $this_iter, $use_stdout) = ("","", "","", 1, 0);
 
 my $pgm_command =  "# ".join(" ",($0,@ARGV));
 print STDERR "# ",join(" ",($0,@ARGV)),"\n" if ($error_log);
@@ -77,13 +78,18 @@ GetOptions(
 	   'db|database=s' => \$db_file,
            'suffix|out_suffix=s' => \$suffix,
     	   'dir=s' => \$tmp_dir,
-	   'evalue=f' => \$evalue,
+	   'pssm_evalue=f' => \$pssm_evalue,
+	   'search_evalue=f' => \$srch_evalue,
 	   'annot_db=s' => \$annot_type,
            'out_name=s' => \$file_out,
+	   'use_stdout' => \$use_stdout,
     	   'this_iter=s' => \$this_iter,
 	   'iter=i' => \$num_iter,
     	   'prev_m89res=s' => \$prev_m89res,
            'sel_res_in=s' => \$prev_sel_res,
+           'sel_accs=s' => \$prev_sel_res,
+           'sel_file=s' => \$prev_sel_res,
+           'sel_file_in=s' => \$prev_sel_res,
 	   # 'in_msa=s' => \$prev_msa,
 	   # 'out_msa=s' => \$next_msa,
 	   # 'in_hitdb=s' => \$prev_hitdb,
@@ -98,6 +104,7 @@ GetOptions(
     	   'query_seed|query_mask' => \$query_mask,
 	   'int_mask|int-mask|int_seed|int-seed=s' => \$int_mask,
 	   'end_mask|end-mask|end_seed|end-seed=s' => \$end_mask,
+	   'm_format=s' => \$m_format,
 	   'pgm=s' => \$srch_pgm,
     	   'quiet' => \$quiet,
     	   'q' => \$quiet,
@@ -130,10 +137,7 @@ if ($query_mask) {
   $end_mask='query' unless $end_mask ne 'none';
 }
 
-if ($delete_tmp) {
-  $delete_bnd = 1;
-}
-elsif ($save_all) {
+if (!$delete_tmp && $save_all) {
   @del_file_ext = ();
   $tmp_file_list = "";
   $delete_bnd = 0
@@ -182,7 +186,12 @@ my @del_err_files = ();
 
 unless ($prev_m89res) {
   $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
-  log_system("$search > $this_file_out 2> $this_file_out.err");
+  unless ($use_stdout) {
+    log_system("$search > $this_file_out 2> $this_file_out.err");
+  }
+  else {
+    log_system("$search 2> $this_file_out.err");
+  }
   push @del_err_files, "$this_file_out.err";
   $first_iter++;
 }
@@ -199,7 +208,7 @@ for (my $it=$first_iter; $it < $num_iter; $it++) {
   ####
   # build the PSSM for the current search
 
-  my ($this_pssm, $this_bound_out) = build_msa_pssm($query_file, $this_file_out, $prev_bound, $prev_sel_res);
+  my ($this_pssm, $this_bound_out) = build_msa_pssm($query_file, $this_file_out, $prev_bound, $prev_sel_res, $m_format);
   $prev_file_out = $this_file_out;
   $prev_sel_res = "";
 
@@ -212,7 +221,12 @@ for (my $it=$first_iter; $it < $num_iter; $it++) {
   $this_file_out = "$tmp_dir/$this_file_out" if ($tmp_dir);
 
   $search = $srch_subs{$srch_pgm}($query_file, $db_file, $this_pssm);
-  log_system("$search > $this_file_out 2> $this_file_out.err");
+  unless ($use_stdout) {
+    log_system("$search > $this_file_out 2> $this_file_out.err");
+  }
+  else {
+    log_system("$search 2> $this_file_out.err");
+  }
   push @del_err_files, "$this_file_out.err";
 
   ####
@@ -239,7 +253,6 @@ if (@del_err_files) {
 }
 
 log_system("rm $prev_bound") if ($delete_bnd);
-
 unless ($quiet) {
   print STDERR "$0 $srch_pgm $query_file $db_file finished ($num_iter iterations)\n";
 }
@@ -263,7 +276,7 @@ sub log_system {
 sub get_ssearch_cmd {
   my ($query_file, $db_file, $pssm_file) = @_;
 
-  my $search_cmd = qq($ssearch_bin -S -m 8CB -d 0 -E "1.0 0" -s BP62);
+  my $search_cmd = qq($ssearch_bin -S -m 6 -m 9B -E "$srch_evalue 0" -s BP62);
   if ($annot_type) {
     $search_cmd .= qq( -V $annot_cmds{$annot_type});
   }
@@ -283,7 +296,7 @@ sub get_ssearch_cmd {
 sub get_psiblast_cmd {
   my ($query_file, $db_file, $pssm_file) = @_;
 
-  my $search_cmd = qq($psiblast_bin -num_threads 4 -max_target_seqs 5000 -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' -inclusion_ethresh $evalue -num_iterations 1 -db $db_file);
+  my $search_cmd = qq($psiblast_bin -num_threads 4 -max_target_seqs 5000 -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' -inclusion_ethresh $pssm_evalue -evalue $srch_evalue -num_iterations 1 -db $db_file);
   if ($pssm_file) {
     $search_cmd .= qq( -in_pssm $pssm_file);
 #    $search_cmd .= qq( -comp_based_stats 0);
@@ -305,7 +318,7 @@ sub get_psiblast_cmd {
 # always produce a $bound_file_out file to test for convergence
 #
 sub build_msa_pssm {
-  my ($query_file, $this_file_out,$prev_bound_in, $prev_sel_in) = @_;
+  my ($query_file, $this_file_out,$prev_bound_in, $prev_sel_in, $m_format) = @_;
 
   my ($this_msa, $this_hit_db, $this_pssm_asntxt, $this_pssm_asnbin, $this_psibl_out, $this_bound_out) =
     ("$this_file_out.msa",
@@ -319,11 +332,15 @@ sub build_msa_pssm {
   my $blastdb_err = "$this_file_out.mkbldb_err";
   my $aln2msa_cmd = qq($align2msa_lib --query $query_file --masked_lib_out=$this_hit_db);
 
+  if ($m_format) {
+    $aln2msa_cmd .= qq( --m_format $m_format);
+  }
+
   if ($prev_sel_in) {
     $aln2msa_cmd .= qq( --sel_file_in $prev_sel_in);
   }
   else {
-    $aln2msa_cmd .= qq( --evalue $evalue);
+    $aln2msa_cmd .= qq( --evalue $pssm_evalue);
   }
 
   if ($int_mask) {
@@ -426,12 +443,19 @@ psisearch2_msa.pl
 
  -h	short help
  --help include description
+
  --query query file  (also --sequence)
  --db    database file (--database)
- --pgm   program used for searching, ssearch or psiblast
- --num_iter maximum number of iterations (--max_iter)
+ --pgm   [ssearch] program used for searching, ssearch or psiblast
+ --num_iter/iter [5] maximum number of iterations (--max_iter)
+
+
+ --this_iter [0] iteration number for tracking
+ --pssm_evalue  [0.002] threshold for inclusion in PSSM
+ --search_evalue [5.0] threshold for inclusion in search display
+ --annot_db [null] (rpd3, rpd3nv, rpd3nvn, pfam)
+
  --dir   working directory and location of output
- --evalue  threshold for inclusion in PSSM
  --out_name/--suffix  result file is "out_name.it#.suffix"
  --in_msa/--out_msa   [not implemented] MSA used to build PSSM, requires --in_hitdb
  --in_hitdb/--out_hitdb [not implemented] used to build PSSM
@@ -445,8 +469,8 @@ psisearch2_msa.pl
 
 =head1 DESCRIPTION
 
-C<psisearch2_msa.pl> automates successive iterations of C<psiblast> or
-C<ssearch36> using different strategies to reduce PSSM contamination
+C<psisearch2_msa.pl> can perform one, or multiple, successive iterations of C<psiblast> or
+C<ssearch36> using different query seeding strategies to reduce PSSM contamination
 from alignment over-extension.  C<psisearch2_msa.pl> uses the
 C<m89_btop_msa2.pl> program to read BTOP formatted output from
 C<psiblast> or C<ssearch36> and produce both a multiple sequence
