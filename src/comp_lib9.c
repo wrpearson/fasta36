@@ -737,7 +737,7 @@ main (int argc, char *argv[])
 
   if (count_not_seg(aa0[0],m_msg.n0, &pst) == 0) { /* if no un-seg'ed query residues, convert to upper case */
     upper_seq(aa0[0],m_msg.n0,qascii,pst.sqx);
-    fprintf(stderr," *** warning *** all lower-case query converted to upper case: %s\n", info_qlabel);
+    fprintf(stderr,"+++ warning [%s:%d] - all lower-case query converted to upper case: %s\n", __FILE__, __LINE__, info_qlabel);
   }
 
 #ifndef COMP_MLIB
@@ -1848,7 +1848,7 @@ main (int argc, char *argv[])
 
     if (count_not_seg(aa0[0],m_msg.n0, &pst) == 0) { /* if no un-seg'ed query residues, convert to upper case */
       upper_seq(aa0[0],m_msg.n0, qascii, pst.sqx);
-      fprintf(stderr," *** warning *** all lower-case query converted to upper case: %s\n", info_qlabel);
+      fprintf(stderr,"+++ warning [%s:%d] - all lower-case query converted to upper case: %s\n", __FILE__, __LINE__, info_qlabel);
     }
 
     if (m_msg.outfd) {fputc('\n',stdout);}

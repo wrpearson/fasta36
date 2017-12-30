@@ -2697,6 +2697,7 @@ zs_to_E(double zs,int n1, int dnaseq, long entries, struct db_str db)
 
 #ifdef NORMAL_DIST
 double np_to_z(double, int *);
+double np1_to_z(double, int *);
 #endif
 
 /* compute z-score for given E()-value, assuming normal or
@@ -2715,7 +2716,7 @@ E_to_zs(double E, long entries)
 #else
   /* this formula does not work for E() >= 1 */
   if (e >= 1.0) e = 0.99;
-  z = np_to_z(1.0-e,&error);
+  z = np1_to_z(e,&error);
   if (!error) return z*10.0 + 50.0;
   else return 0.0;
 #endif
@@ -2955,6 +2956,20 @@ scale_scores(struct beststr **bptr, int nbest, struct db_str db,
        coefficients.   They are included for use in checking
        transcription.
 */
+
+/* added 30-Dec-2017 to deal with very low E()-value thresholds */
+
+double np1_to_z(double p1, int *fault) {
+  double zs1;
+
+  if (p1 < 0.1) {
+    zs1 = np_to_z(p1, fault);
+    return -zs1;
+  }
+  else {
+    return np_to_z(1.0 - p1, fault);
+  }
+}
 
 double np_to_z(double p, int *fault) {
 
