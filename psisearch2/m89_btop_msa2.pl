@@ -50,7 +50,7 @@ use Getopt::Long;
 
 
 my ($shelp, $help, $m_format, $evalue, $qvalue, $domain_bound) = (0, 0, "m8CB", 0.001, 30.0,0);
-my ($query_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out,$mask_type_end, $mask_type_int) = ("","","","","","","");
+my ($query_file, $sel_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out,$mask_type_end, $mask_type_int) = ("","","","","","","","");
 my $query_lib_r = 0;
 my ($eval2_fmt, $eval2) = (0,"");
 
@@ -62,6 +62,9 @@ GetOptions(
     "expect=f" => \$evalue,
     "qvalue=f" => \$qvalue,
     "format=s" => \$m_format,
+    "selected_file_in=s" => \$sel_file,
+    "sel_file_in=s" => \$sel_file,
+    "sel_file=s" => \$sel_file,
     "m_format=s" => \$m_format,
     "mformat=s" => \$m_format,
     "bound_file_in=s" => \$bound_file_in,
@@ -118,6 +121,30 @@ if ($query_file) {
 
 if (! $query_file || !$query_len) {
   die "query sequence required";
+}
+
+my %sel_accs = ();
+my $have_sel_accs = 0;
+if ($sel_file) {
+  if (open (my $sfd, $sel_file)) {
+    while (my $line = <$sfd>) {
+      chomp $line;
+      next if $line =~ m/^#/;
+      if ($line =~ m/\t/) {
+	my @data = split(/\t/,$line);
+	$sel_accs{$data[0]} = $data[1];
+      }
+      else {
+	$sel_accs{$line} = 1;
+      }
+    }
+    close($sfd);
+    $evalue = 1000000.0;
+    $have_sel_accs = 1;
+  }
+  else {
+    warn "Cannot open selected sequence file: $sel_file";
+  }
 }
 
 push @multi_names, $query_acc;
@@ -240,6 +267,10 @@ while (my $line = <>) {
     @hit_data{@m8_field_names} = split(/\t/,$line);
     $subj_acc = $hit_data{'s_seqid'};
     $subj_acc =~ s/^gi\|\d+\|(\w+\|\w+)\|?\w+/$1/;
+  }
+
+  if ($have_sel_accs) {
+    next unless ($sel_accs{$hit_data{'s_seqid'}});
   }
 
   # a better solution would be to rename the q_seqid, or at least to
