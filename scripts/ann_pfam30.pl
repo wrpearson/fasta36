@@ -147,9 +147,9 @@ SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfam
   FROM $pfamA_reg_full
   JOIN pfamseq using(pfamseq_acc)
   JOIN pfamA USING (pfamA_acc)
-  JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=pfamseq_acc)
+  JOIN uniprot.up2ref_acc as up2ref on(up2ref.acc=pfamseq_acc)
  WHERE in_full = 1
-   AND rf2up.refseq_acc=?
+   AND up2ref.ref_acc=?
  ORDER BY seq_start
 
 EOSQL
@@ -159,9 +159,9 @@ SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfam
 FROM uniprot
 JOIN uniprot_reg_full using(uniprot_acc)
 JOIN pfamA USING (pfamA_acc)
-JOIN uniprot.refseq2up as rf2up on(rf2up.up_acc=uniprot_acc)
+JOIN uniprot.up2ref_acc as up2ref on(up2ref.acc=uniprot_acc)
 WHERE in_full = 1
-AND  refseq_acc=?
+AND  ref_acc=?
 ORDER BY seq_start
 
 EOSQL
