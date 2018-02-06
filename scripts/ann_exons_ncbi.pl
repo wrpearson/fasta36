@@ -4,13 +4,13 @@
 
 # gi|23065544|ref|NP_000552.2| 
 #
-# and returns the exons present in the protein from NCBI gff3 tables (human and mouse only)
+# and returns the exons present in the protein from NCBI gff3 tables (human, mouse, rat, xtrop)
 #
 # it must:
 # (1) read in the line
 # (2) parse it to get the acc
 # (3) return the tab delimited exon boundaries
-
+#
 
 use strict;
 

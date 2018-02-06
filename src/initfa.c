@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8f May, 2017 MPI";
+char *verstr="36.3.8g Dec, 2017 MPI";
 #else
-char *verstr="36.3.8f May, 2017";
+char *verstr="36.3.8g Dec, 2017";
 #endif
 
 static int mktup=3;
@@ -1100,7 +1100,7 @@ f_getopt (char copt, char *optarg,
     m_msg->e_cut_set = 1;
 
     if (tmp_e_rep > 0.0) {
-      if (tmp_e_rep >= 1.0) { ppst->e_cut_r = ppst->e_cut/tmp_e_rep;}
+      if (tmp_e_rep >= 1.0) { ppst->e_cut_r = ppst->e_cut / tmp_e_rep;}
       else { ppst->e_cut_r = tmp_e_rep;}
     }
     break;

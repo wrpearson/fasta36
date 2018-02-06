@@ -149,9 +149,41 @@ sub parse_json_up_exons {
   my $acc_exons = decode_json($exon_json);
 
   my $exon_num = 1;
+  my $last_end = 0;
+  my $last_phase = 0;
+
   for my $exon ( @{$acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'exon'}} ) {
     my ($p_begin, $p_end) = ($exon->{'proteinLocation'}{'begin'}{'position'},$exon->{'proteinLocation'}{'end'}{'position'});
+    my ($g_begin, $g_end) = ($exon->{'genomeLocation'}{'begin'}{'position'},$exon->{'genomeLocation'}{'end'}{'position'});
+
+    my $this_phase = 0;
+    if (defined($g_begin) && defined($g_end)) {
+      $this_phase = ($g_end - $g_begin + 1) % 3;
+    }
+
+    if (!defined($p_begin) || !defined($p_end)) {
+      $exon_num++;
+      $last_phase = 0;
+      next;
+    }
+
     if ($p_end >= $p_begin) {
+      if ($p_begin == $last_end) {
+	if ($last_phase==2) {
+	  $p_begin += 1;
+	}
+	elsif ($last_phase==1) {
+	  $last_end -= 1;
+	  $exons[-1]->{seq_end} -= 1;
+	}
+      }
+
+      if ($p_begin <= $last_end && $p_end > $last_end) {
+	$p_begin = $last_end+1;
+      }
+      $last_end = $p_end;
+      $last_phase = $this_phase;
+
       push @exons, {
 		    info=>"exon_".$exon_num.$color_sep_str.$exon_num,
 		    seq_start=>$p_begin,

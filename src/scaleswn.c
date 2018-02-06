@@ -677,18 +677,16 @@ proc_hist_a(struct stat_str *sptr, int nstats, struct score_count_s s_info,
     }
   }
 
-  if (r_v == 1) {
-    pu->r_u.ag.Lambda = Lambda;
-    pu->r_u.ag.K = K;
-    pu->r_u.ag.H = H;
-  }
-  else {
+  if (r_v != 1) {
       r_v = look_p(bl62_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
 #ifdef DEBUG
     fprintf(stderr,"+++ Warning : [%s:%d] Parameters not available for: %s: %d/%d -- using BL62\n",
 	    __FILE__, __LINE__, ppst->pam_name,t_gdelval-t_ggapval,t_ggapval);
 #endif
   }
+  pu->r_u.ag.Lambda = Lambda;
+  pu->r_u.ag.K = K;
+  pu->r_u.ag.H = H;
 
   /*
     fprintf(stderr," the parameters are: Lambda: %5.3f K: %5.3f H: %5.3f\n",
@@ -717,11 +715,11 @@ ag_parm(char *pam_name, int gdelval, int ggapval, struct pstat_str *pu)
       r_v = look_p(p250_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"P120")==0)
       r_v = look_p(p120_p,gdelval,ggapval,&K,&Lambda,&H);
-  else if (strcmp(pam_name,"MD10")==0)
+  else if (strcmp(pam_name,"MD10")==0 || strcmp(pam_name,"VT10")==0)
       r_v = look_p(md10_p,gdelval,ggapval,&K,&Lambda,&H);
-  else if (strcmp(pam_name,"MD20")==0)
+  else if (strcmp(pam_name,"MD20")==0 || strcmp(pam_name,"VT20")==0)
       r_v = look_p(md20_p,gdelval,ggapval,&K,&Lambda,&H);
-  else if (strcmp(pam_name,"MD40")==0)
+  else if (strcmp(pam_name,"MD40")==0 || strcmp(pam_name,"VT40")==0)
       r_v = look_p(md40_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"DNA")==0 || strcmp(pam_name,"+5/-4")==0)
       r_v = look_p(nt54_p,gdelval,ggapval, &K,&Lambda,&H);
@@ -2699,6 +2697,7 @@ zs_to_E(double zs,int n1, int dnaseq, long entries, struct db_str db)
 
 #ifdef NORMAL_DIST
 double np_to_z(double, int *);
+double np1_to_z(double, int *);
 #endif
 
 /* compute z-score for given E()-value, assuming normal or
@@ -2717,7 +2716,7 @@ E_to_zs(double E, long entries)
 #else
   /* this formula does not work for E() >= 1 */
   if (e >= 1.0) e = 0.99;
-  z = np_to_z(1.0-e,&error);
+  z = np1_to_z(e,&error);
   if (!error) return z*10.0 + 50.0;
   else return 0.0;
 #endif
@@ -2957,6 +2956,20 @@ scale_scores(struct beststr **bptr, int nbest, struct db_str db,
        coefficients.   They are included for use in checking
        transcription.
 */
+
+/* added 30-Dec-2017 to deal with very low E()-value thresholds */
+
+double np1_to_z(double p1, int *fault) {
+  double zs1;
+
+  if (p1 < 0.1) {
+    zs1 = np_to_z(p1, fault);
+    return -zs1;
+  }
+  else {
+    return np_to_z(1.0 - p1, fault);
+  }
+}
 
 double np_to_z(double p, int *fault) {
 

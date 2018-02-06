@@ -6,7 +6,7 @@ Changes in **fasta-36.3.8d** released 13-April-2016:
 
 1. Various bug fixes to `pssm_asn_subs.c` that avoid coredumps when
    reading NCBI PSSM ASN.1 binary files.  `pssm_asn_subs.c` can now read
-   UUPACAA sequences.
+   IUPACAA sequences.
 
 2. default gap penalties for VT40 (from -14/-2 to -13/-1), VT80 (from
    -14/-2 to -11/-1), and VT120 (from -10/-1 to 11/-1) have changed

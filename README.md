@@ -12,9 +12,26 @@ includes programs for aligning translated DNA sequences against
 proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
 `tfasty` are similar to `tblastn`).
 
-####September, 2016
+####December, 2017
+The current FASTA version is fasta-36.3.8f, Dec. 2017
 
-The current FASTA version is fasta-36.3.8e.
+The statistics routines for normally distributed scores (ggsearch36,
+glsearch36) are more robust to very low E()-value thresholds.
+
+####Sept, 2017
+The current FASTA version is fasta-36.3.8f, Sept. 2017
+
+If the -S option is used and a query sequence has no upper case
+letters, it is re-read with lower-case letters converted to upper-case.
+
+####May, 2017
+The current FASTA version is fasta-36.3.8f, May. 2017
+
+Various bugs in sub-alignment scoring corrected and support for the
+EBI SP:GSTM1_HUMAN P09488 added.  The format for the $SRCH_URL and
+$SRCH_URL2 format strings has changed to enable pairwise alignment.
+
+####September, 2016
 
 The fasta-36.3.6e version includes a new directory, `psisearch2`, with
 scripts to run iterative PSSM (PSI-BLAST or SSEARCH36) searches using
