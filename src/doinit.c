@@ -297,6 +297,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    m_msp->nmlen = DEF_NMLEN;
    m_msp->z_bits = 1;
    m_msp->tot_ident = 0;
+   m_msp->blast_ident = 0;
    m_msp->mshow_set = 0;
    m_msp->mshow_min = 0;
    m_msp->aln.llen = 60;

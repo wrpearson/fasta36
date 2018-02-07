@@ -6,6 +6,12 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Feb. 6, 2018
+[initfa.c, doinit.c, mshowbest.c, mshowalign2.c]
+Add a new extended option, -XB, which causes percent identity, percent
+similarity, and alignment length to be presented using the BLAST
+model, which does not count gaps in the alignment length.
+
 >>Dec. 30, 2017  [released as fasta-36.3.8g]
 [scaleswn.c]
 Replace np_to_z() with np1_to_z(), which does not substract low

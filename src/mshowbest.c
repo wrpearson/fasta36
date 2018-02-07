@@ -137,7 +137,8 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct rstruct rst;
   int l_score0, ngap;
   double lzscore, lzscore2, lbits;
-  float percent, gpercent, ng_percent;
+  float percent, gpercent, ng_percent, disp_percent, disp_similar;
+  int disp_alen;
   struct a_struct *aln_p;
   struct a_res_str *cur_ares_p;
   struct rstruct *rst_p;
@@ -537,13 +538,20 @@ l1:
 	annot_str_len = cur_ares_p->annot_code_n;
 
 	ngap = cur_ares_p->aln.ngap_q + cur_ares_p->aln.ngap_l;
-        percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
+        disp_percent = percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
         ng_percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
+	disp_similar = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
+	disp_alen = aln_p->lc;
+	if (m_msp->blast_ident) {
+	  disp_percent = ng_percent;
+	  disp_similar = calc_fpercent_id(100.0, cur_ares_p->aln.npos, aln_p->lc - ngap, m_msp->tot_ident, -100.0);
+	  disp_alen = aln_p->lc - ngap;
+	}
 
 #ifndef SHOWSIM
-	gpercent = calc_fpercent_id(100.0, aln_p->nident, aln_p->lc-ngap, m_msp->tot_ident, -100.0);
+	gpercent = ng_percent;
 #else
-	gpercent = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
+	gpercent = disp_similar;
 #endif	/* SHOWSIM */
 
 	if (m_msp->show_code != SHOW_CODE_ID && m_msp->show_code != SHOW_CODE_IDD) {	/* show more complete info than just identity */
@@ -564,9 +572,9 @@ l1:
 	  /*                    sequence coordinate    min  max            min  max */
 	  if (!(m_msp->markx & MX_M8OUT)) {
 	    fprintf(fp,"\t%5.3f %5.3f %4d %4d %4ld %4ld %4ld %4ld %4ld %4ld %4ld %4ld %3d %3d %3d",
-		    percent/100.0,gpercent/100.0, 
+		    disp_percent/100.0,gpercent/100.0, 
 		    cur_ares_p->sw_score,
-		    aln_p->lc,
+		    disp_alen,
 		    aln_p->d_start0,aln_p->d_stop0,
 		    aln_p->q_start_off, aln_p->q_end_off,
 		    aln_p->d_start1,aln_p->d_stop1,
@@ -582,7 +590,7 @@ l1:
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
 	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
-		    ng_percent,aln_p->lc,aln_p->nmismatch,
+		    ng_percent,aln_p->lc-ngap,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,
@@ -603,10 +611,9 @@ l1:
 	else {	/* !SHOW_CODE -> SHOW_ID or SHOW_IDD*/
 #ifdef SHOWSIM
 	  fprintf(fp," %5.3f %5.3f %4d", 
-		  percent/100.0,
-		  (float)aln_p->nsim/(float)aln_p->lc,aln_p->lc);
+		  disp_percent/100.0,disp_similar/100.0,disp_alen);
 #else
-	  fprintf(fp," %5.3f %4d", percent/100.0,aln_p->lc);
+	  fprintf(fp," %5.3f %4d", disp_percent/100.0,disp_alen);
 #endif
 	  if (m_msp->markx & MX_HTML) {
 	    if (cur_ares_p->index > 0) {
