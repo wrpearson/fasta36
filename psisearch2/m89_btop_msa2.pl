@@ -765,7 +765,7 @@ sub skip_to_m9results {
   my ($q_num, $query_desc, $q_start, $q_stop, $q_len, $l_num, $l_len, $best_yes);
 
   while (my $line = <>) {
-    if ($line =~ m/^\s*(\d+)>>>(\S+)\s\.*\- (\d+) aa$/) {
+    if ($line =~ m/^\s*(\d+)>>>(\S+)\s.*\- (\d+) aa$/) {
       ($q_num,$query_desc, $q_len) = ($1,$2,$3);
 #      ($q_len) = ($line =~ m/(\d+) aa$/);
       $line = <>;	# skip Library:
