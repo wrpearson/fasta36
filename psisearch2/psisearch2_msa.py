@@ -52,6 +52,7 @@ psiblast_bin = pgm_bin+"/psiblast"
 makeblastdb_bin = pgm_bin+"/makeblastdb"
 datatool_bin = "%s/datatool -m %s/NCBI_all.asn" % (pgm_bin,pgm_data)
 align2msa_lib = "m89_btop_msa2.pl"
+clustal2fasta = "clustal2fasta.py"
 
 annot_cmds = {'rpd3': '"!../scripts/ann_pfam28.pl --pfacc --db RPD3 --vdoms --split_over"',
               'rpd3nv':'"!../scripts/ann_pfam28.pl --pfacc --db RPD3 --split_over"',
@@ -59,13 +60,12 @@ annot_cmds = {'rpd3': '"!../scripts/ann_pfam28.pl --pfacc --db RPD3 --vdoms --sp
 
 num_iter = 5
 srch_pgm = 'ssearch'
-error_log = 0
 rm_flag = 0
 quiet = 0
 
 ################
 # log_system()
-# run system on string, logging first if error_log
+# run system on string, logging first if args.error_log
 #
 def log_system (cmd, error_log):
 
@@ -141,7 +141,10 @@ def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_
     aln2msa_cmd += " --domain"
 
   if (args.align_flag and args.prev_bound_in) :
-      aln2msa_cmd += " --bound_file_in %s" %(args.prev_bound_in)
+    aln2msa_cmd += " --bound_file_in %s" %(args.prev_bound_in)
+
+  if (args.m_format):
+    aln2msa_cmd += " --m_format %s" % (args.m_format)
 
   # always produce this file to check for convergence
   aln2msa_cmd += " --bound_file_out %s" % (this_bound_out)
@@ -168,6 +171,46 @@ def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_
       return (this_pssm_asnbin, this_bound_out)
   else :
       return (this_pssm_asntxt, this_bound_out)
+
+################
+# sub pssm_from_msa
+# read multiple sequence alignment, produce pssm file
+#
+def pssm_from_msa(query_file, msa_file, error_log):
+
+  this_file_out = query_file
+
+  this_hit_db = this_file_out+".hit_db"
+  this_pssm_asntxt = this_file_out+".asntxt"
+  this_pssm_asnbin = this_file_out+".asnbin"
+  this_psibl_out = this_file_out+".psibl_out"
+  this_bound_out = this_file_out+".bnd_out"
+
+  blastdb_err = this_file_out + ".mkbldb_err"
+
+  clus2fa_cmd = "%s %s > %s" % (clustal2fasta, msa_file, this_hit_db)
+
+  log_system(clus2fa_cmd, error_log);
+
+  makeblastdb_cmd = "%s -in %s -dbtype prot -parse_seqids > %s" % (makeblastdb_bin, this_hit_db, blastdb_err);
+  log_system(makeblastdb_cmd, error_log);
+
+  built_pssm_cmd = "%s -max_target_seqs 5000 -outfmt 7 -inclusion_ethresh 100.0 -in_msa %s -db %s -out_pssm %s -num_iterations 1 -save_pssm_after_last_round" % (psiblast_bin, msa_file, this_hit_db, this_pssm_asntxt)
+
+  log_system("%s > %s 2> %s.err" % (buildpssm_cmd, this_psibl_out, this_psibl_out), error_log)
+
+  log_system("rm %s.p* %s" % (this_hit_db,blastdb_err), error_log)
+
+  # remove uninformative error logs
+  if (not error_log):
+    log_system("rm %s.err" % (this_psibl_out), error_log)
+
+  if (srch_pgm != 'psiblast'):
+    asn2asn_cmd = "%s -v %s -e %s" % (datatool_bin, this_pssm_asntxt, this_pssm_asnbin)
+    log_system(asn2asn_cmd, error_log);
+    return this_pssm_asnbin
+  else:
+    return this_pssm_asntxt
 
 ################
 # sub has_converged()
@@ -211,10 +254,6 @@ def has_converged(file1, file2) :
 srch_subs = {'ssearch' : get_ssearch_cmd,
 	     'psiblast': get_psiblast_cmd}
 
-pgm_command =  "# "+" ".join(sys.argv);
-if (error_log) :
-    sys.stderr.write('pgm_command\n')
-
 arg_parse = argparse.ArgumentParser(description='Iterative search with SSEARCH/PSIBLAST')
 arg_parse.add_argument('--query', dest='query_file', action='store',help='query sequence file')
 arg_parse.add_argument('--sequence', dest='query_file', action='store',help='query sequence file')
@@ -223,6 +262,7 @@ arg_parse.add_argument('--database', dest='db_file', action='store',help='sequen
 arg_parse.add_argument('--dir', dest='tmp_dir', action='store',help='directory for result and tmp_file output')
 arg_parse.add_argument('--pssm_evalue', dest='pssm_evalue', default=0.002, type=float, action='store',help='E()-value threshold for inclusion in PSSM')
 arg_parse.add_argument('--search_evalue', dest='srch_evalue', default=5.0, type=float, action='store',help='E()-value threshold for search display')
+arg_parse.add_argument('--m_format', dest='m_format', action='store',help='input result format m8 [def] or m9')
 arg_parse.add_argument('--annot_db', dest='annot_type', action='store',help='source of domain annotations')
 arg_parse.add_argument('--suffix', dest='suffix', action='store',help='suffix for result output')
 arg_parse.add_argument('--out_name', dest='file_out', action='store',help='result file name')
@@ -234,6 +274,7 @@ arg_parse.add_argument('--align', dest='align_flag', default=0, action='store_tr
 arg_parse.add_argument('--pgm', dest='srch_pgm', action='store',default='ssearch',help='search program: ssearch/psiblast')
 arg_parse.add_argument('--query_seed', dest='query_mask', action='store_true',help='use query seeding')
 arg_parse.add_argument('--prev_m89res', dest='prev_m89res', action='store', help='prevous iteration result')
+arg_parse.add_argument('--prev_msa', dest='prev_msa', action='store', help='prevous MSA')
 arg_parse.add_argument('--sel_res', dest='prev_sel_res', action='store', help='selected accession file')
 arg_parse.add_argument('--this_iter', dest='this_iter', help='this iteration number',type=int)
 arg_parse.add_argument('--int_seed', dest='int_mask', action='store',default='none',help='sequence masking: none/query/random')
@@ -244,10 +285,17 @@ arg_parse.add_argument('--save_list', dest='tmp_file_list', action='store',help=
 arg_parse.add_argument('--save_all', dest='save_all', action='store_true',help='save all temporary files')
 arg_parse.add_argument('--delete_all', dest='delete_tmp', action='store_true',help='delete all temporary files')
 arg_parse.add_argument('--delete_bnd', dest='delete_bnd', action='store_true',help='delete boundary temporary file')
+arg_parse.add_argument('--use_stdout', dest='use_stdout', action='store_true',help='send results to stdout',default=False)
+arg_parse.add_argument('--errors', dest='error_log', action='store_true', help='log errors', default=False)
 arg_parse.add_argument('--quiet', dest='quiet', action='store_true',help='fewer messages')
 arg_parse.add_argument('-Q', dest='quiet', action='store_true',help='fewer messages')
 
 args = arg_parse.parse_args()
+
+pgm_command =  "# "+" ".join(sys.argv);
+if (args.error_log) :
+    sys.stderr.write('pgm_command\n')
+
 if (args.quiet) :
     quiet = args.quiet
 
@@ -318,14 +366,27 @@ first_iter = 0
 del_err_files = []
 
 # do the first search
-if (not args.prev_m89res):
+if (not (args.prev_m89res or args.prev_msa)):
   search_str = srch_subs[srch_pgm](args.query_file, args.db_file, args.prev_pssm, args)
-  log_system(search_str+" > "+this_file_out+" 2> "+this_file_out+".err", error_log)
+  if (not args.use_stdout):
+    log_system(search_str+" > "+this_file_out+" 2> "+this_file_out+".err", args.error_log)
+  else:
+    log_system(search_str + " 2> "+this_file_out+".err", args.error_log)
   del_err_files.append(this_file_out+".err")
   first_iter += 1
-else:
+elif (args.prev_m89res):
   this_file_out = args.prev_m89res
+elif (args.prev_msa):
+# build a PSSM, do a search, up the iteration count
+  prev_pssm  = pssm_from_msa(query_file, prev_msa, args.error_log)
+  search_str = srch_subs[srch_pgm](args.query_file, args.db_file, args.prev_pssm, args)
+  if (not args.use_stdout):
+    log_system(search_str + "> " + this_file_out + " 2> " + this_file_out + ".err", args.error_log);
+  else:
+    log_system(search_str + " 2> " + this_file_out + ".err");
 
+  del_err_files.append(this_file_out+".err")
+  first_iter += 1
 
 it=first_iter
 
@@ -333,9 +394,9 @@ it=first_iter
 
 while (it < args.num_iter) :
 
-  (this_pssm, this_bound_out) = build_msa_pssm(args.query_file, this_file_out, prev_bound_in, arg.prev_sel_res,  error_log)
+  (this_pssm, this_bound_out) = build_msa_pssm(args.query_file, this_file_out, prev_bound_in, args.prev_sel_res, args.error_log)
   prev_file_out = this_file_out
-  arg.prev_sel_res = ''
+  args.prev_sel_res = ''
 
   iter_val = this_iter + it
 
@@ -349,12 +410,12 @@ while (it < args.num_iter) :
       this_file_out = args.tmp_dir+"/"+this_file_out
 
   search_str = srch_subs[srch_pgm](args.query_file, args.db_file, prev_pssm, args)
-  log_system("%s > %s 2> %s" % (search_str,this_file_out,this_file_out+".err"), error_log)
+  log_system("%s > %s 2> %s" % (search_str,this_file_out,this_file_out+".err"), args.error_log)
   del_err_files.append(this_file_out+".err")
 
   if (len(del_file_ext)):
       del_file_list = [ prev_file_out+'.'+ext for ext in del_file_ext]
-      log_system('rm '+' '.join(del_file_list),error_log)
+      log_system('rm '+' '.join(del_file_list),args.error_log)
 
   if (has_converged(prev_bound_in, this_bound_out)) :
       if (not quiet) :
@@ -362,28 +423,28 @@ while (it < args.num_iter) :
 
       # if (len(del_file_ext)):
       #     del_file_list = [ prev_file_out+'.'+ext for ext in del_file_ext]
-      #     log_system('rm '+' '.join(del_file_list),error_log)
+      #     log_system('rm '+' '.join(del_file_list),args.error_log)
 
       if (delete_bnd) :
-          log_system("rm "+prev_bound_in,error_log)
+          log_system("rm "+prev_bound_in,args.error_log)
 
       exit(0)
 
   if (delete_bnd) :
-      log_system("rm "+prev_bound_in,error_log)
+      log_system("rm "+prev_bound_in,args.error_log)
   prev_bound_in = this_bound_out
 
   it += 1
 
 if (len(del_err_files)):
-  log_system('rm '+' '.join(del_err_files),error_log)
+  log_system('rm '+' '.join(del_err_files),args.error_log)
 
 # if (len(del_file_ext)):
 #     del_file_list = [ prev_file_out+'.'+ext for ext in del_file_ext]
-#     log_system('rm '+' '.join(del_file_list),error_log)
+#     log_system('rm '+' '.join(del_file_list),args.error_log)
 
 if (delete_bnd):
-    log_system("rm "+this_bound_out,error_log)
+    log_system("rm "+this_bound_out,args.error_log)
 
 if (not quiet) :
     sys.stderr.write(" %s %s %s %s finished (%d iterations)\n" % (sys.argv[0], srch_pgm, query_file, args.db_file, it))
