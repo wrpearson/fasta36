@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# copyright (c) 2014,2015 by William R. Pearson and The Rector &
+# copyright (c) 2015 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,8 +90,8 @@ GetOptions(
     "RPD2" => \$rpd2_fams,
     "auto_reg" => \$auto_reg,
     "h|?" => \$shelp,
-    "help" => \$help,
-    );
+    "help" => \$help, 
+   );
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;

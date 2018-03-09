@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# copyright (c) 2014,2015 by William R. Pearson and The Rector &
+# copyright (c) 2018 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +32,12 @@ GetOptions(
     "h|?" => \$shelp,
     "help" => \$help,
      );
+
+pod2usage(1) if $shelp;
+pod2usage(exitstatus => 0, verbose => 2) if $help;
+unless (-f STDIN || -p STDIN || @ARGV) {
+ pod2usage(1);
+}
 
 # require a btab file
 
@@ -115,6 +121,7 @@ sub parse_annots {
 
   for my $annot ( @annots ) {
     my %annot_data = ();
+    next unless ($annot =~ m/^[XR][RX]/);
     my @a_fields = split(/;/,$annot);
     for my $f (@a_fields) {
       if ($f =~ m/^[XR][XR]/) {
@@ -179,27 +186,27 @@ __END__
 
 =head1 NAME
 
-merge_blast_annot.pl
+merge_blast_btab.pl
 
 =head1 SYNOPSIS
 
-merge_blast_annot.pl --btab_file=result.b_tab result.html
+merge_blast_btab.pl --btab_file=result.b_tab result.html
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
 
- --btab_file|--btab file_name  -- blast tabular output file with domains
+ --btab_file|--btab file_name -- blast tabular output file with
+   sub-alignment scoring
 
 =head1 DESCRIPTION
 
-C<merge_blast_annot.pl> merges the domain annotations and sub-alignment scoring from C<annot_blast_btop2.pl> blast tabular output file with a conventional blast result file.
+C<merge_blast_btab.pl> merges the domain annotations and sub-alignment scoring from C<annot_blast_btop2.pl> blast tabular output file with a conventional blast result file.
 
 The tab file is read and parsed, and then the subject/query seqid is used to
 capture domain locations in the subject/query sequence.  If the domains
-overlap the aligned region, the domain names are appended to the
-intput.
+overlap the aligned region, the domain names are appended to the output.
 
 =head1 AUTHOR
 

@@ -6,6 +6,17 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Mar. 9, 2018
+[scripts/annot_blast_btop2.pl, merge_blast_btab.pl, blastp_annot_cmd.sh]
+Code is now in place to provide sub-alignment scoring using domain
+annotations with blastp searches (BLOSUM62 only).  blastp_annot_cmd.sh
+runs blast and produces both a standard HTML and a tabular output
+file.  It then runs annot_blast_btop2.pl to add sub-alignment scoring
+to the tabular ouput file, and then merge_blast_btab.pl merges the
+domain-annotated blast tabular file with the HTML output file.  When
+combined in this way, the FASTA web server (fasta.bioch.virginia.edu)
+can produce blastp searches with domain highlights/scoring.
+
 >>Feb. 6, 2018
 [initfa.c, doinit.c, mshowbest.c, mshowalign2.c]
 Add a new extended option, -XB, which causes percent identity, percent

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# copyright (c) 2014,2015 by William R. Pearson and The Rector &
+# copyright (c) 2017,2018 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,7 +97,6 @@ my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_s
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
 if ($show_raw) {
   push @out_tab_fields, "raw_score";
-
 }
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
@@ -416,7 +415,6 @@ sub init_blosum62 {
   $blosum62[21] = [ qw( -1  0  0  1 -3  3  4 -2  0 -3 -3  1 -1 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4) ];
   $blosum62[22] = [ qw(  0 -1 -1 -1 -2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -2  0  0 -2 -1 -1 -1 -1 -1 -4) ];
   $blosum62[23] = [ qw( -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1) ];
-
 
   die "blosum62 length mismatch $#blosum62 != $#ncbi_blaa" if (scalar(@blosum62) != scalar(@ncbi_blaa));
 
