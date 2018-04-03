@@ -33,7 +33,7 @@ use Pod::Usage;
 ################
 #
 # command:
-# psisearch2_msa.pl --query query.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
+# psisearch2_msa.pl --query query.file --in_msa msa.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
 #
 ################
 
@@ -54,6 +54,7 @@ my $psiblast_bin = "$pgm_bin/psiblast";
 my $makeblastdb_bin = "$pgm_bin/makeblastdb";
 my $datatool_bin = "$pgm_bin/datatool -m $pgm_data/NCBI_all.asn";
 my $align2msa_lib = "$pgm_bin/m89_btop_msa2.pl";
+my $clustal2fasta = "$pgm_bin/clustal2fasta.pl";
 
 my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
 		 'psiblast' => \&get_psiblast_cmd,
@@ -62,7 +63,7 @@ my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
 my %annot_cmds = ('rpd3' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --vdoms --split_over"),
 		  'rpd3nv' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --split_over"),
 		  'rpd3nvn' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --split_over --neg"),
-		  'pfam' => qq("\!ann_pfam30.pl --vdoms --split_over --neg")
+		  'pfam' => qq("\!ann_pfam30.pl --db pfam31_qfo --vdoms --split_over --neg")
     );
 
 ($num_iter, $pssm_evalue, $srch_evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
@@ -90,7 +91,7 @@ GetOptions(
            'sel_accs=s' => \$prev_sel_res,
            'sel_file=s' => \$prev_sel_res,
            'sel_file_in=s' => \$prev_sel_res,
-	   # 'in_msa=s' => \$prev_msa,
+	   'in_msa=s' => \$prev_msa,
 	   # 'out_msa=s' => \$next_msa,
 	   # 'in_hitdb=s' => \$prev_hitdb,
 	   # 'out_hitdb=s' => \$next_hitdb,
@@ -184,7 +185,7 @@ my $search = "";
 
 my @del_err_files = ();
 
-unless ($prev_m89res) {
+unless ($prev_m89res || $prev_msa) {
   $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
   unless ($use_stdout) {
     log_system("$search > $this_file_out 2> $this_file_out.err");
@@ -195,8 +196,21 @@ unless ($prev_m89res) {
   push @del_err_files, "$this_file_out.err";
   $first_iter++;
 }
-else {
+elsif ($prev_m89res) {
   $this_file_out = $prev_m89res;
+}
+elsif ($prev_msa) {
+# build a PSSM, do a search, up the iteration count
+  $prev_pssm  = pssm_from_msa($query_file, $prev_msa);
+  $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);  
+  unless ($use_stdout) {
+    log_system("$search > $this_file_out 2> $this_file_out.err");
+  }
+  else {
+    log_system("$search 2> $this_file_out.err");
+  }
+  push @del_err_files, "$this_file_out.err";
+  $first_iter++;
 }
 
 my ($this_pssm, $this_bound_out) = ("","");
@@ -384,6 +398,56 @@ sub build_msa_pssm {
   }
   else {
     return ($this_pssm_asntxt, $this_bound_out);
+  }
+}
+
+################
+# pssm_from_msa()
+#
+# given query, --in_msa Clustal MSA
+# use psiblast to generate PSSM in .asntxt or .asnbin format
+# (later - optionally deletes intermediate files)
+#
+# always produce a $bound_file_out file to test for convergence
+#
+sub pssm_from_msa {
+  my ($query_file, $msa_file) = @_;
+
+  my $this_file_out = $query_file;
+
+  my ($this_hit_db, $this_pssm_asntxt, $this_pssm_asnbin, $this_psibl_out, $this_bound_out) =
+    ("$this_file_out.hit_db",
+     "$this_file_out.asntxt",
+     "$this_file_out.asnbin",
+     "$this_file_out.psibl_out",
+     "$this_file_out.bnd_out",
+    );
+
+  my $blastdb_err = "$this_file_out.mkbldb_err";
+  ## should not need this, but may need to convert in_msa file to fasta file for equivalence to build_msa_pssm()
+  my $clus2fa_cmd = qq($clustal2fasta $msa_file > $this_hit_db);
+
+  log_system($clus2fa_cmd);
+
+  my $makeblastdb_cmd = "$makeblastdb_bin -in $this_hit_db -dbtype prot -parse_seqids > $blastdb_err";
+  log_system($makeblastdb_cmd);
+
+  my $buildpssm_cmd = "$psiblast_bin -max_target_seqs 5000 -outfmt 7 -inclusion_ethresh 100.0 -in_msa $msa_file -db $this_hit_db -out_pssm $this_pssm_asntxt -num_iterations 1 -save_pssm_after_last_round";
+
+  log_system("$buildpssm_cmd  > $this_psibl_out 2> $this_psibl_out.err");
+
+  log_system("rm $this_hit_db.p* $blastdb_err");
+
+  # remove uninformative error logs
+  log_system("rm $this_psibl_out.err") unless $error_log;
+
+  unless ($srch_pgm eq 'psiblast') {
+    my $asn2asn_cmd = "$datatool_bin -v $this_pssm_asntxt -e $this_pssm_asnbin";
+    log_system($asn2asn_cmd);
+    return ($this_pssm_asnbin);
+  }
+  else {
+    return ($this_pssm_asntxt);
   }
 }
 

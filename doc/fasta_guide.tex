@@ -1349,7 +1349,13 @@ A number of rarely used options are now only available as extended options:
 \item[\texttt{X1}] sort output by \texttt{init1} score (for
   compatibility with FASTP; obsolete).
 
-\item[\texttt{XB}] (Previously \texttt{-B}.)  Show the z-score, rather
+\item[\texttt{XB}] Calculate pecent identity, percent similarity, and
+  alignment using the BLAST model, which excludes gapped residues.
+  This allows very high identity alignments with large gaps to look
+  much closer, but causes the alignment length to drop by the length
+  of the gap.
+
+\item[\texttt{Xb}] (Previously \texttt{-B}.)  Show the z-score, rather
   than the bit-score in the list of best scores (rarely used, provided
   for backward compatibility).
 
