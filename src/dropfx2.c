@@ -3615,7 +3615,7 @@ calc_astruct(struct a_struct *aln_p, struct a_res_str *a_res_p, struct f_struct 
 */
 
 static struct update_code_str *
-init_update_data(show_code) {
+init_update_data(int show_code) {
 
   struct update_code_str *update_data_p;
 
@@ -3717,8 +3717,17 @@ sprintf_btop(char *tmp_str,
 
   /* only aligned identities update counts */
   if (op==3 && sim_code == M_IDENT) {
-    up_dp->p_op_cnt++;
-    return;
+    if (sp0 == '*' && sp1 == '*') {
+      if (up_dp->p_op_cnt > 0) {
+	sprintf(tmp_str,"%d**",up_dp->p_op_cnt);
+	up_dp->p_op_cnt = 0;
+	return;
+      }
+    }
+    else {
+      up_dp->p_op_cnt++;
+      return;
+    }
   }
   else {
     if (up_dp->p_op_cnt > 0) {
@@ -3786,10 +3795,18 @@ update_code(struct dyn_string_str *align_code_dyn,
       }
     }
     else {	/* have a termination codon, output for !SHOW_CODE_CIGAR */
-      if (!up_dp->cigar_order) {
-	if (sp0 == '*' || sp1 == '*') { op = 6;}
+      if (!up_dp->cigar_order) {  /* -m9c : -m9C and -m8CC are cigar_order */
+	if (sp0 == '*' || sp1 == '*') {
+	  /* op = 6 gets '*' from op_map="-x/=\\+*" when the string is closed */
+	  op = 6;
+	}
       }
-      else if (up_dp->show_ext && (sp0 != sp1)) { op = 1;}
+      else if (sp0=='*' && sp1=='*') {
+	op=6;
+      }
+      else if (up_dp->show_ext && (sp0 != sp1)) {
+	op = 1;
+      }
     }
 
     if (up_dp->p_op_cnt == 0) {

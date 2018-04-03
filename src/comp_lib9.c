@@ -664,8 +664,8 @@ main (int argc, char *argv[])
 
   /* if protein and ldb_info.term_code set, add '*' if not there */
   if (m_msg.ldb_info.term_code && !(m_msg.qdnaseq==SEQT_DNA || m_msg.qdnaseq==SEQT_RNA) &&
-      aa0[0][m_msg.n0-1]!='*') {
-    aa0[0][m_msg.n0++]='*';
+      aa0[0][m_msg.n0-1]!=aascii['*']) {
+    aa0[0][m_msg.n0++]=aascii['*'];
     aa0[0][m_msg.n0]=0;
   }
 
@@ -915,7 +915,7 @@ main (int argc, char *argv[])
 
     if (!validate_params(aa0[0],m_msg.n0, &m_msg, &pst,
 			 lascii, pascii)) {
-      fprintf(stderr," *** ERROR *** validate_params() failed:\n -- %s\n", argv_line);
+      fprintf(stderr," *** error [%s:%d] - validate_params() failed:\n -- %s\n", __FILE__, __LINE__, argv_line);
       exit(1);
     }
 
