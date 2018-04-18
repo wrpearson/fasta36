@@ -25,7 +25,6 @@
 # (1) read in the line
 # (2) parse it to get the up_acc
 # (3) return the tab delimited features
-#
 
 # this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 # modified 18-Jan-2016 to produce annotation symbols consistent with ann_exons_up_www2.pl
@@ -51,8 +50,7 @@ else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
-my ($sstr, $lav, $neg_doms, $no_vars, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0,0,0);
-my ($min_nodom) = (10);
+my ($lav, $shelp, $help) = (0,0,0);
 
 my ($show_color) = (1);
 my $color_sep_str = " :";
@@ -65,23 +63,6 @@ GetOptions(
     "password=s" => \$pass,
     "port=i" => \$port,
     "lav" => \$lav,
-    "no_doms" => \$no_doms,
-    "no-doms" => \$no_doms,
-    "nodoms" => \$no_doms,
-    "no_var" => \$no_vars,
-    "no-var" => \$no_vars,
-    "novar" => \$no_vars,
-    "neg" => \$neg_doms,
-    "neg_doms" => \$neg_doms,
-    "neg-doms" => \$neg_doms,
-    "negdoms" => \$neg_doms,
-    "min_nodom=i" => \$min_nodom,
-    "min-nodom=i" => \$min_nodom,
-    "no_feats" => \$no_feats,
-    "no-feats" => \$no_feats,
-    "nofeats" => \$no_feats,
-    "color!" => \$show_color,
-    "sstr" => \$sstr,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -100,11 +81,7 @@ my $dbh = DBI->connect($connect,
 		      ) or die $DBI::errstr;
 
 
-my $get_annot_sub = \&get_fasta_annots;
-if ($lav) {
-  $no_feats = 1;
-  $get_annot_sub = \&get_lav_annots;
-}
+my $get_annot_sub = \&get_annots;
 
 my $get_annots_id = $dbh->prepare(qq(select acc, start, end, ix from up_exons join annot2 using(acc) where id=? order by ix));
 my $get_annots_acc = $dbh->prepare(qq(select acc, start, end, ix from up_exons where acc=? order by ix));
@@ -200,63 +177,22 @@ sub show_annots {
   return \%annot_data;
 }
 
-sub get_fasta_annots {
+sub get_annots {
   my ($get_annots_sql, $seq_len) = @_;
 
   my ($acc, $start, $end, $ix);
   my @feats = ();
 
   while (($acc, $start, $end, $ix) = $get_annots_sql->fetchrow_array()) {
-      push @feats, [$start, "-", $end, "exon_$ix~$ix"];
+      if ($lav) {
+	  push @feats, [$start, $end, "exon_$ix~$ix"];
+      }
+      else {
+	  push @feats, [$start, "-", $end, "exon_$ix~$ix"];
+      }
   }
 
   return \@feats;
-}
-
-sub get_lav_annots {
-  my ($get_annots_sql, $seq_len) = @_;
-
-  my ($pos, $end, $label, $value, $comment);
-
-  my @feats = ();
-
-  my %annot = ();
-  while (($acc, $pos, $end, $label, $value) = $get_annots_sql->fetchrow_array()) {
-    next unless ($label =~ m/^DOMAIN/ || $label =~ m/^REPEAT/);
-    $value =~ s/\s?\{.+\}\.?$//;
-    $value = domain_name($label,$value);
-    push @feats, [$pos, $end, $value];
-  }
-
-  return \@feats;
-}
-
-# domain name takes a uniprot domain label, removes comments ( ;
-# truncated) and numbers and returns a canonical form. Thus:
-# Cortactin 6.
-# Cortactin 7; truncated.
-# becomes "Cortactin"
-#
-
-sub domain_name {
-
-  my ($label, $value) = @_;
-
-  if ($label =~ /DOMAIN|REPEAT/) {
-    $value =~ s/;.*$//;
-    $value =~ s/\s+\d+\.?$//;
-    $value =~ s/\.\s*$//;
-    $value =~ s/\s+\d+\.\s+.*$//;
-    $value =~ s/\s+/_/;
-    if (!defined($domains{$value})) {
-      $domain_cnt++;
-      $domains{$value} = $domain_cnt;
-    }
-    return $value;
-  }
-  else {
-    return $value;
-  }
 }
 
 __END__
@@ -269,60 +205,34 @@ ann_exons_up_sql.pl
 
 =head1 SYNOPSIS
 
- ann_exons_up_sql.pl --no_doms --no_feats --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_exons_up_sql.pl --lav 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
- --no-doms  do not show domain boundaries (domains are always shown with --lav)
- --no-feats do not show features (variants, active sites, phospho-sites)
- --no-var   do not show variant sites (--no_var, --novar)
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
- --neg-doms,  -- report domains between annotated domains as NODOM
-                 (also --neg, --neg_doms)
- --min_nodom=10  minimum non-domain length to produce NODOM
  --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_exons_up_sql.pl> extracts feature, domain, and repeat information from
-a msyql database (default name, uniprot) built by parsing the
-uniprot_sprot.dat and uniprot_trembl.dat feature tables.  Given a
-command line argument that contains a sequence accession (P09488) or
-identifier (GSTM1_HUMAN), the program looks up the features available
-for that sequence and returns them in a tab-delimited format:
+C<ann_exons_up_sql.pl> extracts exon location information from
+a msyql database (default name, uniprot) built from EBI/proteins API data.
+
+Given a command line argument that contains a sequence accession
+(P09488) or identifier (GSTM1_HUMAN), the program looks up the
+features available for that sequence and returns them in a
+tab-delimited format:
 
  >sp|P09488|GSTM1_HUMAN
- 2	-	88	GST_N-terminal~1
- 7	V	F	Mutagen: Reduces catalytic activity 100- fold. {ECO:0000269|PubMed:16548513}.
- 34	*	-	MOD_RES: Phosphothreonine. {ECO:0000250|UniProtKB:P10649}.
- 90	-	208	GST_C-terminal~2
- 108	V	S	Mutagen: Changes the properties of the enzyme toward some substrates. {ECO:0000269|PubMed:16548513, ECO:0000269|PubMed:9930979}.
- 108	V	Q	Mutagen: Reduces catalytic activity by half. {ECO:0000269|PubMed:16548513, ECO:0000269|PubMed:9930979}.
- 109	V	I	Mutagen: Reduces catalytic activity by half. {ECO:0000269|PubMed:16548513}.
- 116	#	-	BINDING: Substrate.
- 116	V	A	Mutagen: Reduces catalytic activity 10-fold. {ECO:0000269|PubMed:16548513}.
- 116	V	F	Mutagen: Slight increase of catalytic activity. {ECO:0000269|PubMed:16548513}.
- 173	V	N	in allele GSTM1B; dbSNP:rs1065411. {ECO:0000269|Ref.3, ECO:0000269|Ref.5}.
- 210	*	-	MOD_RES: Phosphoserine. {ECO:0000250|UniProtKB:P04905}.
- 210	V	T	in dbSNP:rs449856.
-
-If features are provided, then a legend of feature symbols is provided
-as well:
-
- ==:Active site
- =*:Modified
- =#:Substrate binding
- =^:Site
- =!:Metal binding
-
-If the C<--lav> option is specified, domain and repeat features are
-presented in a different format for the C<lav2plt.pl> program:
-
-  >sp|P09488|GSTM1_HUMAN
-  2	88	GST N-terminal.
-  90	208	GST C-terminal.
+ 1	-	12	exon_1~1
+ 13	-	38	exon_2~2
+ 39	-	59	exon_3~3
+ 60	-	87	exon_4~4
+ 88	-	120	exon_5~5
+ 121	-	152	exon_6~6
+ 153	-	189	exon_7~7
+ 190	-	218	exon_8~8
 
 C<ann_exons_up_sql.pl> is designed to be used by the B<FASTA> programs
 with the C<-V \!ann_exons_up_sql.pl> option, or by the

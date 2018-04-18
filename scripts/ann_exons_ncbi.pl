@@ -24,8 +24,7 @@ my $hostname = `/bin/hostname`;
 
 ($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "seqdb_demo2", 0, "web_user", "fasta_www");
 
-my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0);
-my ($min_nodom) = (10);
+my ($lav, $shelp, $help) = (0, 0, 0);
 
 my $color_sep_str = " :";
 $color_sep_str = '~';
@@ -37,13 +36,6 @@ GetOptions(
     "password=s" => \$pass,
     "port=i" => \$port,
     "lav" => \$lav,
-    "neg" => \$neg_doms,
-    "neg_doms" => \$neg_doms,
-    "neg-doms" => \$neg_doms,
-    "min_nodom=i" => \$min_nodom,
-    "pfacc" => \$pf_acc,
-    "RPD2" => \$rpd2_fams,
-    "auto_reg" => \$auto_reg,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -148,7 +140,7 @@ sub get_refseq_exons {
   # get the list of domains, sorted by start
   while ( my $row_href = $get_annots->fetchrow_hashref()) {
 
-    $row_href->{info} = "exon_".$row_href->{ex_num};
+    $row_href->{info} = "exon_".$row_href->{ex_num}.$color_sep_str.$row_href->{ex_num};
     push @exons, $row_href
   }
 
@@ -172,24 +164,6 @@ sub get_refseq_exons {
   return \@feats;
 }
 
-# domain name takes a uniprot domain label, removes comments ( ;
-# truncated) and numbers and returns a canonical form. Thus:
-# Cortactin 6.
-# Cortactin 7; truncated.
-# becomes "Cortactin"
-#
-
-sub domain_name {
-
-  my ($value) = @_;
-
-  if (!defined($domains{$value})) {
-    $domain_cnt++;
-    $domains{$value} = $domain_cnt;
-  }
-  return $value;
-}
-
 __END__
 
 =pod
@@ -200,21 +174,18 @@ ann_feats.pl
 
 =head1 SYNOPSIS
 
- ann_pfam.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_exons_ncbi.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
- --neg-doms,  -- report domains between annotated domains as NODOM
-                 (also --neg, --neg_doms)
- --min_nodom=10  -- minimum length between domains for NODOM
-
+ --lav  produce lav2plt.pl annotation format, only show domains/repeats
  --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_pfam.pl> extracts domain information from a msyql
+C<ann_exons_ncbi.pl> extracts domain information from a msyql
 database.  Currently, the program works with database sequence
 descriptions in one of two formats:
 
@@ -224,7 +195,7 @@ descriptions in one of two formats:
 
  >gi|1705556|sp|P54670.1|CAF1_DICDI
 
-C<ann_pfam.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
+C<ann_exons_ncbi.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
 information on a protein.  For proteins that have multiple domains
 associated with the same overlapping region (domains overlap by more
@@ -233,8 +204,8 @@ annotation with the best C<domain_evalue_score>.  When domains overlap
 by less than 1/3 of the domain length, they are shortened to remove
 the overlap.
 
-C<ann_pfam.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam.pl> or C<-V "\!ann_pfam.pl --neg"> option.
+C<ann_exons_ncbi.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_exons_ncbi.pl> or C<-V "\!ann_exons_ncbi.pl --neg"> option.
 
 =head1 AUTHOR
 

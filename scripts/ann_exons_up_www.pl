@@ -224,17 +224,6 @@ sub get_https {
   return $result;
 }
 
-sub domain_name {
-
-  my ($value) = @_;
-
-  if (!defined($domains{$value})) {
-    $domain_cnt++;
-    $domains{$value} = $domain_cnt;
-  }
-  return $value;
-}
-
 __END__
 
 =pod
