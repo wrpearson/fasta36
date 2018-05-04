@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl -w
 
 # ann_exons_ncbi.pl gets an annotation file from fasta36 -V with a line of the form:
 

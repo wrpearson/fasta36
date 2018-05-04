@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
