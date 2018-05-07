@@ -491,7 +491,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
 	if (lc > 0) {
 	  percent = (100.0*(float)l_aln_p->nident)/(float)lc;
-	  ng_percent = (100.0*(float)l_aln_p->nident)/(float)(lc-(l_aln_p->n_gap_q + l_aln_p->n_gap_l));
+	  ng_percent = (100.0*(float)l_aln_p->nident)/(float)(lc-(l_aln_p->ngap_q + l_aln_p->ngap_l));
 	}
 	else { percent = ng_percent = -1.00; }
 
