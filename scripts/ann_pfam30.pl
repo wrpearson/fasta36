@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2015 by William R. Pearson and The Rector &
@@ -37,7 +37,7 @@
 # than ensures uniqueness.  (Could also speed things up by creating temporary table.)
 #
 
-
+use warnings;
 use strict;
 
 use DBI;
@@ -56,6 +56,7 @@ my $hostname = `/bin/hostname`;
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
 my ($no_over, $split_over, $over_fract) = (0, 0, 3.0);
+my ($clan_fam) = (0);
 
 my ($color_sep_str, $show_color) = (" :",1);
 $color_sep_str = '~';
@@ -72,20 +73,14 @@ GetOptions(
     "acc_comment" => \$acc_comment,
     "bound_comment" => \$bound_comment,
     "color!" => \$show_color,
-    "no-over" => \$no_over,
-    "no_over" => \$no_over,
-    "split-over" => \$split_over,
-    "split_over" => \$split_over,
-    "over_fract" => \$over_fract,
-    "over-fract" => \$over_fract,
-    "no-clans" => \$no_clans,
-    "no_clans" => \$no_clans,
-    "neg" => \$neg_doms,
-    "neg_doms" => \$neg_doms,
-    "neg-doms" => \$neg_doms,
+    "clan_fam|clan-fam" => \$clan_fam,
+    "no_over|no-over" => \$no_over,
+    "split_over|split-over" => \$split_over,
+    "over_fract|over-fract" => \$over_fract,
+    "no-clans|no_clans" => \$no_clans,
+    "neg|neg_doms|neg-doms" => \$neg_doms,
     "min_nodom=i" => \$min_nodom,
-    "vdoms" => \$vdoms,
-    "v_doms" => \$vdoms,
+    "vdoms|v_doms" => \$vdoms,
     "pfacc" => \$pf_acc,
     "RPD2" => \$rpd2_fams,
     "auto_reg" => \$auto_reg,
@@ -752,7 +747,14 @@ sub domain_name {
 
       # now check to see if we have seen this clan before (if so, do not increment $domain_cnt)
       my $c_value = "C." . $clan_id;
-      if ($pf_acc) {$c_value = $clan_acc;}
+
+      if ($clan_fam) {
+	  $c_value = $c_value;
+      }
+
+      if ($pf_acc) {
+	  $c_value = $clan_acc;
+      }
 
       $domain_clan{$value} = {clan_id => $clan_id,
 			      clan_acc => $clan_acc};
@@ -783,6 +785,7 @@ sub domain_name {
     $domains{'@'.$value} = $domains{$value};
     $value = '@'.$value;
   }
+
   return $value;
 }
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -29,6 +29,7 @@
 # this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 # modified 18-Jan-2016 to produce annotation symbols consistent with ann_exons_up_www2.pl
 
+use warnings;
 use strict;
 
 use DBI;

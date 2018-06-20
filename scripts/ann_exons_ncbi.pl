@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 # ann_exons_ncbi.pl gets an annotation file from fasta36 -V with a line of the form:
 
@@ -12,6 +12,7 @@
 # (3) return the tab delimited exon boundaries
 #
 
+use warnings;
 use strict;
 
 use DBI;

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -32,6 +32,7 @@
 
 # this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 
+use warnings;
 use strict;
 
 use Getopt::Long;

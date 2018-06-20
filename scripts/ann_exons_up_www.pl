@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -31,6 +31,7 @@
 
 # 22-May-2017 -- use get("http://"), not get_https("https://"), because EBI does not have LWP::Protocol:https
 
+use warnings;
 use strict;
 
 use Getopt::Long;

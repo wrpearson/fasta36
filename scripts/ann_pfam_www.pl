@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/en
 
 ################################################################
 # copyright (c) 2014, 2015 by William R. Pearson and The Rector &
@@ -31,6 +31,7 @@
 # >pf26|164|O57809|1A1D_PYRHO
 # and only provides domain information
 
+use warnings;
 # use strict;
 
 use Getopt::Long;

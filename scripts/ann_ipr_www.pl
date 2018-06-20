@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014 by William R. Pearson and The Rector &
@@ -37,6 +37,7 @@
 # (3) return the tab delimited domains
 #
 
+use warnings;
 use strict;
 
 use Getopt::Long;
