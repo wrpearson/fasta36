@@ -820,6 +820,7 @@ ann_pfam30.pl
  --no-clans : do not use clans with multiple families from same clan
  --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
+ --pfacc : report Pfam ACC (PF01234), rather than Pfam identifier (GST-N)
  --vdoms : produce "virtual domains" using model_start, 
            model_end for partial pfam domains
  --min_nodom=10  : minimum length between domains for NODOM

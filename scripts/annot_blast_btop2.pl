@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2017,2018 by William R. Pearson and The Rector &
@@ -41,6 +41,7 @@
 # add -q_annot_script to annotate query sequence
 #
 
+use warnings;
 use strict;
 use IPC::Open2;
 use Pod::Usage;
@@ -1212,7 +1213,7 @@ sub format_annot_info {
 				      $annot_r->{sa_start},$annot_r->{sa_end},$ns_score),
 			      sprintf("b=%.1f",$s_bit),
 			      sprintf("I=%.3f",$annot_r->{percid}),
-			      sprintf("Q=%.1f",$qval),$annot_r->{descr}));
+			      sprintf("Q=%.1f",$qval),"C=".$annot_r->{descr}));
     }
     else {	# site annotation
       my $ann_type = $annot_r->{type};
