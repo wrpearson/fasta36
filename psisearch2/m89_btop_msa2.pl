@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -38,6 +38,7 @@
 #
 ################################################################
 
+use warnings;
 use strict;
 use Pod::Usage;
 use Getopt::Long;
