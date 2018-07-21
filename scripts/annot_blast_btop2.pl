@@ -30,6 +30,10 @@
 # If the BTOP field or query_file is not available, the script
 # produces domain content without sub-alignment scores.
 ################################################################
+## 21-July-2018
+# include sequence length (actually alignment end) to produce NODOM's (no NODOM's without length).
+#
+################################################################
 ## 13-Jan-2017
 # modified to provide query/subject coordinates and identities if no
 # query sequence -- does not decrement for reverse-complement fastx/blastx DNA
@@ -46,6 +50,8 @@ use strict;
 use IPC::Open2;
 use Pod::Usage;
 use Getopt::Long;
+use File::Temp qw/ tempfile /;
+
 # use Data::Dumper;
 
 # read lines of the form:
@@ -143,7 +149,7 @@ while (1) {
     my $pid = open2($Reader, $Writer, $q_ann_script);
     my $hit = $hit_list[0];
 
-    print $Writer $hit->{q_seqid},"\n";
+    print $Writer $hit->{q_seqid},"\t",length($query_lib_r->{$hit->{q_seqid}}),"\n";
     close($Writer);
 
     @q_hit_list = ({ s_seq_id=> $hit->{q_seqid} });
@@ -157,10 +163,14 @@ while (1) {
   if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     # get the domains for each s_seqid using --ann_script
     #
+    # this does not work currently because only one accession is sent.
+    # For mulitple hits, I need to make a tmp_file.
+
     my ($Reader, $Writer);
     my $pid = open2($Reader, $Writer, $ann_script);
+
     for my $hit (@hit_list) {
-      print $Writer $hit->{s_seqid},"\n";
+      print $Writer $hit->{s_seqid},"\t", $hit->{s_end},"\n";
     }
     close($Writer);
 
@@ -277,6 +287,8 @@ sub read_annots {
     next if $line=~ m/^=/;
     chomp $line;
 
+    print STDERR "$line\n";
+
     # check for header
     if ($line =~ m/^>/) {
       if ($current_domain) {  # previous domains/sites have already been found and parsed
@@ -290,7 +302,7 @@ sub read_annots {
       }
       @hit_domains = ();   # current domains
       @hit_sites = ();     # current sites
-      $current_domain = $line;
+      $current_domain = (split(/\s+/,$line))[0];
       $current_domain =~ s/^>//;
     } else {			# check for data
       my %annot_info = (target=>$target);

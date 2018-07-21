@@ -668,6 +668,11 @@ sub get_pfam_annots {
       }
     }
 
+    if (scalar(@pf_domains)==0) {
+      my %new_dom = (seq_start=>1, seq_end=> $seq_len, info=>'NODOM');
+      push @pf_domains, \%new_dom;
+    }
+
     # @npf_domains has both old @pf_domains and new neg-domains
     @pf_domains = @npf_domains;
   }

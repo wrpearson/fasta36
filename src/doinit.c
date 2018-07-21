@@ -713,6 +713,14 @@ set_markx(int markx, int val, char c) {
   return markx;
 }
 
+/* specify output format.  If output format type is 'F', then provide
+   file name and write to file.
+
+   Thus,  -m "F8CB outfile.m8CB" writes -m 8CB output to outfile.m8CB
+   Different format outputs can be written to different files
+
+*/
+
 void
 pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
   char *bp, *last_bp;
