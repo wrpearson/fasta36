@@ -149,7 +149,7 @@ while (1) {
     my $pid = open2($Reader, $Writer, $q_ann_script);
     my $hit = $hit_list[0];
 
-    print $Writer $hit->{q_seqid},"\t",length($query_lib_r->{$hit->{q_seqid}}),"\n";
+    print $Writer $hit->{q_seqid},"\t",scalar(@{$query_lib_r->{$hit->{q_seqid}}}),"\n";
     close($Writer);
 
     @q_hit_list = ({ s_seq_id=> $hit->{q_seqid} });
@@ -287,7 +287,7 @@ sub read_annots {
     next if $line=~ m/^=/;
     chomp $line;
 
-    print STDERR "$line\n";
+#    print STDERR "$line\n";
 
     # check for header
     if ($line =~ m/^>/) {
