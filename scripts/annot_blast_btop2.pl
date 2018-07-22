@@ -63,6 +63,7 @@ use File::Temp qw/ tempfile /;
 # and report the domain content ala -m 8CC
 
 my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0);
+my ($have_qslen) = (0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
 my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
@@ -77,6 +78,7 @@ GetOptions(
     "matrix:s" => \$matrix,
     "ann_script:s" => \$ann_script,
     "q_ann_script:s" => \$q_ann_script,
+    "have_qslen!" => \$have_qslen,
     "query:s" => \$query_lib_name,
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
@@ -99,6 +101,10 @@ if ($query_lib_name) {
 }
 
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
+
+if ($have_qslen) {
+  @tab_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
+}
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
@@ -149,10 +155,11 @@ while (1) {
     my $pid = open2($Reader, $Writer, $q_ann_script);
     my $hit = $hit_list[0];
 
-    print $Writer $hit->{q_seqid},"\t",scalar(@{$query_lib_r->{$hit->{q_seqid}}}),"\n";
+    my $q_seq_len = scalar(@{$query_lib_r->{$hit->{q_seqid}}});
+    print $Writer $hit->{q_seqid},"\t",$q_seq_len,"\n";
     close($Writer);
 
-    @q_hit_list = ({ s_seq_id=> $hit->{q_seqid} });
+    @q_hit_list = ({ s_seq_id=> $hit->{q_seqid}, s_end=> $q_seq_len});
 
     read_annots($Reader, \@q_hit_list, 0);
 
@@ -170,7 +177,13 @@ while (1) {
     my $pid = open2($Reader, $Writer, $ann_script);
 
     for my $hit (@hit_list) {
-      print $Writer $hit->{s_seqid},"\t", $hit->{s_end},"\n";
+#      print STDERR  $hit->{s_seqid},"\t", $hit->{s_end},"\n";
+	#      print $Writer $hit->{s_seqid},"\t", $hit->{s_end},"\n";
+      my $s_len = 100000;
+      if ($have_qslen) {
+	$s_len = $hit->{s_len};
+      }
+      print $Writer $hit->{s_seqid},"\t", $s_len,"\n";
     }
     close($Writer);
 
@@ -321,9 +334,18 @@ sub read_annots {
   }
   close($Reader);
 
-  # all done, save the last one
   $hit_list_r->[$hit_ix]{domains} = \@hit_domains;
   $hit_list_r->[$hit_ix]{sites} = \@hit_sites;
+
+  # clean up NODOMs in {domains}
+  for my $hit ( @$hit_list_r ) {
+    # clean-up last NODOM if < 10
+    my $tmp_domains = $hit->{domains};
+    my ($last_dom, $left_coord) = ($tmp_domains->[-1], $hit->{s_end});
+    if ($last_dom->{descr} =~ m/^NODOM/ && (($left_coord - $last_dom->{d_pos} + 1) < 10)) {
+      pop @$tmp_domains;
+    }
+  }
 }
 
 # input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
@@ -511,8 +533,17 @@ sub sub_alignment_score {
   my @aligned_domains = ();
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
+  my $left_align_end = $hit_r->{q_end};
+  if ($target) {
+    $left_align_end = $hit_r->{s_end};
+  }
+
+  if ($left_active_end > $left_align_end ) {
+    $left_active_end = $left_align_end ;
+  }
+
   my ($q_start, $s_start, $h_start, $h_end) = @{$hit_r}{qw(q_start s_start s_start s_end)};
-  my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
+  my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $six;
 
   my $ds_ix = \$six;	# use to track the subject position
   # reverse coordinate names if $target==0
@@ -1207,16 +1238,21 @@ sub format_annot_info {
     if ($annot_r->{type} eq '-') { # domain with scores
       my $fsub_score = $annot_r->{score}/$raw_score;
 
+      my ($ns_score, $s_bit) = (int($annot_r->{score} * $score_scale + 0.5),
+				int($hit_r->{bits} * $fsub_score + 0.5),
+			       );
       my $qval = 0.0;
       if ($hit_r->{evalue} == 0.0) {
-	$qval = 3000.0
+	if ($s_bit > 50) {
+	  $qval = 3000.0
+	}
+	else {
+	  $qval = -10.0 * (log(400.0 * 400.) + $s_bit)/log(10.0);
+	}
       } else {
 	$qval = -10.0*log($hit_r->{evalue})*$fsub_score/(log(10.0))
       }
 
-      my ($ns_score, $s_bit) = (int($annot_r->{score} * $score_scale+0.5),
-				int($hit_r->{bits} * $fsub_score +0.5),
-			       );
       $qval = 0 if $qval < 0;
 
       $annot_str .= join(";",(sprintf("|%s:%d-%d:%d-%d:s=%d",
@@ -1264,6 +1300,9 @@ annot_blast_btop2.pl
 
  --ann_script -- annotation script returning site/domain locations for subject sequences
               -- same as --script
+
+ --have_qslen -- use a blast tabular format that includes the query and subject sequence lengths:
+	      -- q_seqid q_len s_seqid s_len ...
 
  --q_ann_script -- annotation script for query sequences
                 -- same as --q_script
