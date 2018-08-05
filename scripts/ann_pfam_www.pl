@@ -1,4 +1,4 @@
-#!/usr/bin/en
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014, 2015 by William R. Pearson and The Rector &

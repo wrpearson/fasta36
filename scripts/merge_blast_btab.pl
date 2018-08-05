@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2018 by William R. Pearson and The Rector &
@@ -21,6 +21,7 @@
 # merge_blast_btab.pl --btab .btab file html_file
 ################################################################
 
+use warnings;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
