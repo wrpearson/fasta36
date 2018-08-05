@@ -2,7 +2,7 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
-Changes in **fasta-36.3.8g** released 3-Apr-2018
+Changes in **fasta-36.3.8g** released 5-Aug-2018
 
 1. (Apr 2018) incorporation of "-t t" temrination codes ("*") in -m 8CB, -m 8CC, and -m9C so that aligned termination codons are indicated as "**" (-m8CB) or
 "*1" (-m8CC, -m9C).
@@ -15,6 +15,8 @@ doc/readme.v36)
 identity, percent similarity, and alignment length to be calculated
 using the BLAST model, which does not count gaps in the alignment
 length.
+
+see readme.v36 for other bug fixes.
 
 Changes in **fasta-36.3.8g** released 31-Dec-2017
 

@@ -639,7 +639,10 @@ main (int argc, char *argv[])
 
   /* Open query library */
   if ((q_file_p= open_lib(q_lib_p, m_msg.qdnaseq,qascii,!m_msg.quiet))==NULL) {
-    s_abort(" cannot open library ",m_msg.tname);
+    fprintf(stderr,"*** error [%s:%d] cannot open library %s\n",__FILE__,__LINE__, m_msg.tname);
+    exit(1);
+
+    /*     s_abort(" cannot open library ",m_msg.tname); */
   }
   /* Fetch first sequence */
   qlib = 0;
@@ -2354,7 +2357,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
     if ((cur_lib_p->m_file_p = 
 	 open_lib(cur_lib_p, m_msp->ldb_info.ldnaseq, lascii, !m_msp->quiet))
 	==NULL) {
-      fprintf(stderr," cannot open library %s\n",cur_lib_p->file_name);
+      fprintf(stderr,"(*** warning [%s:%d] cannot open library %s\n",__FILE__,__LINE__,cur_lib_p->file_name);
       getlib_info->lib_list_p = getlib_info->lib_list_p->next;
       if (getlib_info->lib_list_p == NULL) {
 	goto return_null;

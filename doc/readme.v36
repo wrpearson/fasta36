@@ -6,6 +6,10 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Aug. 5, 2018  [re-released as fasta-36.3.8g]
+[lib_sel.c]
+Make lib_select.c more robust to missing indirect name files.
+
 >>April 3, 2018
 [initfa.c, comp_lib.c, dropfx2.c]
 Changes to (a) ensure that the "-t t" option correctly inserts and

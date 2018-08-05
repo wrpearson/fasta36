@@ -73,7 +73,7 @@ get_lnames(char *iname, struct lib_struct *cur_lib_p)
   if ((bp=strchr(tname,' '))!=NULL) *bp='\0';
 
   if ((tptr=fopen(tname,"r"))==NULL) {
-    fprintf(stderr," could not open file of names: %s\n",tname);
+    fprintf(stderr,"*** error [%s:%d] could not open file of names: %s\n",__FILE__,__LINE__,tname);
     return NULL;
   }
 
@@ -109,12 +109,12 @@ lib_choice(char *lname, int nl, char *flstr, int ldnaseq)
   if (strlen(flstr)> (size_t)0) {
     chlen = MAX_CH*MAX_FN;
     if ((chtmp=charr=calloc((size_t)chlen,sizeof(char)))==NULL) {
-      fprintf(stderr,"cannot allocate choice file array\n");
+      fprintf(stderr,"*** error [%s:%d] cannot allocate choice file array\n",__FILE__,__LINE__);
       goto l1;
     }
     chlen--;
     if ((fch=fopen(flstr,"r"))==NULL) {
-      fprintf(stderr," cannot open choice file: %s\n",flstr);
+      fprintf(stderr,"*** error [%s:%d] cannot open choice file: %s\n",__FILE__,__LINE__,flstr);
       goto l1;
     }
     fprintf(stderr,"\n Choose sequence library:\n\n");
@@ -186,7 +186,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
   int new_abbr,ich, nch;	  /* use new multi-letter abbr */
   int ltmp;
   FILE *fch;
-  struct lib_struct *cur_lib_p = NULL;
+  struct lib_struct *cur_lib_p = NULL, *tmp_lib_p;
 
   new_abbr = 0;
   *ltitle = '\0';
@@ -196,7 +196,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
   }
   else {
     if (*flstr=='\0') {
-      fprintf(stderr," abbrv. list request but FASTLIBS undefined, cannot use %s\n",lname);
+      fprintf(stderr,"*** error [%s:%d] abbrv. list request but FASTLIBS undefined, cannot use %s\n",__FILE__,__LINE__,lname);
       exit(1);
     }
 
@@ -218,7 +218,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
 
     if (strlen(flstr) > (size_t)0) {
       if ((fch=fopen(flstr,"r"))==NULL) {
-	fprintf(stderr," cannot open choice file: %s\n",flstr);
+	fprintf(stderr,"*** error [%s:%d] cannot open choice file: %s\n",__FILE__,__LINE__,flstr);
 	return NULL;
       }
     }
@@ -233,7 +233,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
 
       /* if !new_abbr, match on one letter with ulindex() */
       if (!new_abbr) {
-	if (*bp=='+') continue; /* not a &lib& */
+	if (*bp=='+') continue; /* not a +lib+ */
 	else if (ulindex(lname,bp)!=NULL) { 
 	  if (ltitle[0] == '\0') {
 	    strncpy(ltitle,line,MAX_STR);
@@ -243,7 +243,8 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
 	    strncat(ltitle,",\n  ",MAX_STR-ltmp);
 	    strncat(ltitle,line,MAX_STR-ltmp-4);
 	  }
-	  cur_lib_p = get_lnames(bp+1, cur_lib_p);
+	  tmp_lib_p = get_lnames(bp+1, cur_lib_p);
+	  if (tmp_lib_p) { cur_lib_p = tmp_lib_p;}
 	}
       }
       else {
@@ -268,7 +269,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
 	    }
 	    *bp1='+';
 	  }
-	  else fprintf(stderr,"%s missing final '+'\n",bp);
+	  else fprintf(stderr,"*** error [%s:%d] %s missing final '+'\n",__FILE__,__LINE__,bp);
 	}
       }
     }
