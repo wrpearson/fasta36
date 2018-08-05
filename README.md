@@ -12,8 +12,11 @@ includes programs for aligning translated DNA sequences against
 proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
 `tfasty` are similar to `tblastn`).
 
+#### April, 2018
+The current version of the FASTA package is fasta-36.3.8g, Apr. 2018
+
 #### December, 2017
-The current FASTA version is fasta-36.3.8f, Dec. 2017
+The current FASTA version is fasta-36.3.8g, Dec. 2017
 
 The statistics routines for normally distributed scores (ggsearch36,
 glsearch36) are more robust to very low E()-value thresholds.
