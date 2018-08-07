@@ -282,7 +282,8 @@ init_work (unsigned char *aa0, int n0,
       if (hsq[i0] < NMAP && hsq[i0] > mhv) mhv = hsq[i0];
 
    if (mhv <= 0) {
-      fprintf (stderr, " maximum hsq <=0 %d\n", mhv);
+      fprintf (stderr, "*** error [%s:%d] - maximum hsq <=0 %d\n",
+	       __FILE__, __LINE__, mhv);
       exit (1);
    }
 
@@ -299,19 +300,23 @@ init_work (unsigned char *aa0, int n0,
    f_str->hmask = (hmax >> f_str->kshft) - 1;
 
    if ((f_str->harr = (int *) calloc (hmax, sizeof (int))) == NULL) {
-     fprintf (stderr, " cannot allocate hash array\n");
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate hash array [%d]\n",
+	      __FILE__, __LINE__, hmax );
      exit (1);
    }
    if ((f_str->pamh1 = (int *) calloc (ppst->nsq+1, sizeof (int))) == NULL) {
-     fprintf (stderr, " cannot allocate pamh1 array\n");
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate pamh1 array [%d]\n",
+	      __FILE__, __LINE__, ppst->nsq+1);
      exit (1);
    }
    if ((f_str->pamh2 = (int *) calloc (hmax, sizeof (int))) == NULL) {
-     fprintf (stderr, " cannot allocate pamh2 array\n");
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate pamh2 array [%d]\n",
+	      __FILE__, __LINE__, hmax);
      exit (1);
    }
    if ((f_str->link = (int *) calloc (n0, sizeof (int))) == NULL) {
-     fprintf (stderr, " cannot allocate hash link array");
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate hash link array [%d]",
+	      __FILE__, __LINE__, n0);
      exit (1);
    }
 
@@ -319,7 +324,8 @@ init_work (unsigned char *aa0, int n0,
    if ((f_str->aa1x =(unsigned char *)calloc((size_t)ppst->maxlen+2,
 					     sizeof(unsigned char)))
        == NULL) {
-     fprintf (stderr, "cannot allocate aa1x array %d\n", ppst->maxlen+2);
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate aa1x array %d\n",
+	      __FILE__, __LINE__, ppst->maxlen+2);
      exit (1);
    }
    f_str->aa1x++;
@@ -327,7 +333,8 @@ init_work (unsigned char *aa0, int n0,
    if ((f_str->aa1y =(unsigned char *)calloc((size_t)ppst->maxlen+2,
 					     sizeof(unsigned char)))
        == NULL) {
-     fprintf (stderr, "cannot allocate aa1y array %d\n", ppst->maxlen+2);
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate aa1y array %d\n",
+	      __FILE__, __LINE__, ppst->maxlen+2);
      exit (1);
    }
    f_str->aa1y++;
@@ -335,7 +342,8 @@ init_work (unsigned char *aa0, int n0,
    maxn0 = n0 + 2;
    if ((aa0x =(unsigned char *)calloc((size_t)maxn0,sizeof(unsigned char)))
        == NULL) {
-     fprintf (stderr, "cannot allocate aa0x array %d\n", maxn0);
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate aa0x array %d\n",
+	      __FILE__, __LINE__, maxn0);
      exit (1);
    }
    aa0x++;
@@ -343,7 +351,8 @@ init_work (unsigned char *aa0, int n0,
 
    if ((aa0y =(unsigned char *)calloc((size_t)maxn0,sizeof(unsigned char)))
        == NULL) {
-     fprintf (stderr, "cannot allocate aa0y array %d\n", maxn0);
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate aa0y array %d\n",
+	      __FILE__, __LINE__, maxn0);
      exit (1);
    }
    aa0y++;
@@ -438,22 +447,24 @@ init_work (unsigned char *aa0, int n0,
 #ifndef ALLOCN0
    if ((f_str->diag = (struct dstruct *) calloc ((size_t)MAXDIAG,
 						 sizeof (struct dstruct)))==NULL) {
-      fprintf (stderr," cannot allocate diagonal arrays: %ld\n",
+      fprintf (stderr,"*** error [%s:%d] - cannot allocate diagonal arrays: %ld\n",
+	       __FILE__, __LINE__, 
 	      (long) MAXDIAG *sizeof (struct dstruct));
       exit (1);
      };
 #else
    if ((f_str->diag = (struct dstruct *) calloc ((size_t)n0,
 					      sizeof (struct dstruct)))==NULL) {
-      fprintf (stderr," cannot allocate diagonal arrays: %ld\n",
-	      (long)n0*sizeof (struct dstruct));
+      fprintf (stderr,"*** error [%s:%d] - cannot allocate diagonal arrays: %ld\n",
+	       __FILE__, __LINE__, (long)n0*sizeof (struct dstruct));
       exit (1);
      };
 #endif
 
 
    if ((waa= (int *)malloc (sizeof(int)*(nsq+1)*n0)) == NULL) {
-     fprintf(stderr,"cannot allocate waa struct %3d\n",nsq*n0);
+     fprintf(stderr,"*** error [%s:%d] - cannot allocate waa struct %3d\n",
+	     __FILE__, __LINE__, nsq*n0);
      exit(1);
    }
 
@@ -467,7 +478,8 @@ init_work (unsigned char *aa0, int n0,
    f_str->waa0 = waa;
 
    if ((waa= (int *)malloc (sizeof(int)*(nsq+1)*n0)) == NULL) {
-     fprintf(stderr,"cannot allocate waa struct %3d\n",nsq*n0);
+     fprintf(stderr,"*** error [%s:%d] - cannot allocate waa struct %3d\n",
+	     __FILE__, __LINE__, nsq*n0);
      exit(1);
    }
 
@@ -489,7 +501,8 @@ init_work (unsigned char *aa0, int n0,
    maxn0 = max(4*n0,MIN_RES);
 #endif
    if ((res = (int *)calloc((size_t)maxn0,sizeof(int)))==NULL) {
-     fprintf(stderr,"cannot allocate alignment results array %d\n",maxn0);
+     fprintf(stderr,"*** error [%s:%d] -cannot allocate alignment results array %d\n",
+	     __FILE__, __LINE__, maxn0);
      exit(1);
    }
    f_str->res = res;
@@ -691,7 +704,8 @@ void do_fastx (const unsigned char *aa0, int n0,
    }
 
    if (n0+n1+1 >= MAXDIAG) {
-     fprintf(stderr,"n0,n1 too large: %d, %d\n",n0,n1);
+     fprintf(stderr,"*** error [%s:%d] - n0,n1 too large > %d: %d, %d\n",
+	     __FILE__, __LINE__, n0,n1, MAXDIAG);
      rst->score[0] = rst->score[1] = rst->score[2] = -1;
      return;
    }
@@ -1524,7 +1538,8 @@ pro_dna(const unsigned char *prot_seq,	/* array with prot. seq. numbers*/
   }
 
   if (i >= max_res) {
-    fprintf(stderr," alignment truncated: %d/%d\n", max_res,i);
+    fprintf(stderr,"*** error [%s:%d] -  alignment truncated: %d > %d (max_res)\n",
+	    __FILE__, __LINE__, i, max_res);
   }
 
   up = &up[-3]; down = &down[-3]; tp = &tp[-3];
@@ -2379,7 +2394,8 @@ fx_malign (const unsigned char *aa0, int n0,
 
   /* now we need alignment storage - get it */
   if ((cur_ares->res = (int *)calloc((size_t)max_res,sizeof(int)))==NULL) {
-    fprintf(stderr," *** cannot allocate alignment results array %d\n",max_res);
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate alignment results array %d\n",
+	    __FILE__, __LINE__, max_res);
     exit(1);
   }
 
@@ -2600,7 +2616,8 @@ do_walign (const unsigned char *aa0, int n0,
   *have_ares = 0x3;	/* set 0x2 bit to indicate local copy */
 
   if ((a_res = (struct a_res_str *)calloc(1, sizeof(struct a_res_str)))==NULL) {
-    fprintf(stderr," [do_walign] Cannot allocate a_res");
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate a_res [%d]",
+	    __FILE__, __LINE__, sizeof(struct a_res_str));
     return NULL;
   }
 
@@ -2648,13 +2665,15 @@ do_walign (const unsigned char *aa0, int n0,
 #endif
   /*
   if (a_res->res[0] != 3) {
-    fprintf(stderr, "*** alignment does not start with match: %d\n",a_res->res[0]);
+    fprintf(stderr, "*** error [%s:%d] - alignment does not start with match: %d\n",
+    __FILE__, __LINE__, a_res->res[0]);
   }
   */
 
 #ifdef DEBUG
   if (adler32(1L,aa1,n1) != adler32_crc) {
-    fprintf(stderr,"[dropfx.c/do_walign] adler32_crc mismatch n1: %d\n",n1);
+    fprintf(stderr,"*** error [%s:%d] - adler32_crc mismatch n1: %d\n",
+	    __FILE__, __LINE__, n1);
   }
 #endif
 

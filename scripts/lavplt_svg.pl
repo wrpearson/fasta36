@@ -1,4 +1,5 @@
-
+#!/usr/bin/env perl
+#
 ################################################################
 # copyright (c) 2012, 2014 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
@@ -15,6 +16,9 @@
 # express or implied.  See the License for the specific language
 # governing permissions and limitations under the License. 
 ################################################################
+
+use warnings;
+use strict;
 
 #define SX(x) (int)((double)(x)*fxscal+fxoff+6)
 sub SX {
