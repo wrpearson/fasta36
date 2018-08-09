@@ -9,6 +9,8 @@ BLAST could show multiple HSPs, FASTA did not.
 >>Aug. 5, 2018  [re-released as fasta-36.3.8g]
 [lib_sel.c]
 Make lib_select.c more robust to missing indirect name files.
+[scripts/ann*.pl]
+update various annotation scripts to use https:// instead of http://
 
 >>April 3, 2018
 [initfa.c, comp_lib.c, dropfx2.c]
