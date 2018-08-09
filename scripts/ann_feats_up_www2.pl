@@ -18,7 +18,7 @@
 ################################################################
 
 ## modified 29-Sept-2016 to use EBI/proteins JSON URL:
-## http://www.ebi.ac.uk/proteins/api/features/p12345
+## https://www.ebi.ac.uk/proteins/api/features/p12345
 
 # ann_feats_up_www2.pl gets an annotation file from fasta36 -V with a line of the form:
 
@@ -38,11 +38,14 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
+use LWP::UserAgent;
 use JSON qw(decode_json);
 
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/proteins/api/features';
+my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
+my $up_base = 'https://www.ebi.ac.uk/proteins/api/features';
+my $uniprot_suff = ".json";
 
 my %domains = ();
 my $domain_cnt = 0;
@@ -215,7 +218,7 @@ sub lwp_annots {
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc.json");
+    $lwp_features = get_https("$up_base/$acc.json");
   }
 #  elsif ($id && ($id =~ m/^\w+$/)) {
 #    $lwp_features = get("$up_base/$id/$gff_post");
@@ -368,6 +371,19 @@ sub domain_name {
   }
 }
 
+sub get_https {
+  my ($url) = @_;
+
+  my $result = "";
+  my $response = $ua->get($url);
+
+  if ($response->is_success) {
+    $result = $response->decoded_content;
+  } else {
+    $result = '';
+  }
+  return $result;
+}
 
 
 __END__
@@ -400,7 +416,7 @@ ann_feats_up_www2.pl
 
 C<ann_feats_up_www2.pl> extracts feature, domain, and repeat
 information from the Uniprot DAS server through an XSLT transation
-provided by http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
+provided by https://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
 This server provides GFF descriptions of Uniprot entries, with most of
 the information provided in UniProt feature tables.
 

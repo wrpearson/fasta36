@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -29,7 +29,7 @@
 # (3) get exon information from EBI/Uniprot
 # (4) return the tab delimited exon boundaries
 
-# 22-May-2017 -- use get("http://"), not get_https("https://"), because EBI does not have LWP::Protocol:https
+# 22-May-2017 -- use get("https://"), not get_https("https://"), because EBI does not have LWP::Protocol:https
 
 use warnings;
 use strict;
@@ -67,7 +67,7 @@ my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 my $get_annot_sub = \&get_up_www_exons;
 
 my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
-my $uniprot_url = 'http://www.ebi.ac.uk/proteins/api/coordinates/';
+my $uniprot_url = 'https://www.ebi.ac.uk/proteins/api/coordinates/';
 my $uniprot_suff = ".json";
 
 # get the query
@@ -133,7 +133,7 @@ sub show_annots {
 
   $acc =~ s/\.\d+$//;
 
-  my  $exon_json = get($uniprot_url.$acc.$uniprot_suff);
+  my  $exon_json = get_https($uniprot_url.$acc.$uniprot_suff);
 
   unless (!$exon_json || $exon_json =~ m/errorMessage/ || $exon_json =~ m/Can not find/) {
     $annot_data{list} = parse_json_up_exons($exon_json);
