@@ -179,7 +179,7 @@ init_work (unsigned char *aa0, int n0,
      exit (1);
    }
    if ((f_str->link = (struct hlstr *) calloc (n0, sizeof (struct hlstr))) == NULL) {
-     fprintf (stderr, "*** error [%s:%d] - cannot allocate hash link array",
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate hash link array [%d]",
 	      __FILE__, __LINE__, n0);
      exit (1);
    }
