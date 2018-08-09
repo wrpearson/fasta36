@@ -1,4 +1,4 @@
-ann_exons_ens.pl
+ann_exons_up_sql.pl
 ann_exons_up_www.pl
 ann_feats2ipr.pl
 ann_feats_up_sql.pl

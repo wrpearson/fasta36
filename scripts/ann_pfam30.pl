@@ -313,7 +313,7 @@ sub show_annots {
 
   # here we have an $acc or an $id: check to see if we have the data
 
-  my %annot_data = (seq_info=>$annot_line);
+  my %annot_data = (seq_info=>$annot_line, seq_len=>$seq_len);
   my $annot_key = '';
   unless ($use_acc) {
     next if ($annot_set{$id});
