@@ -1650,7 +1650,7 @@ update_tmp_annot(struct annot_mstr *this) {
 
   this->max_annot += (this->max_annot/2);
   if ((this->tmp_arr_p= (struct annot_entry *)realloc(this->tmp_arr_p, this->max_annot*sizeof(struct annot_entry)))==NULL) {
-    fprintf(stderr,"[*** error [%s:%d] - cannot reallocate tmp_ann_astr[%d]\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot reallocate tmp_ann_astr[%d]\n",
 	    __FILE__, __LINE__, this->max_annot);
     return 0;
   }
