@@ -2616,7 +2616,7 @@ do_walign (const unsigned char *aa0, int n0,
   *have_ares = 0x3;	/* set 0x2 bit to indicate local copy */
 
   if ((a_res = (struct a_res_str *)calloc(1, sizeof(struct a_res_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate a_res [%d]",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate a_res [%lu]",
 	    __FILE__, __LINE__, sizeof(struct a_res_str));
     return NULL;
   }

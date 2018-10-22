@@ -117,7 +117,7 @@ init_work (unsigned char *aa0, int n0,
 
    f_str = (struct f_struct *) calloc(1, sizeof(struct f_struct));
    if(f_str == NULL) {
-     fprintf(stderr, "*** error [%s:%d] - cannot calloc f_str [%d]\n",
+     fprintf(stderr, "*** error [%s:%d] - cannot calloc f_str [%lu]\n",
 	     __FILE__, __LINE__, sizeof(struct f_struct));
      exit(1);
    }
@@ -1173,7 +1173,7 @@ do_walign (const unsigned char *aa0, int n0,
   *have_ares = 0x2;	/* set 0x2 bit to indicate local copy */
 
   if ((a_res = (struct a_res_str *)calloc(1, sizeof(struct a_res_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate a_res [%d]",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate a_res [%lu]",
 	    __FILE__, __LINE__, sizeof(struct a_res_str));
     return NULL;
   }
