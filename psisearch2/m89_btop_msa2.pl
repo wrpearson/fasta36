@@ -52,6 +52,7 @@ use Getopt::Long;
 
 my ($shelp, $help, $m_format, $evalue, $qvalue, $domain_bound) = (0, 0, "m8CB", 0.001, 30.0,0);
 my ($query_file, $sel_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out,$mask_type_end, $mask_type_int) = ("","","","","","","","");
+my ($clustal_id,$trunc_acc) = (0,0);
 my $query_lib_r = 0;
 my ($eval2_fmt, $eval2) = (0,"");
 
@@ -59,16 +60,13 @@ GetOptions(
     "query=s" => \$query_file,
     "query_file=s" => \$query_file,
     "eval2=s" => \$eval2,		# change the evalue used for inclusion
-    "evalue=f" => \$evalue,
-    "expect=f" => \$evalue,
+    "evalue|expect=f" => \$evalue,
     "qvalue=f" => \$qvalue,
     "format=s" => \$m_format,
-    "selected_file_in=s" => \$sel_file,
-    "sel_file_in=s" => \$sel_file,
-    "sel_file=s" => \$sel_file,
-    "sel_accs=s" => \$sel_file,
-    "m_format=s" => \$m_format,
-    "mformat=s" => \$m_format,
+    "clustal!" => \$clustal_id,
+    "trunc_acc!" => \$trunc_acc,
+    "selected_file_in|sel_file_in|sel_accs=s" => \$sel_file,
+    "m_format|mformat=s" => \$m_format,
     "bound_file_in=s" => \$bound_file_in,
     "bound_file_only=s" => \$bound_file_only,
     "bound_file_out=s" => \$bound_file_out,
@@ -217,7 +215,7 @@ unless ($q_acc) {
   $q_acc = $query_descr;
 }
 
-$acc_names{$q_acc} = 1;	# this is necessary for the new acc-only NCBI SwissProt libraries
+$acc_names{$q_acc} = $q_acc;	# this is necessary for the new acc-only NCBI SwissProt libraries
 
 $q_acc =~ s/\.\d+$//;
 
@@ -298,6 +296,7 @@ while (my $line = <>) {
 #    $s_seqid_u .= "_". $acc_names{$subj_acc};
   }
   else {
+    my $tr_acc = $hit_data{'s_seqid'};
     $acc_names{$hit_data{'s_seqid'}} = 1;
   }
 
@@ -305,10 +304,6 @@ while (my $line = <>) {
   next if ($eval_fptr->(\%hit_data) > $evalue);
 
   $hit_data{s_seqid_u} = $s_seqid_u;
-
-  if (length($s_seqid_u) > $max_sseqid_len) {
-    $max_sseqid_len = length($s_seqid_u);
-  }
 
   my $have_dom = 0;
   if ($domain_bound && $hit_data{annot}) {
@@ -383,10 +378,26 @@ while (my $line = <>) {
   }
 }
 
+$max_sseqid_len = 10;
+for my $acc ( @multi_names) {
+  my $this_len = length($acc);
+  if ($trunc_acc && ($acc=~m/\|\w+\|(\w+)$/)) {
+    $this_len = length($1);
+  }
+  if ($this_len > $max_sseqid_len) {
+    $max_sseqid_len = $this_len;
+  }
+}
+
 # final MSA output
 $max_sseqid_len += 2;
 
-printf "BTOP%s multiple sequence alignment\n\n\n",$m_format;
+if (! $clustal_id) {
+  printf "BTOP%s multiple sequence alignment\n\n\n",$m_format;
+}
+else {
+  print "CLUSTALW (1.8) multiple sequence alignment\n\n\n";
+}
 
 my $i_pos = 0;
 for (my $j = 0; $j < $query_len/60; $j++) {
@@ -394,7 +405,12 @@ for (my $j = 0; $j < $query_len/60; $j++) {
   if ($i_end >= $query_len) {$i_end = $query_len-1;}
   for my $acc (@multi_names) {
     next unless $acc;
-    printf("%-".$max_sseqid_len."s %s\n",$acc,join("",@{$multi_align{$acc}}[$i_pos .. $i_end]));
+
+    my $this_acc = $acc;
+    if ($trunc_acc && ($acc=~m/\|\w+\|(\w+)$/)) {
+      $this_acc = $1;
+    }
+    printf("%-".$max_sseqid_len."s %s\n",$this_acc,join("",@{$multi_align{$acc}}[$i_pos .. $i_end]));
   }
   $i_pos += 60;
   print "\n\n";
@@ -916,6 +932,10 @@ __END__
                       Only sequences in --bound_file_only will be in the MSA.
 
  --bound_file_out -- "--bound_file" for next iteration of psisearch2
+
+ --clustal -- use "CLUSTALW (1.8)" multiple alignment string
+
+ --trunc_acc -- remove db, acc from db|acc|ident, e.g. sp|P0948|GSTM1_HUMAN becomes GSTM1_HUMAN
 
  --domain_bound  parse domain annotations (-V) from m9B file
  --domain
