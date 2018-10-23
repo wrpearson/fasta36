@@ -81,7 +81,7 @@ my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my @domain_list = (0);
 my $domain_cnt = 0;
 
-my $loc="http://pfam.xfam.org/";
+my $loc="https://pfam.xfam.org/";
 my $url;
 
 my @pf_domains;
