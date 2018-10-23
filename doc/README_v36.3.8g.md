@@ -1,6 +1,26 @@
 
-
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
+
+Changes in **fasta-36.3.8g** released 23-Oct-2018
+
+  1. (Oct. 2018) Improvements to scripts in the `psisearch2/` directory:
+
+    1. `psisearch2/m89_btop_msa2.pl`
+
+      1. the `--clustal` option produces a "CLUSTALW (1.8)", which is required for some downstream programs
+
+      2. the `--trunc_acc` option removes the database and accession from identifiers of the form:
+         `sp|P09488|GSTM1_HUMAN` to produce `GSTM1_HUMAN`.
+
+      3. the `--min_align` option specifies the fraction of the query sequence that must be aligned 
+         (q_end-q_start+1)/q_length)
+
+      Together, these changes make it possible for the output of `m89_btop_msa2.pl` to be used by
+the EMBOSS program `fprotdist`.
+
+    2. A more general implementation of `psisearch2_msa_iter.sh`, which does `psisearch2` one iteration at a time, and a new equivalent `psisearch2_msa_iter_bl.sh`, which uses `psiblast` to do the search.
+
+  2. (Oct. 2018) A small restructuring of the `make/Makefiles` to remove the `-lz` dependence for non-debugging scripts (and add it back when -DDEBUG is used).
 
 Changes in **fasta-36.3.8g** released 5-Aug-2018
 

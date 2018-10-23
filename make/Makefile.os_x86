@@ -13,7 +13,9 @@
 SHELL=/bin/bash
 
 CC= gcc -g -O3 -arch i386 -msse2
+LIB_DB=
 #CC= gcc -g -DDEBUG -arch i386 -msse2
+#LIB_DB=-lz
 
 #CC= cc -g -Wall -pedantic
 #

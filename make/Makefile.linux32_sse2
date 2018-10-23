@@ -13,9 +13,11 @@
 SHELL=/bin/bash
 
 CC= gcc -g  -O -msse2 -ffast-math
+LIB_DB=
 #CC = gcc -g -DDEBUG -msse2
 
 #CC= /usr/local/parasoft/bin/insure -g -DDEBUG
+#LIB_DB=-lz
 
 #CC=gcc -Wall -pedantic -ansi -g -O
 

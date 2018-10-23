@@ -70,7 +70,7 @@ my %annot_cmds = ('rpd3' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --vdoms --spli
 ($num_iter, $pssm_evalue, $srch_evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
   ( 5, 0.002, 5.0, 0, 0, 'none', 'none', 0, 'ssearch','',0, 0, "", 0);
 ($save_all, $tmp_file_list, $delete_bnd, $delete_tmp) = (0, "", 0, 0);
-($prev_m89res, $m_format, $prev_sel_res, $prev_bound, $this_iter, $use_stdout) = ("","", "","", 1, 0);
+($prev_m89res, $m_format, $prev_sel_res, $prev_bound, $this_iter, $use_stdout) = ("","m8CB", "","", 1, 0);
 
 my $pgm_command =  "# ".join(" ",($0,@ARGV));
 print STDERR "# ",join(" ",($0,@ARGV)),"\n" if ($error_log);
@@ -280,7 +280,7 @@ sub log_system {
 
   my ($cmd) = @_;
 
-  print STDERR "$cmd\n" if $error_log;
+  print STDERR "# $cmd\n" if $error_log;
   system($cmd);
 }
 
@@ -291,7 +291,12 @@ sub log_system {
 sub get_ssearch_cmd {
   my ($query_file, $db_file, $pssm_file) = @_;
 
-  my $search_cmd = qq($ssearch_bin -S -m 6 -m 9B -E "$srch_evalue 0" -s BP62);
+  my $mf_arg = $m_format;
+  $mf_arg =~ s/^m//;
+
+
+  my $search_cmd = qq($ssearch_bin -S -E "$srch_evalue 0" -s BP62 -m $mf_arg);
+
   if ($annot_type) {
     $search_cmd .= qq( -V $annot_cmds{$annot_type});
   }

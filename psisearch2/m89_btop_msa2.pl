@@ -52,7 +52,7 @@ use Getopt::Long;
 
 my ($shelp, $help, $m_format, $evalue, $qvalue, $domain_bound) = (0, 0, "m8CB", 0.001, 30.0,0);
 my ($query_file, $sel_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out,$mask_type_end, $mask_type_int) = ("","","","","","","","");
-my ($clustal_id,$trunc_acc) = (0,0);
+my ($clustal_id,$trunc_acc,$min_align) = (0,0,0.0);
 my $query_lib_r = 0;
 my ($eval2_fmt, $eval2) = (0,"");
 
@@ -83,6 +83,7 @@ GetOptions(
     "domain" => \$domain_bound,
     "int_mask_type=s" => \$mask_type_int,
     "int_mask=s" => \$mask_type_int,
+    "min_align=f" => \$min_align,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -302,6 +303,8 @@ while (my $line = <>) {
 
   # must be after duplicate seqid check because blast HSP's have bad E-values after good.
   next if ($eval_fptr->(\%hit_data) > $evalue);
+
+  next if (($hit_data{q_end}-$hit_data{q_start}+1)/$query_len < $min_align);
 
   $hit_data{s_seqid_u} = $s_seqid_u;
 
@@ -920,7 +923,11 @@ __END__
  --query      -- same as --query_file
  (only one sequence per file)
 
+ --expect|evalue: 0.001 -- maximum e-value to be include in output
+
  --eval2 : "": use E()-value, "eval2": use E2()/eval2, "ave": use geom. mean
+
+ --qvalue: 30.0  -- minimum qvalue for domain to be considered
 
  --bound_file_in -- tab delimited accession<tab>start<tab>end that
                     specifies MSA boundaries WITHIN alignment.
@@ -941,6 +948,8 @@ __END__
  --domain
 
  --masked_lib_out -- FASTA format library of MSA sequences
+
+ --min_align:0.0  -- minimum fractional alignment (q_end-q_start+1)/q_len
 
  --int_mask_type = "query", "rand", "X", "none"
  --end_mask_type = "query", "rand", "X", "none"

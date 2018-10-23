@@ -19,7 +19,10 @@
    governing permissions and limitations under the License. 
 */
 
-/* input is a libtype 1,5, or 6 sequence database */
+/* input is a lib_type 1,5, or 6 sequence database (lib_type specified after filename), 
+   e.g. 'swissprot.lseg 1' */
+/* map_db -n specifies a DNA database */
+
 /* output is a BLAST2 formatdb type index file */
 
 /* format of the index file:

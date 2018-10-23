@@ -13,7 +13,9 @@
 SHELL=/bin/bash
 
 CC= clang -g -O -arch x86_64 -msse2
+LIB_DB=
 #CC= clang -g -DDEBUG -arch x86_64 -msse2
+#LIB_DB=-lz
 
 #CC= cc -g -Wall -pedantic
 #

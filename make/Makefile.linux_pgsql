@@ -11,7 +11,9 @@
 SHELL=/bin/bash
 
 CC= gcc -g -O
+LIB_DB=
 #CC= gcc -g -DDEBUG
+#LIB_DB=-lz
 #CC=/opt/parasoft/bin.linux2/insure -g -DDEBUG
 
 # this file works for x86 LINUX
