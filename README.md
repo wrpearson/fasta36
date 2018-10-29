@@ -12,6 +12,11 @@ includes programs for aligning translated DNA sequences against
 proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
 `tfasty` are similar to `tblastn`).
 
+#### October, 2018
+The current version of the FASTA package is fasta-36.3.8g, Oct. 2018
+
+See doc/README_v36.3.8g.md for a more complete summary of changes.
+
 #### April, 2018
 The current version of the FASTA package is fasta-36.3.8g, Apr. 2018
 
