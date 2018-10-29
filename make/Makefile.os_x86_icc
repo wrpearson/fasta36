@@ -13,7 +13,9 @@
 SHELL=/bin/bash
 
 CC= icc -g -O -m64	# intel icc compiler
+LIB_DB=
 #CC= icc -g -DDEBUG -m64
+#LIB_DB=-lz
 
 #CC= cc -g -Wall -pedantic
 #

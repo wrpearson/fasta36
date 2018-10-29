@@ -1349,7 +1349,13 @@ A number of rarely used options are now only available as extended options:
 \item[\texttt{X1}] sort output by \texttt{init1} score (for
   compatibility with FASTP; obsolete).
 
-\item[\texttt{XB}] (Previously \texttt{-B}.)  Show the z-score, rather
+\item[\texttt{XB}] Calculate pecent identity, percent similarity, and
+  alignment using the BLAST model, which excludes gapped residues.
+  This allows very high identity alignments with large gaps to look
+  much closer, but causes the alignment length to drop by the length
+  of the gap.
+
+\item[\texttt{Xb}] (Previously \texttt{-B}.)  Show the z-score, rather
   than the bit-score in the list of best scores (rarely used, provided
   for backward compatibility).
 
@@ -1470,8 +1476,8 @@ environment variables are used in HTML mode (\texttt{-m 6}) to provide
 links from the sequence alignment (see the links at
 \url{http://fasta.bioch.virginia.edu/fasta_www2/}). \texttt{REF\_URL}
 is associated with the \texttt{Entrez Lookup} link; \texttt{SRCH\_URL}
-with the \texttt{Re-search database} link, and \texttt{SRCH\_URL1}
-with the \texttt{General re-search} link.  In each case, the text
+with the \texttt{General re-search} link, and \texttt{SRCH\_URL1}
+with the \texttt{Pairwise alignment} link.  In each case, the text
 corresponds to a HTML URL, but with positions containing the
 \texttt{\%s} or \texttt{\%ld} (for numbers) part of a 'C'
 \texttt{sprintf()} call for specific variables. \texttt{REF\_URL} uses
@@ -1887,7 +1893,7 @@ Query & Library & FASTA pgm. & BLAST pgm. & \\[1.2ex]
 Prot. & Prot. & \texttt{fasta36} & \texttt{blastp} & heuristic local similarity \\
  &  & \texttt{ssearch36} &  & optimal local sim.\\
  &  & \texttt{ggearch36} &  & global:global sim. \\
- &  & \texttt{ggearch36} &  & global:local sim.\\
+ &  & \texttt{glearch36} &  & global:local sim.\\
 DNA & DNA & \texttt{fasta36}$^*$ & \texttt{blastn} & \\[1.2ex]
 \hline \\[-1.0ex]
 Prot. & Prot. & \texttt{lalign36} & & multiple non-intersecting \\

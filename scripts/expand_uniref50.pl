@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2010, 2014 by William R. Pearson and The Rector &
@@ -25,6 +25,7 @@
 # (2) take the uniprot accessions and produce a fasta library file
 #     from them
 
+use warnings;
 use strict;
 use DBI;
 

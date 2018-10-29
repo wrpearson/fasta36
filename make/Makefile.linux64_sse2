@@ -13,6 +13,8 @@
 SHELL=/bin/bash
 
 CC = gcc -g -O -msse2
+LIB_DB=
+
 #CC= gcc -pg -g -O -msse2 -ffast-math
 #CC = gcc -g -DDEBUG -msse2
 #CC=gcc -Wall -pedantic -ansi -g -msse2 -DDEBUG

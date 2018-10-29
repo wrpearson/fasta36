@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014, 2015 by William R. Pearson and The Rector &
@@ -31,6 +31,7 @@
 # >pf26|164|O57809|1A1D_PYRHO
 # and only provides domain information
 
+use warnings;
 # use strict;
 
 use Getopt::Long;
@@ -80,7 +81,7 @@ my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my @domain_list = (0);
 my $domain_cnt = 0;
 
-my $loc="http://pfam.xfam.org/";
+my $loc="https://pfam.xfam.org/";
 my $url;
 
 my @pf_domains;
@@ -101,7 +102,8 @@ $query =~ s/^>// if ($query);
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-unless ($query && $query =~ m/[\|:]/) {
+unless ($query && ($query =~ m/[\|:]/ ||
+		   $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
 
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
@@ -153,14 +155,16 @@ sub show_annots {
   elsif ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/^sp\|/) {
+  elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
+    $use_acc = 1;
   }
-  elsif ($annot_line =~ m/^tr\|/) {
-    ($sdb, $acc, $id) = split(/\|/,$annot_line);
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, $3);
+    $use_acc = 1;
   }
-  elsif ($annot_line =~ m/^(SP|TR):/i) {
-    ($sdb, $id) = split(/:/,$annot_line);
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, "");
     $use_acc = 0;
   }
   elsif ($annot_line !~ m/\|/ && $annot_line !~ m/:/) {

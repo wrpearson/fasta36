@@ -297,6 +297,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    m_msp->nmlen = DEF_NMLEN;
    m_msp->z_bits = 1;
    m_msp->tot_ident = 0;
+   m_msp->blast_ident = 0;
    m_msp->mshow_set = 0;
    m_msp->mshow_min = 0;
    m_msp->aln.llen = 60;
@@ -711,6 +712,14 @@ set_markx(int markx, int val, char c) {
 
   return markx;
 }
+
+/* specify output format.  If output format type is 'F', then provide
+   file name and write to file.
+
+   Thus,  -m "F8CB outfile.m8CB" writes -m 8CB output to outfile.m8CB
+   Different format outputs can be written to different files
+
+*/
 
 void
 pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2010, 2014 by William R. Pearson and The Rector &
@@ -35,6 +35,7 @@
 ## sequences from an NCBI blast-formatted database.
 ##
 
+use warnings;
 use strict;
 use DBI;
 

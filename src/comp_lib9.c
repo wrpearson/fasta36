@@ -66,7 +66,7 @@
 #define XTERNAL
 #include "uascii.h"
 
-char *mp_verstr="(preload9)";
+char *mp_verstr="";
 
 /********************************/
 /* extern variable declarations */
@@ -158,6 +158,8 @@ extern void ptime (FILE *, long);
 #endif
 
 #define GETLIB (m_file_p->getlib)
+
+extern void upper_seq(unsigned char *aa0, int n0, int *xascii, unsigned char *sqx);
 
 int samp_stats_idx (int *pre_nstats, int nstats, void *rand_state);
 
@@ -332,6 +334,7 @@ void prhist(FILE *, const struct mngmsg *, struct pstruct *, struct hist_str his
 
 void print_sum(FILE *, struct db_str *qtt, struct db_str *ntt, int in_mem, long tot_memK);
 int reset_maxn(struct mngmsg *, int, int);	/* set m_msg.maxt, maxn from maxl */
+int count_not_seg(unsigned char *aa0, int n0, struct pstruct *pst);
 
 FILE *outfd;			/* Output file */
 
@@ -636,7 +639,10 @@ main (int argc, char *argv[])
 
   /* Open query library */
   if ((q_file_p= open_lib(q_lib_p, m_msg.qdnaseq,qascii,!m_msg.quiet))==NULL) {
-    s_abort(" cannot open library ",m_msg.tname);
+    fprintf(stderr,"*** error [%s:%d] cannot open library %s\n",__FILE__,__LINE__, m_msg.tname);
+    exit(1);
+
+    /*     s_abort(" cannot open library ",m_msg.tname); */
   }
   /* Fetch first sequence */
   qlib = 0;
@@ -661,8 +667,8 @@ main (int argc, char *argv[])
 
   /* if protein and ldb_info.term_code set, add '*' if not there */
   if (m_msg.ldb_info.term_code && !(m_msg.qdnaseq==SEQT_DNA || m_msg.qdnaseq==SEQT_RNA) &&
-      aa0[0][m_msg.n0-1]!='*') {
-    aa0[0][m_msg.n0++]='*';
+      aa0[0][m_msg.n0-1]!=aascii['*']) {
+    aa0[0][m_msg.n0++]=aascii['*'];
     aa0[0][m_msg.n0]=0;
   }
 
@@ -733,6 +739,11 @@ main (int argc, char *argv[])
 
    /* reset algorithm parameters for alphabet */
   resetp (&m_msg, &pst);
+
+  if (count_not_seg(aa0[0],m_msg.n0, &pst) == 0) { /* if no un-seg'ed query residues, convert to upper case */
+    upper_seq(aa0[0],m_msg.n0,qascii,pst.sqx);
+    fprintf(stderr,"+++ warning [%s:%d] - all lower-case query converted to upper case: %s\n", __FILE__, __LINE__, info_qlabel);
+  }
 
 #ifndef COMP_MLIB
   gettitle(m_msg.tname,m_msg.qtitle,sizeof(m_msg.qtitle));
@@ -907,7 +918,7 @@ main (int argc, char *argv[])
 
     if (!validate_params(aa0[0],m_msg.n0, &m_msg, &pst,
 			 lascii, pascii)) {
-      fprintf(stderr," *** ERROR *** validate_params() failed:\n -- %s\n", argv_line);
+      fprintf(stderr," *** error [%s:%d] - validate_params() failed:\n -- %s\n", __FILE__, __LINE__, argv_line);
       exit(1);
     }
 
@@ -1840,6 +1851,11 @@ main (int argc, char *argv[])
     /* if ends with ESS, remove terminal ESS */
     if (aa0[0][m_msg.n0-1] == ESS) { m_msg.n0--; aa0[0][m_msg.n0]= '\0';}
 
+    if (count_not_seg(aa0[0],m_msg.n0, &pst) == 0) { /* if no un-seg'ed query residues, convert to upper case */
+      upper_seq(aa0[0],m_msg.n0, qascii, pst.sqx);
+      fprintf(stderr,"+++ warning [%s:%d] - all lower-case query converted to upper case: %s\n", __FILE__, __LINE__, info_qlabel);
+    }
+
     if (m_msg.outfd) {fputc('\n',stdout);}
 
     if (qlcont) {
@@ -2341,7 +2357,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
     if ((cur_lib_p->m_file_p = 
 	 open_lib(cur_lib_p, m_msp->ldb_info.ldnaseq, lascii, !m_msp->quiet))
 	==NULL) {
-      fprintf(stderr," cannot open library %s\n",cur_lib_p->file_name);
+      fprintf(stderr,"(*** warning [%s:%d] cannot open library %s\n",__FILE__,__LINE__,cur_lib_p->file_name);
       getlib_info->lib_list_p = getlib_info->lib_list_p->next;
       if (getlib_info->lib_list_p == NULL) {
 	goto return_null;

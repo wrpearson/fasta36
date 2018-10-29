@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -18,7 +18,7 @@
 ################################################################
 
 ## modified 29-Sept-2016 to use EBI/proteins JSON URL:
-## http://www.ebi.ac.uk/proteins/api/features/p12345
+## https://www.ebi.ac.uk/proteins/api/features/p12345
 
 # ann_feats_up_www2.pl gets an annotation file from fasta36 -V with a line of the form:
 
@@ -32,16 +32,20 @@
 
 # this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 
+use warnings;
 use strict;
 
 use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
+use LWP::UserAgent;
 use JSON qw(decode_json);
 
 ## use IO::String;
 
-my $up_base = 'http://www.ebi.ac.uk/proteins/api/features';
+my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
+my $up_base = 'https://www.ebi.ac.uk/proteins/api/features';
+my $uniprot_suff = ".json";
 
 my %domains = ();
 my $domain_cnt = 0;
@@ -143,7 +147,9 @@ my @annots = ();
 #if it's a file I can open, read and parse it
 
 unless ($data_file) {
-  unless ($query && $query =~ m/[\|:]/ ) {
+  unless ($query && ($query =~ m/[\|:]/ 
+		     || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/
+		     || $query =~ m/^(XN)(MP)_\d+/)) {
 
     while (my $a_line = <>) {
       $a_line =~ s/^>//;
@@ -190,10 +196,11 @@ sub lwp_annots {
 
   if ($annot_line =~ m/^gi\|/) {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
+  } elsif ($annot_line =~ m/^(SP|TR):(\w+)\s(\w+)/) {
+    ($sdb, $id, $acc) = (lc($1), $2, $3);
   } elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
-    $sdb = lc($1);
-    $id = $2;
-#     $acc = $2;
+    ($sdb, $id, $acc) = (lc($1), $2, "");
+    warn("*** $0 accession required: $annot_line\n");
   } elsif ($annot_line =~ m/^(UR\d{3}:UniRef\d{2})_(\w+)/) {
     $sdb = lc($1);
     $id = $2;
@@ -211,7 +218,7 @@ sub lwp_annots {
   my $lwp_features = "";
 
   if ($acc && ($acc =~ m/^[A-Z][0-9][A-Z0-9]{3}[0-9]/)) {
-    $lwp_features = get("$up_base/$acc");
+    $lwp_features = get_https("$up_base/$acc.json");
   }
 #  elsif ($id && ($id =~ m/^\w+$/)) {
 #    $lwp_features = get("$up_base/$id/$gff_post");
@@ -364,6 +371,19 @@ sub domain_name {
   }
 }
 
+sub get_https {
+  my ($url) = @_;
+
+  my $result = "";
+  my $response = $ua->get($url);
+
+  if ($response->is_success) {
+    $result = $response->decoded_content;
+  } else {
+    $result = '';
+  }
+  return $result;
+}
 
 
 __END__
@@ -396,7 +416,7 @@ ann_feats_up_www2.pl
 
 C<ann_feats_up_www2.pl> extracts feature, domain, and repeat
 information from the Uniprot DAS server through an XSLT transation
-provided by http://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
+provided by https://www.ebi.ac.uk/Tools/dbfetch/dbfetch/uniprotkb.
 This server provides GFF descriptions of Uniprot entries, with most of
 the information provided in UniProt feature tables.
 

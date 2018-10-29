@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014 by William R. Pearson and The Rector &
@@ -17,6 +17,7 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
+use warnings;
 use strict;
 use DBI;
 use Getopt::Long;

@@ -34,8 +34,8 @@ NGETLIB=nmgetlib
 # and "-L/usr/lib64/mysql -lmysqlclient -lz" in LIB_M
 # some systems may also require a LD_LIBRARY_PATH change
 
-LIB_M= -lm -lz
-#LIB_M= -L/usr/lib64/mysql -lmysqlclient -lz -lm
+LIB_M= -lm 
+#LIB_M= -L/usr/lib64/mysql -lmysqlclient -lm # -lz 
 NCBL_LIB=ncbl2_mlib.o
 #NCBL_LIB=ncbl2_mlib.o mysql_lib.o
 

@@ -88,6 +88,7 @@ ann_pfam28.pl -- generate Pfam domains using local Pfam mySQL database (Pfam28, 
 ann_pfam_www.pl -- use Pfam Website, and XML::Twig, to get Pfam domain info.
 
 ann_exons_ens.pl -- generate exon boundaries on SwissProt proteins from Ensembl.
+ann_exons_up_www.pl -- generate exon boundaries on SwissProt proteins using the EBI/Proteins/API/coordinate service
 ann_exons_ncbi.pl -- generate exon boundaries on NCBI refseq proteins.
 
 -- Library expansion

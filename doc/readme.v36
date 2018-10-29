@@ -6,6 +6,108 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Oct. 23, 2018 [re-released as fasta-36.3.8g]  (see README_v36.3.8g.md)
+[make/Makefiles*,psisearch2/m89_btop_msa2.pl]
+Add options to psisearch2/m89_btop_msa2.pl to provide clustalw header (--clustal), require a minimum coverage of the query sequence (--min_align 0.8), and edit sequence identifiers to remove database and accession (--trunc_acc).
+
+Remove -lz dependency from non-debug Makefiles.
+
+>>Aug. 5, 2018  [re-released as fasta-36.3.8g]
+[lib_sel.c]
+Make lib_select.c more robust to missing indirect name files.
+[scripts/ann*.pl]
+update various annotation scripts to use https:// instead of http://
+
+>>April 3, 2018
+[initfa.c, comp_lib.c, dropfx2.c]
+Changes to (a) ensure that the "-t t" option correctly inserts and
+aligns a termination codon '*'. (a) changes to -m 8CB, -m8CC, and -m9C
+so that aligned termination codons are indicated as "**" (-m8CB) or
+"*1" (-m8CC, -m9C).
+
+>>Mar. 9, 2018
+[scripts/annot_blast_btop2.pl, merge_blast_btab.pl, blastp_annot_cmd.sh]
+Code is now in place to provide sub-alignment scoring using domain
+annotations with blastp searches (BLOSUM62 only).  blastp_annot_cmd.sh
+runs blast and produces both a standard HTML and a tabular output
+file.  It then runs annot_blast_btop2.pl to add sub-alignment scoring
+to the tabular ouput file, and then merge_blast_btab.pl merges the
+domain-annotated blast tabular file with the HTML output file.  When
+combined in this way, the FASTA web server (fasta.bioch.virginia.edu)
+can produce blastp searches with domain highlights/scoring.
+
+>>Feb. 6, 2018
+[initfa.c, doinit.c, mshowbest.c, mshowalign2.c]
+Add a new extended option, -XB, which causes percent identity, percent
+similarity, and alignment length to be presented using the BLAST
+model, which does not count gaps in the alignment length.
+
+>>Dec. 30, 2017  [released as fasta-36.3.8g]
+[scaleswn.c]
+Replace np_to_z() with np1_to_z(), which does not substract low
+probability from 1.0, thus allowing accurate z-values for very low
+probabilities.
+
+>>Sept. 26, 2017
+[comp_lib9.c, compacc2e.c]
+Previously, if the query sequence was all lower-case letters (seg-ed)
+and the '-S' option specified, the search would effectively be done
+with a zero-length sequence, which broke the statistics.  The code has
+been modified to convert all lower-case queries to upper-case when -S
+is used.
+
+[scaleswn.c]
+Fixed problem with scaleswn.c/ag_stats() not setting parameters
+properly when matrix was unknown.
+
+>>May 23, 2017 [released as fasta-36.3.8f]
+[url_subs.c]
+A small, but major change in the output available to the $SRCH_URL and
+$SRCH_URL2 strings, which are used to enable re-searching, and now
+pairwise alignment. (It would be better to provide a json string of
+the information, rather than using fprintf().)  An additional value,
+the name of the query sequence, is provided to these urls so that
+pairwise alignment becomes possible.
+
+>>May 23, 2017
+[scripts/ann_feats2ipr.pl,ann_feats_up_www2.pl,test_ann_scripts.sh  src/defs.h]
+Changes to ensure that EBI format databases, which place the ID before
+the accession, e.g.  SP:GSTM1_HUMAN P09488, can be processed properly
+by annotation scripts.  This involved displaying more of the
+description line, so that the accession field is included, in the
+annot_XXXXX file.  
+
+>>May 8, 2017
+[compacc2e.c]
+Address problem where initial domain annotation similarity
+score/identity not properly reset.
+
+[scripts/annot_blast_btop2.pl]
+Fix various problems with domain scores, particularly in gaps, and
+domain coordinates.
+
+Modify version string to May, 2017
+
+>>April 18, 2017
+[cal_cons2.c]
+Address problem where identity count not correctly assigned to
+N-terminal domain at the end of a domain.
+
+>>April 14, 2017
+[src/compacc2e.c, scripts/ann_exons_up_www.pl]
+
+Provide a new script to annotate exon positions in Uniprot Proteins
+(scripts/ann_exons_up_www.pl) that uses the EBI proteins/api/coordinate service.
+
+Provide additional error checking on annotates to ensure that domain
+start is always <= domain end.
+
+>>Jan 17, 2017
+[scripts/ann_pfam30_tmptbl.pl]
+ann_pfam30_tmptbl.pl is a modification of ann_pfam30.pl that loads a
+temporary tables of accessions to be annotated, rather than asking for
+one sequence at a time.
+
 >>Dec 14, 2016
 [initfa.c/scaleswn.c]
 Change required shuffle count (down to 100) and introduce an

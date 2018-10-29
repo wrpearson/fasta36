@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8e Dec, 2016 MPI";
+char *verstr="36.3.8g Oct, 2018 MPI";
 #else
-char *verstr="36.3.8e Dec, 2016";
+char *verstr="36.3.8g Oct, 2018";
 #endif
 
 static int mktup=3;
@@ -1100,7 +1100,7 @@ f_getopt (char copt, char *optarg,
     m_msg->e_cut_set = 1;
 
     if (tmp_e_rep > 0.0) {
-      if (tmp_e_rep >= 1.0) { ppst->e_cut_r = ppst->e_cut/tmp_e_rep;}
+      if (tmp_e_rep >= 1.0) { ppst->e_cut_r = ppst->e_cut / tmp_e_rep;}
       else { ppst->e_cut_r = tmp_e_rep;}
     }
     break;
@@ -1290,7 +1290,20 @@ f_getopt (char copt, char *optarg,
   }
 }
 
-static char my_opts[] = "1BIM:ox:y:N:";
+/* Extended options:
+   -X1 - use the init1 score, rather than initn, for statistics and ordering results
+   -Xb - report z-score, not bit-score
+   -XB - use blast identities
+   -XI - ensure that identities are not rounded to 100%
+   -XM: - specify memory limits for database buffering
+   -XN:[+S] - treat N:N/X:X as similar as well as identical
+   -Xo - use initn score, not opt score, for statistics and ordering results
+   -Xx: - penalties for X:X, X:not-X match
+   -Xy: - width of band for optimized scores
+
+ */
+
+static char my_opts[] = "1BbIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1310,7 +1323,10 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
       ppst->param_u.fa.iniflag=1;
     }
     break;
-  case 'B': m_msp->z_bits = 0; break;
+
+  case 'B': m_msp->blast_ident = 1; break;
+
+  case 'b': m_msp->z_bits = 0; break;
   case 'I': 
     m_msp->tot_ident = 1;
     /*
@@ -2866,13 +2882,13 @@ validate_params(const unsigned char *aa0, int n0,
 
   for (i=0; i< ppst->nsq; i++) {
     if (ppst->pam2[0][0][i] > -1000) {
-      fprintf(stderr," *** ERROR ***  pam2[0][0][%d/%c] == %d\n",
-	      i,NCBIstdaa[i],ppst->pam2[0][0][i]);
+      fprintf(stderr," *** error[%s:%d]***  pam2[0][0][%d/%c] == %d\n",
+	      __FILE__, __LINE__, i,NCBIstdaa[i],ppst->pam2[0][0][i]);
       good_params = 0;
     }
     if (ppst->pam2[0][i][0] > -1000) {
-      fprintf(stderr," *** ERROR ***  pam2[0][%d/%c][0] == %d\n",
-	      i,NCBIstdaa[i],ppst->pam2[0][i][0]);
+      fprintf(stderr," *** error[%s:%d] (validate_params)-  pam2[0][%d/%c][0] == %d\n",
+	      __FILE__,__LINE__,i,NCBIstdaa[i],ppst->pam2[0][i][0]);
       good_params = 0;
     }
   }
@@ -2881,13 +2897,13 @@ validate_params(const unsigned char *aa0, int n0,
   if (ppst->ext_sq_set) {
     for (i=0; i< ppst->nsqx; i++) {
       if (ppst->pam2[1][0][i] > -1000) {
-	fprintf(stderr," *** ERROR ***  pam2[1][0][%d] == %d\n",
-		i,ppst->pam2[1][0][i]);
+	fprintf(stderr," *** error[%s:%d] (validate_params) -  pam2[1][0][%d] == %d\n",
+		__FILE__, __LINE__, i,ppst->pam2[1][0][i]);
       good_params = 0;
       }
       if (ppst->pam2[1][i][0] > -1000) {
-	fprintf(stderr," *** ERROR ***  pam2[1][%d][0] == %d\n",
-		i,ppst->pam2[1][i][0]);
+	fprintf(stderr," *** error[%s:%d] (validate_params) - pam2[1][%d][0] == %d\n",
+		__FILE__, __LINE__, i,ppst->pam2[1][i][0]);
       good_params = 0;
       }
     }
@@ -2896,16 +2912,16 @@ validate_params(const unsigned char *aa0, int n0,
   /* check for valid residues in query */
   for (i=0; i<n0; i++) {
     if (aa0[i] > ppst->nsq_e && aa0[i] != ESS) {
-      fprintf(stderr," *** ERROR *** aa0[%d] = %c[%d > %d] out of range\n",
-	      i, aa0[i], aa0[i], ppst->nsq_e);
+      fprintf(stderr," *** error [%s:%d] (validate_params) - aa0[%d] = %c[%d > %d] out of range\n",
+	      __FILE__,__LINE__,i, aa0[i], aa0[i], ppst->nsq_e);
       good_params = 0;
     }
   }
 
   for (i=0; i<128; i++) {
     if (lascii[i] < NA && lascii[i] > ppst->nsq_e) {
-      fprintf(stderr," *** ERROR *** lascii [%c|%d] = %d > %d out of range\n",
-	      i, i, lascii[i], ppst->nsq_e);
+      fprintf(stderr," *** error[%s:%d] (validate_params) - lascii [%c|%d] = %d > %d out of range\n",
+	      __FILE__, __LINE__, i, i, lascii[i], ppst->nsq_e);
       good_params = 0;
     }
 

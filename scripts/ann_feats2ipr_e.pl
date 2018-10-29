@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014 by William R. Pearson and The Rector &
@@ -35,6 +35,7 @@
 # ann_feats2ipr.pl is largely identical to ann_feats2l.pl, except that
 #   it uses Interpro for domain/repeat information.
 
+use warnings;
 use strict;
 
 use DBI;
@@ -52,7 +53,7 @@ unless ($hostname =~ m/ebi/) {
   ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
 #  $host = 'xdb';
 } else {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
+  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc, $bound_comment) = 
@@ -247,14 +248,15 @@ sub show_annots {
     $use_acc = 1;
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/SP:(\w+)/) {
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    ($sdb, $id, $acc) = ($1,$2,$3);
+    $use_acc = 1;
+    $sdb = lc($sdb)
+  }
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
+    ($sdb, $id, $acc) = ($1,$2,"");
     $use_acc = 0;
-    $sdb = 'sp';;
-    $id = $1;
-  } elsif ($annot_line =~ m/TR:(\w+)/) {
-    $use_acc = 0;
-    $sdb = 'tr';
-    $id = $1;
+    $sdb = lc($sdb)
   }
   elsif ($annot_line !~ m/\|/) {  # new NCBI swissprot format
     $use_acc =1;

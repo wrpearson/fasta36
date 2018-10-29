@@ -1,1 +1,67 @@
-Makefile.linux64_sse2
+# $ Id: $
+#
+# makefile for fasta3, fasta3_t Use Makefile.mpi for fasta36_mpi
+#
+# This file is designed for 64-bit Linux systems using an X86
+# architecture with SSE2 extensions.  -D_LARGEFILE64_SOURCE and
+# -DBIG_LIB64 require a 64-bit linux system.
+# SSE2 extensions are used for ssearch35(_t)
+#
+# Use Makefile.linux32_sse2 for 32-bit linux x86
+#
+
+SHELL=/bin/bash
+
+CC = gcc -g -O -msse2
+LIB_DB=
+
+#CC= gcc -pg -g -O -msse2 -ffast-math
+#CC = gcc -g -DDEBUG -msse2
+#CC=gcc -Wall -pedantic -ansi -g -msse2 -DDEBUG
+
+# EBI uses the following with pgcc, -O3 does not work:
+# CC= pgcc -O2 -pipe -mcpu=pentiumpro -march=pentiumpro -fomit-frame-pointer
+
+# this file works for x86 LINUX
+
+# standard options
+
+CFLAGS= -DSHOW_HELP -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DMAX_WORKERS=8 -DTHR_EXIT=pthread_exit  -DM10_CONS  -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DSAMP_STATS -DPGM_DOC -DUSE_MMAP  -D_LARGEFILE64_SOURCE  -DBIG_LIB64
+# -I/usr/include/mysql -DMYSQL_DB
+# -DSUPERFAMNUM -DSFCHAR="'|'" 
+
+#
+#(for mySQL databases)  (also requires change to Makefile36m.common or use of Makefile36m.common_mysql)
+# run 'mysql_config' so find locations of mySQL files
+
+LIB_M = -lm
+# for mySQL databases
+# LIB_M = -L/usr/lib64/mysql -lmysqlclient -lm
+
+HFLAGS= -o
+NFLAGS= -o
+
+# for Linux
+THR_SUBS = pthr_subs2
+THR_LIBS = -lpthread
+THR_CC =
+
+BIN = ../bin
+XDIR = /seqprg/bin
+#XDIR = ~/bin/LINUX
+
+# set up files for SSE2/Altivec acceleration
+#
+include ../make/Makefile.sse_alt
+
+# SSE2 acceleration
+#
+DROPGSW_O = $(DROPGSW_SSE_O)
+DROPLAL_O = $(DROPLAL_SSE_O)
+DROPGNW_O = $(DROPGNW_SSE_O)
+DROPLNW_O = $(DROPLNW_SSE_O)
+
+# renamed (fasta36)  programs
+include ../make/Makefile36m.common
+# conventional (fasta3) names
+# include ../make/Makefile.common

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014, 2015 by William R. Pearson and The Rector &
@@ -35,6 +35,7 @@
 # database
 #
 
+use warnings;
 use strict;
 
 use LWP::Simple;

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -38,6 +38,7 @@
 #
 ################################################################
 
+use warnings;
 use strict;
 use Pod::Usage;
 use Getopt::Long;
@@ -50,7 +51,8 @@ use Getopt::Long;
 
 
 my ($shelp, $help, $m_format, $evalue, $qvalue, $domain_bound) = (0, 0, "m8CB", 0.001, 30.0,0);
-my ($query_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out,$mask_type_end, $mask_type_int) = ("","","","","","","");
+my ($query_file, $sel_file, $bound_file_in, $bound_file_only, $bound_file_out, $masked_lib_out,$mask_type_end, $mask_type_int) = ("","","","","","","","");
+my ($clustal_id,$trunc_acc,$min_align) = (0,0,0.0);
 my $query_lib_r = 0;
 my ($eval2_fmt, $eval2) = (0,"");
 
@@ -58,12 +60,13 @@ GetOptions(
     "query=s" => \$query_file,
     "query_file=s" => \$query_file,
     "eval2=s" => \$eval2,		# change the evalue used for inclusion
-    "evalue=f" => \$evalue,
-    "expect=f" => \$evalue,
+    "evalue|expect=f" => \$evalue,
     "qvalue=f" => \$qvalue,
     "format=s" => \$m_format,
-    "m_format=s" => \$m_format,
-    "mformat=s" => \$m_format,
+    "clustal!" => \$clustal_id,
+    "trunc_acc!" => \$trunc_acc,
+    "selected_file_in|sel_file_in|sel_accs=s" => \$sel_file,
+    "m_format|mformat=s" => \$m_format,
     "bound_file_in=s" => \$bound_file_in,
     "bound_file_only=s" => \$bound_file_only,
     "bound_file_out=s" => \$bound_file_out,
@@ -80,6 +83,7 @@ GetOptions(
     "domain" => \$domain_bound,
     "int_mask_type=s" => \$mask_type_int,
     "int_mask=s" => \$mask_type_int,
+    "min_align=f" => \$min_align,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -118,6 +122,30 @@ if ($query_file) {
 
 if (! $query_file || !$query_len) {
   die "query sequence required";
+}
+
+my %sel_accs = ();
+my $have_sel_accs = 0;
+if ($sel_file) {
+  if (open (my $sfd, $sel_file)) {
+    while (my $line = <$sfd>) {
+      chomp $line;
+      next if $line =~ m/^#/;
+      if ($line =~ m/\t/) {
+	my @data = split(/\t/,$line);
+	$sel_accs{$data[0]} = $data[1];
+      }
+      else {
+	$sel_accs{$line} = 1;
+      }
+    }
+    close($sfd);
+    $evalue = 1000000.0;
+    $have_sel_accs = 1;
+  }
+  else {
+    warn "Cannot open selected sequence file: $sel_file";
+  }
 }
 
 push @multi_names, $query_acc;
@@ -188,7 +216,7 @@ unless ($q_acc) {
   $q_acc = $query_descr;
 }
 
-$acc_names{$q_acc} = 1;	# this is necessary for the new acc-only NCBI SwissProt libraries
+$acc_names{$q_acc} = $q_acc;	# this is necessary for the new acc-only NCBI SwissProt libraries
 
 $q_acc =~ s/\.\d+$//;
 
@@ -201,7 +229,7 @@ while (my $line = <>) {
   my $annot_f='NULL';
 
   if ($m_format =~ m/^m9/i) {
-    last if $line =~ m/>>>/;
+    last if $line =~ m/>>>/ || $line =~ m/^<\/pre>/;
     next if $line =~ m/^\+\-/; # skip over HSPs
     my ($left, $right, $align_f) = ("","",'NULL');
     ($left, $right, $align_f, $annot_f) = split(/\t/,$line);
@@ -209,16 +237,24 @@ while (my $line = <>) {
     $align_f= 'NULL' unless $align_f;
     $annot_f= 'NULL' unless $annot_f;
 
-    my @fields = split(/\s+/,$left);
-    my ($ldb, $l_id, $l_acc) = ("","","");
-    if ($fields[0] =~ m/:/) {
-      ($ldb, $l_id) = split(/:/,$fields[0]);
-      ($l_acc) = $fields[1];
-    } else {
-      ($ldb, $l_acc,$l_id) = split(/\|/,$fields[0]);
+    if ($left =~ m/<font/) {
+      $left =~ s/<font color="darkred">//;
+      $left =~ s/<\/font>//;
     }
 
+    my @fields = split(/\s+/,$left);
+    $subj_acc = $s_seqid = $fields[0];
+
+    # my ($ldb, $l_id, $l_acc) = ("","","");
+    # if ($fields[0] =~ m/:/) {
+    #   ($ldb, $l_id) = split(/:/,$fields[0]);
+    #   ($l_acc) = $fields[1];
+    # } else {
+    #   ($ldb, $l_acc,$l_id) = split(/\|/,$fields[0]);
+    # }
+
     @hit_data{@m9_field_names} = split(/\s+/,$right);
+
     if ($eval2_fmt) {
       @hit_data{qw(bits evalue eval2)} = @fields[-3, -2,-1];
     }
@@ -229,7 +265,7 @@ while (my $line = <>) {
     #
     # currently preselbdr files have $ldb|$l_acc, not full s_seqid, so construct it
     #
-    ($s_seqid, $subj_acc) = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
+    # ($s_seqid, $subj_acc) = (join('|',($ldb, $l_acc, $l_id)), "$ldb|$l_acc");
     @hit_data{qw(s_seqid subj_acc)} = ($s_seqid, $subj_acc);
     @hit_data{qw(query_id query_acc)} = ($query_descr, $q_acc);
     $hit_data{BTOP} = $align_f;
@@ -239,7 +275,14 @@ while (my $line = <>) {
     last if $line =~ m/^#/;
     @hit_data{@m8_field_names} = split(/\t/,$line);
     $subj_acc = $hit_data{'s_seqid'};
-    $subj_acc =~ s/^gi\|\d+\|(\w+\|\w+)\|?\w+/$1/;
+    # remove gi number
+    if ($subj_acc =~ m/^gi|\d+\|/) {
+      $subj_acc =~ s/^gi\|\d+\|//;
+    }
+  }
+
+  if ($have_sel_accs) {
+    next unless ($sel_accs{$hit_data{'s_seqid'}});
   }
 
   # a better solution would be to rename the q_seqid, or at least to
@@ -254,17 +297,16 @@ while (my $line = <>) {
 #    $s_seqid_u .= "_". $acc_names{$subj_acc};
   }
   else {
+    my $tr_acc = $hit_data{'s_seqid'};
     $acc_names{$hit_data{'s_seqid'}} = 1;
   }
 
   # must be after duplicate seqid check because blast HSP's have bad E-values after good.
   next if ($eval_fptr->(\%hit_data) > $evalue);
 
-  $hit_data{s_seqid_u} = $s_seqid_u;
+  next if (($hit_data{q_end}-$hit_data{q_start}+1)/$query_len < $min_align);
 
-  if (length($s_seqid_u) > $max_sseqid_len) {
-    $max_sseqid_len = length($s_seqid_u);
-  }
+  $hit_data{s_seqid_u} = $s_seqid_u;
 
   my $have_dom = 0;
   if ($domain_bound && $hit_data{annot}) {
@@ -339,10 +381,26 @@ while (my $line = <>) {
   }
 }
 
+$max_sseqid_len = 10;
+for my $acc ( @multi_names) {
+  my $this_len = length($acc);
+  if ($trunc_acc && ($acc=~m/\|\w+\|(\w+)$/)) {
+    $this_len = length($1);
+  }
+  if ($this_len > $max_sseqid_len) {
+    $max_sseqid_len = $this_len;
+  }
+}
+
 # final MSA output
 $max_sseqid_len += 2;
 
-printf "BTOP%s multiple sequence alignment\n\n\n",$m_format;
+if (! $clustal_id) {
+  printf "BTOP%s multiple sequence alignment\n\n\n",$m_format;
+}
+else {
+  print "CLUSTALW (1.8) multiple sequence alignment\n\n\n";
+}
 
 my $i_pos = 0;
 for (my $j = 0; $j < $query_len/60; $j++) {
@@ -350,7 +408,12 @@ for (my $j = 0; $j < $query_len/60; $j++) {
   if ($i_end >= $query_len) {$i_end = $query_len-1;}
   for my $acc (@multi_names) {
     next unless $acc;
-    printf("%-".$max_sseqid_len."s %s\n",$acc,join("",@{$multi_align{$acc}}[$i_pos .. $i_end]));
+
+    my $this_acc = $acc;
+    if ($trunc_acc && ($acc=~m/\|\w+\|(\w+)$/)) {
+      $this_acc = $1;
+    }
+    printf("%-".$max_sseqid_len."s %s\n",$this_acc,join("",@{$multi_align{$acc}}[$i_pos .. $i_end]));
   }
   $i_pos += 60;
   print "\n\n";
@@ -722,7 +785,7 @@ sub skip_to_m9results {
   my ($q_num, $query_desc, $q_start, $q_stop, $q_len, $l_num, $l_len, $best_yes);
 
   while (my $line = <>) {
-    if ($line =~ m/^\s*(\d+)>>>(\S+)\s.+ \- (\d+) aa$/) {
+    if ($line =~ m/^\s*(\d+)>>>(\S+)\s.*\- (\d+) aa$/) {
       ($q_num,$query_desc, $q_len) = ($1,$2,$3);
 #      ($q_len) = ($line =~ m/(\d+) aa$/);
       $line = <>;	# skip Library:
@@ -860,7 +923,11 @@ __END__
  --query      -- same as --query_file
  (only one sequence per file)
 
+ --expect|evalue: 0.001 -- maximum e-value to be include in output
+
  --eval2 : "": use E()-value, "eval2": use E2()/eval2, "ave": use geom. mean
+
+ --qvalue: 30.0  -- minimum qvalue for domain to be considered
 
  --bound_file_in -- tab delimited accession<tab>start<tab>end that
                     specifies MSA boundaries WITHIN alignment.
@@ -873,10 +940,16 @@ __END__
 
  --bound_file_out -- "--bound_file" for next iteration of psisearch2
 
+ --clustal -- use "CLUSTALW (1.8)" multiple alignment string
+
+ --trunc_acc -- remove db, acc from db|acc|ident, e.g. sp|P0948|GSTM1_HUMAN becomes GSTM1_HUMAN
+
  --domain_bound  parse domain annotations (-V) from m9B file
  --domain
 
  --masked_lib_out -- FASTA format library of MSA sequences
+
+ --min_align:0.0  -- minimum fractional alignment (q_end-q_start+1)/q_len
 
  --int_mask_type = "query", "rand", "X", "none"
  --end_mask_type = "query", "rand", "X", "none"

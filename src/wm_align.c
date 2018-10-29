@@ -173,7 +173,8 @@ nsw_malign (int ***pam2p, int pam_ix, int n0,
 
   /* now we need alignment storage - get it */
   if ((cur_ares->res = (int *)calloc((size_t)max_res,sizeof(int)))==NULL) {
-    fprintf(stderr," *** cannot allocate alignment results array %d\n",max_res);
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate alignment results array %d\n",
+	    __FILE__, __LINE__, max_res);
     exit(1);
   }
 
@@ -486,14 +487,16 @@ NW_ALIGN(int IW, const unsigned char *B,
 
    if ((f_ss = (struct swstr *) calloc (N+2, sizeof (struct swstr)))
        == NULL) {
-     fprintf (stderr, " *** cannot allocate f_ss array %3d\n", N+2);
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate f_ss array %3d\n",
+	      __FILE__, __LINE__, N+2);
      exit (1);
    }
    f_ss++;
 
    if ((r_ss = (struct swstr *) calloc (N+2, sizeof (struct swstr)))
        == NULL) {
-     fprintf (stderr, " *** cannot allocate r_ss array %3d\n", N+2);
+     fprintf (stderr, "*** error [%s:%d] - cannot allocate r_ss array %3d\n",
+	      __FILE__, __LINE__, N+2);
      exit (1);
    }
    r_ss++;
@@ -503,7 +506,8 @@ NW_ALIGN(int IW, const unsigned char *B,
 
   ck = CHECK_SCORE(IW,B,M,N,S,W,G,H,NC, &sw);
   if (c != ck) {
-    fprintf(stderr," *** Check_score error. %d != %d ***\n",c,ck);
+    fprintf(stderr,"*** error [%s:%d] - check_score error. %d != %d ***\n",
+	    __FILE__, __LINE__, c,ck);
   }
 
   f_ss--; r_ss--;

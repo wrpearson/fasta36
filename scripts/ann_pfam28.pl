@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014,2015 by William R. Pearson and The Rector &
@@ -30,6 +30,7 @@
 # this version only annotates sequences known to Pfam:pfamseq:
 # and only provides domain information
 
+use warnings;
 use strict;
 
 use DBI;

@@ -209,7 +209,7 @@ init_work (unsigned char *aa0, int n0,
     if (hsq[i0] < NMAP && hsq[i0] > mhv) mhv = hsq[i0];
 
   if (mhv <= 0) {
-    fprintf (stderr, " maximum hsq <=0 %d\n", mhv);
+    fprintf (stderr, "*** error [%s:%d] maximum hsq <=0 %d\n", __FILE__, __LINE__, mhv);
     exit (1);
   }
 
@@ -223,23 +223,26 @@ init_work (unsigned char *aa0, int n0,
   f_str->hmask = (hmax >> f_str->kshft) - 1;
 
   if ((f_str->harr = (int *) calloc (hmax, sizeof (int))) == NULL) {
-    fprintf (stderr, " *** cannot allocate hash array: hmax: %d hmask: %d\n",
-	     hmax, f_str->hmask);
+    fprintf (stderr, "*** error [%s:%d] - cannot allocate hash array: hmax: %d hmask: %d\n",
+	     __FILE__,__LINE__,hmax, f_str->hmask);
     exit (1);
   }
 
   if ((f_str->pamh1 = (int *) calloc (nsq+1, sizeof (int))) == NULL) {
-    fprintf (stderr, " *** cannot allocate pamh1 array nsq=%d\n",nsq);
+    fprintf (stderr, "*** error [%s:%d] - cannot allocate pamh1 array nsq=%d\n",
+	     __FILE__, __LINE__, nsq);
     exit (1);
   }
 
   if ((f_str->pamh2 = (int *) calloc (hmax, sizeof (int))) == NULL) {
-    fprintf (stderr, " *** cannot allocate pamh2 array hmax=%d\n",hmax);
+    fprintf (stderr, "*** error [%s:%d] - cannot allocate pamh2 array hmax=%d\n",
+	     __FILE__, __LINE__,hmax);
     exit (1);
   }
 
   if ((f_str->link = (int *) calloc (n0, sizeof (int))) == NULL) {
-    fprintf (stderr, " *** cannot allocate hash link array n0=%d",n0);
+    fprintf (stderr, "*** error [%s:%d] - cannot allocate hash link array n0=%d",
+	     __FILE__, __LINE__, n0);
     exit (1);
   }
 
@@ -300,8 +303,8 @@ init_work (unsigned char *aa0, int n0,
   f_str->ndo = 0;
   if ((f_str->diag = (struct dstruct *) calloc ((size_t)MAXDIAG,
 						sizeof (struct dstruct)))==NULL) {
-    fprintf (stderr," *** cannot allocate diagonal arrays: %lu\n",
-	     MAXDIAG *sizeof (struct dstruct));
+    fprintf (stderr,"*** error [%s:%d] - cannot allocate diagonal arrays: %lu\n",
+	     __FILE__, __LINE__, MAXDIAG *sizeof (struct dstruct));
     exit (1);
   };
 
@@ -310,7 +313,8 @@ init_work (unsigned char *aa0, int n0,
   if ((f_str->aa1x =(unsigned char *)calloc((size_t)ppst->maxlen+2,
 					    sizeof(unsigned char)))
       == NULL) {
-    fprintf (stderr, " *** cannot allocate aa1x array %d\n", ppst->maxlen+2);
+    fprintf (stderr, "*** error [%s:%d] - cannot allocate aa1x array %d\n",
+	     __FILE__, __LINE__, ppst->maxlen+2);
     exit (1);
   }
   f_str->aa1x++;
@@ -325,7 +329,8 @@ init_work (unsigned char *aa0, int n0,
   maxn0 = n0 + 4;
   if ((ss = (struct swstr *) calloc (maxn0, sizeof (struct swstr)))
       == NULL) {
-    fprintf (stderr, " *** cannot allocate ss array %3d\n", n0);
+    fprintf (stderr, "*** error [%s:%d] - cannot allocate ss array %3d\n",
+	     __FILE__, __LINE__, n0);
     exit (1);
   }
   ss++;
@@ -336,21 +341,21 @@ init_work (unsigned char *aa0, int n0,
 
   /* initialize variable (-S) pam matrix */
   if ((f_str->waa_s= (int *)calloc((nsq+1)*(n0+1),sizeof(int))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate waa_s array %3d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate waa_s array %3d\n",
 	    __FILE__, __LINE__, nsq*n0);
     exit(1);
   }
 
   /* initialize pam2p[1] pointers */
   if ((f_str->pam2p[1]= (int **)calloc((n0+1),sizeof(int *))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate pam2p[1] array %3d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate pam2p[1] array %3d\n",
 	    __FILE__, __LINE__, n0);
     exit(1);
   }
 
   pam2p = f_str->pam2p[1];
   if ((pam2p[0]=(int *)calloc((nsq+1)*(n0+1),sizeof(int))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate pam2p[1][] array %3d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate pam2p[1][] array %3d\n",
 	    __FILE__, __LINE__, nsq*n0);
     exit(1);
   }
@@ -361,21 +366,21 @@ init_work (unsigned char *aa0, int n0,
 
   /* initialize universal (alignment) matrix */
   if ((f_str->waa_a= (int *)calloc((nsq+1)*(n0+1),sizeof(int))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate waa_a struct %3d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate waa_a struct %3d\n",
 	    __FILE__, __LINE__, nsq*n0);
     exit(1);
   }
    
   /* initialize pam2p[0] pointers */
   if ((f_str->pam2p[0]= (int **)calloc((n0+1),sizeof(int *))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate pam2p[1] array %3d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate pam2p[1] array %3d\n",
 	    __FILE__, __LINE__, n0);
     exit(1);
   }
 
   pam2p = f_str->pam2p[0];
   if ((pam2p[0]=(int *)calloc((nsq+1)*(n0+1),sizeof(int))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate pam2p[1][] array %3d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate pam2p[1][] array %3d\n",
 	    __FILE__, __LINE__, nsq*n0);
     exit(1);
   }
@@ -528,7 +533,7 @@ close_work (const unsigned char *aa0, int n0,
     *f_arg = NULL;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] close_work() with NULL f_str ***\n",
+    fprintf(stderr, "*** error [%s:%d] - close_work() with NULL f_str ***\n",
 	    __FILE__, __LINE__);
   }
 }
@@ -616,7 +621,7 @@ do_fasta (const unsigned char *aa0, int n0,
    }
 
    if (n0+n1+1 >= MAXDIAG) {
-     fprintf(stderr,"*** error [%s:%d] n0,n1 too large: %d + %d (%d) > %d \n",
+     fprintf(stderr,"*** error [%s:%d] - n0,n1 too large: %d + %d (%d) > %d \n",
 	     __FILE__, __LINE__, n0,n1,n0+n1+1,MAXDIAG);
      rst->score[0] = rst->score[1] = rst->score[2] = -1;
      return;
@@ -1137,7 +1142,7 @@ int dmatch (const unsigned char *aa0, int n0,
 
 #ifdef DEBUG
    if (window > f_str->bss_size) {
-     fprintf(stderr,"*** error [%s:%d] dropnfa.c:dmatch window [%d] out of range [%d]\n",
+     fprintf(stderr,"*** error [%s:%d] - dmatch window [%d] out of range [%d]\n",
 	     __FILE__, __LINE__, window, f_str->bss_size);
      window = f_str->bss_size - 4;
    }
@@ -1205,7 +1210,7 @@ FLOCAL_ALIGN(const unsigned char *A, const unsigned char *B,
 
   band = up-low+1;
   if (band < 1) {
-    fprintf(stderr,"***  error [%s:%d] low > up is unacceptable!: M: %d N: %d l/u: %d/%d\n",
+    fprintf(stderr,"***  error [%s:%d] - low > up is unacceptable!: M: %d N: %d l/u: %d/%d\n",
 	    __FILE__, __LINE__, M, N, low, up);
     return 0;
   }
@@ -1347,7 +1352,7 @@ bd_malign (const unsigned char *aa0, int n0,
 
   /* now we need alignment storage - get it */
   if ((cur_ares->res = (int *)calloc((size_t)max_res,sizeof(int)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] cannot allocate alignment results array %d\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate alignment results array %d\n",
 	    __FILE__, __LINE__, max_res);
     exit(1);
   }
@@ -1385,11 +1390,11 @@ bd_malign (const unsigned char *aa0, int n0,
       local_aa1 = (unsigned char *)aa1;
       if (l_min > 0 || l_max < n1 - 1) {
 	if (l_max - l_min < 0) {
-	  fprintf(stderr,"*** error [%s:%d] l_min: %d > l_max %d\n",__FILE__, __LINE__, l_min,l_max);
+	  fprintf(stderr,"*** error [%s:%d] - l_min: %d > l_max %d\n",__FILE__, __LINE__, l_min,l_max);
 	  exit(1);
 	}
 	if ((local_aa1 = (unsigned char *)calloc(l_max - l_min +2,sizeof(unsigned char *)))==NULL) {
-	  fprintf(stderr,"*** error [%s:%d] Cannot allocate local_aa1\n",__FILE__, __LINE__);
+	  fprintf(stderr,"*** error [%s:%d] - cannot allocate local_aa1\n",__FILE__, __LINE__);
 	  exit(1);
 	}
 	  
@@ -1565,7 +1570,7 @@ int bd_walign (const unsigned char *aa0, int n0,
 
    window = min (n1, ppst->param_u.fa.optwid);
    if (window > f_str->bss_size) {
-     fprintf(stderr,"*** error [%s:%d] walign window [%d] out of range [%d]\n",
+     fprintf(stderr,"*** error [%s:%d] - walign window [%d] out of range [%d]\n",
 	     __FILE__, __LINE__, window, f_str->bss_size);
      window = f_str->bss_size - 4;
    }
@@ -1580,7 +1585,7 @@ int bd_walign (const unsigned char *aa0, int n0,
    a_res->n1 = n1;
   
    if (score <=0) {
-     fprintf(stderr,"*** [%s:%d] n0/n1: %d/%d hoff: %d window: %d\n",
+     fprintf(stderr,"*** [%s:%d] - score <= 0 - n0/n1: %d/%d hoff: %d window: %d\n",
 	     __FILE__, __LINE__, n0, n1, hoff, window);
      return 0;
    }
@@ -2178,7 +2183,7 @@ do_walign (const unsigned char *aa0, int n0,
   *have_ares = 0x3;	/* set 0x2 bit to indicate local copy */
 
   if ((a_res = (struct a_res_str *)calloc(1, sizeof(struct a_res_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] Cannot allocate a_res", __FILE__, __LINE__);
+    fprintf(stderr,"*** error [%s:%d] - cannot allocate a_res", __FILE__, __LINE__);
     return NULL;
   }
 
@@ -2204,7 +2209,7 @@ do_walign (const unsigned char *aa0, int n0,
 
 #ifdef DEBUG
   if (adler32(1L,aa1,n1) != adler32_crc) {
-    fprintf(stderr,"*** error [%s:%d] adler32_crc mismatch n1: %d\n",__FILE__, __LINE__, n1);
+    fprintf(stderr,"*** error [%s:%d] - adler32_crc mismatch n1: %d\n",__FILE__, __LINE__, n1);
   }
 #endif
 

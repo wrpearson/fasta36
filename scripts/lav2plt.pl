@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # lav2plt.pl - produce plotfrom lav output */
 
@@ -22,6 +22,7 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
+use warnings;
 use strict;
 use Getopt::Long;
 use Pod::Usage;

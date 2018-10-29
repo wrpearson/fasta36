@@ -13,10 +13,13 @@ SHELL=/bin/bash
 
 # in my hands, gcc-4.0 is about 40% slower than gcc-3.3 on the Altivec code
 CC= gcc -g -O3 -arch ppc -falign-loops=32 -O3 -maltivec -mpim-altivec -force_cpusubtype_ALL 
+LIB_DB=
+
 # -pg -finstrument-functions  -lSaturn
 
 #CC= gcc-3.3 -g -falign-loops=32 -O3 -mcpu=7450 -faltivec
 #CC= gcc-3.3 -g -DDEBUG -mcpu=7450 -faltivec
+#LIB_DB=-lz
 #CC= cc -g -Wall -pedantic -faltivec
 #
 # standard line for normal searching

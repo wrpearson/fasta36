@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
 # copyright (c) 2014 by William R. Pearson and The Rector &
@@ -35,6 +35,7 @@
 # ann_feats2ipr.pl is largely identical to ann_feats2l.pl, except that
 #   it uses Interpro for domain/repeat information.
 
+use warnings;
 use strict;
 
 use DBI;
@@ -52,7 +53,7 @@ unless ($hostname =~ m/ebi/) {
   ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
 #  $host = 'localhost';
 } else {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson", "up_db", "annot", 4124, "web_user", "fasta_www");
+  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc) = 
@@ -174,7 +175,9 @@ $query =~ s/^>// if $query;
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-unless ($query && $query =~ m/[\|:]/ ) {
+unless ($query && ($query =~ m/[\|:]/ ||
+		   $query =~ m/^[NX]P_/ ||
+		   $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
 
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
@@ -183,7 +186,7 @@ unless ($query && $query =~ m/[\|:]/ ) {
     push @annots, $annots_ref if ($annots_ref);
   }
 } else {
-  my $annots_ref = show_annots("$query $seq_len", $get_annot_sub);
+  my $annots_ref = show_annots("$query\t$seq_len", $get_annot_sub);
   push @annots, $annots_ref if ($annots_ref);
 }
 
@@ -218,7 +221,7 @@ sub show_annots {
       ($acc) = ($annot_line =~ m/\|sp\|(\w+)/);
     }
   }
-  elsif ($annot_line =~ m/^[sp|tr|ref]\|/ ) {
+  elsif ($annot_line =~ m/^[sp|tr|ref|up]\|/ ) {
     $use_acc = 1;
     ($sdb, $acc) = split(/\|/,$annot_line);
   }
@@ -226,20 +229,21 @@ sub show_annots {
     $use_acc = 1;
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
   }
-  elsif ($annot_line =~ m/SP:(\w+)/) {
+  elsif ($annot_line =~ m/^(SP|TR):(\w+) (\w+)/) {
+    $use_acc = 1;
+    ($sdb, $id, $acc) = ($1,$2,$3);
+    $sdb = lc($sdb)
+  }
+  elsif ($annot_line =~ m/^(SP|TR):(\w+)/) {
     $use_acc = 0;
-    $sdb = 'sp';
-    $id = $1;
-  } elsif ($annot_line =~ m/TR:(\w+)/) {
-    $use_acc = 0;
-    $sdb = 'tr';
-    $id = $1;
+    ($sdb, $id, $acc) = ($1,$2,"");
+    $sdb = lc($sdb)
   }
   elsif ($annot_line =~ m/\|/) {  # new NCBI swissprot format
     $use_acc = 1;
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   } else {
-    $use_acc =1;
+    $use_acc = 1;
     $sdb = 'sp';
     ($acc) = split(/\s+/,$annot_line);
   }

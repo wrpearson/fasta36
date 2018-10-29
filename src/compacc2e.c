@@ -1650,7 +1650,7 @@ update_tmp_annot(struct annot_mstr *this) {
 
   this->max_annot += (this->max_annot/2);
   if ((this->tmp_arr_p= (struct annot_entry *)realloc(this->tmp_arr_p, this->max_annot*sizeof(struct annot_entry)))==NULL) {
-    fprintf(stderr,"[*** error [%s:%d] - cannot reallocate tmp_ann_astr[%d]\n",
+    fprintf(stderr,"*** error [%s:%d] - cannot reallocate tmp_ann_astr[%d]\n",
 	    __FILE__, __LINE__, this->max_annot);
     return 0;
   }
@@ -1985,6 +1985,12 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
       last_left_bracket = -1;
     }
 
+    if (f_end < f_pos) {
+	fprintf(stderr,"*** error [%s:%d] -- %s: domain start (%d) > domain end (%d)\n",
+		__FILE__,__LINE__, annot_acc, f_pos+1, f_end+1);
+	continue;
+    }
+
     if (tmp_comment[0]) {
       if ((tmp_ann_entry_arr[n_annot].comment=(char *)calloc(strlen(tmp_comment)+1,sizeof(char)))!=NULL) {
 	strncpy(tmp_ann_entry_arr[n_annot].comment,tmp_comment,strlen(tmp_comment));
@@ -2145,6 +2151,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
   struct annot_mstr mtmp_annot;
 
 #ifndef UNIX
+  /* need pipes, system() */
   return 0;
 #else
 
@@ -3960,6 +3967,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
 
       if (*left_domain_head_p == NULL) {
 	*left_domain_head_p = left_domain_p;
+	*d_score_p = init_score;
       }
       else { 
 	/* we already have a domain list - update scores for "live"
@@ -4255,7 +4263,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       if (this_dom_p->n_alen - this_dom_p->n_gaplen > 0) {
 	lpercid = ((double)this_dom_p->n_ident)/(double)(this_dom_p->n_alen-this_dom_p->n_gaplen);
       }
-      else lpercid = -1.0;
+      else lpercid = 0.0;	/* was -1.0, but 0.0 for consistency with annot_blast_btop2.pl */
 
       if (d_type == 1) {
 	if (this_dom_p->annot_entry_p->target == 0) {
@@ -4306,3 +4314,28 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
     }
   }
 }
+
+int count_not_seg(unsigned char *aa0, int n0, struct pstruct *ppst) {
+  int i;
+  int nseg_cnt = 0;
+  if (ppst->ext_sq_set != 1) {
+    return n0;
+  }
+  else {
+    for (i=0; i<n0; i++) {
+      if (aa0[i] < ppst->nsq) {nseg_cnt++;}
+    }
+    return nseg_cnt;
+  }
+}
+
+void upper_seq(unsigned char *aa0, int n0, int *xascii, unsigned char *sqx) {
+  int i;
+
+  for (i=0; i<n0; i++) {
+    if (sqx[aa0[i]] >= 'a' && sqx[aa0[i]] <= 'z') {
+      aa0[i] = xascii[sqx[aa0[i]] - ('a' - 'A')];
+    }
+  }
+}
+

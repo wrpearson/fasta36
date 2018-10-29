@@ -1,7 +1,7 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ################################################################
-# copyright (c) 2014,2015 by William R. Pearson and The Rector &
+# copyright (c) 2017,2018 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,10 @@
 # If the BTOP field or query_file is not available, the script
 # produces domain content without sub-alignment scores.
 ################################################################
+## 21-July-2018
+# include sequence length (actually alignment end) to produce NODOM's (no NODOM's without length).
+#
+################################################################
 ## 13-Jan-2017
 # modified to provide query/subject coordinates and identities if no
 # query sequence -- does not decrement for reverse-complement fastx/blastx DNA
@@ -41,10 +45,13 @@
 # add -q_annot_script to annotate query sequence
 #
 
+use warnings;
 use strict;
 use IPC::Open2;
 use Pod::Usage;
 use Getopt::Long;
+use File::Temp qw/ tempfile /;
+
 # use Data::Dumper;
 
 # read lines of the form:
@@ -56,6 +63,7 @@ use Getopt::Long;
 # and report the domain content ala -m 8CC
 
 my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0);
+my ($have_qslen) = (0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
 my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
@@ -70,6 +78,7 @@ GetOptions(
     "matrix:s" => \$matrix,
     "ann_script:s" => \$ann_script,
     "q_ann_script:s" => \$q_ann_script,
+    "have_qslen!" => \$have_qslen,
     "query:s" => \$query_lib_name,
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
@@ -93,11 +102,14 @@ if ($query_lib_name) {
 
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
 
+if ($have_qslen) {
+  @tab_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
+}
+
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
 if ($show_raw) {
   push @out_tab_fields, "raw_score";
-
 }
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
@@ -143,10 +155,11 @@ while (1) {
     my $pid = open2($Reader, $Writer, $q_ann_script);
     my $hit = $hit_list[0];
 
-    print $Writer $hit->{q_seqid},"\n";
+    my $q_seq_len = scalar(@{$query_lib_r->{$hit->{q_seqid}}});
+    print $Writer $hit->{q_seqid},"\t",$q_seq_len,"\n";
     close($Writer);
 
-    @q_hit_list = ({ s_seq_id=> $hit->{q_seqid} });
+    @q_hit_list = ({ s_seq_id=> $hit->{q_seqid}, s_end=> $q_seq_len});
 
     read_annots($Reader, \@q_hit_list, 0);
 
@@ -157,10 +170,20 @@ while (1) {
   if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     # get the domains for each s_seqid using --ann_script
     #
+    # this does not work currently because only one accession is sent.
+    # For mulitple hits, I need to make a tmp_file.
+
     my ($Reader, $Writer);
     my $pid = open2($Reader, $Writer, $ann_script);
+
     for my $hit (@hit_list) {
-      print $Writer $hit->{s_seqid},"\n";
+#      print STDERR  $hit->{s_seqid},"\t", $hit->{s_end},"\n";
+	#      print $Writer $hit->{s_seqid},"\t", $hit->{s_end},"\n";
+      my $s_len = 100000;
+      if ($have_qslen) {
+	$s_len = $hit->{s_len};
+      }
+      print $Writer $hit->{s_seqid},"\t", $s_len,"\n";
     }
     close($Writer);
 
@@ -277,6 +300,8 @@ sub read_annots {
     next if $line=~ m/^=/;
     chomp $line;
 
+#    print STDERR "$line\n";
+
     # check for header
     if ($line =~ m/^>/) {
       if ($current_domain) {  # previous domains/sites have already been found and parsed
@@ -290,7 +315,7 @@ sub read_annots {
       }
       @hit_domains = ();   # current domains
       @hit_sites = ();     # current sites
-      $current_domain = $line;
+      $current_domain = (split(/\s+/,$line))[0];
       $current_domain =~ s/^>//;
     } else {			# check for data
       my %annot_info = (target=>$target);
@@ -309,9 +334,18 @@ sub read_annots {
   }
   close($Reader);
 
-  # all done, save the last one
   $hit_list_r->[$hit_ix]{domains} = \@hit_domains;
   $hit_list_r->[$hit_ix]{sites} = \@hit_sites;
+
+  # clean up NODOMs in {domains}
+  for my $hit ( @$hit_list_r ) {
+    # clean-up last NODOM if < 10
+    my $tmp_domains = $hit->{domains};
+    my ($last_dom, $left_coord) = ($tmp_domains->[-1], $hit->{s_end});
+    if ($last_dom->{descr} =~ m/^NODOM/ && (($left_coord - $last_dom->{d_pos} + 1) < 10)) {
+      pop @$tmp_domains;
+    }
+  }
 }
 
 # input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
@@ -390,7 +424,7 @@ sub parse_query_file {
 
 sub init_blosum62 {
 
-  my @ncbi_blaa = qw(A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  Z  X * );
+  my @ncbi_blaa = qw(    A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  Z  X  * );
 
   $blosum62[ 0] = [ qw(  4 -1 -2 -2  0 -1 -1  0 -2 -1 -1 -1 -1 -2 -1  1  0 -3 -2  0 -2 -1  0 -4) ]; # A
   $blosum62[ 1] = [ qw( -1  5  0 -2 -3  1  0 -2  0 -3 -2  2 -1 -3 -2 -1 -1 -3 -2 -3 -1  0 -1 -4) ]; # R
@@ -416,7 +450,6 @@ sub init_blosum62 {
   $blosum62[21] = [ qw( -1  0  0  1 -3  3  4 -2  0 -3 -3  1 -1 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4) ];
   $blosum62[22] = [ qw(  0 -1 -1 -1 -2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -2  0  0 -2 -1 -1 -1 -1 -1 -4) ];
   $blosum62[23] = [ qw( -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1) ];
-
 
   die "blosum62 length mismatch $#blosum62 != $#ncbi_blaa" if (scalar(@blosum62) != scalar(@ncbi_blaa));
 
@@ -500,13 +533,24 @@ sub sub_alignment_score {
   my @aligned_domains = ();
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
-  my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
-  my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
+  my $left_align_end = $hit_r->{q_end};
+  if ($target) {
+    $left_align_end = $hit_r->{s_end};
+  }
+
+  if ($left_active_end > $left_align_end ) {
+    $left_active_end = $left_align_end ;
+  }
+
+  my ($q_start, $s_start, $h_start, $h_end) = @{$hit_r}{qw(q_start s_start s_start s_end)};
+  my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $six;
 
   my $ds_ix = \$six;	# use to track the subject position
   # reverse coordinate names if $target==0
   unless ($target) {
     $ds_ix = \$qix;	# track query position
+    $h_start = $hit_r->{q_start};
+    $h_end = $hit_r->{q_end};
   }
 
   my ($score, $m_score) = 0;
@@ -519,9 +563,9 @@ sub sub_alignment_score {
   # skip over domains that do not overlap alignment
   # capture first domain that alignment overlaps
   for ($dom_ix=0; $dom_ix < $dom_nx; $dom_ix++) {
-    if ($domain_r->[$dom_ix]->{d_end} >= $s_start) {  # if {d_end} < $_start, cannot overlap
+    if ($domain_r->[$dom_ix]->{d_end} >= $h_start) {  # if {d_end} < $_start, cannot overlap
       $dom_r = $domain_r->[$dom_ix];
-      if ($dom_r->{d_pos} <= $s_start) {  # {d_pos} is less, {d_end} is greater, overlap
+      if ($dom_r->{d_pos} <= $h_start) {  # {d_pos} is less, {d_end} is greater, overlap
 	push @aligned_domains, $dom_r;
 	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
@@ -545,22 +589,22 @@ sub sub_alignment_score {
 #	  print "$qix:$six : ",$query_r->[$qix],"\n";
 	}
 
-
 	$m_score = $matrix_diag->[$seq0_map];
 	$score += $m_score;
 
 	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	  push @aligned_domains, $dom_r;
-	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	  $dom_ix++;
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
 	}
+
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  $id_cnt++;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -590,15 +634,15 @@ sub sub_alignment_score {
 	  if ($target) {	# subject domains
 	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	      push @aligned_domains, $dom_r;
-	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	      $dom_ix++;
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
 	    }
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
-	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      if ($$ds_ix == $left_active_end) {
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -618,15 +662,16 @@ sub sub_alignment_score {
 	  unless ($target) {	# query domains
 	    if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	      push @aligned_domains, $dom_r;
-	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	      $dom_ix++;
 	      $dom_r = $domain_r->[$dom_ix];
 	      ($dom_score, $id_cnt) = (0,0);
 	    }
+
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
-	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	      if ($$ds_ix == $left_active_end) {
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -643,15 +688,16 @@ sub sub_alignment_score {
 	$score += $m_score;
 	if ($dom_ix < $dom_nx && $$ds_ix == $dom_r->{d_pos}) {
 	  push @aligned_domains, $dom_r;
-	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $$ds_ix, $id_cnt, $dom_score);
+	  $left_active_end = push_annot_match(\@active_dom_list, $dom_r, $qix, $six, $id_cnt, $dom_score);
 	  $dom_ix++;
 	  $dom_r = $domain_r->[$dom_ix];
 	  ($dom_score, $id_cnt) = (0,0);
 	}
+
 	if (@active_dom_list) {
 	  $dom_score += $m_score;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -665,7 +711,7 @@ sub sub_alignment_score {
 
   # all done, finish any domain stuff
   if (@active_dom_list) {
-    last_annot_match(\@active_dom_list, $q_end, $q_end, $id_cnt, $dom_score);
+    last_annot_match(\@active_dom_list, $hit_r->{q_end}, $hit_r->{s_end}, $id_cnt, $dom_score);
   }
 
   return ($score, \@aligned_domains);
@@ -694,13 +740,14 @@ sub sub_alignment_pos {
   my @aligned_domains = ();
 
   my $left_active_end = $domain_r->[-1]->{d_end}+1;	# as far right as possible
-  my ($q_start, $q_end, $s_start, $s_end) = @{$hit_r}{qw(q_start q_end s_start s_end)};
+  my ($q_start, $s_start, $h_start) = @{$hit_r}{qw(q_start s_start s_start)};
   my ($qix, $six)  = ($q_start, $s_start); # $qix now starts from 1, like $ssix;
 
   my $ds_ix = \$six;	# use to track the subject position
   # reverse coordinate names if $target==0
   unless ($target) {
     $ds_ix = \$qix;	# track query position
+    $h_start = $hit_r->{q_start};
   }
 
   my ($score, $m_score) = 0;
@@ -713,9 +760,9 @@ sub sub_alignment_pos {
   # skip over domains that do not overlap alignment
   # capture first domain that alignment overlaps
   for ($dom_ix=0; $dom_ix < $dom_nx; $dom_ix++) {
-    if ($domain_r->[$dom_ix]->{d_end} >= $s_start) {  # if {d_end} < $_start, cannot overlap
+    if ($domain_r->[$dom_ix]->{d_end} >= $h_start) {  # if {d_end} < $_start, cannot overlap
       $dom_r = $domain_r->[$dom_ix];
-      if ($dom_r->{d_pos} <= $s_start) {  # {d_pos} is less, {d_end} is greater, overlap
+      if ($dom_r->{d_pos} <= $h_start) {  # {d_pos} is less, {d_end} is greater, overlap
 	push @aligned_domains, $dom_r;
 	$left_active_end = push_annot_match(\@active_dom_list, $dom_r, $q_start, $s_start, 0, 0);
       }
@@ -740,7 +787,7 @@ sub sub_alignment_pos {
 	if (@active_dom_list) {
 	  $id_cnt++;
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -768,7 +815,7 @@ sub sub_alignment_pos {
 	    }
 	    if (@active_dom_list) {
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -788,7 +835,7 @@ sub sub_alignment_pos {
 	    if (@active_dom_list) {
 	      $dom_score += $m_score;
 	      if ($dom_ix < $dom_nx && $$ds_ix == $left_active_end) {
-		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+		$left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 		$dom_score = $id_cnt = 0;
 	      }
 	    }
@@ -807,7 +854,7 @@ sub sub_alignment_pos {
 	}
 	if (@active_dom_list) {
 	  if ($$ds_ix == $left_active_end) {
-	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $$ds_ix, $id_cnt, $dom_score);
+	    $left_active_end = pop_annot_match(\@active_dom_list, $qix, $six, $$ds_ix, $id_cnt, $dom_score);
 	    $dom_score = $id_cnt = 0;
 	  }
 	}
@@ -821,7 +868,7 @@ sub sub_alignment_pos {
 
   # all done, finish any domain stuff
   if (@active_dom_list) {
-    last_annot_match(\@active_dom_list, $q_end, $q_end, $id_cnt, $dom_score);
+    last_annot_match(\@active_dom_list, $hit_r->{q_end}, $hit_r->{s_end}, $id_cnt, $dom_score);
   }
 
   return ($score, \@aligned_domains);
@@ -873,7 +920,7 @@ sub push_annot_match {
 #                   return left-most right boundary
 
 sub pop_annot_match {
-  my ($active_doms_r, $q_pos, $s_pos, $c_ident, $c_score) = @_;
+  my ($active_doms_r, $q_pos, $s_pos, $d_pos, $c_ident, $c_score) = @_;
 
   my $nx = scalar(@$active_doms_r);
 
@@ -882,18 +929,25 @@ sub pop_annot_match {
   for my $cur_r (@$active_doms_r) {
     $cur_r->{ident} += $c_ident;
     $cur_r->{score} += $c_score;
-    $pop_count++ if ($cur_r->{d_end} == $s_pos);
+    $pop_count++ if ($cur_r->{d_end} == $d_pos);
   }
 
   while ($pop_count-- > 0) {
     my $cur_r = shift @$active_doms_r;
     # convert identity count to identity fraction
-    $cur_r->{ident} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
+    $cur_r->{percid} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
     $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
     $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
   }
+
   if (scalar(@$active_doms_r)) {
-    return $active_doms_r->[0]->{d_end};
+    my $leftmost_end = $active_doms_r->[0]->{d_end};
+    for (my $lix = 1; $lix < scalar(@$active_doms_r); $lix++) {
+      if ($active_doms_r->[$lix]->{d_end} < $leftmost_end) {
+	$leftmost_end = $active_doms_r->[$lix]->{d_end};
+      }
+    }
+    return $leftmost_end;
   }
   else {
     return -1;
@@ -910,10 +964,9 @@ sub last_annot_match {
   for my $cur_r (@$active_doms_r) {
     $cur_r->{ident} += $c_ident;
     $cur_r->{score} += $c_score;
-    $cur_r->{ident} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
+    $cur_r->{percid} = $cur_r->{ident}/($cur_r->{d_end} - $cur_r->{d_pos}+1);
     $cur_r->{qa_end} = $cur_r->{qa_pos} = $q_pos;
     $cur_r->{sa_end} = $cur_r->{sa_pos} = $s_pos;
-
   }
 
   $active_doms_r = [];
@@ -1156,7 +1209,7 @@ sub format_dom_info {
 			   $dom_r->{qa_start},$dom_r->{qa_end},
 			   $dom_r->{sa_start},$dom_r->{sa_end},$ns_score),
 		   sprintf("b=%.1f",$s_bit),
-		   sprintf("I=%.3f",$dom_r->{ident}),
+		   sprintf("I=%.3f",$dom_r->{percid}),
 		   sprintf("Q=%.1f",$qval),$dom_r->{descr}));
 }
 
@@ -1185,16 +1238,21 @@ sub format_annot_info {
     if ($annot_r->{type} eq '-') { # domain with scores
       my $fsub_score = $annot_r->{score}/$raw_score;
 
+      my ($ns_score, $s_bit) = (int($annot_r->{score} * $score_scale + 0.5),
+				int($hit_r->{bits} * $fsub_score + 0.5),
+			       );
       my $qval = 0.0;
       if ($hit_r->{evalue} == 0.0) {
-	$qval = 3000.0
+	if ($s_bit > 50) {
+	  $qval = 3000.0
+	}
+	else {
+	  $qval = -10.0 * (log(400.0 * 400.) + $s_bit)/log(10.0);
+	}
       } else {
 	$qval = -10.0*log($hit_r->{evalue})*$fsub_score/(log(10.0))
       }
 
-      my ($ns_score, $s_bit) = (int($annot_r->{score} * $score_scale+0.5),
-				int($hit_r->{bits} * $fsub_score +0.5),
-			       );
       $qval = 0 if $qval < 0;
 
       $annot_str .= join(";",(sprintf("|%s:%d-%d:%d-%d:s=%d",
@@ -1202,8 +1260,8 @@ sub format_annot_info {
 				      $annot_r->{qa_start},$annot_r->{qa_end},
 				      $annot_r->{sa_start},$annot_r->{sa_end},$ns_score),
 			      sprintf("b=%.1f",$s_bit),
-			      sprintf("I=%.3f",$annot_r->{ident}),
-			      sprintf("Q=%.1f",$qval),$annot_r->{descr}));
+			      sprintf("I=%.3f",$annot_r->{percid}),
+			      sprintf("Q=%.1f",$qval),"C=".$annot_r->{descr}));
     }
     else {	# site annotation
       my $ann_type = $annot_r->{type};
@@ -1242,6 +1300,9 @@ annot_blast_btop2.pl
 
  --ann_script -- annotation script returning site/domain locations for subject sequences
               -- same as --script
+
+ --have_qslen -- use a blast tabular format that includes the query and subject sequence lengths:
+	      -- q_seqid q_len s_seqid s_len ...
 
  --q_ann_script -- annotation script for query sequences
                 -- same as --q_script
