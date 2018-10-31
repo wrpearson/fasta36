@@ -43,7 +43,7 @@ unless (-f STDIN || -p STDIN || @ARGV) {
 # require a btab file
 
 # read it in, save structure as list/hash on accession (list more robust)
-# what happens with multiple hits for same library
+# what happens with multiple hits for same library -- need to add code
 #
 
 my %tab_data = ();
@@ -57,13 +57,21 @@ else {
   open(my $fd, $btab_file) || die "cannot open $btab_file";
 
   while (my $line = <$fd>) {
-    next if ($line =~ m/^#/);
+    next if ($line =~ m/^#/);  # ignore comments
     chomp($line);
     my @fields = split(/\t/,$line);
     my %a_data = ();
+
+    # here we should confirm that the sseqid is new.  If it is not, then add to a list.
     my ($sseqid, $annot) = @fields[1,-1];
-    $tab_data{$sseqid} = parse_annots($annot);
-    push @sseq_ids, $sseqid;
+
+    if (defined($tab_data{$sseqid})) {
+      push @{$tab_data{$sseqid}}, parse_annots($annot);
+    }
+    else {
+      $tab_data{$sseqid} = [ parse_annots($annot) ];
+      push @sseq_ids, $sseqid;
+    }
   }
 }
 
@@ -71,7 +79,7 @@ else {
 # read in the blastp html file and annotate it
 
 my ($in_best, $in_align) = (0,0);
-my ($best_ix, $align_ix) = (0,0);
+my ($best_ix, $align_ix, $hsp_ix) = (0,0,0);
 
 while (my $line = <>) {
   chomp($line);
@@ -91,20 +99,27 @@ while (my $line = <>) {
       $in_best = 0;
       $in_align = 1;
       $align_ix = 0;
+      $hsp_ix = 0;
       # print out the first line
       print "$line\n";
       next;
     }
     else {
-      $line = add_best($line, $tab_data{$sseq_ids[$best_ix]});
+      $line = add_best($line, $tab_data{$sseq_ids[$best_ix]}->[0]);
       $best_ix++;
     }
   }
 
-  if ($in_align && $line =~ m/^Length=/) { # have Length= match, put out annotations if available
-    print_regions($tab_data{$sseq_ids[$align_ix]});
-    $align_ix++;
+  if ($in_align) {
+    if ($line =~ m/^\s+Score = \d+/) { # have Length= match, put out annotations if available
+      print_regions($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix++]);
+    }
+    elsif ($line =~ m/^>/) {
+      $align_ix++;
+      $hsp_ix = 0;
+    }
   }
+
   print "$line\n";
 }
 
