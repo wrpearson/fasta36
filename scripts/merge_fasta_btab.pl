@@ -18,8 +18,13 @@
 ################################################################
 
 ################################################################
-# merge_blast_btab.pl --btab .btab file html_file
+# merge_fasta_btab.pl --btab .btab file html_file
 ################################################################
+
+################################################################
+# takes a standard (or <html> output FASTA file and converts (or adds) labels using .btab information
+################################################################
+
 
 use warnings;
 use strict;
@@ -38,7 +43,7 @@ GetOptions(
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
 unless (-f STDIN || -p STDIN || @ARGV) {
-  pod2usage(1);
+ pod2usage(1);
 }
 
 # require a btab file
@@ -66,6 +71,7 @@ else {
   while (my $line = <$fd>) {
     next if ($line =~ m/^#/);  # ignore comments
     chomp($line);
+
     my %a_data = ();
     @a_data{@bl_fields} = split(/\t/,$line);
 
@@ -85,7 +91,8 @@ else {
 # have the annotation data in %tab_data{} and @seq_ids
 # read in the blastp html file and annotate it
 
-my ($in_best, $in_align) = (0,0);
+my ($in_best, $in_align, $in_annot) = (0,0,0);
+my ($annot_id) = ("");
 my ($best_ix, $align_ix, $hsp_ix) = (0,0,0);
 
 while (my $line = <>) {
@@ -94,7 +101,7 @@ while (my $line = <>) {
     print "\n";
     next;
   }
-  if ($line =~ m/^Sequences producing/) {
+  if ($line =~ m/^The best scores are:/) {
     $in_best = 1;
     $best_ix = 0;
     print "$line\n";
@@ -102,9 +109,10 @@ while (my $line = <>) {
   }
 
   if ($in_best) {
-    if ($line =~ /^>/) {
+    if ($line =~ /<pre>>>/) {
       $in_best = 0;
       $in_align = 1;
+      $in_annot = 0;
       $align_ix = 0;
       $hsp_ix = 0;
       # print out the first line
@@ -112,18 +120,31 @@ while (my $line = <>) {
       next;
     }
     else {
-      $line = add_best($line, $tab_data{$sseq_ids[$best_ix]}->[0]);
-      $best_ix++;
+      if (scalar(@sseq_ids) && $sseq_ids[$best_ix]) {
+	$line = add_best($line, $tab_data{$sseq_ids[$best_ix]}->[0]);
+	$best_ix++;
+      }
     }
   }
 
   if ($in_align) {
-    if ($line =~ m/^\s+Score = \d+/) { # have Length= match, put out annotations if available
-      print_regions($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix++]);
+    if ($line =~ m/^<!\-\- ANNOT_START "([^"]+)" \-\->/) {
+      $annot_id = $1;
+      print_regions($annot_id, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix++]);
+
+      while ($line = <> ) {
+	chomp($line);
+	if ($line !~ m/^\s*q?Region:/ && $line !~ /ANNOT_STOP/) {
+	  print "$line\n";
+	}
+	if ($line =~ m/^<!\-\- ANNOT_STOP \-\->/) {
+	  last;
+	}
+      }
     }
-    elsif ($line =~ m/^>/) {
+    elsif ($line =~ m/<pre>>>/) {
       $align_ix++;
-      $hsp_ix = 0;
+      $hsp_ix=0;
     }
   }
 
@@ -169,9 +190,11 @@ sub parse_annots {
 }
 
 sub print_regions {
-  my ($annot_ref) = @_;
+  my ($annot_id, $annot_ref) = @_;
 
   my $region_str = "";
+
+  print qq(<!-- ANNOT_START "$annot_id" -->);
 
   for my $annot ( @{$annot_ref}) {
     if ($annot->{target} =~ m/^q/) {
@@ -189,6 +212,12 @@ sub add_best {
   my ($line, $annot_ref) = @_;
 
   my $annot_str = '';
+
+  my $last_field = (split(/\s/,$line))[-1];
+
+  if ($last_field =~ m/~\d/) {
+      $line =~ s/$last_field//;
+  }
 
   for my $annot ( @$annot_ref) {
     if ($annot->{target} !~ m/^q/) {

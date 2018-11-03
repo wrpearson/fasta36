@@ -78,7 +78,7 @@ GetOptions(
     "matrix:s" => \$matrix,
     "ann_script:s" => \$ann_script,
     "q_ann_script:s" => \$q_ann_script,
-    "have_qslen!" => \$have_qslen,
+    "have_qslen|have_sqlen!" => \$have_qslen,
     "query:s" => \$query_lib_name,
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
@@ -108,9 +108,11 @@ if ($have_qslen) {
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
+
 if ($show_raw) {
   push @out_tab_fields, "raw_score";
 }
+
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
 }
@@ -341,6 +343,7 @@ sub read_annots {
   for my $hit ( @$hit_list_r ) {
     # clean-up last NODOM if < 10
     my $tmp_domains = $hit->{domains};
+    next unless (scalar(@{$tmp_domains}));
     my ($last_dom, $left_coord) = ($tmp_domains->[-1], $hit->{s_end});
     if ($last_dom->{descr} =~ m/^NODOM/ && (($left_coord - $last_dom->{d_pos} + 1) < 10)) {
       pop @$tmp_domains;

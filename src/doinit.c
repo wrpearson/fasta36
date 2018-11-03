@@ -767,7 +767,7 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
 
   /* first check for -m "F file" format */
   if (optarg[0] == 'F') {
-    if ((bp=strchr(optarg+1,' '))==NULL) {
+    if ((bp=strchr(optarg+1,' '))==NULL && (bp=strchr(optarg+1,'='))==NULL) {
       fprintf(stderr,"-m F missing file name: %s\n",optarg);
       return;
     }

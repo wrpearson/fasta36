@@ -6,9 +6,18 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov. 1, 2018
+[doinit.c]
+Allow -m F#=file.name in addition to -m "F# file.name" to address
+problems I had with spaces in shell scripts.
+
 >>Oct. 23, 2018 [re-released as fasta-36.3.8g]  (see README_v36.3.8g.md)
 [make/Makefiles*,psisearch2/m89_btop_msa2.pl]
-Add options to psisearch2/m89_btop_msa2.pl to provide clustalw header (--clustal), require a minimum coverage of the query sequence (--min_align 0.8), and edit sequence identifiers to remove database and accession (--trunc_acc).
+
+Add options to psisearch2/m89_btop_msa2.pl to provide clustalw header
+(--clustal), require a minimum coverage of the query sequence
+(--min_align 0.8), and edit sequence identifiers to remove database
+and accession (--trunc_acc).
 
 Remove -lz dependency from non-debug Makefiles.
 
