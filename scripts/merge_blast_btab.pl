@@ -25,12 +25,17 @@ use warnings;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use URI::Encode qw(uri_encode);
+use URI::Escape qw(uri_escape);
 
-my ($btab_file, $have_qslen, $help, $shelp) = ("", 0, 0, 0);
+my ($btab_file, $have_qslen, $help, $shelp, $dom_info) = ("", 0, 0, 0, 0);
+my ($plot_url) = ("");
 
 GetOptions(
     "btab_file|btab=s" => \$btab_file,
-    "have_qslen|have_sqlen" => \$have_qslen,
+    "have_qslen|have_sqlen|" => \$have_qslen,
+    "domain_info|dom_info|" => \$dom_info,
+    "plot_url=s"=> \$plot_url,
     "h|?" => \$shelp,
     "help" => \$help,
      );
@@ -53,6 +58,10 @@ if ($have_qslen) {
   @bl_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score annot);
 }
 
+if ($dom_info) {
+  push @bl_fields, "dom_info";
+}
+
 my %tab_data = ();
 my @sseq_ids = ();
 
@@ -73,10 +82,10 @@ else {
     my $sseqid = $a_data{'s_seqid'};
 
     if (defined($tab_data{$sseqid})) {
-      push @{$tab_data{$sseqid}}, parse_annots($a_data{annot});
+      push @{$tab_data{$sseqid}}, \%a_data
     }
     else {
-      $tab_data{$sseqid} = [ parse_annots($a_data{annot}) ];
+      $tab_data{$sseqid} = [ \%a_data ];
       push @sseq_ids, $sseqid;
     }
   }
@@ -119,7 +128,21 @@ while (my $line = <>) {
 
   if ($in_align) {
     if ($line =~ m/^\s+Score = \d+/) { # have Length= match, put out annotations if available
-      print_regions($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix++]);
+      my $regions_str = regions_to_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]);
+      print $regions_str;
+
+      if ($plot_url) {
+	my $raw_dom_str = "";
+	if ($dom_info) {
+	  $raw_dom_str = dom_info_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]{'dom_info'});
+	}
+
+	my $plot_tag = plot_tag_str($plot_url, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix], $regions_str, $raw_dom_str);
+	if ($plot_tag) {print $plot_tag,"\n";}
+      }
+
+      $hsp_ix++;
+
     }
     elsif ($line =~ m/^>/) {
       $align_ix++;
@@ -168,10 +191,13 @@ sub parse_annots {
   return \@annot_list;
 }
 
-sub print_regions {
-  my ($annot_ref) = @_;
+sub regions_to_str {
+  my ($a_data_r) = @_;
+
+  my $annot_ref = parse_annots($a_data_r->{annot});
 
   my $region_str = "";
+  my $annot_str = "";
 
   for my $annot ( @{$annot_ref}) {
     if ($annot->{target} =~ m/^q/) {
@@ -180,17 +206,20 @@ sub print_regions {
     else {
       $region_str = " Region";
     }
-    printf "%s: %s : score=%d; bits=%.1f; Id=%.3f; Q=%.1f : %s\n", $region_str,
+    $annot_str .= sprintf "%s: %s : score=%d; bits=%.1f; Id=%.3f; Q=%.1f : %s\n", $region_str,
       @{$annot}{qw(coord score b I Q name)};
   }
+  return $annot_str;
 }
 
 sub add_best {
-  my ($line, $annot_ref) = @_;
+  my ($line, $a_data) = @_;
 
   my $annot_str = '';
 
-  for my $annot ( @$annot_ref) {
+  my $annot_refs = parse_annots($a_data->{annot});
+
+  for my $annot ( @$annot_refs) {
     if ($annot->{target} !~ m/^q/) {
       $annot_str .= $annot->{name} . ";"
     }
@@ -202,6 +231,52 @@ sub add_best {
   else {
     return $line;
   }
+}
+
+sub plot_tag_str {
+
+  my ($plot_script, $align_data_r, $regions_str, $doms_str) = @_;
+
+  my $svg_pref =  q(<object type="image/svg+xml" );
+  my $svg_post =  q( width="660" height="76" ></object>);
+
+  #build argument string
+  my %plt_args = ();
+  @plt_args{qw(q_cstart l_cstart)} = (1, 1);
+  @plt_args{qw(q_name q_cstop q_astart q_astop l_name l_cstop l_astart l_astop)} =
+    @{$align_data_r}{qw(q_seqid q_len q_start q_end s_seqid s_len s_start s_end)};
+  $plt_args{'regions'}= uri_escape(uri_encode($regions_str));
+  if ($doms_str) {
+    $plt_args{'doms'} = uri_encode($doms_str);
+  }
+
+  my $dom_info = ();
+
+  my @args = map {"$_=$plt_args{$_}"} keys(%plt_args);
+
+  return $svg_pref . qq( data="$plot_url?) . join('&amp;',@args) . '"' . $svg_post;
+}
+
+sub dom_info_str {
+  my ($raw_dom_info) = @_;
+
+  my $dom_str = "";
+  
+  unless ($raw_dom_info) { return "";}
+
+  my @raw_doms = split('\|',$raw_dom_info);
+  shift(@raw_doms);
+
+  for my $dom ( @raw_doms ) {
+    my $tmp_dom = $dom;
+    $tmp_dom =~ s/^DX:/qDomain:\t/g;
+    $tmp_dom =~ s/^XD:/lDomain:\t/g;
+    $tmp_dom =~ s/;C=/\t/g;
+
+    $dom_str .= "$tmp_dom\n";
+  }
+
+  return $dom_str;
 }
 
 

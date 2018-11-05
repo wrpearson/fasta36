@@ -47,8 +47,8 @@ fi
 
 bl0_out="$OUTNAME.html"
 bla_out="${OUTNAME}_an.html"
-blt_out="$OUTNAME.bl_tab"
-blr_out="$OUTNAME.bl_tab_rn"
+blt_out="$OUTNAME.fa_tab"
+blr_out="$OUTNAME.fa_tab_rn"
 
 export BLAST_PATH="/seqprg/bin"
 # BLAST_PATH="../bin"

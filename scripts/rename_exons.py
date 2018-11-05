@@ -42,6 +42,7 @@ class Domain:
         self.rxr = RXRState
         self.idnum = 0
         self.overlap_list = []
+        self.info_dom = None
         self.bestfit = False
         self.text = fulltext
         self.out_str = ''
@@ -52,8 +53,28 @@ class Domain:
 #        self.bestfit = True
     def __str__(self):
 #        return "[%d]name: %s : %i-%i : %i-%i I=%.1f Q=%.1f %s" % (self.idnum, self.name, self.q_start, self.q_end, self.s_start, self.s_end, self.percid, self.qscore, self.rxr)
-        return "[%d:%s] %i-%i:%i-%i::%s" % (self.idnum, self.rxr, self.q_start, self.q_end, self.s_start, self.s_end, self.name)
+        return "[%d:%s] %i-%i:%i-%i::%s [over:%d]" % (self.idnum, self.rxr, self.q_start, self.q_end, self.s_start, self.s_end, self.name,len(self.overlap_list))
+
     def print_bar_str(self):  # checking for 'NADA' 
+        if (not self.out_str):
+            self.out_str = self.text
+        return str("|%s"%(self.out_str))
+
+################
+# main "domain" class that describes a domain/exon alignment annotation
+#
+class Dinfo:
+    def __init__(self, name, qstart, qend, RXRState, fulltext):
+        self.name = name
+        self.q_start = qstart
+        self.q_end = qend
+        self.rxr = RXRState
+        self.text = fulltext
+        self.out_str = ''
+    def __str__(self):
+        return "[%s] %i-%i::%s" % (self.rxr, self.q_start, self.q_end, self.name)
+
+    def print_bar_str(self):
         if (not self.out_str):
             self.out_str = self.text
         return str("|%s"%(self.out_str))
@@ -89,6 +110,16 @@ def parse_domain(text):
     Dom = Domain(name, int(qstart_s), int(qend_s), int(sstart_s), int(send_s), float(iscore_s),float(qscore_s), RXRState, text)
 
     return Dom
+
+def parse_dom_info(text):
+    # takes a domain in string form, turns it into a domain object
+    # looks like: DX:1-100;C=C.Thioredoxin~1
+
+    (RXRState, start_s, end_s,name) = re.search(r'^(\w+):(\d+)-(\d+);C=(.+)$',text).groups()
+
+    dom_info = Dinfo(name, int(start_s), int(end_s), RXRState, text)
+
+    return dom_info
 
 def overlap_fract(qdom, sdom):
     # checks if a query and subject domain overlap
@@ -152,6 +183,10 @@ def parse_protein(line,fields):
 
     Qdom_list = []
     Sdom_list = []
+
+    Qinfo_list = []
+    Sinfo_list = []
+
     counter = 0
 
     if ('dom_annot' in data and len(data['dom_annot']) > 0):
@@ -166,6 +201,26 @@ def parse_protein(line,fields):
 
     data['qdom_list'] = Qdom_list
     data['sdom_list'] = Sdom_list
+
+    if ('dom_info' in data and len(data['dom_info']) > 0):
+        for info_str in data['dom_info'].split('|')[1:]:
+            dinfo = parse_dom_info(info_str)
+
+            if (dinfo.rxr == 'DX'):
+                Qinfo_list.append(dinfo)
+            else:
+                Sinfo_list.append(dinfo)
+
+
+        # put links to info_list into dom_list so info_list names can
+        # be changed  -- give S/Qinfo's the S/Qdom ids of the overlapping domain
+
+        find_info_overlaps(Qinfo_list, Qdom_list)
+        find_info_overlaps(Sinfo_list, Sdom_list)
+        
+    data['qinfo_list'] = Qinfo_list
+    data['sinfo_list'] = Sinfo_list
+
     return data
 
 # "domain" looks like RX:1-38:3-40:s=37;b=17.0;I=0.289;Q=15.9;C=exon_1~1
@@ -246,6 +301,55 @@ def find_overlaps(qdom_list, sdom_list):
     # print "===="
 
 ################
+# info_overlaps -- populates dom.overlap_list for qdoms, sdoms
+#
+def find_info_overlaps(info_list, dom_list):
+
+    if (len(info_list) == 0 or len(dom_list)==0):
+        return
+
+    info_queue = [x for x in info_list]	# build a duplicate list
+    dom_queue = [x for x in dom_list]
+
+    info = info_queue.pop(0)	# get the first element of each
+    dom = dom_queue.pop(0)
+
+    while (True):
+        pop_d = pop_i = False
+
+        if (dom.rxr == 'RX'):  # use dom.q_start/q_end
+            if (dom.q_end < info.q_start):
+                pop_d = True
+            elif (dom.q_end >= info.q_start and dom.q_start <= info.q_end):  # overlap
+                dom.info_dom = info
+                pop_d = True
+                pop_i = True
+            elif (info.q_end < dom.q_start):
+                pop_i = True
+            
+        else:			# use dom.s_start/s_end
+            if (dom.s_end < info.q_start):
+                pop_d = True
+            elif (dom.s_end >= info.q_start and dom.s_start <= info.q_end):  # overlap
+                dom.info_dom = info
+                pop_d = True
+                pop_i = True
+            elif (info.q_end < dom.s_start):
+                pop_i = True
+
+        if (len(info_queue) > 0):
+            if (pop_i):	# done with this info, get next
+                info = info_queue.pop(0)
+        elif (pop_i):  # don't break until we try to get the next domain
+            break;
+
+        if (len(dom_queue) > 0):
+            if (pop_d):	# done with this dom, get next
+                dom = dom_queue.pop(0)
+        elif (pop_d):
+            break;
+
+################
 # build_multi_dict -- builds of dictionaries of multiple overlaps in
 #                     qdom.overlap_list or sdom.overlap_list
 # returns multi_dict[idnum]
@@ -317,9 +421,11 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
             for s_over in qdom.overlap_list:   # find the sdom's that overlap this qdom
                 sdom = s_over['dom']
                 if (sdom.idnum == best_id):
-                   sdom.out_str = replace_name(sdom.text, "exon_X")
-                else:
                     sdom.out_str = replace_name(sdom.text, qdom.name)
+                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,qdom.name)
+                else:
+                    sdom.out_str = replace_name(sdom.text, "exon_X")
+                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,"exon_X")
                 sdom_displayed_dict[sdom.idnum] = sdom;
             continue	# prevents re-labeling later
 
@@ -332,12 +438,15 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
                 # this is the simplest case -- sdom.text gets qdom.name
                 if (sdom.idnum not in sdom_displayed_dict):
                     sdom.out_str = replace_name(sdom.text, qdom.name)
+                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,qdom.name)
             else:
                 # this sdom belongs to multiple q_doms, add each of those q_doms to the name
                 exon_str='exon_'
                 # "ydoms" here are the qdoms overlapped by sdom
                 exon_str += '/'.join([ x.name.split("_")[1] for x in multi_q_dict[sdom.idnum]['ydoms']])
                 sdom.out_str = replace_name(sdom.text, exon_str)
+                sdom.info_dom.out_str = replace_name(sdom.info_dom.text,exon_str)
+
             sdom_displayed_dict[sdom.idnum]=sdom
 
     # done with labeling sdoms based on qdoms, but some may be unlabeled
@@ -346,6 +455,7 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
         for sdom in sdom_list:
             if (sdom.idnum not in sdom_displayed_dict):
                 sdom.out_str = replace_name(sdom.text, "exon_X")
+                sdom.info_dom.out_str = replace_name(sdom.info_dom.text,"exon_X")
                 sdom_displayed_dict[sdom.idnum] = sdom
 
     return sdom_displayed_dict
@@ -357,6 +467,7 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
 
 parser=argparse.ArgumentParser(description='scan_exons.py result_file.m8CB : re-label subject exons to match query')
 parser.add_argument('--have_qslen', help='bl_tab fields include query/subject lengths',dest='have_qslen',action='store_true',default=False)
+parser.add_argument('--dom_info', help='raw domain coordinates included',action='store_true',default=False)
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
 args=parser.parse_args()
 
@@ -366,10 +477,15 @@ fields = field_str.split(' ')
 if (args.have_qslen):
     fields = field_qs_str.split(' ')
 
+end_field= -1
+if (args.dom_info):
+    fields.append('dom_info')
+    end_field = -2
+
 saved_qdom_list = []
 
 for line in fileinput.input(args.files):
-    # pass through commnents
+    # pass through comments
     if (line[0] == '#'):
         print line,	# ',' because have not stripped
         continue
@@ -392,7 +508,9 @@ for line in fileinput.input(args.files):
         qdom_list = data['qdom_list']
 
     # print out non-exon info
-    btab_str = '\t'.join(str(data[x]) for x in fields[:-1])
+    
+
+    btab_str = '\t'.join(str(data[x]) for x in fields[:end_field])
     # print  # comment out for single line
 
     ################
@@ -412,8 +530,13 @@ for line in fileinput.input(args.files):
     #
     exon_list = data['qdom_list']+[sdom_displayed_dict[x] for x in sdom_displayed_dict.keys()]
     sorted_exon_list = sorted(exon_list,key = lambda r: r.idnum)
-    bar_str = ''
+    dom_bar_str = ''
     for exon in sorted_exon_list:
         # print exon.print_bar_str()     # for multi-line output
-        bar_str += exon.print_bar_str() 
-    print btab_str+'\t'+ bar_str
+        dom_bar_str += exon.print_bar_str() 
+
+    info_bar_str = ''
+    for info in data['qinfo_list'] + data['sinfo_list']:
+       info_bar_str += info.print_bar_str() 
+
+    print '\t'.join((btab_str, dom_bar_str, info_bar_str))

@@ -318,7 +318,7 @@ char *display_domains(char target, struct annot_entry **annot_arr_p, int n_annot
   char line[MAX_STR];
   int i, i_doms, n_domain_s = MAX_LSTR;
 
-  /* since (currently) annot_var_s is MAX_LSOTR, do the same for domain_s */
+  /* since (currently) annot_var_s is MAX_LSTR, do the same for domain_s */
   if ((domain_s = (char *)calloc(n_domain_s, sizeof(char)))==NULL) {
     fprintf(stderr,"*** error [%s:%d] *** cannot allocate domain_s[%d]\n",__FILE__, __LINE__,n_domain_s);
     return NULL;
