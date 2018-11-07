@@ -6,9 +6,10 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Nov. 6, 2018
-[doinit.c, mshowbest.c]
-Add options to provide query and subject sequence lengths and raw
+>>Nov. 6-7, 2018
+[doinit.c, mshowbest.c, mshowalign2.c, defs.h, structs.h]
+
+(a) Add options to provide query and subject sequence lengths and raw
 domain coordinates in BLASTP tabular output with the options -m 8CBl
 and -m 8CBL.  If domain annotations are available, -m 8CBL also
 provides the raw domain coordinates (not just those included in the
@@ -16,6 +17,17 @@ alignment) in the form |DX:1-100;C=PF12345|XD:1-100;C=PF12345 where
 |DX a query annotation and |XD indicates a subject annotation.  -m
 8CBl (lower-case L) shows the sequence lengths, but not the raw domain
 info.
+
+(b) parse the annotation program strings so that '+' are converted to
+' '.  This greatly simplifies passing arguments to the annotation scripts.  Thus:
+
+-V \!ann_pfam_sql.pl --db=pfam31 --neg --vdoms  can be written as:
+-V \!ann_pfam_sql.pl+--db=pfam31+--neg+--vdoms  (likewise for -V q\!ann_pfam...)
+
+(c) provide an option to remove region/feature annotations from non -m
+8 (blast-tabular) output.  This simplifies the process of using
+scripts/merge_fasta_btab.pl to use .bl_tab (-m 8CBL) files to inject
+sub-alignment scores and domain information.
 
 >>Nov. 1, 2018
 [doinit.c]

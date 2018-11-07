@@ -30,6 +30,8 @@ use warnings;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use URI::Encode qw(uri_encode);
+use URI::Escape qw(uri_escape);
 
 my ($btab_file, $have_qslen, $help, $shelp, $dom_info) = ("", 0, 0, 0, 0);
 my ($plot_url) = ("");
@@ -87,10 +89,10 @@ else {
     my $sseqid = $a_data{'s_seqid'};
 
     if (defined($tab_data{$sseqid})) {
-      push @{$tab_data{$sseqid}}, parse_annots($a_data{annot});
+      push @{$tab_data{$sseqid}}, \%a_data
     }
     else {
-      $tab_data{$sseqid} = [ parse_annots($a_data{annot}) ];
+      $tab_data{$sseqid} =  [\%a_data ];
       push @sseq_ids, $sseqid;
     }
   }
@@ -138,7 +140,8 @@ while (my $line = <>) {
   if ($in_align) {
     if ($line =~ m/^<!\-\- ANNOT_START "([^"]+)" \-\->/) {
       $annot_id = $1;
-      print_regions($annot_id, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]);
+      my $regions_str = regions_to_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]);
+      print $regions_str;
 
       if ($plot_url) {
 	my $raw_dom_str = "";
@@ -232,18 +235,42 @@ sub print_regions {
   }
 }
 
+sub regions_to_str {
+  my ($a_data_r) = @_;
+
+  my $annot_ref = parse_annots($a_data_r->{annot});
+
+  my $region_str = "";
+  my $annot_str = "";
+
+  for my $annot ( @{$annot_ref}) {
+    if ($annot->{target} =~ m/^q/) {
+      $region_str = "qRegion";
+    }
+    else {
+      $region_str = " Region";
+    }
+
+    $annot_str .= sprintf "%s: %s : score=%d; bits=%.1f; Id=%.3f; Q=%.1f : %s\n", $region_str,
+      @{$annot}{qw(coord score b I Q name)};
+  }
+  return $annot_str;
+}
+
 sub add_best {
-  my ($line, $annot_ref) = @_;
+  my ($line, $a_data) = @_;
 
   my $annot_str = '';
 
-  my $last_field = (split(/\s/,$line))[-1];
+  my $annot_refs = parse_annots($a_data->{annot});
 
-  if ($last_field =~ m/~\d/) {
-      $line =~ s/$last_field//;
+  # remove old annotation if present
+  my @line_words = split(/\s/,$line);
+  if ($line_words[-1] =~ m/~\d/) {
+    $line = join(' ',@line_words[0 .. $#line_words-1]);
   }
 
-  for my $annot ( @$annot_ref) {
+  for my $annot ( @$annot_refs) {
     if ($annot->{target} !~ m/^q/) {
       $annot_str .= $annot->{name} . ";"
     }

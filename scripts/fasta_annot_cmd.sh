@@ -59,14 +59,15 @@ cmd="$cmd -mF8CBL=$blt_out $QUERY $DATABASE"
 # echo $bl_asn $bl0_out $bla_out $blt_out
 # echo "OUTFILE = ${OUTNAME}"
 
-
 #echo "cmd: $cmd"
 #echo "==="
 #echo "bl0_out: $bl0_out"
 #echo "==="
 
+# echo "$BLAST_PATH/$SRCH_CMD $cmd > $bl0_out"
+
 # run the program
 $BLAST_PATH/$SRCH_CMD $cmd > $bl0_out
 
 rename_exons.py --have_qslen --dom_info $blt_out > $blr_out
-merge_fasta_btab.pl --have_qslen --dom_info --btab $blr_out $bl0_out
+merge_fasta_btab.pl --plot_url="http://localhost/fasta_www3/plot_domain6t.cgi" --have_qslen --dom_info --btab $blr_out $bl0_out

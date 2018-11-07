@@ -155,6 +155,10 @@ while (1) {
   }
 
   # get the query annotations
+  if ($q_ann_script) {
+      $q_ann_script =~ s/\+/ /g;
+  }
+
   if ($q_ann_script && -x (split(/\s+/,$q_ann_script))[0]) {
     # get the domains for the q_seqid using --q_ann_script
     #
@@ -174,6 +178,9 @@ while (1) {
   }
 
   # get the subject annotations
+  if ($ann_script) {
+      $ann_script =~ s/\+/ /g;
+  }
 
   if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     # get the domains for each s_seqid using --ann_script

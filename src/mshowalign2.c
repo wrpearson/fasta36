@@ -675,10 +675,14 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 	  if (m_msp->markx & MX_HTML) {
 	    fprintf(fp,"<!-- ANNOT_START \"%s\" -->",link_name);}
 	  /* ensure that last character is "\n" */
-	  if (annot_var_dyn->string[strlen(annot_var_dyn->string)-1] != '\n') {
-	    annot_var_dyn->string[strlen(annot_var_dyn->string)-1] = '\n';
+	  if (!m_msp->m8_show_annot) {
+	    if (annot_var_dyn->string[strlen(annot_var_dyn->string)-1] != '\n') {
+	      annot_var_dyn->string[strlen(annot_var_dyn->string)-1] = '\n';
+	    }
+	    fputs(annot_var_dyn->string, fp);
 	  }
-	  fputs(annot_var_dyn->string, fp);
+	  else { fputs("\n",fp);}
+
 	  if (m_msp->markx & MX_HTML) {fputs("<!-- ANNOT_STOP -->",fp);}
 	}
 
@@ -820,10 +824,12 @@ void do_show(FILE *fp, int n0,int n1, int score,
   int tmp;
 
   if (m_msp->markx & MX_AMAP && (m_msp->markx & MX_ATYPE)==7)
+    /* show text graphic of alignment (very rarely used) */
     disgraph(fp, n0, n1, percent, score,
 	     aln->amin0, aln->amin1, aln->amax0, aln->amax1, m_msp->sq0off,
 	     name0, name1, nml, aln->llen, m_msp->markx);
   else if (m_msp->markx & MX_M10FORM) {
+    /* old tagged/parse-able format */
     if (ppst->sw_flag && m_msp->arelv>0)
       fprintf(fp,"; %s_score: %d\n",m_msp->f_id1,score);
     fprintf(fp,"; %s_ident: %5.3f\n",m_msp->f_id1,percent/100.0);
@@ -838,7 +844,7 @@ void do_show(FILE *fp, int n0,int n1, int score,
 	    seqc0, seqc0a, seqc1, seqc1a, seqca, cumm_seq_score, nc,
 	    n0, n1, name0, name1, nml, aln);
   }
-  else  {
+  else  {    /* all "normal" alignment formats */
     if (!(m_msp->markx & MX_MBLAST)) {
 #ifndef LALIGN
       fprintf(fp,"%s score: %d; ",m_msp->alabel, score);
@@ -859,7 +865,7 @@ void do_show(FILE *fp, int n0,int n1, int score,
 	      annot_var_s, q_annot_p, l_annot_p);
     }
 
-    if (m_msp->markx & MX_AMAP && (m_msp->markx & MX_ATYPE)!=7) {
+    if ((m_msp->markx & MX_AMAP) && ((m_msp->markx & MX_ATYPE)!=MX_ATYPE)) {
       fputc('\n',fp);
       tmp = n0;
 

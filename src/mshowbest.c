@@ -616,6 +616,7 @@ l1:
 	    }
 	    if ((m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR+SHOW_CODE_BTOP)) && seq_code_len > 0 && seq_code != NULL) {
 	      fprintf(fp,"\t%s",seq_code);
+
 	      if (annot_str_len > 0 && annot_str != NULL) {
 		fprintf(fp,"\t%s",annot_str);
 	      }
@@ -657,7 +658,7 @@ l1:
 	  }
 	  else { link_shown = 0;}
 
-	  if ((m_msp->show_code & SHOW_CODE_ID) == SHOW_CODE_ID) {
+	  if ((m_msp->show_code & SHOW_CODE_ID) == SHOW_CODE_ID ) {
 	    annot_str = cur_ares_p->annot_var_id;
 	  }
 	  else if ((m_msp->show_code & SHOW_CODE_IDD) == SHOW_CODE_IDD) {
@@ -666,7 +667,7 @@ l1:
 	  else {
 	    annot_str = NULL;
 	  }
-	  if (annot_str && annot_str[0]) {
+	  if (annot_str && annot_str[0] && (!m_msp->m8_show_annot || (m_msp->markx & MX_M8OUT))) {
 	    fprintf(fp," %s",annot_str);
 	  }
 	}

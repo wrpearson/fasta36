@@ -223,8 +223,8 @@ scanseq(unsigned char *seq, int n, char *str) {
 
 /* subs_env takes a string, possibly with ${ENV}, and looks up all the
    potential environment variables and substitutes them into the
-   string */
-
+   string
+*/
 void subs_env(char *dest, char *src, int dest_size) {
   char *last_src, *bp, *bp1;
 
@@ -274,7 +274,6 @@ void subs_env(char *dest, char *src, int dest_size) {
     dest[dest_size-1]='\0';
   }
 }
-
 
 void
 selectbest(struct beststr **bptr, int k, int n)	/* k is rank in array */
@@ -1703,6 +1702,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
        annotations back
     */
 
+    /* create filename for input accessions */
     annot_bline_file[0] = '\0';
 
     if ((annot_descr_file=(char *)calloc(MAX_STR,sizeof(char)))==NULL) {
@@ -1711,6 +1711,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     }
     annot_descr_file[0] = '\0';
 
+    /* add temporary directory if $TMP_DIR */
     if ((bp=getenv("TMP_DIR"))!=NULL) {
       strncpy(annot_bline_file,bp,sizeof(annot_bline_file));
       annot_bline_file[sizeof(annot_bline_file)-1] = '\0';
@@ -1729,6 +1730,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
       goto no_annots;
     }
 
+    /* write out accessions, sequence length */
     for (i=0; i<nbest; i++) {
       if (bestp_arr[i]->mseq->annot_req_flag) {	continue; }
       if ((strlen(bestp_arr[i]->mseq->bline) > DESCR_OFFSET) &&
@@ -1744,7 +1746,13 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     }
     fclose(annot_fd);
 
-    subs_env(annot_script, sname+1, sizeof(annot_script));
+    /* convert '+' in annot_script to ' ' */
+    bp = strchr(sname+1,'+');
+    for ( ; bp; bp=strchr(bp+1,'+')) {
+      *bp=' ';
+    }
+
+    subs_env(annot_script,  sname+1, sizeof(annot_script));
     annot_script[sizeof(annot_script)-1] = '\0';
     SAFE_STRNCAT(annot_script," ",sizeof(annot_script));
     SAFE_STRNCAT(annot_script,annot_bline_file,sizeof(annot_script));
@@ -2172,6 +2180,13 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
 
     q_offset = m_msp->q_offset + m_msp->q_off - 1;
     if (q_offset < 0) { q_offset = 0;}
+
+    /* convert '+' in annot_script to ' ' */
+    bp = strchr(sname+1,'+');
+    for ( ; bp; bp=strchr(bp+1,'+')) {
+      *bp=' ';
+    }
+
     sprintf(annot_script,"%s \"%s\" %ld",sname+1, bline_descr,q_offset+m_msp->n0);
     annot_script[sizeof(annot_script)-1] = '\0';
 
