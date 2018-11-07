@@ -33,8 +33,8 @@ my ($plot_url) = ("");
 
 GetOptions(
     "btab_file|btab=s" => \$btab_file,
-    "have_qslen|have_sqlen|" => \$have_qslen,
-    "domain_info|dom_info|" => \$dom_info,
+    "have_qslen|have_sqlen!" => \$have_qslen,
+    "domain_info|dom_info!" => \$dom_info,
     "plot_url=s"=> \$plot_url,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -186,6 +186,7 @@ sub parse_annots {
       }
     }
     $annot_data{name} = $a_fields[-1];
+    $annot_data{name} =~ s/^C=//;
     push @annot_list, \%annot_data;
   }
   return \@annot_list;
@@ -206,6 +207,7 @@ sub regions_to_str {
     else {
       $region_str = " Region";
     }
+
     $annot_str .= sprintf "%s: %s : score=%d; bits=%.1f; Id=%.3f; Q=%.1f : %s\n", $region_str,
       @{$annot}{qw(coord score b I Q name)};
   }

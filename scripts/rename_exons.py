@@ -191,6 +191,8 @@ def parse_protein(line,fields):
 
     if ('dom_annot' in data and len(data['dom_annot']) > 0):
         for dom_str in data['dom_annot'].split('|')[1:]:
+            if (not re.search(r'C=exon',dom_str)):
+                continue
             counter += 1
             dom = parse_domain(dom_str)
             dom.idnum = counter
@@ -204,6 +206,9 @@ def parse_protein(line,fields):
 
     if ('dom_info' in data and len(data['dom_info']) > 0):
         for info_str in data['dom_info'].split('|')[1:]:
+            if (not re.search(r'C=exon',info_str)):
+                continue
+
             dinfo = parse_dom_info(info_str)
 
             if (dinfo.rxr == 'DX'):
@@ -493,6 +498,10 @@ for line in fileinput.input(args.files):
     ################
     # break up tab fields, get exon annotations
     data = parse_protein(line.strip('\n'),fields)	# get score/alignment/domain data
+
+    if (len(data['sdom_list'])==0 and len(data['qdom_list'])==0):
+        print line,
+        continue
 
     if len(data['qdom_list'])== 0:
         if data['qseqid'] == data['sseqid']:

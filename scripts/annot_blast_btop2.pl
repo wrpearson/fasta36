@@ -81,8 +81,8 @@ init_blosum62();
 
 GetOptions(
     "matrix:s" => \$matrix,
-    "ann_script:s" => \$ann_script,
-    "q_ann_script:s" => \$q_ann_script,
+    "ann_script|script:s" => \$ann_script,
+    "q_ann_script|q_script:s" => \$q_ann_script,
     "have_qslen|have_sqlen!" => \$have_qslen,
     "domain_info|dom_info!" => \$dom_info,
     "sub2query!" => \$sub2query,
@@ -90,8 +90,6 @@ GetOptions(
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
     "out_fields:s" => \$out_field_str,
-    "script:s" => \$ann_script,
-    "q_script:s" => \$q_ann_script,
     "raw_score" => \$show_raw,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -156,7 +154,7 @@ while (1) {
     push @hit_list, \%hit_data;
   }
 
-  # get the current query sequence
+  # get the query annotations
   if ($q_ann_script && -x (split(/\s+/,$q_ann_script))[0]) {
     # get the domains for the q_seqid using --q_ann_script
     #
@@ -175,7 +173,8 @@ while (1) {
     waitpid($pid, 0);
   }
 
-  # get the current query sequence
+  # get the subject annotations
+
   if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     # get the domains for each s_seqid using --ann_script
     #

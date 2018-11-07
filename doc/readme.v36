@@ -6,6 +6,17 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov. 6, 2018
+[doinit.c, mshowbest.c]
+Add options to provide query and subject sequence lengths and raw
+domain coordinates in BLASTP tabular output with the options -m 8CBl
+and -m 8CBL.  If domain annotations are available, -m 8CBL also
+provides the raw domain coordinates (not just those included in the
+alignment) in the form |DX:1-100;C=PF12345|XD:1-100;C=PF12345 where
+|DX a query annotation and |XD indicates a subject annotation.  -m
+8CBl (lower-case L) shows the sequence lengths, but not the raw domain
+info.
+
 >>Nov. 1, 2018
 [doinit.c]
 Allow -m F#=file.name in addition to -m "F# file.name" to address

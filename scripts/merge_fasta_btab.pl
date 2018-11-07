@@ -31,11 +31,15 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 
-my ($btab_file, $have_qslen, $help, $shelp) = ("", 0, 0, 0);
+my ($btab_file, $have_qslen, $help, $shelp, $dom_info) = ("", 0, 0, 0, 0);
+my ($plot_url) = ("");
 
 GetOptions(
     "btab_file|btab=s" => \$btab_file,
     "have_qslen|have_sqlen" => \$have_qslen,
+    "have_qslen|have_sqlen!" => \$have_qslen,
+    "domain_info|dom_info!" => \$dom_info,
+    "plot_url=s"=> \$plot_url,
     "h|?" => \$shelp,
     "help" => \$help,
      );
@@ -56,6 +60,10 @@ my @bl_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_st
 
 if ($have_qslen) {
   @bl_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score annot);
+}
+
+if ($dom_info) {
+  push @bl_fields, "dom_info";
 }
 
 my %tab_data = ();
@@ -130,8 +138,21 @@ while (my $line = <>) {
   if ($in_align) {
     if ($line =~ m/^<!\-\- ANNOT_START "([^"]+)" \-\->/) {
       $annot_id = $1;
-      print_regions($annot_id, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix++]);
+      print_regions($annot_id, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]);
 
+      if ($plot_url) {
+	my $raw_dom_str = "";
+	if ($dom_info) {
+	  $raw_dom_str = dom_info_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]{'dom_info'});
+	}
+
+	my $plot_tag = plot_tag_str($plot_url, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix], $regions_str, $raw_dom_str);
+	if ($plot_tag) {print $plot_tag,"\n";}
+      }
+
+      $hsp_ix++;
+
+      # remove the old domain information */
       while ($line = <> ) {
 	chomp($line);
 	if ($line !~ m/^\s*q?Region:/ && $line !~ /ANNOT_STOP/) {
@@ -184,6 +205,8 @@ sub parse_annots {
       }
     }
     $annot_data{name} = $a_fields[-1];
+    $annot_data{name} =~ s/^C=//;
+
     push @annot_list, \%annot_data;
   }
   return \@annot_list;
@@ -203,6 +226,7 @@ sub print_regions {
     else {
       $region_str = " Region";
     }
+
     printf "%s: %s : score=%d; bits=%.1f; Id=%.3f; Q=%.1f : %s\n", $region_str,
       @{$annot}{qw(coord score b I Q name)};
   }
@@ -233,6 +257,51 @@ sub add_best {
   }
 }
 
+sub plot_tag_str {
+
+  my ($plot_script, $align_data_r, $regions_str, $doms_str) = @_;
+
+  my $svg_pref =  q(<object type="image/svg+xml" );
+  my $svg_post =  q( width="660" height="76" ></object>);
+
+  #build argument string
+  my %plt_args = ();
+  @plt_args{qw(q_cstart l_cstart)} = (1, 1);
+  @plt_args{qw(q_name q_cstop q_astart q_astop l_name l_cstop l_astart l_astop)} =
+    @{$align_data_r}{qw(q_seqid q_len q_start q_end s_seqid s_len s_start s_end)};
+  $plt_args{'regions'}= uri_escape(uri_encode($regions_str));
+  if ($doms_str) {
+    $plt_args{'doms'} = uri_encode($doms_str);
+  }
+
+  my $dom_info = ();
+
+  my @args = map {"$_=$plt_args{$_}"} keys(%plt_args);
+
+  return $svg_pref . qq( data="$plot_url?) . join('&amp;',@args) . '"' . $svg_post;
+}
+
+sub dom_info_str {
+  my ($raw_dom_info) = @_;
+
+  my $dom_str = "";
+  
+  unless ($raw_dom_info) { return "";}
+
+  my @raw_doms = split('\|',$raw_dom_info);
+  shift(@raw_doms);
+
+  for my $dom ( @raw_doms ) {
+    my $tmp_dom = $dom;
+    $tmp_dom =~ s/^DX:/qDomain:\t/g;
+    $tmp_dom =~ s/^XD:/lDomain:\t/g;
+    $tmp_dom =~ s/;C=/\t/g;
+
+    $dom_str .= "$tmp_dom\n";
+  }
+
+  return $dom_str;
+}
 
 __END__
 

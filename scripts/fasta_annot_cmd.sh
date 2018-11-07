@@ -53,7 +53,7 @@ blr_out="$OUTNAME.fa_tab_rn"
 export BLAST_PATH="/seqprg/bin"
 # BLAST_PATH="../bin"
 
-cmd="$cmd -mF8CB=$blt_out $QUERY $DATABASE"
+cmd="$cmd -mF8CBL=$blt_out $QUERY $DATABASE"
 
 # echo "tmp_files:"
 # echo $bl_asn $bl0_out $bla_out $blt_out
@@ -68,5 +68,5 @@ cmd="$cmd -mF8CB=$blt_out $QUERY $DATABASE"
 # run the program
 $BLAST_PATH/$SRCH_CMD $cmd > $bl0_out
 
-rename_exons.py $blt_out > $blr_out
-merge_fasta_btab.pl --btab $blr_out $bl0_out
+rename_exons.py --have_qslen --dom_info $blt_out > $blr_out
+merge_fasta_btab.pl --have_qslen --dom_info --btab $blr_out $bl0_out

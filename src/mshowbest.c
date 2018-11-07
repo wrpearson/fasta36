@@ -92,6 +92,8 @@ void w_abort (char *p, char *p1);
 
 extern double zs_to_bit(double, int, int);
 
+void dominfo_to_str(struct dyn_string_str *d, struct annot_str *annot);
+
 /* showbest() shows a list of high scoring sequence descriptions, and
    their rst.scores.  If -m 9, then an additional complete set of
    alignment information is provided.
@@ -145,6 +147,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   int gi_num;
   char html_pre_E[120], html_post_E[120];
   int have_lalign = 0;
+  struct dyn_string_str *dominfo_dstr;
 
   struct lmf_str *m_fptr;
 
@@ -243,7 +246,13 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   /* display number of hits for -m 8C (Blast Tab-commented format) */
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
-    fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    if (m_msp->markx & MX_M8_BTAB_LEN) {
+      fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    }
+    else {
+      fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    }
+
     if (ppst->zsflag > 20) {fprintf(fp,", eval2");}
     if (m_msp->show_code & (SHOW_CODE_ALIGN+SHOW_CODE_CIGAR)) { fprintf(fp,", aln_code");}
     else if ((m_msp->show_code & SHOW_CODE_BTOP)==SHOW_CODE_BTOP) { fprintf(fp,", BTOP");}
@@ -520,7 +529,12 @@ l1:
       }
       else if (m_msp->markx & MX_M8OUT) {	/* MX_M8OUT -- provide query, library */
 	if (first_line) {first_line = 0;}
-	fprintf (fp,"%s\t%s",m_msp->qtitle,bline_p);
+	if (m_msp->markx & MX_M8_BTAB_LEN) {
+	  fprintf (fp,"%s\t%d\t%s\t%d",m_msp->qtitle,m_msp->n0,bline_p,bbp->seq->n1);
+	}
+	else {
+	  fprintf (fp,"%s\t%s",m_msp->qtitle,bline_p);
+	}
       }
       else if (m_msp->markx & MX_MBLAST2) {	/* blast "Sequences producing" */ 
 	if (first_line) {first_line = 0;}
@@ -596,6 +610,7 @@ l1:
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
+
 	    if (ppst->zsflag > 20) {
 	      fprintf(fp,"\t%.2g",zs_to_E(lzscore2, n1, ppst->dnaseq, ppst->zdb_size, m_msp->db));
 	    }
@@ -603,6 +618,21 @@ l1:
 	      fprintf(fp,"\t%s",seq_code);
 	      if (annot_str_len > 0 && annot_str != NULL) {
 		fprintf(fp,"\t%s",annot_str);
+	      }
+
+	      if (m_msp->show_code & SHOW_CODE_DOMINFO) {
+		dominfo_dstr = init_dyn_string(1024,1024);
+		if (m_msp->annot_p) {
+		  dominfo_to_str(dominfo_dstr,m_msp->annot_p);  
+		}
+		if (bbp->seq->annot_p) {
+		  dominfo_to_str(dominfo_dstr,bbp->seq->annot_p);  
+		}
+		
+		if (dominfo_dstr->string[0]) {
+		  fprintf(fp,"\t%s",dominfo_dstr->string);
+		}
+		free_dyn_string(dominfo_dstr);
 	      }
 	    }
 	    fprintf(fp,"\n");
@@ -669,4 +699,28 @@ l1:
   if (best_align_done) { m_msp->align_done = 1;}	/* note that alignments are done */
 
   if (m_msp->markx & MX_HTML) fprintf(fp,"</pre><hr>\n");
+}
+
+/* dominfo_to_str() -- convert domain annotations to a |DX:1-100;C=PF12345~1 dyn_string */
+/* used for both query and subject strings */
+void
+dominfo_to_str(struct dyn_string_str *dominfo_dstr, struct annot_str *annots) {
+  int i;
+  char tmp_string[MAX_STR];
+  struct annot_entry *annot;
+  struct dyn_string_str *dyn_dom_str;
+
+  for (i=0; i < annots->n_domains; i++) {
+
+    annot = &annots->annot_arr_p[i];
+
+    if (annot->target) {
+      sprintf(tmp_string,"|XD:%ld-%ld;C=%s",annot->pos,annot->end,annot->comment);
+    }
+    else {
+      sprintf(tmp_string,"|DX:%ld-%ld;C=%s",annot->pos,annot->end,annot->comment);
+    }	
+
+    dyn_strcat(dominfo_dstr, tmp_string);
+  }
 }
