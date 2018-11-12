@@ -562,7 +562,7 @@ for line in fileinput.input(args.files):
     data = parse_protein(line_data,fields)	# get score/alignment/domain data
 
     if (len(data['sdom_list'])==0 and len(data['qdom_list'])==0):
-        print line,
+        print line	# no domains to be edited, print stripped line and contine
         continue
 
     if len(data['qdom_list'])== 0:
