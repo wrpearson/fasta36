@@ -810,11 +810,11 @@ __END__
 
 =head1 NAME
 
-ann_pfam30.pl
+ann_pfam_sql.pl
 
 =head1 SYNOPSIS
 
- ann_pfam30.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_pfam_sql.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
@@ -834,7 +834,7 @@ ann_pfam30.pl
 
 =head1 DESCRIPTION
 
-C<ann_pfam30.pl> extracts domain information from the pfam msyql
+C<ann_pfam_sql.pl> extracts domain information from the pfam msyql
 database. Currently, the program works with database
 sequence descriptions in several formats:
 
@@ -842,7 +842,7 @@ sequence descriptions in several formats:
  >sp|P09488|GSTM1_HUMAN
  >sp:CALM_HUMAN 
 
-C<ann_pfam30.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
+C<ann_pfam_sql.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
 information on a protein. 
 
@@ -858,8 +858,8 @@ overlapping region is split out of the domains and labeled as a new,
 virtual-lie, domain.  If one domain is internal to another and spans
 80% of the domain, the shorter domain is removed.
 
-C<ann_pfam30.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam30.pl> or C<-V "\!ann_pfam30.pl --neg"> option.
+C<ann_pfam_sql.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_pfam_sql.pl> or C<-V "\!ann_pfam_sql.pl --neg"> option.
 
 =head1 AUTHOR
 

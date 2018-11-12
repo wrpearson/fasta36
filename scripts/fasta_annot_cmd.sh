@@ -70,4 +70,4 @@ cmd="$cmd -mF8CBL=$blt_out $QUERY $DATABASE"
 $BLAST_PATH/$SRCH_CMD $cmd > $bl0_out
 
 rename_exons.py --have_qslen --dom_info $blt_out > $blr_out
-merge_fasta_btab.pl --plot_url="http://localhost/fasta_www3/plot_domain6t.cgi" --have_qslen --dom_info --btab $blr_out $bl0_out
+merge_fasta_btab.pl --plot_url="plot_domain6t.cgi" --have_qslen --dom_info --btab $blr_out $bl0_out

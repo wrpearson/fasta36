@@ -28,7 +28,7 @@ import copy
 
 
 ################
-# main "domain" class that describes a domain/exon alignment annotation
+# "domain" class that describes a domain/exon alignment annotation
 #
 class Domain:
     def __init__(self, name, qstart, qend, sstart, send, ident, qscore, RXRState, fulltext):
@@ -61,7 +61,7 @@ class Domain:
         return str("|%s"%(self.out_str))
 
 ################
-# main "domain" class that describes a domain/exon alignment annotation
+# "Dinfo" class describes raw (un-aligned) domains
 #
 class Dinfo:
     def __init__(self, name, qstart, qend, RXRState, fulltext):
@@ -129,10 +129,10 @@ def overlap_fract(qdom, sdom):
     q_overlap = 0.0
     s_overlap = 0.0
 
-    qq_len = qdom.q_end-qdom.q_start+1
-    qs_len = qdom.s_end-qdom.s_start+1
-    sq_len = sdom.q_end-sdom.q_start+1
-    ss_len = sdom.s_end-sdom.s_start+1
+    qq_len = qdom.q_end-qdom.q_start+1   # query alignment length in query coordinates
+    qs_len = qdom.s_end-qdom.s_start+1   # query alignment length in subj coordinates
+    sq_len = sdom.q_end-sdom.q_start+1   # subj alignment length in query coordinates
+    ss_len = sdom.s_end-sdom.s_start+1   # subj alignment length in subject coordinates
 
     case = -1
 
@@ -146,26 +146,27 @@ def overlap_fract(qdom, sdom):
         s_overlap = 1.0
         q_overlap = float(sq_len)/qq_len
     # case (2) subject surrounds query
-    elif (sdom.q_start <= qdom.q_start and sdom.q_end >= qdom.q_end):
+    elif (sdom.s_start <= qdom.s_start and sdom.s_end >= qdom.s_end):
         case = 2
         q_overlap = 1.0
         s_overlap = float(qs_len)/ss_len
-        # case (3) query left of subject
-    elif (qdom.q_start <= sdom.q_start and sdom.q_end <= qdom.q_end):
+    # case (3) query left of subject
+    elif (qdom.q_start <= sdom.q_start and qdom.q_end <= sdom.q_end):
         case = 3
         q_overlap = float(qdom.q_end-sdom.q_start+1)/qq_len
-        s_overlap = float(sdom.s_end-qdom.s_start+1)/ss_len
-        # case (4) query right of subject
-    elif (sdom.q_start <= qdom.q_start and qdom.q_end <= sdom.q_end):
+        s_overlap = float(qdom.s_end-sdom.s_start+1)/ss_len
+    # case (4) subject of left of query
+    elif (sdom.s_start <= qdom.s_start and sdom.s_end <= qdom.s_end):
         case = 4
-        q_overlap = float(sdom.q_end-qdom.q_start+1)/qs_len
-        s_overlap = float(qdom.s_end-sdom.s_start+1)/sq_len
+        q_overlap = float(sdom.q_end-qdom.q_start+1)/qq_len
+        s_overlap = float(sdom.s_end-qdom.s_start+1)/ss_len
 
     if (q_overlap > 1.0 or s_overlap > 1.0):
-        if (0):
+        if (1):
             sys.stderr.write("***%i: qdom: %s sdom: %s\n"% (case,str(qdom),str(sdom)))
             sys.stderr.write(" ** qover %.3f sover: %.3f\n"% (q_overlap, s_overlap))
             sys.stderr.write(" ** qq_len: %d qs_len: %d ss_len: %d sq_len %d\n"%(qq_len, qs_len, ss_len, sq_len))
+
     return (q_overlap, s_overlap)
 
 ####
@@ -173,11 +174,11 @@ def overlap_fract(qdom, sdom):
 # takes a protein in string format, turns it into a dictionary properly
 # looks like:   sp|P30711|GSTT1_HUMAN   up|Q2NL00|GSTT1_BOVIN   86.67   240     32      0       1       240     1       240     1.4e-123        444.0   16VI7DR6IT3IR15KQ3AI6TI11TA7YH8RC12TA3SN10FL10QETM2AT6VMTA2LV2DG4ND6PS24EK6TA11DV14FSPQ5IL3LMML1WK5RQ   |XR:4-76:4-76:s=327;b=134.6;I=0.895;Q=367.8;C=C.Thioredoxin~1|RX:5-82:5-82:s=356;b=146.5;I=0.902;Q=403.3;C=C.Thioredoxin~1|RX:83-93:83-93:s=52;b=21.4;I=0.818;Q=30.9;C=NODOM~0|XR:77-93:77-93:s=86;b=35.4;I=0.882;Q=72.6;C=NODOM~0|RX:94-110:94-110:s=88;b=36.2;I=0.882;Q=75.0;C=vC.GST_C~2v|XR:94-110:94-110:s=88;b=36.2;I=0.882;Q=75.0;C=vC.GST_C~2v|RX:111-201:111-201:s=409;b=168.3;I=0.868;Q=468.3;C=C.GST_C~2|XR:111-201:111-201:s=409;b=168.3;I=0.868;Q=468.3;C=C.GST_C~2|RX:202-240:202-240:s=154;b=63.4;I=0.795;Q=155.9;C=NODOM~0|XR:202-240:202-240:s=154;b=63.4;I=0.795;Q=155.9;C=NODOM~0
 #
-def parse_protein(line,fields):
+def parse_protein(line_data,fields):
     # last part (domain annotions) split('|') and parsed by parse_domain()
 
     data = {}
-    data = dict(zip(fields, line.split('\t')))
+    data = dict(zip(fields, line_data))
     data['qseq_acc'] = data['qseqid'].split('|')[1]
     data['sseq_acc'] = data['sseqid'].split('|')[1]
 
@@ -239,15 +240,47 @@ def replace_name(domain, name):
     return out
 
 ################
+# check for overlaps using mid-point
+#
+def mid_overlaps(qdom_list, sdom_list):
+
+    if (len(qdom_list) != len(sdom_list)):
+        return False
+
+    for ix, q_dom in enumerate(qdom_list):
+        s_dom = sdom_list[ix]
+        q_mid = q_dom.q_start + (q_dom.q_end - q_dom.q_start + 1)/2.0
+        if not (q_mid >= s_dom.q_start and q_mid <= s_dom.q_end):
+            return False
+
+        q_qfract, q_sfract = overlap_fract(q_dom, s_dom)  # overlap from query perspective
+        s_sfract, s_qfract = overlap_fract(s_dom, q_dom)  # overlap from subject perspective
+
+        q_dom.overlap_list.append({"dom": s_dom, "q_over": q_qfract, "s_over": q_sfract})
+        s_dom.overlap_list.append({"dom": q_dom, "q_over": s_qfract, "s_over": s_sfract})
+
+    return True
+
+################
 # find_overlaps -- populates dom.overlap_list for qdoms, sdoms
 #
-def find_overlaps(qdom_list, sdom_list):
+def find_overlaps(qdom_list, sdom_list, over_thresh):
     # find qdom, sdom overlaps in O(N) time
     #
 
     if (len(sdom_list) == 0 or len(qdom_list)==0):
         return
 
+    if (len(sdom_list) == len(qdom_list)):  # same number of domains
+        if (mid_overlaps(qdom_list, sdom_list)):
+            return;
+        else:
+            for d in qdom_list:
+                d.overlap_list = []
+            for d in sdom_list:
+                d.overlap_list = []
+
+        
     qdom_queue = [x for x in qdom_list]	# build a duplicate list
     sdom_queue = [x for x in sdom_list]
 
@@ -258,12 +291,12 @@ def find_overlaps(qdom_list, sdom_list):
         pop_s = pop_q = False
 
         q_qfract, q_sfract = overlap_fract(qdom, sdom)  # overlap from query perspective
-        if (q_qfract > 0.0  or q_sfract > 0.0):
+        if (q_qfract > over_thresh  or q_sfract > over_thresh):
             qdom.append_overlap({"dom": sdom, "q_over": q_qfract, "s_over": q_sfract})
             qdom.over_cnt += 1
 
         s_sfract, s_qfract = overlap_fract(sdom, qdom)  # overlap from query perspective
-        if (s_qfract > 0.0  or s_sfract > 0.0):
+        if (s_qfract > over_thresh  or s_sfract > over_thresh):
             sdom.append_overlap({"dom": qdom, "q_over": s_qfract, "s_over": s_sfract})
             sdom.over_cnt += 1
 
@@ -272,7 +305,7 @@ def find_overlaps(qdom_list, sdom_list):
             pop_s = True
         # else there are more s_dom's that are part of this q_dom
 
-        if (sdom.s_end >= qdom.s_end):
+        if (sdom.q_end >= qdom.q_end):
             pop_q = True
         # else there are more q_dom's that are part of this s_dom
 
@@ -465,6 +498,30 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
 
     return sdom_displayed_dict
 
+def set_data_fields(args, line_data) :
+
+    field_str = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP dom_annot'
+    field_qs_str = 'qseqid qlen sseqid slen pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP dom_annot'
+
+    if (len(line_data) > 1) :
+        if ((not args.have_qslen) and  re.search(r'\d+',line_data[1])):
+            args.have_qslen=True
+
+        if ((not args.dom_info) and re.search(r'^\|[DX][XD]\:',line_data[-1])):
+            args.dom_info = True
+
+    end_field = -1
+    fields = field_str.split(' ')
+
+    if (args.have_qslen):
+        fields = field_qs_str.split(' ')
+
+    if (args.dom_info):
+        fields.append('dom_info')
+        end_field = -2
+
+    return (fields, end_field)
+
 ################################################################
 #
 # main program 
@@ -476,16 +533,13 @@ parser.add_argument('--dom_info', help='raw domain coordinates included',action=
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
 args=parser.parse_args()
 
-field_str = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP dom_annot'
-field_qs_str = 'qseqid qlen sseqid slen pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP dom_annot'
-fields = field_str.split(' ')
-if (args.have_qslen):
-    fields = field_qs_str.split(' ')
+end_field = -1
+data_fields_reset=False
 
-end_field= -1
-if (args.dom_info):
-    fields.append('dom_info')
-    end_field = -2
+(fields, end_field) = set_data_fields(args, [])
+
+if (args.have_qslen and args.dom_info):
+    data_fields_reset=True
 
 saved_qdom_list = []
 
@@ -496,8 +550,16 @@ for line in fileinput.input(args.files):
         continue
 
     ################
-    # break up tab fields, get exon annotations
-    data = parse_protein(line.strip('\n'),fields)	# get score/alignment/domain data
+    # break up tab fields, check for extra fields
+    line = line.strip('\n')
+    line_data = line.split('\t')
+    if (not data_fields_reset):     # look for --have_qslen number, --dom_info data, even if not set
+        (fields, end_field) = set_data_fields(args, line_data)
+        data_fields_reset = True
+
+    ################
+    # get exon annotations
+    data = parse_protein(line_data,fields)	# get score/alignment/domain data
 
     if (len(data['sdom_list'])==0 and len(data['qdom_list'])==0):
         print line,
@@ -525,7 +587,8 @@ for line in fileinput.input(args.files):
     ################
     # find overlaps and multi-overlaps
     #
-    find_overlaps(qdom_list,data['sdom_list'])
+    find_overlaps(qdom_list,data['sdom_list'], 0.2)
+
     multi_q_dict = build_multi_dict(data['sdom_list'])  # keys are sdoms hitting multiple qdoms
     multi_s_dict = build_multi_dict(qdom_list)  # keys are qdoms hitting mulitple sdoms
 
