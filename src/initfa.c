@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8g Oct, 2018 MPI";
+char *verstr="36.3.8h Nov, 2018 MPI";
 #else
-char *verstr="36.3.8g Oct, 2018";
+char *verstr="36.3.8h Nov, 2018";
 #endif
 
 static int mktup=3;
@@ -1292,6 +1292,7 @@ f_getopt (char copt, char *optarg,
 
 /* Extended options:
    -X1 - use the init1 score, rather than initn, for statistics and ordering results
+   -Xa  - only report annotation information in -m 8CB output (for later merge)
    -Xb - report z-score, not bit-score
    -XB - use blast identities
    -XI - ensure that identities are not rounded to 100%
@@ -1300,10 +1301,9 @@ f_getopt (char copt, char *optarg,
    -Xo - use initn score, not opt score, for statistics and ordering results
    -Xx: - penalties for X:X, X:not-X match
    -Xy: - width of band for optimized scores
-
  */
 
-static char my_opts[] = "1BbIM:ox:y:N:";
+static char my_opts[] = "1aBbIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1323,6 +1323,8 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
       ppst->param_u.fa.iniflag=1;
     }
     break;
+
+  case 'a': m_msp->m8_show_annot = 1; break;
 
   case 'B': m_msp->blast_ident = 1; break;
 

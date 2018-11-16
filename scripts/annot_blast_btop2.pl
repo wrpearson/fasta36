@@ -18,7 +18,7 @@
 ################################################################
 
 ################################################################
-# annot_blast_btop2.pl --query query.file --ann_script ann_pfam_www.pl blast_tab_btop_file
+# annot_blast_btop2.pl --query query.file --ann_script ann_pfam_www.pl --include_doms blast_tab_btop_file
 ################################################################
 # annot_blast_btop2.pl associates domain annotation information and
 # subalignment scores with a blast tabular (-outfmt 6 or -outfmt 7)
@@ -29,6 +29,11 @@
 #
 # If the BTOP field or query_file is not available, the script
 # produces domain content without sub-alignment scores.
+################################################################
+## 4-Nov-2018
+# add --include_doms, which adds a new field with the coordinates of
+# the domains in the protein (independent of alignment)
+#
 ################################################################
 ## 21-July-2018
 # include sequence length (actually alignment end) to produce NODOM's (no NODOM's without length).
@@ -63,7 +68,7 @@ use File::Temp qw/ tempfile /;
 # and report the domain content ala -m 8CC
 
 my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0);
-my ($have_qslen) = (0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
+my ($have_qslen, $dom_info, $sub2query) = (0,0,0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
 my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
@@ -76,15 +81,15 @@ init_blosum62();
 
 GetOptions(
     "matrix:s" => \$matrix,
-    "ann_script:s" => \$ann_script,
-    "q_ann_script:s" => \$q_ann_script,
-    "have_qslen!" => \$have_qslen,
+    "ann_script|script:s" => \$ann_script,
+    "q_ann_script|q_script:s" => \$q_ann_script,
+    "have_qslen|have_sqlen!" => \$have_qslen,
+    "domain_info|dom_info!" => \$dom_info,
+    "sub2query!" => \$sub2query,
     "query:s" => \$query_lib_name,
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
     "out_fields:s" => \$out_field_str,
-    "script:s" => \$ann_script,
-    "q_script:s" => \$q_ann_script,
     "raw_score" => \$show_raw,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -108,9 +113,11 @@ if ($have_qslen) {
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
+
 if ($show_raw) {
   push @out_tab_fields, "raw_score";
 }
+
 if ($out_field_str) {
   @out_tab_fields = split(/\s+/,$out_field_str);
 }
@@ -147,7 +154,11 @@ while (1) {
     push @hit_list, \%hit_data;
   }
 
-  # get the current query sequence
+  # get the query annotations
+  if ($q_ann_script) {
+      $q_ann_script =~ s/\+/ /g;
+  }
+
   if ($q_ann_script && -x (split(/\s+/,$q_ann_script))[0]) {
     # get the domains for the q_seqid using --q_ann_script
     #
@@ -159,14 +170,18 @@ while (1) {
     print $Writer $hit->{q_seqid},"\t",$q_seq_len,"\n";
     close($Writer);
 
-    @q_hit_list = ({ s_seq_id=> $hit->{q_seqid}, s_end=> $q_seq_len});
+    push @q_hit_list,{ s_seq_id=> $hit->{q_seqid}, s_end=> $q_seq_len};
 
     read_annots($Reader, \@q_hit_list, 0);
 
     waitpid($pid, 0);
   }
 
-  # get the current query sequence
+  # get the subject annotations
+  if ($ann_script) {
+      $ann_script =~ s/\+/ /g;
+  }
+
   if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     # get the domains for each s_seqid using --ann_script
     #
@@ -198,6 +213,31 @@ while (1) {
   @header_lines = ($next_line);
 
   # now get query sequence if available
+
+  if ($sub2query && scalar(@q_hit_list)==0) {
+    # copy the information from $hit_list
+    for my $tmp_hit ( @hit_list ) {
+      if ($tmp_hit->{q_seqid} eq $tmp_hit->{s_seqid}) {
+	my %tmp_q_hit = (s_seq_id=> $tmp_hit->{q_seqid}, s_end=> $tmp_hit->{s_len});
+
+	$tmp_q_hit{'domains'} = [];
+	for my $dom ( @{$tmp_hit->{domains}} ) {
+	  my %new_dom = map { $_ => $dom->{$_} } keys(%$dom);
+	  $new_dom{target} = 0;
+	  push @{$tmp_q_hit{'domains'}}, \%new_dom;
+	}
+
+	$tmp_q_hit{'sites'} = [];
+	for my $site ( @{$tmp_hit->{sites}} ) {
+	  my %new_site = map { $_ => $site->{$_} } keys(%$site);
+	  $new_site{target} = 0;
+	  push @{$tmp_q_hit{'sites'}}, \%new_site;
+	}
+	push @q_hit_list,\%tmp_q_hit;
+	last;
+      }
+    }
+  }
 
   my $q_hit = $q_hit_list[0];
 
@@ -261,12 +301,18 @@ while (1) {
 
     if (scalar(@$merged_annots_r)) { # show subalignment scores if available
       print "\t";
-
       print format_annot_info($hit, $merged_annots_r);
+      if ($dom_info) {
+	  print "\t",format_dom_info($q_hit->{domains}, $hit->{domains});
+      }
     }
     elsif (@list_covered) {	# otherwise show domain content
       print "\t",join(";",@list_covered);
+      if ($dom_info) {
+	  print "\t",format_dom_info($q_hit->{domains}, $hit->{domains});
+      }
     }
+
     print "\n";
   }
 
@@ -341,6 +387,7 @@ sub read_annots {
   for my $hit ( @$hit_list_r ) {
     # clean-up last NODOM if < 10
     my $tmp_domains = $hit->{domains};
+    next unless (scalar(@{$tmp_domains}));
     my ($last_dom, $left_coord) = ($tmp_domains->[-1], $hit->{s_end});
     if ($last_dom->{descr} =~ m/^NODOM/ && (($left_coord - $last_dom->{d_pos} + 1) < 10)) {
       pop @$tmp_domains;
@@ -1180,37 +1227,22 @@ sub merge_annots {
   return \@merged_array;
 }
 
-# domain output formatter
+####
+# print raw domain info:
+# |DX:%d-%d;C=dom_info|XD:%d-%d:C=dom_info
+#
 sub format_dom_info {
-  my ($hit_r, $raw_score, $dom_r) = @_;
+  my ($q_dom_r, $dom_r) = @_;
 
-  unless ($raw_score) {
-    warn "no raw_score at: ".$hit_r->{s_seqid}."\n";
-    $raw_score = $hit_r->{score};
+  my $dom_str = "";
+  for my $dom ( @$q_dom_r ) {
+    $dom_str .= sprintf("|DX:%d-%d;C=%s",@{$dom}{qw(d_pos d_end descr)});
+  }
+  for my $dom ( @$dom_r ) {
+    $dom_str .= sprintf("|XD:%d-%d;C=%s",@{$dom}{qw(d_pos d_end descr)});
   }
 
-  my ($score_scale, $fsub_score) = ($hit_r->{score}/$raw_score, $dom_r->{score}/$raw_score);
-
-  my $qval = 0.0;
-  if ($hit_r->{evalue} == 0.0) {
-    $qval = 3000.0
-  }
-  else {
-    $qval = -10.0*log($hit_r->{evalue})*$fsub_score/(log(10.0))
-  }
-
-  my ($ns_score, $s_bit) = (int($dom_r->{score} * $score_scale+0.5),
-			    int($hit_r->{bits} * $fsub_score +0.5),
-			   );
-  $qval = 0 if $qval < 0;
-
-  #	print join(":",($dom_r->{ad_pos},$dom_r->{ad_end},$ns_score, $s_bit, sprintf("%.1f",$qval))),"\n";
-  return join(";",(sprintf("|XR:%d-%d:%d-%d:s=%d",
-			   $dom_r->{qa_start},$dom_r->{qa_end},
-			   $dom_r->{sa_start},$dom_r->{sa_end},$ns_score),
-		   sprintf("b=%.1f",$s_bit),
-		   sprintf("I=%.3f",$dom_r->{percid}),
-		   sprintf("Q=%.1f",$qval),$dom_r->{descr}));
+  return $dom_str;
 }
 
 # merged annot output formatter

@@ -18,8 +18,13 @@
 ################################################################
 
 ################################################################
-# merge_blast_btab.pl --btab .btab file html_file
+# merge_fasta_btab.pl --btab .btab file html_file
 ################################################################
+
+################################################################
+# takes a standard (or <html> output FASTA file and converts (or adds) labels using .btab information
+################################################################
+
 
 use warnings;
 use strict;
@@ -33,6 +38,7 @@ my ($plot_url) = ("");
 
 GetOptions(
     "btab_file|btab=s" => \$btab_file,
+    "have_qslen|have_sqlen" => \$have_qslen,
     "have_qslen|have_sqlen!" => \$have_qslen,
     "domain_info|dom_info!" => \$dom_info,
     "plot_url=s"=> \$plot_url,
@@ -43,7 +49,7 @@ GetOptions(
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
 unless (-f STDIN || -p STDIN || @ARGV) {
-  pod2usage(1);
+ pod2usage(1);
 }
 
 # require a btab file
@@ -75,6 +81,7 @@ else {
   while (my $line = <$fd>) {
     next if ($line =~ m/^#/);  # ignore comments
     chomp($line);
+
     my %a_data = ();
     @a_data{@bl_fields} = split(/\t/,$line);
 
@@ -85,7 +92,7 @@ else {
       push @{$tab_data{$sseqid}}, \%a_data
     }
     else {
-      $tab_data{$sseqid} = [ \%a_data ];
+      $tab_data{$sseqid} =  [\%a_data ];
       push @sseq_ids, $sseqid;
     }
   }
@@ -94,7 +101,8 @@ else {
 # have the annotation data in %tab_data{} and @seq_ids
 # read in the blastp html file and annotate it
 
-my ($in_best, $in_align) = (0,0);
+my ($in_best, $in_align, $in_annot) = (0,0,0);
+my ($annot_id) = ("");
 my ($best_ix, $align_ix, $hsp_ix) = (0,0,0);
 
 while (my $line = <>) {
@@ -103,7 +111,7 @@ while (my $line = <>) {
     print "\n";
     next;
   }
-  if ($line =~ m/^Sequences producing/) {
+  if ($line =~ m/^The best scores are:/) {
     $in_best = 1;
     $best_ix = 0;
     print "$line\n";
@@ -111,9 +119,10 @@ while (my $line = <>) {
   }
 
   if ($in_best) {
-    if ($line =~ /^>/) {
+    if ($line =~ /<pre>>>/) {
       $in_best = 0;
       $in_align = 1;
+      $in_annot = 0;
       $align_ix = 0;
       $hsp_ix = 0;
       # print out the first line
@@ -121,13 +130,16 @@ while (my $line = <>) {
       next;
     }
     else {
-      $line = add_best($line, $tab_data{$sseq_ids[$best_ix]}->[0]);
-      $best_ix++;
+      if (scalar(@sseq_ids) && $sseq_ids[$best_ix]) {
+	$line = add_best($line, $tab_data{$sseq_ids[$best_ix]}->[0]);
+	$best_ix++;
+      }
     }
   }
 
   if ($in_align) {
-    if ($line =~ m/^\s+Score = \d+/) { # have Length= match, put out annotations if available
+    if ($line =~ m/^<!\-\- ANNOT_START "([^"]+)" \-\->/) {
+      $annot_id = $1;
       my $regions_str = regions_to_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]);
       print $regions_str;
 
@@ -143,10 +155,20 @@ while (my $line = <>) {
 
       $hsp_ix++;
 
+      # remove the old domain information */
+      while ($line = <> ) {
+	chomp($line);
+	if ($line !~ m/^\s*q?Region:/ && $line !~ /ANNOT_STOP/) {
+	  print "$line\n";
+	}
+	if ($line =~ m/^<!\-\- ANNOT_STOP \-\->/) {
+	  last;
+	}
+      }
     }
-    elsif ($line =~ m/^>/) {
+    elsif ($line =~ m/<pre>>>/) {
       $align_ix++;
-      $hsp_ix = 0;
+      $hsp_ix=0;
     }
   }
 
@@ -187,9 +209,30 @@ sub parse_annots {
     }
     $annot_data{name} = $a_fields[-1];
     $annot_data{name} =~ s/^C=//;
+
     push @annot_list, \%annot_data;
   }
   return \@annot_list;
+}
+
+sub print_regions {
+  my ($annot_id, $annot_ref) = @_;
+
+  my $region_str = "";
+
+  print qq(<!-- ANNOT_START "$annot_id" -->);
+
+  for my $annot ( @{$annot_ref}) {
+    if ($annot->{target} =~ m/^q/) {
+      $region_str = "qRegion";
+    }
+    else {
+      $region_str = " Region";
+    }
+
+    printf "%s: %s : score=%d; bits=%.1f; Id=%.3f; Q=%.1f : %s\n", $region_str,
+      @{$annot}{qw(coord score b I Q name)};
+  }
 }
 
 sub regions_to_str {
@@ -220,6 +263,12 @@ sub add_best {
   my $annot_str = '';
 
   my $annot_refs = parse_annots($a_data->{annot});
+
+  # remove old annotation if present
+  my @line_words = split(/\s/,$line);
+  if ($line_words[-1] =~ m/~\d/) {
+    $line = join(' ',@line_words[0 .. $#line_words-1]);
+  }
 
   for my $annot ( @$annot_refs) {
     if ($annot->{target} !~ m/^q/) {
@@ -280,7 +329,6 @@ sub dom_info_str {
 
   return $dom_str;
 }
-
 
 __END__
 

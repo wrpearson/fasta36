@@ -294,10 +294,16 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    m_msp->do_showbest = 1;
    m_msp->ashow = -1;
    m_msp->ashow_set = 0;
+
    m_msp->nmlen = DEF_NMLEN;
+
+
+   /* values set in initfa.c: parse_ext_opts() */
    m_msp->z_bits = 1;
    m_msp->tot_ident = 0;
    m_msp->blast_ident = 0;
+   m_msp->m8_show_annot = 0;
+
    m_msp->mshow_set = 0;
    m_msp->mshow_min = 0;
    m_msp->aln.llen = 60;
@@ -622,8 +628,6 @@ void add_annot_def(struct mngmsg *m_msp, char *line, int qa_flag) {
   else {
     m_msp->ann_arr_def[i_ann] = NULL;
   }
-
-
 }
 
 /* read definitions of annotation symbols from a file */
@@ -767,7 +771,7 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
 
   /* first check for -m "F file" format */
   if (optarg[0] == 'F') {
-    if ((bp=strchr(optarg+1,' '))==NULL) {
+    if ((bp=strchr(optarg+1,' '))==NULL && (bp=strchr(optarg+1,'='))==NULL) {
       fprintf(stderr,"-m F missing file name: %s\n",optarg);
       return;
     }
@@ -833,10 +837,10 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
 void
 parse_markx(char *optarg, struct markx_str *this) {
   int itmp;
-  char ctmp, ctmp2;
+  char ctmp, ctmp2, ctmp3;
 
   itmp = 0;
-  ctmp = ctmp2 = '\0';
+  ctmp = ctmp2 = ctmp3 = '\0';
 
   if (optarg[0] == 'B') {	/* BLAST alignment output */
     this->markx = MX_MBLAST;
@@ -863,7 +867,7 @@ parse_markx(char *optarg, struct markx_str *this) {
     return;
   }
   else {
-    sscanf(optarg,"%d%c%c",&itmp,&ctmp,&ctmp2);
+    sscanf(optarg,"%d%c%c%c",&itmp,&ctmp,&ctmp2,&ctmp3);
   }
   if (itmp==9) {
     if (ctmp=='c') {this->show_code = SHOW_CODE_ALIGN;}
@@ -886,6 +890,15 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (ctmp2 == 'C') {this->show_code = SHOW_CODE_CIGAR;}
     else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
     else if (ctmp2 == 'B') {this->show_code = SHOW_CODE_BTOP;}
+    
+    if (ctmp3 == 'L') {
+      this->markx |= MX_M8_BTAB_LEN;
+      this->show_code |= SHOW_CODE_DOMINFO;
+    }
+    else if (ctmp3 == 'l') {
+      this->markx |= MX_M8_BTAB_LEN;
+    }
+
   }
 }
 

@@ -158,6 +158,7 @@ struct mngmsg 		/* Message from host to manager */
   int ashow_set;	/* ashow set with -d */
   int nmlen;		/* length of name label */
   int show_code;	/* show alignment code in -m 9;  ==1 => identity only, ==2 alignment code*/
+  int m8_show_annot;	/* show annotations only in -m 8CB output */
   int tot_show_code;	/* show alignment for all outputs */
   int pre_load_done;	/* set after pre_load_best() call */
   int align_done;	/* do_walign() called */

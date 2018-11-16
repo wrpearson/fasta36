@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 ################################################################
-# copyright (c) 2014,2015 by William R. Pearson and The Rector &
+# copyright (c) 2015 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,15 @@
 # (3) return the tab delimited features
 #
 
-# this version only annotates sequences known to Pfam:pfamseq:
-# and only provides domain information
+# this is the first version that works with the new Pfam strategy of
+# separating Uniprot reference sequences from the rest of uniprot.  as
+# a result, it is possible that 2 SQL queries will be required, one to
+# pfamA_reg_full_significant and a second to uniprot_reg_full.
+
+# modified 15-Jan-2017 to reduce the number of calls when the same
+# accession is present multiple times.  Accessions are saved in a hash
+# than ensures uniqueness.  (Could also speed things up by creating temporary table.)
+#
 
 use warnings;
 use strict;
@@ -41,7 +48,7 @@ use vars qw($host $db $port $user $pass);
 
 my $hostname = `/bin/hostname`;
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam28", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam31", 0, "web_user", "fasta_www");
 #$host = 'xdb';
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
@@ -49,8 +56,9 @@ my $hostname = `/bin/hostname`;
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
 my ($no_over, $split_over, $over_fract) = (0, 0, 3.0);
+my ($clan_fam) = (0);
 
-my $color_sep_str = " :";
+my ($color_sep_str, $show_color) = (" :",1);
 $color_sep_str = '~';
 
 my ($min_nodom, $min_vdom) = (10,10);
@@ -64,26 +72,21 @@ GetOptions(
     "lav" => \$lav,
     "acc_comment" => \$acc_comment,
     "bound_comment" => \$bound_comment,
-    "no-over" => \$no_over,
-    "no_over" => \$no_over,
-    "split-over" => \$split_over,
-    "split_over" => \$split_over,
-    "over_fract" => \$over_fract,
-    "over-fract" => \$over_fract,
-    "no-clans" => \$no_clans,
-    "no_clans" => \$no_clans,
-    "neg" => \$neg_doms,
-    "neg_doms" => \$neg_doms,
-    "neg-doms" => \$neg_doms,
+    "color!" => \$show_color,
+    "clan_fam|clan-fam" => \$clan_fam,
+    "no_over|no-over" => \$no_over,
+    "split_over|split-over" => \$split_over,
+    "over_fract|over-fract" => \$over_fract,
+    "no-clans|no_clans" => \$no_clans,
+    "neg|neg_doms|neg-doms" => \$neg_doms,
     "min_nodom=i" => \$min_nodom,
-    "vdoms" => \$vdoms,
-    "v_doms" => \$vdoms,
+    "vdoms|v_doms" => \$vdoms,
     "pfacc" => \$pf_acc,
     "RPD2" => \$rpd2_fams,
     "auto_reg" => \$auto_reg,
     "h|?" => \$shelp,
-    "help" => \$help,
-    );
+    "help" => \$help, 
+   );
 
 pod2usage(1) if $shelp;
 pod2usage(exitstatus => 0, verbose => 2) if $help;
@@ -105,15 +108,17 @@ my @domain_list = (0);
 my $domain_cnt = 0;
 
 my $pfamA_reg_full = 'pfamA_reg_full_significant';
+my $uniprot_reg_full = 'uniprot_reg_full';
 
 my $get_annot_sub = \&get_pfam_annots;
 
 my @pfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_pfamA_reg_full domain_evalue_score as evalue length);
+my @upfam_fields = qw(seq_start seq_end model_start model_end model_length pfamA_acc pfamA_id auto_uniprot_reg_full domain_evalue_score as evalue length);
 
 my $get_pfam_acc = $dbh->prepare(<<EOSQL);
 SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
-JOIN $pfamA_reg_full using(pfamseq_acc)
+JOIN pfamA_reg_full_significant using(pfamseq_acc)
 JOIN pfamA USING (pfamA_acc)
 WHERE in_full = 1
 AND  pfamseq_acc=?
@@ -121,17 +126,37 @@ ORDER BY seq_start
 
 EOSQL
 
-my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
-
-SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
-FROM pfamseq
-JOIN $pfamA_reg_full using(pfamseq_acc)
+my $get_upfam_acc = $dbh->prepare(<<EOSQL);
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
+FROM uniprot
+JOIN uniprot_reg_full using(uniprot_acc)
 JOIN pfamA USING (pfamA_acc)
-JOIN seqdb_demo2.annot as sa1 on(sa1.acc=pfamseq_acc and sa1.db='sp')
-JOIN seqdb_demo2.annot as sa2 using(prot_id)
 WHERE in_full = 1
-AND  sa2.acc=?
-AND  sa2.db='ref'
+AND  uniprot_acc=?
+ORDER BY seq_start
+
+EOSQL
+
+my $get_pfam_refacc = $dbh->prepare(<<EOSQL);
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
+  FROM $pfamA_reg_full
+  JOIN pfamseq using(pfamseq_acc)
+  JOIN pfamA USING (pfamA_acc)
+  JOIN uniprot.up2ref_acc as up2ref on(up2ref.acc=pfamseq_acc)
+ WHERE in_full = 1
+   AND up2ref.ref_acc=?
+ ORDER BY seq_start
+
+EOSQL
+
+my $get_upfam_refacc = $dbh->prepare(<<EOSQL);
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
+FROM uniprot
+JOIN uniprot_reg_full using(uniprot_acc)
+JOIN pfamA USING (pfamA_acc)
+JOIN uniprot.up2ref_acc as up2ref on(up2ref.acc=uniprot_acc)
+WHERE in_full = 1
+AND  ref_acc=?
 ORDER BY seq_start
 
 EOSQL
@@ -139,13 +164,23 @@ EOSQL
 my $get_annots_sql = $get_pfam_acc;
 
 my $get_pfam_id = $dbh->prepare(<<EOSQL);
-
 SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_pfamA_reg_full, domain_evalue_score as evalue, length
 FROM pfamseq
 JOIN $pfamA_reg_full using(pfamseq_acc)
 JOIN pfamA USING (pfamA_acc)
 WHERE in_full=1
 AND  pfamseq_id=?
+ORDER BY seq_start
+
+EOSQL
+
+my $get_upfam_id = $dbh->prepare(<<EOSQL);
+SELECT seq_start, seq_end, model_start, model_end, model_length, pfamA_acc, pfamA_id, auto_uniprot_reg_full as auto_pfamA_reg_full, domain_evalue_score as evalue, length
+FROM uniprot
+JOIN uniprot_reg_full using(pfamseq_acc)
+JOIN pfamA USING (pfamA_acc)
+WHERE in_full=1
+AND  uniprot_id=?
 ORDER BY seq_start
 
 EOSQL
@@ -179,6 +214,7 @@ $seq_len = 0 unless defined($seq_len);
 $query =~ s/^>// if ($query);
 
 my @annots = ();
+my %annot_set = ();
 
 my %rpd2_clan_fams = ();
 
@@ -191,7 +227,9 @@ if ($rpd2_fams) {
 }
 
 #if it's a file I can open, read and parse it
-unless ($query && $query =~ m/[\|:]/) {
+unless ($query && ($query =~ m/[\|:]/ || 
+		   $query =~ m/^[NX]P_/ ||
+		   $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
 
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
@@ -200,12 +238,14 @@ unless ($query && $query =~ m/[\|:]/) {
   }
 }
 else {
-  push @annots, show_annots("$query $seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
 }
 
 for my $seq_annot (@annots) {
-  print ">",$seq_annot->{seq_info},"\n";
-  for my $annot (@{$seq_annot->{list}}) {
+  next unless $seq_annot;
+  my $annot_r = $annot_set{$seq_annot};
+  print ">",$annot_r->{seq_info},"\n";
+  for my $annot (@{$annot_r->{list}}) {
     if (!$lav && defined($domains{$annot->[-1]})) {
       my ($a_name, $a_num) = domain_num($annot->[-1],$domains{$annot->[-1]});
       $annot->[-1] = $a_name;
@@ -217,7 +257,9 @@ for my $seq_annot (@annots) {
       if ($bound_comment) {
 	$annot->[-1] .= $color_sep_str.$annot->[0].":".$annot->[2];
       }
-      $annot->[-1] .= $color_sep_str.$a_num;
+      elsif ($show_color) {
+	  $annot->[-1] .= $color_sep_str.$a_num;
+      }
     }
     print join("\t",@$annot),"\n";
   }
@@ -232,10 +274,10 @@ sub show_annots {
 
   my $pfamA_acc;
 
-  my %annot_data = (seq_info=>$annot_line);
-
   $use_acc = 1;
   $get_annots_sql = $get_pfam_acc;
+
+  my $get_annots_sql_u = $get_upfam_acc;
 
   if ($annot_line =~ m/^pf\d+\|/) {
     ($sdb, $gi, $pfamA_acc, $acc, $id) = split(/\|/,$annot_line);
@@ -245,42 +287,71 @@ sub show_annots {
     ($tmp, $gi, $sdb, $acc, $id) = split(/\|/,$annot_line);
     if ($sdb =~ m/ref/) {
 	$get_annots_sql = $get_pfam_refacc;
+	$get_annots_sql_u = $get_upfam_refacc;
     }
   }
-  elsif ($annot_line =~ m/^(sp|tr)\|/) {
+  elsif ($annot_line =~ m/^(sp|tr|up)\|/) {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
   elsif ($annot_line =~ m/^ref\|/) {
     ($sdb, $acc) = split(/\|/,$annot_line);
     $get_annots_sql = $get_pfam_refacc;
+    $get_annots_sql_u = $get_upfam_refacc;
   }
   elsif ($annot_line =~ m/^(SP|TR):/i) {
     ($sdb, $id) = split(/:/,$annot_line);
     $use_acc = 0;
   }
-  elsif ($annot_line !~ m/\|/) {  # new NCBI swissprot format
-    $use_acc =1;
-    $sdb = 'sp';
+  elsif ($annot_line !~ m/\|/ && $annot_line !~ m/:/) {
+    $use_acc = 1;
     ($acc) = split(/\s+/,$annot_line);
   }
+  # deal with no-database SwissProt/NR
+  else {
+    ($acc)=($annot_line =~ /^(\S+)/);
+  }
 
-  # remove version number
+  # here we have an $acc or an $id: check to see if we have the data
+
+  my %annot_data = (seq_info=>$annot_line, seq_len=>$seq_len);
+  my $annot_key = '';
   unless ($use_acc) {
+    next if ($annot_set{$id});
+    $annot_set{$id} = \%annot_data;
+    $annot_key = $id;
+
     $get_annots_sql = $get_pfam_id;
     $get_annots_sql->execute($id);
+    unless ($get_annots_sql->rows()) {
+      $get_annots_sql = $get_annots_sql_u;
+      $get_annots_sql->execute($id);
+    }
   } else {
     unless ($acc) {
       warn "missing acc in $annot_line";
-      next;
-    } else {
+      return "";
+    }
+    else {
       $acc =~ s/\.\d+$//;
+
+      $annot_key = $acc;
+      if ($annot_set{$acc}) {
+	goto ret_label;
+      }
+      $annot_set{$acc} = \%annot_data;
+
       $get_annots_sql->execute($acc);
+      unless ($get_annots_sql->rows()) {
+	$get_annots_sql = $get_annots_sql_u;
+	$get_annots_sql->execute($acc);
+      }
     }
   }
 
   $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
 
-  return \%annot_data;
+ret_label:
+  return $annot_key;
 }
 
 sub get_pfam_annots {
@@ -597,6 +668,11 @@ sub get_pfam_annots {
       }
     }
 
+    if (scalar(@pf_domains)==0) {
+      my %new_dom = (seq_start=>1, seq_end=> $seq_len, info=>'NODOM');
+      push @pf_domains, \%new_dom;
+    }
+
     # @npf_domains has both old @pf_domains and new neg-domains
     @pf_domains = @npf_domains;
   }
@@ -676,7 +752,14 @@ sub domain_name {
 
       # now check to see if we have seen this clan before (if so, do not increment $domain_cnt)
       my $c_value = "C." . $clan_id;
-      if ($pf_acc) {$c_value = $clan_acc;}
+
+      if ($clan_fam) {
+	  $c_value = $c_value;
+      }
+
+      if ($pf_acc) {
+	  $c_value = $clan_acc;
+      }
 
       $domain_clan{$value} = {clan_id => $clan_id,
 			      clan_acc => $clan_acc};
@@ -707,6 +790,7 @@ sub domain_name {
     $domains{'@'.$value} = $domains{$value};
     $value = '@'.$value;
   }
+
   return $value;
 }
 
@@ -726,11 +810,11 @@ __END__
 
 =head1 NAME
 
-ann_pfam28.pl
+ann_pfam_sql.pl
 
 =head1 SYNOPSIS
 
- ann_pfam28.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_pfam_sql.pl --neg-doms  --vdoms 'sp|P09488|GSTM1_NUMAN' | accession.file
 
 =head1 OPTIONS
 
@@ -741,6 +825,7 @@ ann_pfam28.pl
  --no-clans : do not use clans with multiple families from same clan
  --neg-doms : report domains between annotated domains as NODOM
                  (also --neg, --neg_doms)
+ --pfacc : report Pfam ACC (PF01234), rather than Pfam identifier (GST-N)
  --vdoms : produce "virtual domains" using model_start, 
            model_end for partial pfam domains
  --min_nodom=10  : minimum length between domains for NODOM
@@ -749,7 +834,7 @@ ann_pfam28.pl
 
 =head1 DESCRIPTION
 
-C<ann_pfam28.pl> extracts domain information from the pfam msyql
+C<ann_pfam_sql.pl> extracts domain information from the pfam msyql
 database. Currently, the program works with database
 sequence descriptions in several formats:
 
@@ -757,7 +842,7 @@ sequence descriptions in several formats:
  >sp|P09488|GSTM1_HUMAN
  >sp:CALM_HUMAN 
 
-C<ann_pfam28.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
+C<ann_pfam_sql.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
 and C<pfamA> tables of the C<pfam> database to extract domain
 information on a protein. 
 
@@ -773,8 +858,8 @@ overlapping region is split out of the domains and labeled as a new,
 virtual-lie, domain.  If one domain is internal to another and spans
 80% of the domain, the shorter domain is removed.
 
-C<ann_pfam28.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_pfam28.pl> or C<-V "\!ann_pfam28.pl --neg"> option.
+C<ann_pfam_sql.pl> is designed to be used by the B<FASTA> programs with
+the C<-V \!ann_pfam_sql.pl> or C<-V "\!ann_pfam_sql.pl --neg"> option.
 
 =head1 AUTHOR
 
