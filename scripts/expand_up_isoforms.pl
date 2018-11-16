@@ -17,7 +17,7 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-## usage - expand_up_isoforms.pl up_hits.file > up_isoforms.file
+## usage - expand_up_isoforms.pl [--prim_acc] up_hits.file > up_isoforms.file
 ##
 ## take a fasta36 -e expand.sh result file of the form:
 ## sp|P09488_GSTM1_HUMAN|<tab>1.1e-50
@@ -25,6 +25,12 @@
 ## and extract the accession number, looking it up from the an SQL
 ## table $table -- in this case "annot2_iso" to provide Uniprot
 ## isoforms based on a uniprot accession.
+##
+## if --prim_acc, then the primary accession (used to find the isoforms) is added to the isoform seq_id, e.g.
+## sp|P04988|GSTM1_HUMAN has isoforms:   with --prim_acc, the identifiers become
+## >iso|E7EWW9|E7EWW9_HUMAN    >iso|E7EWW9|E7EWW9_HUMAN_P09488
+## >iso|H3BRM6|H3BRM6_HUMAN    >iso|H3BRM6|H3BRM6_HUMAN_P09488
+## >iso|H3BQT3|H3BQT3_HUMAN    >iso|H3BQT3|H3BQT3_HUMAN_P09488
 
 use warnings;
 use strict;
@@ -35,13 +41,13 @@ use DBI;
 my ($host, $db, $port, $user, $pass)  = ("xdb", "uniprot", 0, "web_user", "fasta_www");
 my ($a_table, $i_table) = ("annot2", "annot2_iso");
 my ($help, $shelp) = (0,0);
-my ($e_thresh) = 1e-6;
-
+my ($e_thresh, $prim_acc) = (1e-6, 0);
 
 GetOptions(
     "h" => \$shelp,
     "help" => \$help,
     "host=s" => \$host,
+    "prim_acc!" => \$prim_acc,
     "db=s" => \$db,
     "expect|evalue|e_thresh=f" => \$e_thresh,
     "user=s" => \$user,
@@ -63,7 +69,7 @@ my $dbh = DBI->connect("dbi:mysql:host=$host:$db",
 my %sth = ( 
     seed2link_acc => "SELECT acc FROM $i_table WHERE prim_acc=?",
     seed2link_id => "SELECT iso_a.acc FROM $i_table as iso_a JOIN $a_table  as an2 on(iso_a.prim_acc=an2.acc) where an2.id=?",
-    link2seq => "SELECT db, acc, id, descr, seq FROM annot2_iso JOIN protein_iso USING(acc) WHERE acc=?"
+    link2seq => "SELECT db, acc, prim_acc, id, descr, seq FROM annot2_iso JOIN protein_iso USING(acc) WHERE acc=?"
     );
 
 for my $sth (keys(%sth)) {
@@ -84,7 +90,12 @@ for my $acc ( keys %acc_uniq ) {
 
   $sth{link2seq}->execute($acc);
   while (my $row_href = $sth{link2seq}->fetchrow_hashref ) {
-    printf(">%s|%s|%s %s\n","iso",$acc,$row_href->{id},$row_href->{descr});
+    my $id_str = $row_href->{id};
+    if ($prim_acc) {
+      $id_str .= "_".$row_href->{prim_acc};
+    }
+
+    printf(">%s|%s|%s %s\n","iso",$acc,$id_str,$row_href->{descr});
     print $row_href->{seq} . "\n";
   }
   $sth{link2seq}->finish();
@@ -137,6 +148,8 @@ __END__
  -h	short help
  --help include description
  --evalue E()-value threshold for expansion
+ --prim_acc : show primary accession as part of sequence identifier
+    >iso|E7EWW9|E7EWW9_HUMAN becomes >iso|E7EWW9|E7EWW9_HUMAN_P09488
 
  --host, --user, --password, --port --db : info for mysql database
  --a_table, --i_table  -- SQL table names with reference and isoform acc/id/prim_acc mappings.

@@ -1403,7 +1403,7 @@ build_link_data(char **link_lib_file_p,
   char *link_lib_str;
   char link_script[MAX_LSTR];
   int link_lib_type;
-  char *bp, *link_bp;
+  char *bp, *link_bp, *bp_s;
   FILE *link_fd=NULL;		/* file for link accessions */
 
 #ifndef UNIX
@@ -1466,14 +1466,20 @@ build_link_data(char **link_lib_file_p,
   }
 
   strncpy(link_script,link_bp,sizeof(link_script));
+  /* un-edit m_msp->link_lname */
+  if (bp != NULL) *bp = ' ';
+
   link_script[sizeof(link_script)-1] = '\0';
+
+  /* convert + to space in script string */
+  for (bp_s = strchr(link_script+1,'+'); bp_s; bp_s=strchr(bp_s+1,'+')) {
+    *bp_s = ' ';
+  }
+
   SAFE_STRNCAT(link_script," ",sizeof(link_script));
   SAFE_STRNCAT(link_script,link_acc_file,sizeof(link_script));
   SAFE_STRNCAT(link_script," >",sizeof(link_script));
   SAFE_STRNCAT(link_script,link_lib_file,sizeof(link_script));
-
-  /* un-edit m_msp->link_lname */
-  if (bp != NULL) *bp = ' ';
 
   /* run link_script link_acc_file > link_lib_file */
   status = system(link_script);

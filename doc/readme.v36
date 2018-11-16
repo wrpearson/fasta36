@@ -7,7 +7,7 @@ This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
 >>Nov. 14, 2018
-[scripts/rename_exons.py, relabel_domains.py]
+[scripts/rename_exons.py, relabel_domains.py, compacc2e.c]
 
 Two new scripts, rename_exons.py and relabel_domains.py, that take a
 blast tabular output file with domain alignment annotations (and
@@ -20,6 +20,11 @@ different color numbers for homologous and non-homologous domains.
 Both of these programs modify blast tabular output files, which can
 then be merged back into an alignment display using
 merge_blastp_annot.pl or merge_fasta_annot.pl.
+
+compacc2.c:build_link_data() has been modified to convert '+' in the
+script string to ' ', to allow passing command line options.  A space
+in the script string is used to separate the script from the library
+type of the file returned by the script.
 
 >>Nov. 6-7, 2018
 [doinit.c, mshowbest.c, mshowalign2.c, defs.h, structs.h]
