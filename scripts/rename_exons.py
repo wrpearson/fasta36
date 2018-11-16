@@ -119,7 +119,7 @@ def parse_domain(text):
     else:
         sys.stderr.write("could not parse location: %s\n"%(text))
 
-    m = re.search(r's=(\-?\d+);b=([\d\.]+);I=([\d\.]+);Q=(\-?\d+\.\d*);',text)
+    m = re.search(r's=(\-?\d+);b=(\-?[\d\.]+);I=([\d\.]+);Q=(\-?\d+\.\d*);',text)
     if (m):
         (r_score_s, b_score_s, ident_s, qscore_s) = m.groups()
     else:
