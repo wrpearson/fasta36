@@ -200,8 +200,15 @@ def parse_protein(line_data,fields, req_name):
 
     data = {}
     data = dict(zip(fields, line_data))
-    data['qseq_acc'] = data['qseqid'].split('|')[1]
-    data['sseq_acc'] = data['sseqid'].split('|')[1]
+    if (re.search(r'\|',data['qseqid'])):
+        data['qseq_acc'] = data['qseqid'].split('|')[1]
+    else:
+        data['qseq_acc'] = data['qseqid']
+
+    if (re.search(r'\|',data['sseqid'])):
+        data['sseq_acc'] = data['sseqid'].split('|')[1]
+    else:
+        data['sseq_acc'] = data['sseqid']
 
     Qdom_list = []
     Sdom_list = []
