@@ -141,6 +141,7 @@ while (my $line = <>) {
     if ($line =~ m/^<!\-\- ANNOT_START "([^"]+)" \-\->/) {
       $annot_id = $1;
       my $regions_str = regions_to_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]);
+      print qq(<!-- ANNOT_START "$annot_id" -->);
       print $regions_str;
 
       if ($plot_url) {
