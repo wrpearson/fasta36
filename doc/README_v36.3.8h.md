@@ -1,6 +1,13 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8h** December, 2018
+
+The `scripts/ann_exons_up_www.pl` and `ann_exons_up_sql.pl` now
+include the option `--gen_coord` which provides the associated genome
+coordinate (including chromosome) as a feature, indicated by `'<'`
+(start of exon) and `'>'` (end of exon).
+
 Changes in **fasta-36.3.8h** released November, 2018
 
 **fasta-36.3.8h** provides new scripts and modifications to the
@@ -9,24 +16,23 @@ Changes in **fasta-36.3.8h** released November, 2018
   move BLASTP towards FASTA with respect to alignment annotation and
   sub-alignment scoring:
 
-  1.  The `blastp_annot_cmd.sh` runs a blast search, finds and scores
-domain information for the alignments, and merges this information
-back into the blast output `.html` file.  This script uses:
+    1.  The `blastp_annot_cmd.sh` runs a blast search, finds and scores
+  domain information for the alignments, and merges this information
+  back into the blast output `.html` file.  This script uses:
 
-    1. `annot_blast_btab2.pl --query query.file --ann_script annot_script.pl --q_ann_script annot_script.pl blast.btab_file > blast.btab_file_ann`
+  1. `annot_blast_btab2.pl --query query.file --ann_script annot_script.pl --q_ann_script annot_script.pl blast.btab_file > blast.btab_file_ann`
     (a blast tabular file with one or two new fields, an annotation field and (optionally with --dom_info) a raw domain content field.
+  2. `merge_blast_btab.pl --btab blast.btab_file_ann blast.html > blast_ann.html`  (merge the annotations and domain content information in the `blast.btab_file_ann` file together with the standard blast output file to produce annotated alignments.
+  3. In addition, `rename_exons.py` is available to rename exons (later other domains) in the subject sequences to match the exon labeling in the aligned query sequence.
+  4. `relabel_domains.py` can be used to adjust color sets for homologous domains.
 
-    2. `merge_blast_btab.pl --btab blast.btab_file_ann blast.html > blast_ann.html`  (merge the annotations and domain content information in the `blast.btab_file_ann` file together with the standard blast output file to produce annotated alignments.
+    2.  There is also an equivalent `fasta_annot_cmd.sh` script that provides similar funtionality for the FASTA programs.  This script does not need to use `annot_blast_btab2.pl` to produce domain subalignment scores (that functionality is provided in FASTA), but it also can use `merge_fasta_btab.pl` and `rename_exons.py` to modify the names of the aligned exons/domains in the subject sequences.
 
-    3. In addition, `rename_exons.py` is available to rename exons (later other domains) in the subject sequences to match the exon labeling in the aligned query sequence.
-
-  2. There is also an equivalent `fasta_annot_cmd.sh` script that provides similar funtionality for the FASTA programs.  This script does not need to use `annot_blast_btab2.pl` to produce domain subalignment scores (that functionality is provided in FASTA), but it also can use `merge_fasta_btab.pl` and `rename_exons.py` to modify the names of the aligned exons/domains in the subject sequences.
-
-  3. To support the independence of the `blastp`/`fasta` output from html annotation, the FASTA package includes some new options:
+    3.  To support the independence of the `blastp`/`fasta` output from html annotation, the FASTA package includes some new options:
 
     1. The `-m 8CBL` option includes query sequence length and subject sequence length in the blast tabular output.  In addition, if domain annotations are available, the raw domain coordinates are provided in an additional field after the annotation/subalignment scoring field.  `-m 8CBl` provides the sequence lengths, but does not add the raw domain coordinates.
 
-    2. The `-Xa` option prevents annotation information from being included in the html output -- it is only available in the `-m 8CB` (or `-m 8CBL/l`) output
+    2. The `-Xa` option prevents annotation information from being included in the html output -- it is only available in the `-m 8CB`  (or `-m 8CBL/l`) output
 
     3. To reduce problems with spaces in script arguements, annotation scripts with spaces separating arguments can use '+' instead of ' '.
 

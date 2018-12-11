@@ -6,6 +6,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Dec. 11, 2018
+[scripts/ann_exons_up_www.pl, ann_exons_up_sql.pl]
+Add the option "--gen_coord" to report exon start ('<') and end ('>')
+genome coordinates features of exons.
+
 >>Nov. 14, 2018
 [scripts/rename_exons.py, relabel_domains.py, compacc2e.c]
 

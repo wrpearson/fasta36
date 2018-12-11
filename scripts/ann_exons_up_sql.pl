@@ -51,13 +51,14 @@ else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
-my ($lav, $shelp, $help) = (0,0,0);
+my ($lav, $gen_coord, $shelp, $help) = (0,0,0,0);
 
 my ($show_color) = (1);
 my $color_sep_str = " :";
 $color_sep_str = '~';
 
 GetOptions(
+    "gen_coord!" => \$gen_coord,
     "host=s" => \$host,
     "db=s" => \$db,
     "user=s" => \$user,
@@ -84,8 +85,8 @@ my $dbh = DBI->connect($connect,
 
 my $get_annot_sub = \&get_annots;
 
-my $get_annots_id = $dbh->prepare(qq(select acc, start, end, ix from up_exons join annot2 using(acc) where id=? order by ix));
-my $get_annots_acc = $dbh->prepare(qq(select acc, start, end, ix from up_exons where acc=? order by ix));
+my $get_annots_id = $dbh->prepare(qq(select up_exons.* from up_exons join annot2 using(acc) where id=? order by ix));
+my $get_annots_acc = $dbh->prepare(qq(select up_exons.* from up_exons where acc=? order by ix));
 my $get_annots_refacc = $dbh->prepare(qq(select ref_acc, start, end, ix from up_exons join annot2 using(acc) where ref_acc=? order by ix));
 
 my $get_annots_sql = $get_annots_acc;
@@ -181,15 +182,25 @@ sub show_annots {
 sub get_annots {
   my ($get_annots_sql, $seq_len) = @_;
 
-  my ($acc, $start, $end, $ix);
   my @feats = ();
 
-  while (($acc, $start, $end, $ix) = $get_annots_sql->fetchrow_array()) {
+  while (my $exon_hr = $get_annots_sql->fetchrow_hashref()) {
+      my $ix = $exon_hr->{ix};
       if ($lav) {
-	  push @feats, [$start, $end, "exon_$ix~$ix"];
+	  push @feats, [$exon_hr->{start}, $exon_hr->{end}, "exon_$ix~$ix"];
       }
       else {
-	  push @feats, [$start, "-", $end, "exon_$ix~$ix"];
+	  push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, "exon_$ix~$ix"];
+	  if ($gen_coord) {
+	      my $chr=$exon_hr->{chrom};
+	      if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
+		  $chr = "chr$chr";
+	      }
+	      my $ex_info = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_start});
+	      push @feats, [$exon_hr->{start},'<','-',$ex_info];
+	      $ex_info = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_end});
+	      push @feats, [$exon_hr->{end},'>','-',$ex_info];
+	  }
       }
   }
 
