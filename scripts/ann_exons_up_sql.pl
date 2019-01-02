@@ -192,7 +192,12 @@ sub get_annots {
       else {
 	  push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, "exon_$ix~$ix"];
 	  if ($gen_coord) {
+	      if (not defined($exon_hr->{g_start})) {
+		  next;
+	      }
+
 	      my $chr=$exon_hr->{chrom};
+	      $chr = "unk" unless $chr;
 	      if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
 		  $chr = "chr$chr";
 	      }
@@ -223,6 +228,7 @@ ann_exons_up_sql.pl
 
  -h	short help
  --help include description
+ --gen_coord  -- provide genomic exon start/stop coordinates as features
  --lav  produce lav2plt.pl annotation format, only show domains/repeats
  --host, --user, --password, --port --db -- info for mysql database
 
@@ -245,6 +251,23 @@ tab-delimited format:
  121	-	152	exon_6~6
  153	-	189	exon_7~7
  190	-	218	exon_8~8
+
+C<ann_exons_up_sql.pl --gen_coord 'sp|P09488|GSTM1_HUMAN'>also provides genomic coordinates:
+
+>sp|P09488|GSTM1_HUMAN
+1	-	12	exon_1~1
+1	<	-	exon_1::chr1:109687874
+12	>	-	exon_1::chr1:109687909
+13	-	37	exon_2~2
+13	<	-	exon_2::chr1:109688170
+37	>	-	exon_2::chr1:109688245
+38	-	59	exon_3~3
+38	<	-	exon_3::chr1:109688673
+59	>	-	exon_3::chr1:109688737
+...
+190	-	218	exon_8~8
+190	<	-	exon_8::chr1:109693206
+218	>	-	exon_8::chr1:109693292
 
 C<ann_exons_up_sql.pl> is designed to be used by the B<FASTA> programs
 with the C<-V \!ann_exons_up_sql.pl> option, or by the

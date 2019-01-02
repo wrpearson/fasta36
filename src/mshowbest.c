@@ -711,16 +711,28 @@ dominfo_to_str(struct dyn_string_str *dominfo_dstr, struct annot_str *annots) {
   struct annot_entry *annot;
   struct dyn_string_str *dyn_dom_str;
 
-  for (i=0; i < annots->n_domains; i++) {
+  for (i=0; i < annots->n_annot; i++) {
 
     annot = &annots->annot_arr_p[i];
 
     if (annot->target) {
-      sprintf(tmp_string,"|XD:%ld-%ld;C=%s",annot->pos,annot->end,annot->comment);
+      if (annot->label == '-') {
+	sprintf(tmp_string,"|XD:%ld-%ld;C=%s",annot->pos,annot->end,annot->comment);
+      }
+      else {
+	sprintf(tmp_string,"|X%c:%ld-%ld;C=%s",annot->label, annot->pos,annot->end,annot->comment);
+      }
     }
     else {
-      sprintf(tmp_string,"|DX:%ld-%ld;C=%s",annot->pos,annot->end,annot->comment);
+      if (annot->label == '-') {
+	sprintf(tmp_string,"|DX:%ld-%ld;C=%s",annot->pos+1,annot->end+1,annot->comment);
+      }
+      else {
+	sprintf(tmp_string,"|%cX:%ld-%ld;C=%s",annot->label, annot->pos+1,annot->end+1,annot->comment);
+      }
+
     }	
+
 
     dyn_strcat(dominfo_dstr, tmp_string);
   }

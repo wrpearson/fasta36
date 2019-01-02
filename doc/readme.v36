@@ -6,6 +6,13 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jan. 2, 2019
+[src/mshowbest.c]
+Fix problems with site annotation when dom_info is provided with -m8CBL
+[scripts/ann_exons_up_sql.pl, ann_exons_up_www.pl]
+Make scripts more robust to missing chromosome information,
+reverse-strand coordinates.
+
 >>Dec. 11, 2018
 [scripts/ann_exons_up_www.pl, ann_exons_up_sql.pl]
 Add the option "--gen_coord" to report exon start ('<') and end ('>')

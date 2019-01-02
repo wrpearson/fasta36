@@ -160,6 +160,7 @@ sub parse_json_up_exons {
   my $last_phase = 0;
 
   my $chrom = $acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'chromosome'};
+  my $rev_strand = $acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'reverseStrand'};
 
   for my $exon ( @{$acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'exon'}} ) {
     my ($p_begin, $p_end) = ($exon->{'proteinLocation'}{'begin'}{'position'},$exon->{'proteinLocation'}{'end'}{'position'});
@@ -195,13 +196,18 @@ sub parse_json_up_exons {
 
       my $info ="exon_".$exon_num.$color_sep_str.$exon_num;
 
+      my ($gs_begin, $gs_end) = ($g_begin, $g_end);
+      if ($rev_strand) {
+	($gs_begin, $gs_end) = ($g_end, $g_begin);
+      }
+
       push @exons, {
 		    info=>$info,
 		    exon_num=>$exon_num,
 		    seq_start=>$p_begin,
 		    seq_end=>$p_end,
-		    gen_seq_start=>$g_begin,
-		    gen_seq_end=>$g_end,
+		    gen_seq_start=>$gs_begin,
+		    gen_seq_end=>$gs_end,
 		    chrom=>$chrom,
 		   };
 
@@ -226,9 +232,9 @@ sub parse_json_up_exons {
 	  if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
 	      $chr = "chr$chr";
 	  }
-	  my $ex_info = sprintf("exon_%d::%s:%d",$exon_num, $chr, $d_ref->{gen_seq_start});
+	  my $ex_info = sprintf("exon_%d::%s:%d",$d_ref->{exon_num}, $chr, $d_ref->{gen_seq_start});
 	  push @ex_feats, [$d_ref->{seq_start},'<','-',$ex_info];
-	  $ex_info = sprintf("exon_%d::%s:%d",$exon_num, $chr, $d_ref->{gen_seq_end});
+	  $ex_info = sprintf("exon_%d::%s:%d",$d_ref->{exon_num}, $chr, $d_ref->{gen_seq_end});
 	  push @ex_feats, [$d_ref->{seq_end},'>','-',$ex_info];
       }
     }

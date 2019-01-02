@@ -2086,30 +2086,74 @@ small_global(int x, int y, int ex, int ey,
 #define XTERNAL
 #include "upam.h"
 
+/* this code is not used by the program, it was included for testing */
+/* display_alig(*align_enc, *dna_p, *prot, length, ld) takes the
+
+   alignment encoding, and the DNA and protein sequences, and produces an alignment.
+   *dna_p  is the three phases of the translated DNA sequence
+   *prot is the original protein sequence
+
+   length is the length of the encoding
+   ld is the length of the alignment(?)
+
+   the first two entries in align_enc[] are the start of the protein
+   and DNA sequences.
+
+   The encoding is:  (why no code 1?:)
+
+   0:     delete amino acid.
+   2:     frame shift, 2 nucleotides match with an amino acid
+   3:     match an  amino acid with a codon
+   4:     the other type of frame shift
+   5:     delete of a codon
+
+   One of the properties of this encoding is that it indicates the
+   amount that the DNA sequence index needs to be incremented after
+   prot match (except for 5)
+
+ */
+
 extern void
-display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld)
+display_alig(int *a, unsigned char *dna_p, unsigned char * pro, int length, int ld)
 {
   int len = 0, i, j, x, y, lines, k;
   char line1[100], line2[100], line3[100],
     tmp[10] = "         ";
-  unsigned char *dna1, c1, c2, c3, *st;
+  unsigned char *dna_p1, c1, c2, c3, *st;
 
-  dna1 = ckalloc((size_t)ld);
-  for (st = dna, i = 0; i < ld; i++, st++) dna1[i] = NCBIstdaa[*st];
-  line1[0] = line2[0] = line3[0] = '\0'; x= a[0]; y = a[1]-1;
+  dna_p1 = ckalloc((size_t)ld);	/* dna_p1 is the ascii (sq0) translated-DNA residue */
+
+  /* generate the ascii aa characters */
+  for (st = dna_p, i = 0; i < ld; i++, st++) {
+    dna_p1[i] = NCBIstdaa[*st];
+  }
+  line1[0] = line2[0] = line3[0] = '\0';
+
+  x= a[0];	/* start in protein */
+  y = a[1]-1;	/* start in DNA */
  
   for (len = 0, j = 2, lines = 0; j < length; j++) {
-    i = a[j];
+    i = a[j];	/* i is align_enc value 0-5 */
     /*printf("%d %d %d\n", i, len, b->j);*/
+
     if (i > 0 && i < 5) tmp[i-2] = NCBIstdaa[pro[x++]];
-    if (i == 5) {
-      i = 3; tmp[0] = tmp[1] = tmp[2] = '-';
+    if (i == 5) {  /* special case */
+      i = 3;       /* increment DNA value by 3, prot by 0 */
+      tmp[0] = tmp[1] = tmp[2] = '-';
       if (a[j+1] == 2) tmp[2] = ' ';
     }
     if (i > 0) {
-      strncpy(&line1[len], (const char *)&dna1[y], i); y+=i;
-    } else {line1[len] = '-'; i = 1; tmp[0] = NCBIstdaa[pro[x++]];}
+      strncpy(&line1[len], (const char *)&dna_p1[y], i);
+      y+=i;
+    }
+    else {
+      line1[len] = '-';
+      i = 1;
+      tmp[0] = NCBIstdaa[pro[x++]];
+    }
+
     strncpy(&line2[len], tmp, i);
+
     for (k = 0; k < i; k++) {
       if (tmp[k] != ' ' && tmp[k] != '-') {
 	if (k == 2) tmp[k] = '\\';
@@ -2144,7 +2188,6 @@ display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld
   printf("\n     %s\n     %s\n     %s\n", line1, line3, line2);
 }
 
-
 /* alignment store the operation that align the protein and dna sequence.
    The code of the number in the array is as follows:
    0:     delete of an amino acid.
@@ -2153,7 +2196,6 @@ display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld
    4:     the other type of frame shift
    5:     delete of a codon
    
-
    Also the first two element of the array stores the starting point 
    in the protein and dna sequences in the local alignment.
 
@@ -2750,7 +2792,7 @@ pre_cons(const unsigned char *aa1, int n1, int frame, struct f_struct *f_str) {
 }
 
 /*
-   Alignment: store the operation that align the protein and dna sequence.
+   Alignment: store the operation that aligns the protein and dna sequences.
    The code of the number in the array is as follows:
    0:     delete of an amino acid.
    2:     frame shift, 2 nucleotides match with an amino acid
