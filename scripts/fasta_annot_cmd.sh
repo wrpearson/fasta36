@@ -70,4 +70,11 @@ cmd="$cmd -mF8CBL=$blt_out $QUERY $DATABASE"
 $BLAST_PATH/$SRCH_CMD $cmd > $bl0_out
 
 rename_exons.py --have_qslen --dom_info $blt_out > $blr_out
+
+if [ ! -s $blr_out ]; then
+    # echo "# " `ls -l $blt_out $blr_out`
+    blr_out=$blt_out
+    # echo "# " `ls -l $blt_out $blr_out`
+fi
+
 merge_fasta_btab.pl --plot_url="plot_domain6t.cgi" --have_qslen --dom_info --btab $blr_out $bl0_out

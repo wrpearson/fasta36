@@ -136,7 +136,7 @@ def parse_dom_info(text):
     # takes a domain in string form, turns it into a domain object
     # looks like: DX:1-100;C=C.Thioredoxin~1
 
-    (RXRState, start_s, end_s,name,color) = re.search(r'^(\w+):(\d+)-(\d+);C=([^~]+)~(.*)$',text).groups()
+    (RXRState, start_s, end_s,name, color) = re.search(r'^(\w+):(\d+)-(\d+);C=([^~]+)~(.*)$',text).groups()
 
     dom_info = DomInfo(name, color, int(start_s), int(end_s), RXRState, text)
 
@@ -236,7 +236,7 @@ def parse_protein(line_data,fields, req_name):
 
     if ('dom_info' in data and len(data['dom_info']) > 0):
         for info_str in data['dom_info'].split('|')[1:]:
-            if (not re.search(r'C=exon',info_str)):
+            if (not re.search(r'^[DX][XD]',info_str)):
                 continue
 
             dinfo = parse_dom_info(info_str)
