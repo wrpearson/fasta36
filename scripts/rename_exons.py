@@ -30,8 +30,9 @@ import copy
 # "domain" class that describes a domain/exon alignment annotation
 #
 class DomAlign:
-    def __init__(self, name, color, qstart, qend, sstart, send, raw_score, bit_score, ident, qscore, RXRState, fulltext):
+    def __init__(self, name, info, color, qstart, qend, sstart, send, raw_score, bit_score, ident, qscore, RXRState, fulltext):
         self.name = name
+        self.info = info
         self.color_type = ''
         if (not re.search(r'^\d+$',color)):
             m=re.search(r'^(\d+)([a-z]?\w*)$',color)
@@ -70,9 +71,10 @@ class DomAlign:
         return str("|%s"%(self.out_str))
 
     def make_bar_str(self):  # create original string from values
-        bar_str = "|%s:%d-%d:%d-%d:s=%d;b=%.1f;I=%.3f;Q=%.1f;C=%s~%d" % (
+        bar_str = "|%s:%d-%d:%d-%d:s=%d;b=%.1f;I=%.3f;Q=%.1f;C=%s%s~%d" % (
             self.rxr, self.q_start, self.q_end, self.s_start, self.s_end,
-            self.raw_score, self.bit_score, self.percid, self.q_score, self.name, self.color)
+            self.raw_score, self.bit_score, self.percid, self.q_score, self.name, self.info, self.color)
+
         if (self.color_type):
             bar_str += self.color_type
         return bar_str
@@ -81,8 +83,9 @@ class DomAlign:
 # "Dinfo" class describes raw (un-aligned) domains
 #
 class DomInfo:
-    def __init__(self, name, color, qstart, qend, RXRState, fulltext):
+    def __init__(self, name, info, color, qstart, qend, RXRState, fulltext):
         self.name = name
+        self.info = info
         self.color = color
         self.q_start = qstart
         self.q_end = qend
@@ -112,13 +115,16 @@ class DomInfo:
 def parse_domain(text):
     # takes a domain in string form, turns it into a domain object
     # looks like: RX:5-82:5-82:s=397;b=163.1;I=1.000;Q=453.6;C=C.Thioredoxin~1
+    # could also look like: RX:5-82:5-82:s=397;b=163.1;I=1.000;Q=453.6;C=C.Thioredoxin{PF012445}~1
 
+    # get RX/XR and qstart/qstop sstart/sstop as strings
     m = re.search(r'^(\w+):(\d+)-(\d+):(\d+)-(\d+):',text)
     if (m):
         (RXRState, qstart_s, qend_s, sstart_s, send_s) = m.groups()
     else:
         sys.stderr.write("could not parse location: %s\n"%(text))
 
+    # get score, bits, identity, Q info
     m = re.search(r's=(\-?\d+);b=(\-?[\d\.]+);I=([\d\.]+);Q=(\-?\d+\.\d*);',text)
     if (m):
         (r_score_s, b_score_s, ident_s, qscore_s) = m.groups()
@@ -126,19 +132,30 @@ def parse_domain(text):
         sys.stderr.write("Error: no scores: %s\n" %(text))
         r_score_s = b_score_s = qscore_s = "-1.0"
 
+    # get domain name/color (and possibly {info})
+
     (name, color_s) = re.search(r';C=([^~]+)~(.+)$',text).groups()
-    dom_align = DomAlign(name, color_s, int(qstart_s), int(qend_s), int(sstart_s), int(send_s), 
+    info_s=""
+
+    if (re.search(r'\}$',name)):
+        (name, info_s) = re.search(r'([^\{]+)(\{[^\}]+\})$',name).groups()
+
+    dom_align = DomAlign(name, info_s, color_s, int(qstart_s), int(qend_s), int(sstart_s), int(send_s), 
                          int(r_score_s), float(b_score_s), float(ident_s),float(qscore_s), RXRState, text)
 
     return dom_align
 
+# dom_info is like domain, but no scores
 def parse_dom_info(text):
     # takes a domain in string form, turns it into a domain object
     # looks like: DX:1-100;C=C.Thioredoxin~1
 
-    (RXRState, start_s, end_s,name,color) = re.search(r'^(\w+):(\d+)-(\d+);C=([^~]+)~(.*)$',text).groups()
+    (RXRState, start_s, end_s,name, color) = re.search(r'^(\w+):(\d+)-(\d+);C=([^~]+)~(.*)$',text).groups()
+    info = ""
+    if (re.search(r'\}$',name)):
+        (name, info) = re.search(r'([^\{]+)(\{[^\}]+\})$',name).groups()
 
-    dom_info = DomInfo(name, color, int(start_s), int(end_s), RXRState, text)
+    dom_info = DomInfo(name, info, color, int(start_s), int(end_s), RXRState, text)
 
     return dom_info
 
@@ -236,7 +253,7 @@ def parse_protein(line_data,fields, req_name):
 
     if ('dom_info' in data and len(data['dom_info']) > 0):
         for info_str in data['dom_info'].split('|')[1:]:
-            if (not re.search(r'C=exon',info_str)):
+            if (not re.search(r'^[DX][XD]',info_str)):
                 continue
 
             dinfo = parse_dom_info(info_str)
@@ -258,14 +275,21 @@ def parse_protein(line_data,fields, req_name):
 
     return data
 
-# "domain" looks like RX:1-38:3-40:s=37;b=17.0;I=0.289;Q=15.9;C=exon_1~1
-# "name" looks like exon_2
-def replace_name(domain, name):
-    out = "=".join(domain.split("=")[:-1])
-    ext = name.split("_")[-1]
-    if (not re.match(r'\d+',ext)):
-        ext="0"
-    out += "="+name+"~"+ext
+# "domain" : RX:1-38:3-40:s=37;b=17.0;I=0.289;Q=15.9;C=exon_1~1
+# "name"   : like exon_2
+# expanded for domain: RX:1-38:3-40:s=37;b=17.0;I=0.289;Q=15.9;C=exon_1{chr1:12345678-123456987}~1
+def replace_name(domain_text, new_name, new_color_s):
+    out = "=".join(domain_text.split("=")[:-1])  # out has everything to last '='
+
+    old_name = domain_text.split(";C=")[-1]
+    old_info=""
+    
+    if (re.search(r'\}~',old_name)):
+        (old_info)=re.search(r'(\{[^\}]+\})~',old_name).group(1)
+
+    if (not re.match(r'\d+',new_color_s)):
+        new_color_s="0"
+    out += "="+new_name+old_info+"~"+new_color_s                 # put it together
     return out
 
 ################
@@ -490,13 +514,13 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
             for s_over in qdom.overlap_list:   # find the sdom's that overlap this qdom
                 sdom = s_over['dom']
                 if (sdom.idnum == best_id):
-                    sdom.out_str = replace_name(sdom.text, qdom.name)
+                    sdom.out_str = replace_name(sdom.text, qdom.name, str(qdom.color))
                     if (sdom.info_dom):
-                        sdom.info_dom.out_str = replace_name(sdom.info_dom.text,qdom.name)
+                        sdom.info_dom.out_str = replace_name(sdom.info_dom.text,qdom.name, str(qdom.color))
                 else:
-                    sdom.out_str = replace_name(sdom.text, "exon_X")
+                    sdom.out_str = replace_name(sdom.text, "exon_X","0")
                     if (sdom.info_dom):
-                        sdom.info_dom.out_str = replace_name(sdom.info_dom.text,"exon_X")
+                        sdom.info_dom.out_str = replace_name(sdom.info_dom.text,"exon_X","0")
                 sdom_displayed_dict[sdom.idnum] = sdom;
             continue	# prevents re-labeling later
 
@@ -508,17 +532,17 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
             if (sdom.idnum not in multi_q_dict):
                 # this is the simplest case -- sdom.text gets qdom.name
                 if (sdom.idnum not in sdom_displayed_dict):
-                    sdom.out_str = replace_name(sdom.text, qdom.name)
+                    sdom.out_str = replace_name(sdom.text, qdom.name, str(qdom.color))
                     if (sdom.info_dom):
-                        sdom.info_dom.out_str = replace_name(sdom.info_dom.text,qdom.name)
+                        sdom.info_dom.out_str = replace_name(sdom.info_dom.text,qdom.name, str(qdom.color))
             else:
                 # this sdom belongs to multiple q_doms, add each of those q_doms to the name
                 exon_str='exon_'
                 # "ydoms" here are the qdoms overlapped by sdom
                 exon_str += '/'.join([ x.name.split("_")[1] for x in multi_q_dict[sdom.idnum]['ydoms']])
-                sdom.out_str = replace_name(sdom.text, exon_str)
+                sdom.out_str = replace_name(sdom.text, exon_str,"0")
                 if (sdom.info_dom):
-                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,exon_str)
+                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,exon_str,"0")
 
             sdom_displayed_dict[sdom.idnum]=sdom
 
@@ -527,9 +551,9 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
     while (len(sdom_displayed_dict.keys()) < len(sdom_list)):
         for sdom in sdom_list:
             if (sdom.idnum not in sdom_displayed_dict):
-                sdom.out_str = replace_name(sdom.text, "exon_X")
+                sdom.out_str = replace_name(sdom.text, "exon_X","0")
                 if (sdom.info_dom):
-                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,"exon_X")
+                    sdom.info_dom.out_str = replace_name(sdom.info_dom.text,"exon_X","0")
 
                 sdom_displayed_dict[sdom.idnum] = sdom
 
