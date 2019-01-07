@@ -20,6 +20,10 @@ do
 	    SRCH_CMD="${i#*=}"
 	    shift
 	    ;;
+	--ktup=*)
+	    KTUP="${i#*=}"
+	    shift
+	    ;;
 	*)
 	    cmd="$cmd $i"
 	    ;;
@@ -28,7 +32,7 @@ done
 
 
 # echo "OUTNAME: " $OUTNAME
-# echo "CMD: " $cmd
+echo "# CMD: " $cmd
 
 if [[ $OUTNAME == '' ]]; then
     OUTNAME=${QUERY}_out
