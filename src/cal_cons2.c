@@ -1,4 +1,4 @@
-/* cal_cons.c - routines for printing translated alignments for
+/* cal_cons.c - routines for printing alignments for
    fasta, ssearch, ggsearch, glsearch  */
 
 /* $Id: cal_cons.c 1280 2014-08-21 00:47:55Z wrp $ */

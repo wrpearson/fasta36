@@ -2066,16 +2066,20 @@ small_global(int x, int y, int ex, int ey,
 #define XTERNAL
 #include "upam.h"
 
+/* this code shows the alignment of the protein with the three phased
+   translation of the DNA sequence
+ */
+
 extern void
-display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld)
+display_alig(int *a, unsigned char *dna_p, unsigned char * pro, int length, int ld)
 {
   int len = 0, i, j, x, y, lines, k;
   char line1[100], line2[100], line3[100],
     tmp[10] = "         ";
-  unsigned char *dna1, c1, c2, c3, *st;
+  unsigned char *dna_p1, c1, c2, c3, *st;
 
-  dna1 = ckalloc((size_t)ld);
-  for (st = dna, i = 0; i < ld; i++, st++) dna1[i] = NCBIstdaa[*st];
+  dna_p1 = ckalloc((size_t)ld);
+  for (st = dna_p, i = 0; i < ld; i++, st++) dna_p1[i] = NCBIstdaa[*st];
   line1[0] = line2[0] = line3[0] = '\0'; x= a[0]; y = a[1]-1;
  
   for (len = 0, j = 2, lines = 0; j < length; j++) {
@@ -2087,15 +2091,22 @@ display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld
       if (a[j+1] == 2) tmp[2] = ' ';
     }
     if (i > 0) {
-      strncpy(&line1[len], (const char *)&dna1[y], i); y+=i;
-    } else {line1[len] = '-'; i = 1; tmp[0] = NCBIstdaa[pro[x++]];}
+      strncpy(&line1[len], (const char *)&dna_p1[y], i);
+      y+=i;
+    }
+    else {
+      line1[len] = '-';
+      i = 1;
+      tmp[0] = NCBIstdaa[pro[x++]];
+    }
     strncpy(&line2[len], tmp, i);
     for (k = 0; k < i; k++) {
       if (tmp[k] != ' ' && tmp[k] != '-') {
-	if (k == 2) tmp[k] = '\\';
-	else if (k == 1) tmp[k] = '|';
-	else tmp[k] = '/';
-      } else tmp[k] = ' ';
+	if (k == 2) {tmp[k] = '\\';}
+	else if (k == 1) { tmp[k] = '|'; }
+	else { tmp[k] = '/'; }
+      }
+      else { tmp[k] = ' '; }
     }
     if (i == 1) tmp[0] = ' ';
     strncpy(&line3[len], tmp, i); 
@@ -2104,12 +2115,15 @@ display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld
     line1[len] = line2[len] =line3[len]  = '\0'; 
     if (len >= WIDTH) {
       printf("\n%5d", WIDTH*lines++);
-      for (k = 10; k <= WIDTH; k+=10) 
+      for (k = 10; k <= WIDTH; k+=10) {
 	printf("    .    :");
-      if (k-5 < WIDTH) printf("    .");
+      }
+      if (k-5 < WIDTH) { printf("    ."); }
       c1 = line1[WIDTH]; c2 = line2[WIDTH]; c3 = line3[WIDTH];
       line1[WIDTH] = line2[WIDTH] = line3[WIDTH] = '\0';
+
       printf("\n     %s\n     %s\n     %s\n", line1, line3, line2);
+
       line1[WIDTH] = c1; line2[WIDTH] = c2; line3[WIDTH] = c3;
       strncpy(line1, &line1[WIDTH], sizeof(line1)-1);
       strncpy(line2, &line2[WIDTH], sizeof(line2)-1);
@@ -2124,7 +2138,6 @@ display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld
   printf("\n     %s\n     %s\n     %s\n", line1, line3, line2);
 }
 
-
 /* alignment store the operation that align the protein and dna sequence.
    The code of the number in the array is as follows:
    0:     delete of an amino acid.
@@ -2138,6 +2151,8 @@ display_alig(int *a, unsigned char *dna, unsigned char * pro, int length, int ld
    in the protein and dna sequences in the local alignment.
 
    Display looks like where WIDTH is assumed to be divisible by 10.
+
+   -- this alignment is incorrect, protein phases rather than DNA are shown --
 
     0    .    :    .    :    .    :    .    :    .    :    .    :
      CCTATGATACTGGGATACTGGAACGTCCGCGGACTGACACACCCGATCCGCATGCTCCTG

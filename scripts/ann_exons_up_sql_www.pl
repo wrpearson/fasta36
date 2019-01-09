@@ -28,6 +28,8 @@
 
 # this version can read feature2 uniprot features (acc/pos/end/label/value), but returns sorted start/end domains
 # modified 18-Jan-2016 to produce annotation symbols consistent with ann_exons_up_www2.pl
+# modified Dec 2018 to generate genomic coordinates with --gen_coord
+# modified 3-Jan-2019 to merge sql and www (--www) access to exon coordinates
 
 use warnings;
 use strict;
@@ -35,6 +37,9 @@ use strict;
 use DBI;
 use Getopt::Long;
 use Pod::Usage;
+use LWP::Simple;
+use LWP::UserAgent;
+use JSON qw(decode_json);
 
 use vars qw($host $db $a_table $port $user $pass);
 
@@ -51,14 +56,16 @@ else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
-my ($lav, $gen_coord, $shelp, $help) = (0,0,0,0);
+my ($lav, $gen_coord, $exon_label, $use_www, $shelp, $help) = (0,0,0,0,0,0);
 
 my ($show_color) = (1);
 my $color_sep_str = " :";
 $color_sep_str = '~';
 
 GetOptions(
-    "gen_coord!" => \$gen_coord,
+    "gen_coord|gene_coord!" => \$gen_coord,
+    "exon_label|label_exons!" => \$exon_label,
+    "www!" => \$use_www,
     "host=s" => \$host,
     "db=s" => \$db,
     "user=s" => \$user,
@@ -85,6 +92,17 @@ my $dbh = DBI->connect($connect,
 
 my $get_annot_sub = \&get_annots;
 
+
+my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
+my $uniprot_url = 'https://www.ebi.ac.uk/proteins/api/coordinates/';
+my $uniprot_suff = ".json";
+
+
+if ($use_www) {
+  $get_annot_sub = \&get_annots_up_www;
+}
+
+
 my $get_annots_id = $dbh->prepare(qq(select up_exons.* from up_exons join annot2 using(acc) where id=? order by ix));
 my $get_annots_acc = $dbh->prepare(qq(select up_exons.* from up_exons where acc=? order by ix));
 my $get_annots_refacc = $dbh->prepare(qq(select ref_acc, start, end, ix from up_exons join annot2 using(acc) where ref_acc=? order by ix));
@@ -109,11 +127,11 @@ unless ($query && ($query =~ m/[\|:]/ ||
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
-    push @annots, show_annots($a_line, $get_annot_sub);
+    push @annots, show_annots($a_line, $get_annot_sub, $use_www);
   }
 }
 else {
-  push @annots, show_annots("$query\t$seq_len", $get_annot_sub);
+  push @annots, show_annots("$query\t$seq_len", $get_annot_sub, $use_www);
 }
 
 for my $seq_annot (@annots) {
@@ -129,7 +147,7 @@ for my $seq_annot (@annots) {
 exit(0);
 
 sub show_annots {
-  my ($query_len, $get_annot_sub) = @_;
+  my ($query_len, $get_annot_sub, $use_www) = @_;
 
   my ($annot_line, $seq_len) = split(/\t/,$query_len);
 
@@ -159,7 +177,6 @@ sub show_annots {
     ($sdb, $acc, $id) = split(/\|/,$annot_line);
   }
 
-  # remove version number
   unless ($use_acc) {
     $get_annots_sql = $get_annots_id;
     $get_annots_sql->execute($id);
@@ -171,7 +188,13 @@ sub show_annots {
       $get_annots_sql = $get_annots_refacc;
     }
     $acc =~ s/\.\d+$//;
-    $get_annots_sql->execute($acc);
+
+    unless ($use_www) {
+      $get_annots_sql->execute($acc);
+    }
+    else {
+      $get_annots_sql = $acc;
+    }
   }
 
   $annot_data{list} = $get_annot_sub->($get_annots_sql, $seq_len);
@@ -185,32 +208,172 @@ sub get_annots {
   my @feats = ();
 
   while (my $exon_hr = $get_annots_sql->fetchrow_hashref()) {
-      my $ix = $exon_hr->{ix};
-      if ($lav) {
-	  push @feats, [$exon_hr->{start}, $exon_hr->{end}, "exon_$ix~$ix"];
-      }
-      else {
-	  push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, "exon_$ix~$ix"];
-	  if ($gen_coord) {
-	      if (not defined($exon_hr->{g_start})) {
-		  next;
-	      }
-
-	      my $chr=$exon_hr->{chrom};
-	      $chr = "unk" unless $chr;
-	      if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
-		  $chr = "chr$chr";
-	      }
-	      my $ex_info = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_start});
-	      push @feats, [$exon_hr->{start},'<','-',$ex_info];
-	      $ex_info = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_end});
-	      push @feats, [$exon_hr->{end},'>','-',$ex_info];
+    my $ix = $exon_hr->{ix};
+    if ($lav) {
+      push @feats, [$exon_hr->{start}, $exon_hr->{end}, "exon_$ix~$ix"];
+    } else {
+      my ($exon_info,$ex_info_start, $ex_info_end) = ("exon_$ix~$ix","","");
+      if ($gen_coord) {
+	if (defined($exon_hr->{g_start})) {
+	  my $chr=$exon_hr->{chrom};
+	  $chr = "unk" unless $chr;
+	  if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
+	    $chr = "chr$chr";
 	  }
+	  $ex_info_start = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_start});
+	  $ex_info_end   = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_end});
+	  if ($exon_label) {
+	    $exon_info = sprintf("exon_%d{%s:%d-%d}~%d",$ix, $chr, $exon_hr->{g_start}, $exon_hr->{g_end}, $ix);
+	    push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+	  } else {
+	    push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+	    push @feats, [$exon_hr->{start},'<','-',$ex_info_start];
+	    push @feats, [$exon_hr->{end},'>','-',$ex_info_end];
+	  }
+	}
+      } else {
+	push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
       }
+    }
   }
 
   return \@feats;
 }
+
+sub get_annots_up_www {
+  my ($acc, $seq_len) = @_;
+
+  my @feats = ();
+
+  my  $exon_json = get_https($uniprot_url.$acc.$uniprot_suff);
+
+  unless (!$exon_json || $exon_json =~ m/errorMessage/ || $exon_json =~ m/Can not find/) {
+    return parse_json_up_exons($exon_json);
+  }
+  else {
+    return ();
+  }
+}
+
+sub parse_json_up_exons {
+  my ($exon_json) = @_;
+
+  my @exons = ();
+  my @ex_coords = ();
+
+  my $acc_exons = decode_json($exon_json);
+
+  my $exon_num = 1;
+  my $last_end = 0;
+  my $last_phase = 0;
+
+  my $chrom = $acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'chromosome'};
+  my $rev_strand = $acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'reverseStrand'};
+
+  for my $exon ( @{$acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'exon'}} ) {
+    my ($p_begin, $p_end) = ($exon->{'proteinLocation'}{'begin'}{'position'},$exon->{'proteinLocation'}{'end'}{'position'});
+    my ($g_begin, $g_end) = ($exon->{'genomeLocation'}{'begin'}{'position'},$exon->{'genomeLocation'}{'end'}{'position'});
+
+    my $this_phase = 0;
+    if (defined($g_begin) && defined($g_end)) {
+      $this_phase = ($g_end - $g_begin + 1) % 3;
+    }
+
+    if (!defined($p_begin) || !defined($p_end)) {
+      $exon_num++;
+      $last_phase = 0;
+      next;
+    }
+
+    if ($p_end >= $p_begin) {
+      if ($p_begin == $last_end) {
+	if ($last_phase==2) {
+	  $p_begin += 1;
+	}
+	elsif ($last_phase==1) {
+	  $last_end -= 1;
+	  $exons[-1]->{seq_end} -= 1;
+	}
+      }
+
+      if ($p_begin <= $last_end && $p_end > $last_end) {
+	$p_begin = $last_end+1;
+      }
+      $last_end = $p_end;
+      $last_phase = $this_phase;
+
+      my ($gs_begin, $gs_end) = ($g_begin, $g_end);
+      if ($rev_strand) {
+	($gs_begin, $gs_end) = ($g_end, $g_begin);
+      }
+
+      push @exons, {
+		    ix=>$exon_num,
+		    start=>$p_begin,
+		    end=>$p_end,
+		    g_start=>$gs_begin,
+		    g_end=>$gs_end,
+		    chrom=>$chrom,
+		   };
+
+      $exon_num++;
+    }
+  }
+
+  # check for domain overlap, and resolve check for domain overlap
+  # (possibly more than 2 domains), choosing the domain with the best
+  # evalue
+
+  my @ex_feats = ();
+
+  for my $exon_hr (@exons) {
+    my $ix = $exon_hr->{ix};
+    if ($lav) {
+      push @ex_feats, [$exon_hr->{start}, $exon_hr->{end}, "exon_$ix~$ix" ];
+    }
+    else {
+      my ($exon_info,$ex_info_start, $ex_info_end) = ("exon_$ix~$ix","","");
+      if ($gen_coord) {
+	if (defined($exon_hr->{g_start})) {
+	  my $chr=$exon_hr->{chrom};
+	  $chr = "unk" unless $chr;
+	  if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
+	    $chr = "chr$chr";
+	  }
+	  $ex_info_start = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_start});
+	  $ex_info_end   = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_end});
+	  if ($exon_label) {
+	    $exon_info = sprintf("exon_%d{%s:%d-%d}~%d",$ix, $chr, $exon_hr->{g_start}, $exon_hr->{g_end},$ix);
+	    push @ex_feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+	  } else {
+	    push @ex_feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+	    push @ex_feats, [$exon_hr->{start},'<','-',$ex_info_start];
+	    push @ex_feats, [$exon_hr->{end},'>','-',$ex_info_end];
+	  }
+	}
+      } else {
+	push @ex_feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+      }
+    }
+  }
+  return \@ex_feats;
+}
+
+sub get_https {
+  my ($url) = @_;
+
+  my $result = "";
+  my $response = $ua->get($url);
+
+  if ($response->is_success) {
+    $result = $response->decoded_content;
+  } else {
+    $result = '';
+  }
+  return $result;
+}
+
+
 
 __END__
 

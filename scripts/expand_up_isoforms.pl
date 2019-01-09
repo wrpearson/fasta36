@@ -39,6 +39,7 @@ use Pod::Usage;
 use DBI;
 
 my ($host, $db, $port, $user, $pass)  = ("xdb", "uniprot", 0, "web_user", "fasta_www");
+$host = 'wrpxdb.its.virginia.edu';
 my ($a_table, $i_table) = ("annot2", "annot2_iso");
 my ($help, $shelp) = (0,0);
 my ($e_thresh, $prim_acc) = (1e-6, 0);
@@ -78,9 +79,30 @@ for my $sth (keys(%sth)) {
 
 my %acc_uniq = ();
 
-while (my $line = <>) {
-  chomp($line);
+# get the query
+my ($query, $eval_arg) =  @ARGV;
+$eval_arg = 1e-10 unless $eval_arg;
+$query =~ s/^>// if ($query);
+my @link_lines = ();
+
+#if it's a file I can open, read and parse it
+unless ($query && ($query =~ m/[\|:]/ ||
+		   $query =~ m/^[NX]P_/ ||
+		   $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/)) {
+
+  while (my $a_line = <>) {
+    $a_line =~ s/^>//;
+    chomp $a_line;
+    push @link_lines, $a_line;
+  }
+}
+else {
+  push @link_lines, "$query\t$eval_arg";
+}
+
+for my $line ( @link_lines ) {
   my ($hit, $e_val) = split(/\t/,$line);
+
   if ($e_val <= $e_thresh) {
       process_line($hit,$sth{seed2link_acc},$sth{seed2link_id});
   }
@@ -96,7 +118,10 @@ for my $acc ( keys %acc_uniq ) {
     }
 
     printf(">%s|%s|%s %s\n","iso",$acc,$id_str,$row_href->{descr});
-    print $row_href->{seq} . "\n";
+    my $iso_seq = $row_href->{seq};
+    $iso_seq =~ s/(.{60})/$1\n/g;
+
+    print "$iso_seq\n";
   }
   $sth{link2seq}->finish();
 }
@@ -112,6 +137,8 @@ sub process_line{
 
   if ($seqid =~ m/\|/) {
       ($db, $link_acc, $link_id) = split('\|',$seqid);
+      $link_acc =~ s/\.\d+$//;
+
       $sth_acc->execute($link_acc);
   }
   elsif ($seqid =~ m/:/) {
@@ -121,6 +148,7 @@ sub process_line{
   }
   else {
       $link_acc = $seqid;
+      $link_acc =~ s/\.\d+$//;
       $sth_acc->execute($link_acc);
   }
 

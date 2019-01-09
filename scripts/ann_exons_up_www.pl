@@ -17,11 +17,13 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-# ann_exons_up_www.pl gets an annotation file from fasta36 -V with a line of the form:
-
-# gi|23065544|ref|NP_000552.2| 
+# ann_exons_up_www.pl gets an annotation file from fasta36 -V with a
+# line of the form:
 #
-# and returns the exons present in the protein from NCBI gff3 tables (human and mouse only)
+# sp|P09488|GSTM1_HUMAN<tab>218
+#
+# and uses the EBI protein coordinate API to get the locations of exons
+# https://www.ebi.ac.uk/proteins/api/coordinates/P09488.json
 #
 # it must:
 # (1) read in the line
@@ -30,6 +32,8 @@
 # (4) return the tab delimited exon boundaries
 
 # 22-May-2017 -- use get("https://"), not get_https("https://"), because EBI does not have LWP::Protocol:https
+
+# 11-Dec-2018 -- modified to include --gen_coord, which reports exon starts and stops in genomic coordinates as <, >
 
 use warnings;
 use strict;
@@ -43,12 +47,13 @@ use JSON qw(decode_json);
 
 use vars qw($host $db $port $user $pass);
 
-my ($lav, $shelp, $help) = (0, 0,0);
+my ($lav, $gen_coord, $shelp, $help) = (0, 0, 0, 0);
 
 my $color_sep_str = " :";
 $color_sep_str = '~';
 
 GetOptions(
+    "gen_coord!" => \$gen_coord,
     "lav" => \$lav,
     "h|?" => \$shelp,
     "help" => \$help,
@@ -146,12 +151,16 @@ sub parse_json_up_exons {
   my ($exon_json) = @_;
 
   my @exons = ();
+  my @ex_coords = ();
 
   my $acc_exons = decode_json($exon_json);
 
   my $exon_num = 1;
   my $last_end = 0;
   my $last_phase = 0;
+
+  my $chrom = $acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'chromosome'};
+  my $rev_strand = $acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'reverseStrand'};
 
   for my $exon ( @{$acc_exons->{'gnCoordinate'}[0]{'genomicLocation'}{'exon'}} ) {
     my ($p_begin, $p_end) = ($exon->{'proteinLocation'}{'begin'}{'position'},$exon->{'proteinLocation'}{'end'}{'position'});
@@ -185,11 +194,23 @@ sub parse_json_up_exons {
       $last_end = $p_end;
       $last_phase = $this_phase;
 
+      my $info ="exon_".$exon_num.$color_sep_str.$exon_num;
+
+      my ($gs_begin, $gs_end) = ($g_begin, $g_end);
+      if ($rev_strand) {
+	($gs_begin, $gs_end) = ($g_end, $g_begin);
+      }
+
       push @exons, {
-		    info=>"exon_".$exon_num.$color_sep_str.$exon_num,
+		    info=>$info,
+		    exon_num=>$exon_num,
 		    seq_start=>$p_begin,
 		    seq_end=>$p_end,
+		    gen_seq_start=>$gs_begin,
+		    gen_seq_end=>$gs_end,
+		    chrom=>$chrom,
 		   };
+
       $exon_num++;
     }
   }
@@ -206,6 +227,16 @@ sub parse_json_up_exons {
     }
     else {
       push @ex_feats, [$d_ref->{seq_start}, '-', $d_ref->{seq_end},  $d_ref->{info} ];
+      if ($gen_coord) {
+	  my $chr=$d_ref->{chrom};
+	  if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
+	      $chr = "chr$chr";
+	  }
+	  my $ex_info = sprintf("exon_%d::%s:%d",$d_ref->{exon_num}, $chr, $d_ref->{gen_seq_start});
+	  push @ex_feats, [$d_ref->{seq_start},'<','-',$ex_info];
+	  $ex_info = sprintf("exon_%d::%s:%d",$d_ref->{exon_num}, $chr, $d_ref->{gen_seq_end});
+	  push @ex_feats, [$d_ref->{seq_end},'>','-',$ex_info];
+      }
     }
   }
   return \@ex_feats;
@@ -242,6 +273,7 @@ ann_exons_up_www.pl
  -h	short help
  --help include description
  --lav  produce lav2plt.pl annotation format
+ --gen_coord produce genome coordinate features
 
 =head1 DESCRIPTION
 

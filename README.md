@@ -1,21 +1,26 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
-The **FASTA** (pronounced FAST-Aye, not FAST-Ah) programs are a
-comprehensive set of similarity searching and alignment programs for
-searching protein and DNA sequence databases.  Like the **BLAST** programs `blastp` and `blastn`, the `fasta` program itself uses a rapid heuristic strategy for finding similar regions in protein and DNA sequences.  But in
-addition to heuristic similarity searching, the FASTA package provides
-programs for rigorous local (`ssearch`) and global (`ggsearch`)
-similarity searching, as well as a program for finding non-overlapping
-sequence similarities (`lalign`).  Like BLAST, the FASTA package also
-includes programs for aligning translated DNA sequences against
-proteins (`fastx`, `fasty` are equivalent to `blastx`, `tfastx`,
-`tfasty` are similar to `tblastn`).
+The **FASTA** (pronounced FAST-Aye, not FAST-Ah) programs are a comprehensive set of similarity searching and alignment programs for searching protein and DNA sequence databases.  Like the **BLAST** programs `blastp` and `blastn`, the `fasta` program itself uses a rapid heuristic strategy for finding similar regions in protein and DNA sequences.  But in addition to heuristic similarity searching, the FASTA package provides
+programs for rigorous local (`ssearch`) and global (`ggsearch`) similarity searching, as well as a program for finding non-overlapping sequence similarities (`lalign`).  Like BLAST, the FASTA package also includes programs for aligning translated DNA sequences against proteins (`fastx`, `fasty` are equivalent to `blastx`,  and  `tfastx`, `tfasty` are similar to `tblastn`).
+
+#### December, 2018
+
+The latest version of the FASTA packAge is `fasta-36.3.8h`, Dec. 2018.
+
+See doc/README_v36.3.8h.md for a more complete summary of changes.
+
+#### November, 2018
+
+The current released version of the FASTA package is `fasta-36.3.8h`, Nov. 2018
+
+See doc/README_v36.3.8h.md for a more complete summary of changes.
 
 #### October, 2018
+
 The current version of the FASTA package is fasta-36.3.8g, Oct. 2018
 
-See doc/README_v36.3.8g.md for a more complete summary of changes.
+See doc/README_v36.3.8h.md for a more complete summary of changes.
 
 #### April, 2018
 The current version of the FASTA package is fasta-36.3.8g, Apr. 2018
@@ -36,8 +41,8 @@ letters, it is re-read with lower-case letters converted to upper-case.
 The current FASTA version is fasta-36.3.8f, May. 2017
 
 Various bugs in sub-alignment scoring corrected and support for the
-EBI SP:GSTM1_HUMAN P09488 added.  The format for the $SRCH_URL and
-$SRCH_URL2 format strings has changed to enable pairwise alignment.
+EBI SP:GSTM1_HUMAN P09488 added.  The format for the `$SRCH_URL` and
+`$SRCH_URL2` format strings has changed to enable pairwise alignment.
 
 #### September, 2016
 
