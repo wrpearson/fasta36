@@ -717,10 +717,10 @@ dominfo_to_str(struct dyn_string_str *dominfo_dstr, struct annot_str *annots) {
 
     if (annot->target) {
       if (annot->label == '-') {
-	sprintf(tmp_string,"|XD:%ld-%ld;C=%s",annot->pos,annot->end,annot->comment);
+	sprintf(tmp_string,"|XD:%ld-%ld;C=%s",annot->pos+1,annot->end+1,annot->comment);
       }
       else {
-	sprintf(tmp_string,"|X%c:%ld-%ld;C=%s",annot->label, annot->pos,annot->end,annot->comment);
+	sprintf(tmp_string,"|X%c:%ld-%ld;C=%s",annot->label, annot->pos+1,annot->end+1,annot->comment);
       }
     }
     else {
