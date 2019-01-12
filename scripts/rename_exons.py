@@ -80,25 +80,27 @@ class DomAlign:
         return bar_str
 
 ################
-# "Dinfo" class describes raw (un-aligned) domains
+# "exonInfo" class describes raw (un-aligned) exons with genome coordinates
 #
-class DomInfo:
-    def __init__(self, name, info, color, qstart, qend, RXRState, fulltext):
+class exonInfo:
+    def __init__(self, name, q_target, p_start, p_end, chrom, d_start, d_end, full_text):
         self.name = name
-        self.info = info
-        self.color = color
-        self.q_start = qstart
-        self.q_end = qend
-        self.rxr = RXRState
-        self.text = fulltext
-        self.out_str = ''
-    def __str__(self):
-        return "[%s] %i-%i::%s" % (self.rxr, self.q_start, self.q_end, self.name)
+        self.q_target = q_target
+        self.p_start = p_start
+        self.p_end = p_end
+        self.chrom = chrom
+        self.d_start = d_start
+        self.d_end = d_end
+        self.text = full_text
+        self.plus_strand = True
+        if (d_start > d_end):
+            self.plus_strand = False
 
-    def print_bar_str(self):
-        if (not self.out_str):
-            self.out_str = self.text
-        return str("|%s"%(self.out_str))
+    def __str__(self):
+        rxr_str = "XD"
+        if (self.q_target):
+            rxr_str="DX"
+        return '|%s:%i-%i:%s{%s:%i-%i}' % (rxr_str, self.p_start, self.p_end, self.name, self.chrom, self.d_start, self.d_end)
 
 
 # Parses domain annotations after split at '|'
@@ -146,7 +148,10 @@ def parse_domain(text):
     return dom_align
 
 # dom_info is like domain, but no scores
-def parse_dom_info(text):
+################
+# exon_info is like domain, but no scores
+#
+def parse_exon_info(text):
     # takes a domain in string form, turns it into a domain object
     # looks like: DX:1-100;C=C.Thioredoxin~1
 
@@ -155,9 +160,19 @@ def parse_dom_info(text):
     if (re.search(r'\}$',name)):
         (name, info) = re.search(r'([^\{]+)(\{[^\}]+\})$',name).groups()
 
-    dom_info = DomInfo(name, info, color, int(start_s), int(end_s), RXRState, text)
+    gene_re = re.search(r'^\{(\w+):(\d+)\-(\d+)\}',info)
+    if (gene_re):
+        (chrom, d_start, d_end) = gene_re.groups()
+    else:
+        sys.stderr.write("genome info not found: %s\n" % (text))
 
-    return dom_info
+    q_target = True;
+    if (RXRState == 'XD'):
+        q_target = False
+
+    exon_info = exonInfo(name, q_target, int(start_s), int(end_s), chrom, int(d_start), int(d_end), text)
+
+    return exon_info
 
 def overlap_fract(qdom, sdom):
     # checks if a query and subject domain overlap
@@ -212,6 +227,7 @@ def overlap_fract(qdom, sdom):
 # takes a protein in string format, turns it into a dictionary properly
 # looks like:   sp|P30711|GSTT1_HUMAN   up|Q2NL00|GSTT1_BOVIN   86.67   240     32      0       1       240     1       240     1.4e-123        444.0   16VI7DR6IT3IR15KQ3AI6TI11TA7YH8RC12TA3SN10FL10QETM2AT6VMTA2LV2DG4ND6PS24EK6TA11DV14FSPQ5IL3LMML1WK5RQ   |XR:4-76:4-76:s=327;b=134.6;I=0.895;Q=367.8;C=C.Thioredoxin~1|RX:5-82:5-82:s=356;b=146.5;I=0.902;Q=403.3;C=C.Thioredoxin~1|RX:83-93:83-93:s=52;b=21.4;I=0.818;Q=30.9;C=NODOM~0|XR:77-93:77-93:s=86;b=35.4;I=0.882;Q=72.6;C=NODOM~0|RX:94-110:94-110:s=88;b=36.2;I=0.882;Q=75.0;C=vC.GST_C~2v|XR:94-110:94-110:s=88;b=36.2;I=0.882;Q=75.0;C=vC.GST_C~2v|RX:111-201:111-201:s=409;b=168.3;I=0.868;Q=468.3;C=C.GST_C~2|XR:111-201:111-201:s=409;b=168.3;I=0.868;Q=468.3;C=C.GST_C~2|RX:202-240:202-240:s=154;b=63.4;I=0.795;Q=155.9;C=NODOM~0|XR:202-240:202-240:s=154;b=63.4;I=0.795;Q=155.9;C=NODOM~0
 #
+# returns [data[x] for x in fields] but also data['q/s_dom_list'] and data['q/sinfo_list']
 def parse_protein(line_data,fields, req_name):
     # last part (domain annotions) split('|') and parsed by parse_domain()
 
@@ -256,9 +272,9 @@ def parse_protein(line_data,fields, req_name):
             if (not re.search(r'^[DX][XD]',info_str)):
                 continue
 
-            dinfo = parse_dom_info(info_str)
+            dinfo = parse_exon_info(info_str)
 
-            if (dinfo.rxr == 'DX'):
+            if (dinfo.q_target):
                 Qinfo_list.append(dinfo)
             else:
                 Sinfo_list.append(dinfo)
@@ -409,23 +425,23 @@ def find_info_overlaps(info_list, dom_list):
         pop_d = pop_i = False
 
         if (dom.rxr == 'RX'):  # use dom.q_start/q_end
-            if (dom.q_end < info.q_start):
+            if (dom.q_end < info.p_start):
                 pop_d = True
-            elif (dom.q_end >= info.q_start and dom.q_start <= info.q_end):  # overlap
+            elif (dom.q_end >= info.p_start and dom.q_start <= info.p_end):  # overlap
                 dom.info_dom = info
                 pop_d = True
                 pop_i = True
-            elif (info.q_end < dom.q_start):
+            elif (info.p_end < dom.q_start):
                 pop_i = True
             
         else:			# use dom.s_start/s_end
-            if (dom.s_end < info.q_start):
+            if (dom.s_end < info.p_start):
                 pop_d = True
-            elif (dom.s_end >= info.q_start and dom.s_start <= info.q_end):  # overlap
+            elif (dom.s_end >= info.p_start and dom.s_start <= info.p_end):  # overlap
                 dom.info_dom = info
                 pop_d = True
                 pop_i = True
-            elif (info.q_end < dom.s_start):
+            elif (info.p_end < dom.s_start):
                 pop_i = True
 
         if (len(info_queue) > 0):
@@ -559,6 +575,55 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
 
     return sdom_displayed_dict
 
+################
+#
+# aa_to_exon()  --- given a coordinate and the corresponding exon map, return the exon coordinate
+# (can only be done for aligned exons)
+#
+# this version of the function must use an info_list, not an
+# align_list, because it uses p_start/p_end rather than q_start/s_start, etc.
+# a version using qp_start/sp_start would also need a target argument
+#
+def aa_to_exon(aa_coords, exon_info_list):
+
+    sorted_aa_coords = sorted(aa_coords)
+
+    pos_strand = True
+    if (exon_info_list[0].d_start > exon_info_list[0].d_end):
+        pos_strand = False
+
+    ex_x = 0
+    exon_coords = []
+
+    aap_x = 0
+    this_aap = sorted_aa_coords[aap_x]
+    while (ex_x < len(exon_info_list)):
+        this_exon = exon_info_list[ex_x]
+        if (this_aap <= this_exon.p_end and this_aap >= this_exon.p_start):
+            aa_dna_offset = (this_aap - this_exon.p_start) * 3 
+
+            if (pos_strand):
+                aa_dna_pos = this_exon.d_start + aa_dna_offset
+            else:
+                aa_dna_pos = this_exon.d_start - aa_dna_offset
+
+            exon_coords.append({'chrom':this_exon.chrom, 'dpos':aa_dna_pos})
+            aap_x += 1
+            if (aap_x < len(sorted_aa_coords)):
+                this_aap = sorted_aa_coords[aap_x]
+            else:
+                break
+        else:
+            ex_x += 1
+
+    aa_coord_dict = {}
+    for aap_x, aap in enumerate(sorted_aa_coords):
+        aa_coord_dict[aap] = exon_coords[aap_x]
+
+    return [aa_coord_dict[ax] for ax in aa_coords]
+
+################
+# 
 def set_data_fields(args, line_data) :
 
     field_str = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP dom_annot'
@@ -593,7 +658,9 @@ def main():
     parser=argparse.ArgumentParser(description='scan_exons.py result_file.m8CB : re-label subject exons to match query')
     parser.add_argument('--have_qslen', help='bl_tab fields include query/subject lengths',dest='have_qslen',action='store_true',default=False)
     parser.add_argument('--dom_info', help='raw domain coordinates included',action='store_true',default=False)
+    parser.add_argument('--fill_gcoords', help='fill in genomic coordinates',action='store_true',default=False)
     parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
+
     args=parser.parse_args()
 
     end_field = -1
@@ -635,7 +702,7 @@ def main():
                 saved_qdom_list = [ copy.deepcopy(x) for x in data['sdom_list']]
                 max_sdom_id=len(data['sdom_list'])+1
                 for qdom in saved_qdom_list:
-                    qdom.rxr = 'VX'
+                    qdom.rxr = 'RX'
                     qdom.idnum = max_sdom_id
                     max_sdom_id += 1
 
@@ -668,8 +735,46 @@ def main():
         ################
         # print exon annotations
         #
-        exon_list = data['qdom_list']+[sdom_displayed_dict[x] for x in sdom_displayed_dict.keys()]
-        sorted_exon_list = sorted(exon_list,key = lambda r: r.idnum)
+        q_exon_list = data['qdom_list']
+
+        s_exon_list = [sdom_displayed_dict[x] for x in sdom_displayed_dict.keys()]
+
+        ################
+        # if args.fill_gcoords, then do the transformations on the current exon lists
+        
+        if (args.fill_gcoords):
+            sa_from_qa = []
+            for q_ex in q_exon_list:
+                sa_from_qa.append(q_ex.q_start)
+                sa_from_qa.append(q_ex.q_end)
+
+            # have list of coordinates, map them to exon
+            sex_from_qa2sa = aa_to_exon(sa_from_qa,data['sinfo_list'])
+
+            for iqx, q_ex in enumerate(q_exon_list):
+                sg_start = sex_from_qa2sa[2*iqx]
+                sg_end = sex_from_qa2sa[2*iqx+1]
+                sg_replace="::%s:%d-%d}"%(sg_start['chrom'],sg_start['dpos'],sg_end['dpos'])
+                q_ex.text=re.sub(r'\}',sg_replace,q_ex.text)
+                q_ex.out_str=re.sub(r'\}',sg_replace,q_ex.out_str)
+                
+            qa_from_sa = []
+            for s_ex in s_exon_list:
+                qa_from_sa.append(s_ex.q_start)
+                qa_from_sa.append(s_ex.q_end)
+
+            # have list of coordinates, map them to exon
+            qex_from_sa2qa = aa_to_exon(qa_from_sa,data['qinfo_list'])
+
+            for isx, s_ex in enumerate(s_exon_list):
+                qg_start = sex_from_qa2sa[2*iqx]
+                qg_end = sex_from_qa2sa[2*iqx+1]
+                qg_replace="{%s:%d-%d::"%(sg_start['chrom'],sg_start['dpos'],sg_end['dpos'])
+                s_ex.text=re.sub(r'\{',qg_replace,s_ex.text)
+                s_ex.out_str = re.sub(r'\{',qg_replace,s_ex.out_str)
+
+        sorted_exon_list = sorted(q_exon_list+s_exon_list,key = lambda r: r.idnum)
+
         dom_bar_str = ''
         for exon in sorted_exon_list:
             # print exon.print_bar_str()     # for multi-line output
@@ -677,7 +782,7 @@ def main():
 
         info_bar_str = ''
         for info in data['qinfo_list'] + data['sinfo_list']:
-            info_bar_str += info.print_bar_str() 
+            info_bar_str += info.text 
 
         print '\t'.join((btab_str, dom_bar_str, info_bar_str))
 

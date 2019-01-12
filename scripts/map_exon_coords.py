@@ -304,8 +304,11 @@ def map_align_coords(btop_str, q_start, s_start, s_target, coord_list):
 # aa_to_exon()  --- given a coordinate and the corresponding exon map, return the exon coordinate
 # (can only be done for aligned exons)
 #
+# this version of the function must use an info_list, not an
+# align_list, because it uses p_start/p_end rather than qp_start/sp_start, etc.
+# a version using qp_start/sp_start would also need a target argument
+#
 def aa_to_exon(aa_coords, exon_info_list):
-    
 
     sorted_aa_coords = sorted(aa_coords)
 
