@@ -200,24 +200,156 @@ def parse_protein(line_data,fields, req_name):
 
     return data
 
-################################################################
-# map_subj_aa(q_exons, s_exons, s_aa_pos)
+################
 #
-# return s_dna_pos, q_aa_pos, q_dna_pos for given s_aa_pos coordinate
-# 
-# def map_subj_aa(q_exons, s_exons, s_aa_pos):
+# decode_btop() - 
+#   input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
+#   returns a list_ref of tokens: (1, "VA", 60, "TS", 7, "KG, 10, "RK", 27)
+def decode_btop(btop_str):
+    out_tokens = []
+    for token in re.split(r'(\d+)',btop_str):
+        if (not token): continue
+        if re.match(r'\d+',token):
+            out_tokens.append(token)
+        else:
+            for mismat in re.split(r'(..)',token):
+                if (mismat): out_tokens.append(mismat)
+
+    return out_tokens
+
+################
+#
+#  map_align(btop, q_start, s_start)
+#    input: btop
+#    output: q_pos_arr, s_pos_arr
+#
+def map_align(btop_str, q_start, s_start):
+
+    q_pos = q_start
+    s_pos = s_start
+
+    q_pos_arr = []
+    s_pos_arr = []
+
+    btop_tokens = decode_btop(btop_str)
+
+    for t in btop_tokens:
+        if (re.match(r'\d+',t)):
+            for i in range(int(t)) :
+                q_pos_arr.append(q_pos)
+                q_pos += 1
+                s_pos_arr.append(s_pos)
+                s_pos += 1
+        elif (re.match(r'\-\w',t)):
+            q_pos_arr.append(q_pos)
+            s_pos_arr.append(s_pos)
+            s_pos += 1
+        elif (re.match(r'\w\-',t)):
+            q_pos_arr.append(q_pos)
+            q_pos += 1
+            s_pos_arr.append(s_pos)
+        else:
+            q_pos_arr.append(q_pos)
+            q_pos += 1
+            s_pos_arr.append(s_pos)
+            s_pos += 1
+
+    return q_pos_arr, s_pos_arr
+
+################
+#
+# map_coords(from_coords, to_coords, coord_list)
+#
+def map_coords(from_coords, to_coords, coord_list):
+
+    mapped_coords = []
+
+    fx = 0
+    mx = 0
+    while mx < len(coord_list):
+        this_from_coord = coord_list[mx]
+        while (from_coords[fx] < this_from_coord):
+            fx += 1
+            continue
+
+        mapped_coords.append(to_coords[fx])
+        mx += 1
+
+    return mapped_coords
     
-# go through the q_exons to find the appropriate segment
-# go through the s_exons to find the appropriate segment
+################
+#
+# map_align_coords()  given a BTOP, q_start, s_start, and s_target, generate s_coords for list of q_coords
+#
+def map_align_coords(btop_str, q_start, s_start, s_target, coord_list):
+    
+    (q_coords, s_coords) = map_align(btop_str, q_start, s_start)
+
+    sorted_coord_list = sorted(coord_list)
+
+    if (s_target):
+        s_mapped_coords = map_coords(q_coords, s_coords, sorted_coord_list)
+    else:
+        s_mapped_coords = map_coords(s_coords, q_coords, sorted_coord_list)
+
+    coord_dict={}
+    for ix, s_coord in enumerate(sorted_coord_list):
+        coord_dict[s_coord]=s_mapped_coords[ix]
+        
+    return [ coord_dict[c] for c in coord_list ]
 
 
 ################
 #
+# aa_to_exon()  --- given a coordinate and the corresponding exon map, return the exon coordinate
+# (can only be done for aligned exons)
+#
+def aa_to_exon(aa_coords, exon_info_list):
+    
 
+    sorted_aa_coords = sorted(aa_coords)
+
+    pos_strand = True
+    if (exon_info_list[0].d_start > exon_info_list[0].d_end):
+        pos_strand = False
+
+    ex_x = 0
+    exon_coords = []
+
+    aap_x = 0
+    this_aap = sorted_aa_coords[aap_x]
+    while (ex_x < len(exon_info_list)):
+        this_exon = exon_info_list[ex_x]
+        if (this_aap <= this_exon.p_end and this_aap >= this_exon.p_start):
+            aa_dna_offset = (this_aap - this_exon.p_start) * 3 
+
+            if (pos_strand):
+                aa_dna_pos = this_exon.d_start + aa_dna_offset
+            else:
+                aa_dna_pos = this_exon.d_start - aa_dna_offset
+
+            exon_coords.append({'chrom':this_exon.chrom, 'dpos':aa_dna_pos})
+            aap_x += 1
+            if (aap_x < len(sorted_aa_coords)):
+                this_aap = sorted_aa_coords[aap_x]
+            else:
+                break
+        else:
+            ex_x += 1
+
+    aa_coord_dict = {}
+    for aap_x, aap in enumerate(sorted_aa_coords):
+        aa_coord_dict[aap] = exon_coords[aap_x]
+
+    return [aa_coord_dict[ax] for ax in aa_coords]
+
+################
+# set_data_fields() -- initialize field[] used to generate data[] dict
+#
 def set_data_fields(args, line_data) :
 
-    field_str = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP align_annot'
-    field_qs_str = 'qseqid qlen sseqid slen pident length mismatch gapopen qstart qend sstart send evalue bitscore BTOP align_annot'
+    field_str = 'qseqid sseqid pident length mismatch gapopen q_start q_end s_start s_end evalue bitscore BTOP align_annot'
+    field_qs_str = 'qseqid q_len sseqid s_len pident length mismatch gapopen q_start q_end s_start s_end evalue bitscore BTOP align_annot'
 
     if (len(line_data) > 1) :
         if ((not args.have_qslen) and  re.search(r'\d+',line_data[1])):
@@ -254,6 +386,11 @@ def main():
     parser.add_argument('files', metavar='FILE', nargs='*', help='files to read, if empty, stdin is used')
     args=parser.parse_args()
 
+    end_field = -1
+    data_fields_reset=False
+
+    (fields, end_field) = set_data_fields(args, [])
+
     if (args.have_qslen and args.exon_info):
         data_fields_reset=True
 
@@ -276,15 +413,69 @@ def main():
 
         ################
         # get exon annotations
+        # produces:  data['q_exalign_list'], data['s_exalign_list']
+        #            data['q_exinfo_list'],  data['s_exinfo_list']
         data = parse_protein(line_data,fields,"exon")	# get score/alignment/domain data
 
-        # look at results:
+        # extract aligned query_coordinates
+        q_coords = []
+        sa_from_qa = []
+        for q_ex in data['q_exalign_list']:
+            q_coords.append(q_ex.q_start)
+            q_coords.append(q_ex.q_end)
+            sa_from_qa.append(q_ex.s_start)
+            sa_from_qa.append(q_ex.s_end)
 
-        for ea in data['q_exalign_list']: print ea
-        for ea in data['s_exalign_list']: print ea
-        for ea in data['q_exinfo_list']: print ea
-        for ea in data['s_exinfo_list']: print ea
+        s_coords = []
+        qa_from_sa = []
+        for s_ex in data['s_exalign_list']:
+            s_coords.append(s_ex.s_start)
+            s_coords.append(s_ex.s_end)
+            qa_from_sa.append(s_ex.q_start)
+            qa_from_sa.append(s_ex.q_end)
 
+        ################
+        # map aligned coordinates in query to subject exons
+        # -- this is not necessary -- it already in data['q_exalign_list'].s_start/s_end
+        # s_target=True
+        # sa_from_qa = map_align_coords(data['BTOP'], int(data['q_start']), int(data['s_start']),
+        #                                    s_target, qa_coords)
+        sex_from_qa2sa = aa_to_exon(sa_from_qa, data['s_exinfo_list'])
+        qex_from_sa2qa = aa_to_exon(qa_from_sa, data['q_exinfo_list'])
+
+
+        ################
+        # print out non-exon info
+
+        print '\t'.join([str(data[x]) for x in fields[:end_field]]),
+
+        ################
+        # edit the full text to insert the other aligned coordinates
+        # (also re-order the regions query-first, then subject
+        # for 'q_exalign_list', I need to add the subj_genome_coords sex_from_qa2sa
+        #    and they need to be second
+        # for 's_exalign_list', I need to add the query_genome_coords from qex_from_sa2qa
+        #    and they need to be first
+
+        q_exalign_out=[]
+        for qx, q_exon in enumerate(data['q_exalign_list']):
+            sg_start = sex_from_qa2sa[2*qx]
+            sg_end = sex_from_qa2sa[2*qx+1]
+            sg_replace="::%s:%d-%d}"%(sg_start['chrom'],sg_start['dpos'],sg_end['dpos'])
+
+            this_outstr=re.sub(r'\}',sg_replace,q_exon.text)
+            q_exalign_out.append(this_outstr)
+
+        s_exalign_out=[]
+        for sx, s_exon in enumerate(data['s_exalign_list']):
+            qg_start = qex_from_sa2qa[2*sx]
+            qg_end = qex_from_sa2qa[2*sx+1]
+            qg_replace="{%s:%d-%d::"%(qg_start['chrom'],qg_start['dpos'],qg_end['dpos'])
+
+            this_outstr=re.sub(r'\{',qg_replace,s_exon.text)
+            s_exalign_out.append(this_outstr)
+
+        print "\t|"+"|".join(q_exalign_out+s_exalign_out)+"\t"+line_data[-1]
 
 ################
 # run the program ...
