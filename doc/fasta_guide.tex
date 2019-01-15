@@ -852,7 +852,11 @@ can use \texttt{-m 1 -m 6 -m 9}.
   comments, \texttt{-m 8XC} without comments) and, if available, an
   annotation encoding matching FASTA \texttt{-m 9C} output. All the
   \texttt{-m 9c/C/d/D} encodings are available with BLAST tabular
-  output using \texttt{-m 8C[c/C/d/D]}.
+  output using \texttt{-m 8C[c/C/d/D]}.  In the v36.3.8h release, a
+  new option has been added to \texttt{-m 8CB}, \texttt{-m 8CBL} (or
+  \texttt{-m 8CBl}. The \texttt{L/l} option adds the lengths of the
+  query and subject sequences after the \texttt{seqid}'s to BLAST
+  tabular output, e.g. \texttt{qseqid qlen sseqid slen percid ...}
 
 \item[\texttt{-m 9}] display alignment coordinates and scores with the
   best score information.  \texttt{-m 9i} provides alignment length,
@@ -926,7 +930,7 @@ while \texttt{-m 9D} would be:
 \texttt{1M1X2M4X2M1X2M7X3M9D1M2X1M4X2M1X1M1X2I1X1M1X1M3X1M2X1I3M1D1X1M2X1M}
 \end{footnotesize}
 \item[\texttt{-m 10}]
-a parseable format for use with other programs.
+a parseable format for use with other programs (this option no longer reliably tested; \texttt{-m 8CBL} is easier to parse and tested more extensively).
 \item[\texttt{-m 11}]
 Provide \texttt{lav}-like output (used by \texttt{lalign}) for graphical output.
 \begin{quote}
@@ -1801,6 +1805,7 @@ read the libraries in the following formats:\\
 5 & NBRF/PIR VMS (\texttt{>P1;SEQID}/comment/sequence) (obsolete)\\
 6 & GCG (version 8.0) Unix Protein and DNA (compressed)\\
 7 & FASTQ (sequence only, quality ignored)\\
+9 & a script that is executed to produce FASTA format sequences \\ 
 10 & subset format (</slib2/swissprot.lseg 0:2 4|) \\
 11 & NCBI Blast1.3.2 format  (unix only) (obsolete)\\
 12 & NCBI Blast2.0 format\\
@@ -1876,11 +1881,15 @@ remember where the libraries are kept or how they are named.
 \section{Frequently Asked Questions (FAQs)}
 
 {\noindent}\textbf{Where can I get FASTA?} --
-\url{http://faculty.virginia.edu/wrpearson/fasta} has the latest
-versions of the FASTA programs.  This document describes
-\texttt{\CURRENT}, which is available from
-\url{http://faculty.virginia.edu/wrpearson/fasta/fasta3.tar.gz}.
-In addition, pre-compiled versions of the programs are available for
+
+The most current version of the FASTA source code is available from
+\url{http://github.com/wrpearson/fasta36}.  In addition, you can get
+the programs from \url{http://faculty.virginia.edu/wrpearson/fasta},
+but sometimes there is a lag between the latest release on GITHUB and
+the compiled versions at \url{faculty.virginia.edu}.  This document
+describes \texttt{\CURRENT}, which is available from
+\url{http://faculty.virginia.edu/wrpearson/fasta/fasta3.tar.gz}.  In
+addition, pre-compiled versions of the programs are available for
 MacOSX and Windows.
 
 \needspace{4\baselineskip}

@@ -53,12 +53,14 @@
 	4 - Intelligentics format
 	5 - NBRF/PIR VMS format
 	6 - GCG 2bit format
+	7 - FASTQ format
+	8 - accession script
 
 	10 - list of gi/acc's
 	11 - NCBI setdb/blastp (1.3.2) AA/NT
 	12 - NCBI setdb/blastp (2.0) AA/NT
 	16 - mySQL queries
-
+	
 	see file altlib.h to confirm numbers
 
 */
@@ -190,11 +192,6 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   }
   else opt_text[0]='\0';
 
-  if (lib_p->file_name[0] == '-' || lib_p->file_name[0] == '@') {
-    use_stdin = 1;
-  }
-  else use_stdin=0;
-
   /* check for library type */
   if ((bp=strchr(lib_p->file_name,' '))!=NULL) {
     *bp='\0';
@@ -210,18 +207,32 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   }
   else lib_type = lib_p->lib_type;
 
-  if (use_stdin && lib_type !=0 ) {
+  if (lib_p->file_name[0] == '-' || lib_p->file_name[0] == '@'
+      || lib_type == ACC_SCRIPT) {
+    use_stdin = 1;
+  }
+  else use_stdin=0;
+
+  if (use_stdin && !(lib_type ==0 || lib_type==ACC_SCRIPT)) {
     fprintf(stderr,"\n @/- STDIN libraries must be in FASTA format\n");
     return NULL;
   }
 
   /* check to see if file can be open()ed? */
-
  l1:
   opnflg = 0;
   if (lib_type<=LASTTXT) {
     if (!use_stdin) {
       opnflg=((libf=fopen(lib_p->file_name,RBSTR))!=NULL);
+    }
+    else if (lib_type==ACC_SCRIPT) {
+      /* convert '+' in annot_script to ' ' */
+      bp = strchr(lib_p->file_name,'+');
+      for ( ; bp; bp=strchr(bp+1,'+')) {
+	*bp=' ';
+      }
+      libf=popen(lib_p->file_name,"r");
+      opnflg=1;
     }
     else {
       libf=stdin;

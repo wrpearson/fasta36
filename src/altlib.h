@@ -39,7 +39,8 @@ void ncbl_closelib();
 #define VMSPIR 5
 #define GCGBIN 6
 #define FASTQ 7
-#define LASTTXT 7
+#define ACC_SCRIPT 9
+#define LASTTXT 9
 #define ACC_LIST 10
 
 #include "mm_file.h"
@@ -95,25 +96,27 @@ int mysql_closelib();
 #endif
 
 int (*getliba[LASTLIB])(unsigned char *, int, char *, int, fseek_t *, int *,
-	    struct lmf_str *, long *)={
-  agetlib,lgetlib,pgetlib,egetlib,
-  igetlib,vgetlib,gcg_getlib,qgetlib,
-  agetlib,agetlib
+	struct lmf_str *, long *)={
+	    agetlib,lgetlib,pgetlib,egetlib,     /* 0 - 3 */
+	    igetlib,vgetlib,gcg_getlib,qgetlib,  /* 4-  7 */
+	    agetlib,agetlib  /* 8,9 */
 #ifdef UNIX
-  ,agetlib
+	    ,agetlib  /* 10 */
 #ifdef NCBIBL13
-  ,ncbl_getliba
+	    ,ncbl_getliba /* 11 */
 #else
-  ,ncbl2_getliba
+	    ,ncbl2_getliba /* 12 */
 #endif
 #ifdef NCBIBL20
-  ,ncbl2_getliba
+	    ,ncbl2_getliba /* 12 */
+#else
+	    ,agetlib       /* 12 - place holder */
 #endif
 #ifdef MYSQL_DB
-  ,agetlib
-  ,agetlib
-  ,agetlib
-  ,mysql_getlib
+	    ,agetlib       /* 13 */
+	    ,agetlib       /* 14 */
+	    ,agetlib       /* 15 */
+	    ,mysql_getlib  /* 16 */
 #endif
 #endif
 };
