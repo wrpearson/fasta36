@@ -196,7 +196,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   /* check for library type */
   if ((bp=strchr(lib_p->file_name,' '))!=NULL 
       || (bp=strchr(lib_p->file_name,'^'))!=NULL) {
-    if (isdigit((int)(bp+1))) {
+    if (isdigit((int)(bp+1)[0])) {
 	*bp='\0';
 	sscanf(bp+1,"%d",&lib_type);
 	if (lib_type<0 || lib_type >= LASTLIB) {
