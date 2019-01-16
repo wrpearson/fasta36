@@ -8,11 +8,13 @@ Changes in **fasta-36.3.8h** January, 2019
  2. New features: There is a new `libtype`, `9`, which can be used to
  produce a set of query or library sequences using a progream script.  Thus,
  ```fasta36 "../scripts/get_protein.py+P09488+P30711 9" /seqlib/swissprot.fa```
+  Will search with two query sequences, `P09488` and `P30711`, after downloading them from Uniprot using the `get_protein.py` script (which can download sequences using either Uniprot or RefSeq protein accessions). The query file name is "script+accs 9", where the " 9" (space 9) is required to indicate a program script.
 
- Will search with two query sequences, `P09488` and `P30711`, after downloading them from Uniprot using the `get_protein.py` script (which can download sequences using either Uniprot or RefSeq protein accessions). The query file name is "script+accs 9", where the " 9" (space 9) is required to indicate a program script.
+  Library type '9' can also be indicated by placing a '!' before the script:
+ ```fasta36 \!../scripts/get_protein.py+P09488+P30711 /seqlib/swissprot.fa```
+(In this case, the `!` has been escaped from shell interpretation with `\\!`.
 
  Three new scripts are available in `scripts/`, `get_protein.py`, `get_uniprot.py`, and `get_refseq.py`. `get_refseq.py` can download either protein or mRNA RefSeq entries.
-
 
 Changes in **fasta-36.3.8h** December, 2018
 

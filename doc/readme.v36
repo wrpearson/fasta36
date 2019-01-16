@@ -23,12 +23,18 @@ fasta36 "../scripts/get_uniprot.py+P09488 9" /seqlib/swissprot.fasta
 Will run the script "get_uniprot.py" with the argument "P09488" and
 use the output of the script as the query sequence.  In this example,
 the library type (9) is specified by the " 9" (this space cannot be
-replaced with a '+' character).  Scripts can be used to produce query
-or library sequences, or both.  Three scripts that download sequences
-from the NCBI and Uniprot have been added in the "scripts" directory:
-"get_uniprot.py" takes Uniprot accessions as arguments,
-"get_refseq.py" takes refseq accessions (protein or mRNA), and
-"get_protein.py" gets both Uniprot and RefSeq protein sequences.
+replaced with a '+' character).
+
+Alternatively, library type '9' can be specified by putting a '!' before the script file name.
+
+fasta36 \!../scripts/get_uniprot.py+P09488 9" /seqlib/swissprot.fasta
+
+Scripts can be used to produce query or library sequences, or both.
+Three scripts that download sequences from the NCBI and Uniprot have
+been added in the "scripts" directory: "get_uniprot.py" takes Uniprot
+accessions as arguments, "get_refseq.py" takes refseq accessions
+(protein or mRNA), and "get_protein.py" gets both Uniprot and RefSeq
+protein sequences.
 
 rename_exons.py and map_exons_coords.py can take annotated BTOP
 alignments with genome coordinates and map exons to the alternative

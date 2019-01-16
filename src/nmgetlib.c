@@ -169,6 +169,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   struct lmf_str *m_fptr=NULL;
   int acc_off=0;
   char fmt_term;
+  char acc_script[MAX_LSTR];
   struct lib_struct *next_lib_p, *this_lib_p, *tmp_lib_p;
 
   om_fptr = lib_p->m_file_p;
@@ -193,19 +194,24 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   else opt_text[0]='\0';
 
   /* check for library type */
-  if ((bp=strchr(lib_p->file_name,' '))!=NULL) {
-    *bp='\0';
-    sscanf(bp+1,"%d",&lib_type);
-    if (lib_type<0 || lib_type >= LASTLIB) {
-      fprintf(stderr,"\n invalid library type: %d (>%d)- resetting\n%s\n",
-	      lib_type,LASTLIB,lib_p->file_name);
-      lib_type=0;
-    }
+  if ((bp=strchr(lib_p->file_name,' '))!=NULL 
+      || (bp=strchr(lib_p->file_name,'^'))!=NULL) {
+    if (isdigit((int)(bp+1))) {
+	*bp='\0';
+	sscanf(bp+1,"%d",&lib_type);
+	if (lib_type<0 || lib_type >= LASTLIB) {
+	  fprintf(stderr,"\n invalid library type: %d (>%d)- resetting\n%s\n",
+		  lib_type,LASTLIB,lib_p->file_name);
+	  lib_type=0;
+	}
+      }
     else {
       lib_p->lib_type = lib_type;
     }
   }
-  else lib_type = lib_p->lib_type;
+  else if (lib_p->file_name[0] =='!') {
+    lib_type = lib_p->lib_type = ACC_SCRIPT;
+  }
 
   if (lib_p->file_name[0] == '-' || lib_p->file_name[0] == '@'
       || lib_type == ACC_SCRIPT) {
@@ -226,12 +232,17 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
       opnflg=((libf=fopen(lib_p->file_name,RBSTR))!=NULL);
     }
     else if (lib_type==ACC_SCRIPT) {
+      bp = lib_p->file_name;
+      if (lib_p->file_name[0] == '!') {	bp += 1;}
+      strncpy(acc_script, bp, sizeof(acc_script)-1);
+      acc_script[sizeof(acc_script)-1] = '\0';
+
       /* convert '+' in annot_script to ' ' */
-      bp = strchr(lib_p->file_name,'+');
+      bp = strchr(acc_script,'+');
       for ( ; bp; bp=strchr(bp+1,'+')) {
 	*bp=' ';
       }
-      libf=popen(lib_p->file_name,"r");
+      libf=popen(acc_script,"r");
       opnflg=1;
     }
     else {
