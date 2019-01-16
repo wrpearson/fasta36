@@ -1,10 +1,24 @@
 
 22-Jan-2014
 13-Apr-2016 updated
+15-Jan-2019 updated
 
 fasta36/scripts
 
 Perl scripts for annotating sequences and expanding libraries
+
+-- Sequence generation (January, 2019)
+
+The FASTA programs can now use sequences that are downloaded from
+Uniprot or NCBIU/RefSeq (or otherwise provided by a program script
+that produces FASTA sequences from an identifier) by specifying the name of the script, the accession(s), and library type 9, e.g.
+
+     fasta36 "get_protein.py+P09488 9" /seqprg/swissprot.fasta
+
+Scripts are available for downloading protein sequences from Uniprot
+or RefSeq (get_protein.py), Uniprot (get_uniprot.py), and for
+downloading either protein or mRNA sequences from RefSeq
+(get_refseq.py).
 
 -- Sequence alignment scoring/annotation
 
@@ -83,18 +97,30 @@ ann_ipr_www.pl -- Interpro domains from Interpro WWW site.
 ann_pdb_cath.pl -- generate CATH domains using PDB accessions from a mySQL database
 ann_pdb_vast.pl -- use VAST domains, but domain names are not informative
 
-ann_pfam27.pl -- generate Pfam domains using local Pfam mySQL database (Pfam27 with auto_pfamA, auto_pfamseq)
-ann_pfam28.pl -- generate Pfam domains using local Pfam mySQL database (Pfam28, no auto_pfamA, auto_pfamseq)
+ann_pfam28.pl -- generate Pfam domains using local Pfam mySQL database
+  (Pfam28, no auto_pfamA, auto_pfamseq)
+
 ann_pfam_www.pl -- use Pfam Website, and XML::Twig, to get Pfam domain info.
 
-ann_exons_ens.pl -- generate exon boundaries on SwissProt proteins from Ensembl.
-ann_exons_up_www.pl -- generate exon boundaries on SwissProt proteins using the EBI/Proteins/API/coordinate service
+ann_exons_up_www.pl -- generate exon boundaries on Uniprot proteins
+  using the EBI/Proteins/API/coordinate service
+
+ann_exons_up_sql_www.pl -- generate exon boundaries on Uniprot
+  proteins using an SQL database (if available) or the EBI/Proteins
+  coordinate service.  The SQL results are dramatically faster.
+
 ann_exons_ncbi.pl -- generate exon boundaries on NCBI refseq proteins.
 
 -- Library expansion
 
+expand_up_isoforms.pl -- for Uniprot reference proteomes, provide
+  isoforms for each canonical sequence.
+
 expand_uniref50.pl -- allows search of uniref50 to be expanded
-expand_links.pl -- script to take hits from a smaller library and expand to complete library
+
+expand_links.pl -- script to take hits from a smaller library and
+  expand to complete library
+
 links2sql.pl -- create links for expand_links.pl
 
 exp_up_ensg.pl -- expand uniprot sequences to include Ensembl splice variants

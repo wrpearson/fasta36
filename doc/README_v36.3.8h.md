@@ -1,6 +1,19 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8h** January, 2019
+
+ 1. Bug fixes: `fastx`/`tfastx` searches done with the `-t t` option (which adds a `*` to protein sequences so that termination codons can be matched), did not work properly with the `VT` series of matrices, particularly `VT10`.
+
+ 2. New features: There is a new `libtype`, `9`, which can be used to
+ produce a set of query or library sequences using a progream script.  Thus,
+ ```fasta36 "../scripts/get_protein.py+P09488+P30711 9" /seqlib/swissprot.fa```
+
+ Will search with two query sequences, `P09488` and `P30711`, after downloading them from Uniprot using the `get_protein.py` script (which can download sequences using either Uniprot or RefSeq protein accessions). The query file name is "script+accs 9", where the " 9" (space 9) is required to indicate a program script.
+
+ Three new scripts are available in `scripts/`, `get_protein.py`, `get_uniprot.py`, and `get_refseq.py`. `get_refseq.py` can download either protein or mRNA RefSeq entries.
+
+
 Changes in **fasta-36.3.8h** December, 2018
 
 The `scripts/ann_exons_up_www.pl` and `ann_exons_up_sql.pl` now
@@ -20,11 +33,11 @@ Changes in **fasta-36.3.8h** released November, 2018
   domain information for the alignments, and merges this information
   back into the blast output `.html` file.  This script uses:
 
-  1. `annot_blast_btab2.pl --query query.file --ann_script annot_script.pl --q_ann_script annot_script.pl blast.btab_file > blast.btab_file_ann`
+      1. `annot_blast_btab2.pl --query query.file --ann_script annot_script.pl --q_ann_script annot_script.pl blast.btab_file > blast.btab_file_ann`
     (a blast tabular file with one or two new fields, an annotation field and (optionally with --dom_info) a raw domain content field.
-  2. `merge_blast_btab.pl --btab blast.btab_file_ann blast.html > blast_ann.html`  (merge the annotations and domain content information in the `blast.btab_file_ann` file together with the standard blast output file to produce annotated alignments.
-  3. In addition, `rename_exons.py` is available to rename exons (later other domains) in the subject sequences to match the exon labeling in the aligned query sequence.
-  4. `relabel_domains.py` can be used to adjust color sets for homologous domains.
+      2. `merge_blast_btab.pl --btab blast.btab_file_ann blast.html > blast_ann.html`  (merge the annotations and domain content information in the `blast.btab_file_ann` file together with the standard blast output file to produce annotated alignments.
+      3. In addition, `rename_exons.py` is available to rename exons (later other domains) in the subject sequences to match the exon labeling in the aligned query sequence.
+      4. `relabel_domains.py` can be used to adjust color sets for homologous domains.
 
     2.  There is also an equivalent `fasta_annot_cmd.sh` script that provides similar funtionality for the FASTA programs.  This script does not need to use `annot_blast_btab2.pl` to produce domain subalignment scores (that functionality is provided in FASTA), but it also can use `merge_fasta_btab.pl` and `rename_exons.py` to modify the names of the aligned exons/domains in the subject sequences.
 
