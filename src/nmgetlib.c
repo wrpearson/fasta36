@@ -194,6 +194,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   else opt_text[0]='\0';
 
   /* check for library type */
+  lib_type = lib_p->lib_type;
   if ((bp=strchr(lib_p->file_name,' '))!=NULL 
       || (bp=strchr(lib_p->file_name,'^'))!=NULL) {
     if (isdigit((int)(bp+1)[0])) {
@@ -204,9 +205,6 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 		  lib_type,LASTLIB,lib_p->file_name);
 	  lib_type=0;
 	}
-      }
-    else {
-      lib_p->lib_type = lib_type;
     }
   }
   else if (lib_p->file_name[0] =='!') {

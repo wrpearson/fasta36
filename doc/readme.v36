@@ -6,6 +6,10 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jan. 23, 2019
+[nmgetaa.c]
+Fix bug introduced when checking for lib_type.
+
 >>Jan. 15, 2019
 [src/upam.h, altlib.h, nmgetaa.c]
 [scripts/rename_exons.py, map_exons_coords.py, get_uniprot.py, get_refseq.py, get_proteins.py]
