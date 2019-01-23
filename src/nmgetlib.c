@@ -197,7 +197,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   lib_type = lib_p->lib_type;
   if ((bp=strchr(lib_p->file_name,' '))!=NULL 
       || (bp=strchr(lib_p->file_name,'^'))!=NULL) {
-    if (isdigit((int)(bp+1)[0])) {
+    if (isdigit((int)(bp+1)[0])) {  /* check for number for lib_type */
 	*bp='\0';
 	sscanf(bp+1,"%d",&lib_type);
 	if (lib_type<0 || lib_type >= LASTLIB) {
@@ -205,12 +205,13 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 		  lib_type,LASTLIB,lib_p->file_name);
 	  lib_type=0;
 	}
-    }
+    }  /* don't change lib_type if its not a number */
   }
-  else if (lib_p->file_name[0] =='!') {
+  else if (lib_p->file_name[0] =='!') {  /* check for script */
     lib_type = lib_p->lib_type = ACC_SCRIPT;
   }
 
+  /* check for stdin indicator '-' or '@'  (or ACC_SCRIPT) */
   if (lib_p->file_name[0] == '-' || lib_p->file_name[0] == '@'
       || lib_type == ACC_SCRIPT) {
     use_stdin = 1;
