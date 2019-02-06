@@ -11,6 +11,10 @@ BLAST could show multiple HSPs, FASTA did not.
 modify build_link_data() to allow '+' for space in scripts.  Ensure
 that lib_type is properly initialized (open_lib.c()).
 
+>>Jan. 23, 2019
+[nmgetaa.c]
+Fix bug introduced when checking for lib_type.
+
 >>Jan. 15, 2019
 [src/upam.h, altlib.h, nmgetaa.c]
 [scripts/rename_exons.py, map_exons_coords.py, get_uniprot.py, get_refseq.py, get_proteins.py]
