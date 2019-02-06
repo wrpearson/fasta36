@@ -1586,6 +1586,11 @@ build_lib_db(char *script_file) {
   }
 
   strncpy(lib_db_script,lib_bp,sizeof(lib_db_script));
+  bp = strchr(lib_db_script,'+');
+  for ( ; bp; bp=strchr(bp+1,'+')) {
+    *bp=' ';
+  }
+
   lib_db_script[sizeof(lib_db_script)-1] = '\0';
   SAFE_STRNCAT(lib_db_script," >",sizeof(lib_db_script));
   SAFE_STRNCAT(lib_db_script,lib_db_file,sizeof(lib_db_script));
