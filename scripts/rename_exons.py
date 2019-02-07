@@ -160,7 +160,7 @@ def parse_exon_info(text):
     if (re.search(r'\}$',name)):
         (name, info) = re.search(r'([^\{]+)(\{[^\}]+\})$',name).groups()
 
-    gene_re = re.search(r'^\{(\w+):(\d+)\-(\d+)\}',info)
+    gene_re = re.search(r'^\{([\w\.]+):(\d+)\-(\d+)\}',info)
     if (gene_re):
         (chrom, d_start, d_end) = gene_re.groups()
     else:
