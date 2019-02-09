@@ -64,10 +64,16 @@ if ($have_qslen) {
   @bl_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score annot);
 }
 
+my %pgm_names= ('FASTA'=>'fap', 'FASTX'=>'fx', 'FASTY'=>'fy', 'FASTS'=>'fs', 'FASTM'=>'fm',
+		'SSEARCH' => 'gsw',  'GGSEARCH'=>'gnw', 'GLSEARCH'=>'lnw',
+		'TFASTX' => 'tfx', 'TFASTY'=>'tfx', 'TFASTS'=>'tfs', 'TFASTM'=>'tfm',
+		'BLASTP'=>'bp', 'BLASTN'=>'bn', 'TBLASTN'=>'tbn' );
+
 if ($dom_info) {
   push @bl_fields, "dom_info";
 }
 
+my $pgm_name = '';
 my %tab_data = ();
 my @sseq_ids = ();
 
@@ -79,7 +85,15 @@ else {
   open(my $fd, $btab_file) || die "cannot open $btab_file";
 
   while (my $line = <$fd>) {
-    next if ($line =~ m/^#/);  # ignore comments
+    if ($line =~ m/^#/) { # check for program name
+      if (!$pgm_name) {
+	my ($name) = ($line =~ m/^# (\w+) /);
+	if ($name && $pgm_names{$name}) {
+	  $pgm_name = $pgm_names{$name};
+	}
+      }
+      next;
+    }
     chomp($line);
 
     my %a_data = ();
@@ -150,7 +164,7 @@ while (my $line = <>) {
 	  $raw_dom_str = dom_info_str($tab_data{$sseq_ids[$align_ix]}->[$hsp_ix]{'dom_info'});
 	}
 
-	my $plot_tag = plot_tag_str($plot_url, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix], $regions_str, $raw_dom_str);
+	my $plot_tag = plot_tag_str($plot_url, $pgm_name, $tab_data{$sseq_ids[$align_ix]}->[$hsp_ix], $regions_str, $raw_dom_str);
 	if ($plot_tag) {print $plot_tag,"\n";}
       }
 
@@ -287,14 +301,14 @@ sub add_best {
 
 sub plot_tag_str {
 
-  my ($plot_script, $align_data_r, $regions_str, $doms_str) = @_;
+  my ($plot_script, $pgm_name, $align_data_r, $regions_str, $doms_str) = @_;
 
   my $svg_pref =  q(<object type="image/svg+xml" );
   my $svg_post =  q( width="660" height="76" ></object>);
 
   #build argument string
   my %plt_args = ();
-  @plt_args{qw(q_cstart l_cstart)} = (1, 1);
+  @plt_args{qw(pgm q_cstart l_cstart)} = ($pgm_name, 1, 1);
   @plt_args{qw(q_name q_cstop q_astart q_astop l_name l_cstop l_astart l_astop)} =
     @{$align_data_r}{qw(q_seqid q_len q_start q_end s_seqid s_len s_start s_end)};
   $plt_args{'regions'}= uri_escape(uri_encode($regions_str));
