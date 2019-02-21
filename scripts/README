@@ -10,8 +10,9 @@ Perl scripts for annotating sequences and expanding libraries
 -- Sequence generation (January, February, 2019)
 
 The FASTA programs can now use sequences that are downloaded from
-Uniprot or NCBI/RefSeq (or otherwise provided by a program script
-that produces FASTA sequences from an identifier) by specifying the name of the script, the accession(s), and library type 9, e.g.
+Uniprot or NCBI/RefSeq (or otherwise provided by a program script that
+produces FASTA sequences from an identifier) by specifying the name of
+the script, the accession(s), and library type 9, e.g.
 
      fasta36 \!../scripts/get_protein.py+P09488 /seqlib/swissprot.fasta
 
