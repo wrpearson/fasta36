@@ -24,8 +24,9 @@ for genome_loc in sys.argv[1:]:
     g_start, g_end = g_range.split('-')
 
     if (g_start > g_end):
-        g_start, g_end = int(g_end), int(g_start)
+        g_start, g_end = g_end, g_start
 
+    g_start, g_end = int(g_start), int(g_end)
     g_start -= 1
 
     bed_lines += '%s\t%d\t%d\n' % (chrom, g_start, g_end)
