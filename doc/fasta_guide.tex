@@ -267,28 +267,41 @@ FASTA format files consist of a description line, beginning
 with a '$>$' character, followed by the sequence itself:
 \begin{quote}
 \begin{verbatim}
->sequence name and description 1
+>sequence_name1 and description
 A F A S Y T .... actual sequence.
 F S S       .... second line of sequence.
->sequence name and description 2
+>sequence_name2 and description 
 PMILTYV ... sequence 2
 \end{verbatim}
 \end{quote}
 All of the characters of the description line are read, and special
 characters can be used to indicate additional information about the
-sequence. In general, non-amino-acid/non-nucleotide sequences in the
-sequence lines are ignored.
+sequence. In particular, a \texttt{'@:C 12345'} at the end of the
+description line indicates that the first residue of the sequence has
+coordinate \texttt{'12345'}, instead of starting at \texttt{'1'}.
+Coordinates can be negative; a DNA sequence upstream from the start of
+transcription could be displayed with negative coordinates.
+
+In general, non-amino-acid/non-nucleotide sequences in the sequence
+lines are ignored, with the exception of \texttt{'*'}, which indicates
+a termination codon in a protein sequence, and can be used to indicate
+the match to a termination codon in protein:DNA alignments.
 
 FASTA format files from major sequence distributors, like the NCBI and
 EBI, have specially formatted description lines, e.g.:\\
 \indent
 \texttt{
->gi|54321|ref|np\_12345| example NCBI refseq sequence\\
+>np\_12345| example NCBI refseq sequence\\
 }
 or\\
 \indent
 \texttt{
->sw:gstm1\_human P01234 glutathione transferase GSTM1 - human\\
+>sp:gstm1\_human P01234 glutathione transferase GSTM1 - human\\
+}
+or
+\indent
+\texttt{
+>sp|P09488|GSTM1\_HUMAN glutathione transferase GSTM1 - human\\
 }
 
 Several sample test files are included with the FASTA distribution:

@@ -760,8 +760,8 @@ look_p(struct alt_p parm[], int gap, int ext,
 
   for (i=1; parm[i].gap > 0; i++) {
     if (parm[i].gap > gap) continue;
-    else if (parm[i].gap == gap && parm[i].ext > ext ) continue;
-    else if (parm[i].gap == gap && parm[i].ext == ext) {
+    else if (parm[i].gap <= gap && parm[i].ext > ext ) continue;
+    else if (parm[i].gap <= gap && parm[i].ext <= ext) {
       *K = parm[i].K;
       *Lambda = parm[i].Lambda;
       *H = parm[i].H;

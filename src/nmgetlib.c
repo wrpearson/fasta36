@@ -181,18 +181,6 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 
   wcnt = 0;	/* number of times to ask for file name */
 
-  /* check to see if there is a file option ":1-100" */
-#ifndef WIN32
-  if ((bp=strchr(lib_p->file_name,':'))!=NULL && *(bp+1)!='\0') {
-#else
-  if ((bp=strchr(lib_p->file_name+3,':'))!=NULL && *(bp+1)!='\0') {
-#endif
-    strncpy(opt_text,bp+1,sizeof(opt_text));
-    opt_text[sizeof(opt_text)-1]='\0';
-    *bp = '\0';
-  }
-  else opt_text[0]='\0';
-
   /* check for library type */
   lib_type=0;
   if ((bp=strchr(lib_p->file_name,' '))!=NULL 
@@ -221,6 +209,20 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   if (use_stdin && !(lib_type ==0 || lib_type==ACC_SCRIPT)) {
     fprintf(stderr,"\n @/- STDIN libraries must be in FASTA format\n");
     return NULL;
+  }
+
+  opt_text[0]='\0';
+  if (lib_type != ACC_SCRIPT) {
+  /* check to see if there is a file option ":1-100" */
+#ifndef WIN32
+    if ((bp=strchr(lib_p->file_name,':'))!=NULL && *(bp+1)!='\0') {
+#else
+    if ((bp=strchr(lib_p->file_name+3,':'))!=NULL && *(bp+1)!='\0') {
+#endif
+      strncpy(opt_text,bp+1,sizeof(opt_text));
+      opt_text[sizeof(opt_text)-1]='\0';
+      *bp = '\0';
+    }
   }
 
   /* check to see if file can be open()ed? */

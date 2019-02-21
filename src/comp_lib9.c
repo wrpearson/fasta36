@@ -766,8 +766,7 @@ main (int argc, char *argv[])
     }
 
     /* get a list of files to search */
-    lib_list_p = lib_select(lib_db_file, m_msg.ltitle, m_msg.flstr,
-			    m_msg.ldb_info.ldnaseq);
+    lib_list_p = lib_select(lib_db_file, m_msg.ltitle, m_msg.flstr, m_msg.ldb_info.ldnaseq);
   }
   else {
     /* get a list of files to search */
@@ -2246,7 +2245,7 @@ next_sequence_p(struct mseq_record **cur_mseq_p, struct seq_record *old_seq_p,
    getlib() calls */
 /* **************************************************************** */
 struct getlib_str *
-init_getlib_info(struct lib_struct *lib_list_p, int maxn,long max_memK) {
+init_getlib_info(struct lib_struct *lib_list_p, int maxn, long max_memK) {
   struct getlib_str *my_getlib_info;
   unsigned char *aa1save;
 
