@@ -3079,6 +3079,7 @@ calc_cons_u( /* inputs */
   rpmax = &a_res->res[a_res->nres];
 
   lenc = not_c = aln->nident = aln->nmismatch = aln->nsim = aln->npos = ngap_p = ngap_d = nfs= 0;
+
   i0 = a_res->min1;
   i1 = a_res->min0;
 

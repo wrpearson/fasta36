@@ -9,16 +9,24 @@ import sys
 import re
 from subprocess import Popen, PIPE, STDOUT
 import shlex
+import argparse
 
 ## a genome_loc should look like: chr#:start-stop
 ## if stop < start, coordinates are reversed
 
+genome_dict={'hg38':'genome_dna/hg38/reference.fa',
+             'mm10':'genome_dna/mm10/reference.fa'}
 
-hg38_ref = 'genome_dna/hg38/reference.fa'
-bed_cmd = 'bedtools getfasta -fi $RDLIB2/%s -bed stdin' % (hg38_ref)
+parser=argparse.ArgumentParser(description='get_genome_seq.py : get fasta sequence from genome coordinates ')
+parser.add_argument('--genome', help='genome: hg38 | mm10',dest='genome',action='store',default='hg38')
+parser.add_argument('coords', help='genome coordinates chr1:12345-54321', nargs='*')
+
+args=parser.parse_args()
+
+bed_cmd = 'bedtools getfasta -fi $RDLIB2/%s -bed stdin' % (genome_dict[args.genome])
 
 bed_lines = ''
-for genome_loc in sys.argv[1:]:
+for genome_loc in args.coords:
 
     chrom, g_range = genome_loc.split(':')
     g_start, g_end = g_range.split('-')
@@ -38,7 +46,7 @@ for line in out.split('\n'):
     if (line and line[0]=='>'):
         (chrom, start, stop) = re.search(r'>([^:]+):(\d+)\-(\d+)',line).groups()
         print line + " @C:%s" % (start)
-    else:
+    elif (line):
         print line
 
 

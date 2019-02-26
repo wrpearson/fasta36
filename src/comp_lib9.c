@@ -1523,9 +1523,14 @@ main (int argc, char *argv[])
       if (pst.do_rep) {
 	if (pst.zsflag >= 0) {
 	  for (i=m_msg.nskip; i < m_msg.nskip + m_msg.nshow;  i++) {
-	    bestp_arr[i]->repeat_thresh = 
-	      min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1,
-			  pst.zdb_size, m_msg.pstat_void),bestp_arr[i]->rst.score[pst.score_ix]);
+	    if (bestp_arr[i]->rst.escore > pst.e_cut_r) {
+	      bestp_arr[i]->repeat_thresh = bestp_arr[i]->rst.score[pst.score_ix] * 10;
+	    }
+	    else {
+	      bestp_arr[i]->repeat_thresh = 
+		min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1, pst.zdb_size, m_msg.pstat_void),
+		    bestp_arr[i]->rst.score[pst.score_ix]);
+	    }
 	  }
 	}
 	else {
