@@ -23,7 +23,9 @@ downloading either protein or mRNA sequences from RefSeq
 
    scripts/get_protein.py    get Refseq or Uniprot proteins
    scripts/get_refseq.py     get RefSeq proteins or mRNAs
-   scripts/get_hg38_bed.py   get human genome (hg38) sequences using bedtools using "get_hg38_bed.py chr1:123456-126543"
+   scripts/get_up_prot_iso_sql.py  get a protein and its isoforms using a mysql database
+   scripts/get_genome_seq.py   get human genome (hg38) or mouse (mm10) --genome mm10 sequences using bedtools using "get_genome_seq.py chr1:123456-126543"
+
 
 -- Sequence alignment scoring/annotation
 

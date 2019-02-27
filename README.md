@@ -6,7 +6,9 @@ programs for rigorous local (`ssearch`) and global (`ggsearch`) similarity searc
 
 #### January, 2019
 
-An updated release of the FASTA package (`fasta-36.3.8h`) is available.  In addition to minor bug fixes, the latest version can generate query and library sequences using program scripts.
+An updated release of the FASTA package (`fasta-36.3.8h`) is
+available.  In addition to minor bug fixes, the latest version can
+generate query and library sequences using program scripts.
 
 See doc/README_v36.3.8h.md for a more complete summary of changes.
 
