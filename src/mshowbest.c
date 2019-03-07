@@ -339,9 +339,14 @@ l1:
   for (ib=istart; ib<istop; ib++) {
     bbp = bptr[ib];
     if (ppst->do_rep) {
-      bbp->repeat_thresh = 
-	min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, m_msp->pstat_void),
-	    bbp->rst.score[ppst->score_ix]);
+      if (bbp->rst.escore > ppst->e_cut_r) {	/* for poor alignment scores, don't look for more */
+	bbp->repeat_thresh = bbp->rst.score[ppst->score_ix] * 10;
+      }
+      else {
+	bbp->repeat_thresh = 
+	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, m_msp->pstat_void),
+	      bbp->rst.score[ppst->score_ix]);
+      }
     }
 
 #ifdef DEBUG

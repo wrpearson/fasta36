@@ -1,25 +1,29 @@
 
 22-Jan-2014
 13-Apr-2016 updated
-15-Jan-2019 updated
+22-Feb-2019 updated
 
 fasta36/scripts
 
 Perl scripts for annotating sequences and expanding libraries
 
--- Sequence generation (January, 2019)
+-- Sequence generation (January, February, 2019)
 
 The FASTA programs can now use sequences that are downloaded from
 Uniprot or NCBI/RefSeq (or otherwise provided by a program script that
 produces FASTA sequences from an identifier) by specifying the name of
 the script, the accession(s), and library type 9, e.g.
 
-     fasta36 "get_protein.py+P09488 9" /seqprg/swissprot.fasta
+     fasta36 \!../scripts/get_protein.py+P09488 /seqlib/swissprot.fasta
 
 Scripts are available for downloading protein sequences from Uniprot
 or RefSeq (get_protein.py), Uniprot (get_uniprot.py), and for
 downloading either protein or mRNA sequences from RefSeq
 (get_refseq.py).
+
+   scripts/get_protein.py    get Refseq or Uniprot proteins
+   scripts/get_refseq.py     get RefSeq proteins or mRNAs
+   scripts/get_hg38_bed.py   get human genome (hg38) sequences using bedtools using "get_hg38_bed.py chr1:123456-126543"
 
 -- Sequence alignment scoring/annotation
 

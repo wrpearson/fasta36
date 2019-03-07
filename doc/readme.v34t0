@@ -111,7 +111,7 @@ compilation with Sun compiler with Makefile.sun_x86.
 
 This release provides an extremely efficient SSE2 implementation of
 the Smith-Waterman algorithm for the SSE2 vector instructions written
-by Michael Farrar (farrar.michael@gmail.com).  The SSE code speeds up
+by Michael Farrar.  The SSE code speeds up
 Smith-Waterman 8 - 10-fold in my tests, making it comparable to Eric
 Lindahl's Altivec code for the Apple/IBM G4/G5 architecture.
 

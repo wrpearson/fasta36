@@ -6,6 +6,30 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Feb. 26, 2019
+[scripts/get_genome_seq.py]
+added get_genome_seq.py as a replacement for get_hg38_bed.py, remove
+get_hg38_bed.py.  'get_genome_seq.py --genome mm10' also produces
+sequences from mouse mm10 (and can now do any genome that bedtools can
+read).
+
+>>Feb. 23, 2019
+[src/comp_lib9.c, mshowbest.c]
+Modify repeat_thresh so that poor alignment scores (E() >
+ppst->e_cut_r, typically -E-threshold/10.0) do not look for additional
+alignments.
+
+>>Feb. 21, 2019
+[src/nmgetaa.c, scaleswn.c, scripts/get_protein.py, get_hg38_bed.py]
+
+Modify nmgetaa.c to ignore ':'s (for sequence subsets) in scripts.
+The script can do the subsetting.  Modify scripts/get_protein.py to
+provide subsetting.  Add scripts/get_hg38_bed.py to extract fasta
+sequences using the format "chr2:123456-543210"
+
+Modify scaleswn.c to estimate Altshul-Gish parameters when gap and
+extension do not match exactly.
+
 >>Feb. 6, 2019
 [src/compacc2e.c, nmgetaa.c]
 modify build_link_data() to allow '+' for space in scripts.  Ensure
@@ -19,7 +43,7 @@ Fix bug introduced when checking for lib_type.
 [src/upam.h, altlib.h, nmgetaa.c]
 [scripts/rename_exons.py, map_exons_coords.py, get_uniprot.py, get_refseq.py, get_proteins.py]
 
-Bug fixes: The VT10, 20, etc scoring matrices did not have scores for '*:*'
+Bug fixes: The VT10, VT20, etc scoring matrices did not have scores for '*:*'
 alignments, used with FASTX/TFASTX for extending alignments through
 the termination codon.  As a result, searchs with '-t t' did not
 extend through the termination codon, even though they should have.
@@ -36,7 +60,7 @@ replaced with a '+' character).
 
 Alternatively, library type '9' can be specified by putting a '!' before the script file name.
 
-fasta36 \!../scripts/get_uniprot.py+P09488 9" /seqlib/swissprot.fasta
+fasta36 \!../scripts/get_uniprot.py+P09488 /seqlib/swissprot.fasta
 
 Scripts can be used to produce query or library sequences, or both.
 Three scripts that download sequences from the NCBI and Uniprot have

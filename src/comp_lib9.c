@@ -766,8 +766,7 @@ main (int argc, char *argv[])
     }
 
     /* get a list of files to search */
-    lib_list_p = lib_select(lib_db_file, m_msg.ltitle, m_msg.flstr,
-			    m_msg.ldb_info.ldnaseq);
+    lib_list_p = lib_select(lib_db_file, m_msg.ltitle, m_msg.flstr, m_msg.ldb_info.ldnaseq);
   }
   else {
     /* get a list of files to search */
@@ -1524,9 +1523,14 @@ main (int argc, char *argv[])
       if (pst.do_rep) {
 	if (pst.zsflag >= 0) {
 	  for (i=m_msg.nskip; i < m_msg.nskip + m_msg.nshow;  i++) {
-	    bestp_arr[i]->repeat_thresh = 
-	      min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1,
-			  pst.zdb_size, m_msg.pstat_void),bestp_arr[i]->rst.score[pst.score_ix]);
+	    if (bestp_arr[i]->rst.escore > pst.e_cut_r) {
+	      bestp_arr[i]->repeat_thresh = bestp_arr[i]->rst.score[pst.score_ix] * 10;
+	    }
+	    else {
+	      bestp_arr[i]->repeat_thresh = 
+		min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1, pst.zdb_size, m_msg.pstat_void),
+		    bestp_arr[i]->rst.score[pst.score_ix]);
+	    }
 	  }
 	}
 	else {
@@ -2246,7 +2250,7 @@ next_sequence_p(struct mseq_record **cur_mseq_p, struct seq_record *old_seq_p,
    getlib() calls */
 /* **************************************************************** */
 struct getlib_str *
-init_getlib_info(struct lib_struct *lib_list_p, int maxn,long max_memK) {
+init_getlib_info(struct lib_struct *lib_list_p, int maxn, long max_memK) {
   struct getlib_str *my_getlib_info;
   unsigned char *aa1save;
 
