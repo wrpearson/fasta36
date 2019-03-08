@@ -2961,7 +2961,7 @@ calc_cons_u( /* inputs */
     update_data_p = init_update_data(show_code);
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] --- cal_cons_u() invalid calc_func_mode: %d\n",
+    fprintf(stderr,"*** error [%s:%d] --- calc_cons_u() invalid calc_func_mode: %d\n",
 	    __FILE__, __LINE__, calc_func_mode);
     exit(1);
   }
@@ -2993,22 +2993,22 @@ calc_cons_u( /* inputs */
   else if (calc_func_mode == CALC_ID || calc_func_mode == CALC_ID_DOM)  {
     have_ann = (annotp_p && annotp_p->n_annot > 0);
     spa_p = &spa_c;
-    sp0_p = &sp0_c;
-    sp1_p = &sp1_c;
+    sp0_p = &sp1_c;
+    sp1_p = &sp0_c;
 
-    sp0a_p = &sp0a_c;
-    sp1a_p = &sp1a_c;
+    sp0a_p = &sp1a_c;
+    sp1a_p = &sp0a_c;
     annot_fmt = 3;
 
     /* does not require aa0a/aa1a, only for variants */
   }
   else if (calc_func_mode == CALC_CODE) {
     spa_p = &spa_c;
-    sp0_p = &sp0_c;
-    sp1_p = &sp1_c;
+    sp0_p = &sp1_c;
+    sp1_p = &sp0_c;
 
-    sp0a_p = &sp0a_c;
-    sp1a_p = &sp1a_c;
+    sp0a_p = &sp1a_c;
+    sp1a_p = &sp0a_c;
 
     show_code = (display_code & (SHOW_CODE_MASK+SHOW_CODE_EXT));	/* see defs.h; SHOW_CODE_ALIGN=2,_CIGAR=3,_CIGAR_EXT=4 */
     annot_fmt = 2;
@@ -3022,7 +3022,7 @@ calc_cons_u( /* inputs */
     update_data_p = init_update_data(show_code);
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] --- cal_cons_u() invalid calc_func_mode: %d\n",
+    fprintf(stderr,"*** error [%s:%d] --- calc_cons_u() invalid calc_func_mode: %d\n",
 	    __FILE__, __LINE__, calc_func_mode);
     exit(1);
   }
@@ -3138,7 +3138,11 @@ calc_cons_u( /* inputs */
       if (cumm_seq_score) *i_spa++ = itmp;
 
       if (calc_func_mode == CALC_CODE) {
+#ifndef TFAST
 	update_code(align_code_dyn, update_data_p, 3, *spa_p, *sp0_p, *sp1_p);
+#else
+	update_code(align_code_dyn, update_data_p, 3, *spa_p, *sp1_p, *sp0_p);
+#endif
 
 	if (have_ann && have_push_features) {
     	  add_annot_code(have_ann, *sp0_p, *sp1_p, *sp1a_p,
@@ -3180,7 +3184,11 @@ calc_cons_u( /* inputs */
       *spa_p = M_DEL;
 
       if (calc_func_mode == CALC_CODE) {
+#ifndef TFAST
 	update_code(align_code_dyn, update_data_p, 2, *spa_p,*sp0_p,*sp1_p);
+#else
+	update_code(align_code_dyn, update_data_p, 2, *spa_p,*sp1_p,*sp0_p);
+#endif
       }
 
       if (cumm_seq_score) *i_spa++ = ppst->gshift;
@@ -3253,7 +3261,11 @@ calc_cons_u( /* inputs */
       *spa_p = align_type(itmp, *sp0_p, *sp1_p, 0, aln, ppst->pam_x_id_sim);
 
       if (calc_func_mode == CALC_CODE) {
+#ifndef TFAST
 	update_code(align_code_dyn, update_data_p, 3, *spa_p,*sp0_p,*sp1_p);
+#else
+	update_code(align_code_dyn, update_data_p, 3, *spa_p,*sp1_p,*sp0_p);
+#endif
       }
 
       d1_alen++;
@@ -3300,7 +3312,11 @@ calc_cons_u( /* inputs */
       *spa_p = M_DEL;
 
       if (calc_func_mode == CALC_CODE) {
+#ifndef TFAST
         update_code(align_code_dyn, update_data_p, 4, *spa_p,*sp0_p,*sp1_p);
+#else
+        update_code(align_code_dyn, update_data_p, 4, *spa_p,*sp1_p,*sp0_p);
+#endif
       }
 
       if (calc_func_mode == CALC_CONS) {sp0_p++; sp1_p++; spa_p++;}
@@ -3365,7 +3381,11 @@ calc_cons_u( /* inputs */
       *spa_p = align_type(itmp, *sp0_p, *sp1_p, 0, aln, ppst->pam_x_id_sim);
 
       if (calc_func_mode == CALC_CODE) {
+#ifndef TFAST
 	update_code(align_code_dyn, update_data_p, 3, *spa_p,*sp0_p,*sp1_p);
+#else
+	update_code(align_code_dyn, update_data_p, 3, *spa_p,*sp1_p,*sp0_p);
+#endif
       }
 
       d1_alen++;
@@ -3413,7 +3433,11 @@ calc_cons_u( /* inputs */
 
       if (calc_func_mode == CALC_CODE) {
 	*spa_p = 5;
+#ifndef TFAST
 	update_code(align_code_dyn, update_data_p, 5, *spa_p,*sp0_p,*sp1_p);
+#else
+	update_code(align_code_dyn, update_data_p, 5, *spa_p,*sp1_p,*sp0_p);
+#endif
       }
 
       lenc++;
@@ -3429,7 +3453,11 @@ calc_cons_u( /* inputs */
 
       if (calc_func_mode == CALC_CODE) {
 	*spa_p = 5; /* indel code */
+#ifndef TFAST
 	update_code(align_code_dyn, update_data_p, 0, *spa_p,*sp0_p,*sp1_p);
+#else
+	update_code(align_code_dyn, update_data_p, 0, *spa_p,*sp1_p,*sp0_p);
+#endif	
       }
 
       if (cumm_seq_score) {
@@ -3661,14 +3689,16 @@ close_update_data(struct dyn_string_str *align_code_dyn,
 
   if (!up_dp) return;
 
-  if (up_dp->btop_enc) {
-    sprintf(tmp_cnt,"%d",up_dp->p_op_cnt);
-    up_dp->p_op_cnt = 0;
+  if (up_dp->p_op_cnt) {
+    if (up_dp->btop_enc) {
+      sprintf(tmp_cnt,"%d",up_dp->p_op_cnt);
+      up_dp->p_op_cnt = 0;
+    }
+    else {
+      sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
+    }
+    dyn_strcat(align_code_dyn, tmp_cnt);
   }
-  else {
-    sprintf_code(tmp_cnt,up_dp, up_dp->p_op_idx, up_dp->p_op_cnt);
-  }
-  dyn_strcat(align_code_dyn, tmp_cnt);
 
   free(up_dp);
 }
@@ -3721,8 +3751,17 @@ sprintf_btop(char *tmp_str,
 
   /* only aligned identities update counts */
   if (op==3 && sim_code == M_IDENT) {
-    up_dp->p_op_cnt++;
-    return;
+    if (sp0 == '*' && sp1 == '*') {
+      if (up_dp->p_op_cnt > 0) {
+	sprintf(tmp_str,"%d**",up_dp->p_op_cnt);
+	up_dp->p_op_cnt = 0;
+	return;
+      }
+    }
+    else {
+      up_dp->p_op_cnt++;
+      return;
+    }
   }
   else {
     if (up_dp->p_op_cnt > 0) {

@@ -416,13 +416,13 @@ aainit(int tr_type, int debug)
 	  aacmap[ii]= *aasmap++;
 	}
 
-
-    for (i=0; i<64; i++) {
-      fprintf(stderr,"'%c',",aacmap[i]);
-      if ((i%16)==15) fputc('\n',stderr);
+    if (debug) {
+      for (i=0; i<64; i++) {
+	fprintf(stderr,"'%c',",aacmap[i]);
+	if ((i%16)==15) fputc('\n',stderr);
+      }
+      fputc('\n',stderr);
     }
-    fputc('\n',stderr);
-
   }
   for (i=0; i<64; i++) {
     aamap[i]=aascii[aacmap[i]];
