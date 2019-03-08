@@ -164,7 +164,8 @@ def parse_exon_info(text):
     if (gene_re):
         (chrom, d_start, d_end) = gene_re.groups()
     else:
-        sys.stderr.write("genome info not found: %s\n" % (text))
+        (chrom, d_start, d_end) = ('',-1,-1)
+#        sys.stderr.write("genome info not found: %s\n" % (text))
 
     q_target = True;
     if (RXRState == 'XD'):
@@ -269,6 +270,8 @@ def parse_protein(line_data,fields, req_name):
 
     if ('dom_info' in data and len(data['dom_info']) > 0):
         for info_str in data['dom_info'].split('|')[1:]:
+            if (req_name and not re.search(req_name, info_str)):
+                continue
             if (not re.search(r'^[DX][XD]',info_str)):
                 continue
 

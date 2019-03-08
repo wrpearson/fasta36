@@ -124,6 +124,9 @@ sub show_annots {
   elsif ($annot_line =~ m/^ref\|/) {
     ($sdb, $acc) = split(/\|/,$annot_line);
   }
+  else {
+    $acc = $annot_line;
+  }
 
   $acc =~ s/\.\d+$//;
   $get_annots_sql->execute($acc);
