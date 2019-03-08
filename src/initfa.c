@@ -780,7 +780,9 @@ init_altpam(struct pstruct *ppst) {
 	ppst->pam2[0][ix_j][p_i] = ppst->pam2[0][ix_i][p_i];
 	ppst->pam2[0][p_i][ix_j] = ppst->pam2[0][p_i][ix_i];
       }
-    }
+      p_i = pascii['*'];
+      ppst->pam2[0][ix_j][p_i] = ppst->pam2[0][p_i][ix_j] = ppst->pam2[0][p_i][p_i];
+     }
     else {
       pascii['U'] = pascii['C'];
       pascii['u'] = pascii['c'];
