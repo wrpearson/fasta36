@@ -1141,17 +1141,24 @@ not treated as low complexity by the translated alignment
 programs. (There is an option in the \texttt{Makefile},
 \texttt{-DDNALIB\_LC}, to enable preserving case in DNA sequences.)
 
-\item[\texttt{-t \#}]
-Translation table - fastx36, tfastx36, fasty36, and
-tfasty3 now support the BLAST translation tables.  See
-\url{http://www.ncbi.nih.gov/Taxonomy/Utils/wprintgc.cgi}.
+\item[\texttt{-t \#}] Translation table - fastx36, tfastx36, fasty36,
+  and tfasty3 now support the BLAST translation tables.  See
+  \url{http://www.ncbi.nih.gov/Taxonomy/Utils/wprintgc.cgi}.  
 
-\texttt{-t t} or \texttt{-t t\#} enables the addition of
-an implicit termination codon to a protein:translated DNA match.  That
-is, each protein sequence implicitly ends with \texttt{*}, which
-matches the termination codes for the appropriate genetic code.
-\texttt{-t t\#} sets implicit termination and a different genetic
-code.
+  \texttt{-t 1} also enables translation of \texttt{'TGA'} to
+  \texttt{'U'} (seleno-cysteine) (by default, \texttt{'TGA'} is
+  translated to \texttt{'*'}). Because of the ambiguity of the
+  \texttt{'TGA'} codon, translated alignments of \texttt{'TGA'} with
+  \texttt{-t 1} match \texttt{'U'} and \texttt{'*'} (termination)
+  equally well.
+
+\texttt{-t t} enables the addition of an implicit termination codon to
+a protein:translated DNA match.  That is, each protein sequence
+implicitly ends with \texttt{*}, which matches the termination codes
+for the appropriate genetic code.  To change the translation table and
+insert a termination character after each protein sequence, use
+\texttt{-t 1 -t t}.
+
 \item[\texttt{-T \#}]
 set number of threads/workers.  Normally on a multi-core machine, the maximum
 number of processors/cores is used.

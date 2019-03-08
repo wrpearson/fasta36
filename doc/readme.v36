@@ -10,7 +10,10 @@ BLAST could show multiple HSPs, FASTA did not.
 [src/initfa.c,faatran.c,dropfx2.c]
 Modify translation table 1 to allow selenocysteine translation
 (TGA->'U'), and modify scoring matrices to give positive scores to
-'*':'U'.  The translation modification ONLY works with "-t 1".
+'*':'U'.  The translation modification ONLY works with "-t 1".  In
+addition, BLAST BTOP alignments (-m 8CB) convert a 'U' aligned with a
+'*' to a '*', so the end of the alignment is '**' rather than 'U*'
+(fastx36) or '*U' (tfastx36).
 
 dropfx2.c (fastx36/tfastx36), dropfz3.c(fasty36/tfasty36) did not
 properly switch protein and translated DNA codes with -m 8CB -- fixed.

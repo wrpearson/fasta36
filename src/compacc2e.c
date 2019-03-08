@@ -4131,6 +4131,14 @@ int align_type(int score, char sp0, char sp1, int nt_align, struct a_struct *aln
     else if (aln && toupper(sp0) == 'N') aln->ngap_q++;
     else if (aln && toupper(sp1) == 'N') aln->ngap_l++;
   }
+  else if ((sp0 == '*' && toupper(sp1) == 'U') ||
+	   (toupper(sp0) == 'U' && sp1 == '*')) {
+    spa_val = M_IDENT;
+    if (aln) {
+      aln->nident++;
+      aln->nmismatch--;
+    }
+  }
 
   /* correct nident, nmismatch for N:N / X:X */
   if (pam_x_id_sim < 0) {	/* > 0 -> identical, similar */
