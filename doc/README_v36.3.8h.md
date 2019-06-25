@@ -36,13 +36,13 @@ Changes in **fasta-36.3.8h** released November, 2018
 
   3.  To support the independence of the `blastp`/`fasta` output from html annotation, the FASTA package includes some new options:
 
-    1. The `-m 8CBL` option includes query sequence length and subject sequence length in the blast tabular output.  In addition, if domain annotations are available, the raw domain coordinates are provided in an additional field after the annotation/subalignment scoring field.  `-m 8CBl` provides the sequence lengths, but does not add the raw domain coordinates.
+      1. The `-m 8CBL` option includes query sequence length and subject sequence length in the blast tabular output.  In addition, if domain annotations are available, the raw domain coordinates are provided in an additional field after the annotation/subalignment scoring field.  `-m 8CBl` provides the sequence lengths, but does not add the raw domain coordinates.
 
-    2. The `-Xa` option prevents annotation information from being included in the html output -- it is only available in the `-m 8CB`  (or `-m 8CBL/l`) output
+      2. The `-Xa` option prevents annotation information from being included in the html output -- it is only available in the `-m 8CB`  (or `-m 8CBL/l`) output
 
-    3. To reduce problems with spaces in script arguements, annotation scripts with spaces separating arguments can use '+' instead of ' '.
+      3. To reduce problems with spaces in script arguements, annotation scripts with spaces separating arguments can use '+' instead of ' '.
 
-    4. The `fasta_annot_cmd.sh` script produces both a conventional alignment on `stdout` and a `-m 8CBL` alignment, which is sent to a separate file, which is separated from the `-m F8CBL` option with a `=`, thus `-m F8CBL=tmp_output.blast_tab`.
+      4. The `fasta_annot_cmd.sh` script produces both a conventional alignment on `stdout` and a `-m 8CBL` alignment, which is sent to a separate file, which is separated from the `-m F8CBL` option with a `=`, thus `-m F8CBL=tmp_output.blast_tab`.
 
 Changes in **fasta-36.3.8g** released 23-Oct-2018
 
