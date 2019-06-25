@@ -24,28 +24,44 @@ font-size: 12px; font-family: sans-serif; text-decoration:none; background-color
 </small>
 </pre>
 <hr>
-<h2>Latest Updates - FASTA version 36.3.8d (April, 2016)</h2>
+<h2>Latest Updates - FASTA version 36.3.8h (March, 2019)</h2>
 <ol>
+  <li>The FASTA programs have been released under the Apache2.0 Open
+  Source License.  The COPYRIGHT file, and copyright notices in
+  program files, have been updated to reflect this change.
+    <p>
+      <li>
+	fasta-36.3.8h includes bug fixes for translated alignments
+	with termination codons, the ability to use scripts as query
+	and library sequences, and new scripts for extracting genomic
+	DNA sequences given chromosome coordinates.
+      <li>
+	fasta-36.3.8g includes bug fixes for sub-alignment scoring and 
+	psisearch2 scripts, new annotation scripts for exons, and
+	fixes enabling very low statistical thresholds with ggsearch36
+	and glsearch36.
+      <li>
+	fasta-36.3.8e/scripts includes updated scripts for
+	capturing domain and feature annotations using the
+	EBI/proteins API (https://www.ebi.ac.uk/proteins/api/) to get
+	Uniprot annotations and exon locations.
+<p>
+      <li>
+	The <tt>fasta-36.3.8e/psisearch2/</tt> directory now
+	provides <tt>psisearch2_msa.pl</tt>
+	and <tt>psisearch2_msa.py</tt>, functionally identical scripts
+	for iterative searching with <tt>psiblast</tt>
+	or <tt>ssearch36</tt>.  <tt>psisearch2-msa.pl</tt> offers an
+	option, <tt>--query_seed</tt>, that can dramatically reduce
+	false-positives caused by alignment overextension, with very
+	little loss of search sensitivity.
+    <p>
 <li>
 The <tt>fasta-36.3.8d/scripts/</tt> directory now provides a
 script, <tt>annot_blast_btop2.pl</tt> that allows annotations and
 sub-alignment scoring on BLAST alignments that use the tabular format
 with BTOP alignment encoding.
 <p>
-  <li>
-    Bug fixes for overlapping domain domain scoring.  v36.3.7 was not thread-safe.
-  <li>
-    Annotation scripts accessing the Pfam domain database can now use
-    the <tt>--vdoms</tt> option to highlight missing parts of a Pfam
-    domain model. In addtion, domains from clans are labeled as clans
-    unless <tt>--no-clans</tt> is specified.
- </ol>
-<h2>Updates - FASTA version 36.3.7 (November, 2014)</h2>
-<ol>
-  <li>The FASTA programs have been released under the Apache2.0 Open
-  Source License.  The COPYRIGHT file, and copyright notices in
-  program files, have been updated to reflect this change.
-    <p>
 <li>Alignment sub-scoring scripts have been extended to allow
 overlapping domains.  This requires a modified annotation file format.
   The "classic" format placed the beginning and end of a domain on different lines:
@@ -70,7 +86,7 @@ which allows annotations of the form:
 </pre>
 <p>
   <li> New annotation scripts are available in
-  the <tt>fasta-36.3.7/scripts</tt> directory,
+  the <tt>fasta-36.3.8/scripts</tt> directory,
   e.g. <tt>ann_pfam_www_e.pl</tt> (Pfam) and <tt>ann_up_www2_e.pl</tt>
   (Uniprot) to support this new format.  If the domain annotations
   provided by Pfam or Uniprot overlap, then overlapping domains are
