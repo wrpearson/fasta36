@@ -15,10 +15,11 @@ import argparse
 ## if stop < start, coordinates are reversed
 
 genome_dict={'hg38':'genome_dna/hg38/reference.fa',
-             'mm10':'genome_dna/mm10/reference.fa'}
+             'mm10':'genome_dna/mm10/reference.fa',
+             'rn6':'genome_dna/rn6/rn6.fa'}
 
 parser=argparse.ArgumentParser(description='get_genome_seq.py : get fasta sequence from genome coordinates ')
-parser.add_argument('--genome', help='genome: hg38 | mm10',dest='genome',action='store',default='hg38')
+parser.add_argument('--genome', help='genome: hg38 | mm10 | rn6',dest='genome',action='store',default='hg38')
 parser.add_argument('coords', help='genome coordinates chr1:12345-54321', nargs='*')
 
 args=parser.parse_args()

@@ -2,7 +2,8 @@
 
 # ann_exons_ncbi.pl gets an annotation file from fasta36 -V with a line of the form:
 
-# gi|23065544|ref|NP_000552.2| 
+# gi|23065544|ref|NP_000552.2|   or
+# NP_000552
 #
 # and returns the exons present in the protein from NCBI gff3 tables (human, mouse, rat, xtrop)
 #
@@ -174,11 +175,11 @@ __END__
 
 =head1 NAME
 
-ann_feats.pl
+ann_exons_ncbi.pl
 
 =head1 SYNOPSIS
 
- ann_exons_ncbi.pl --neg-doms  'sp|P09488|GSTM1_NUMAN' | accession.file
+ ann_exons_ncbi.pl NP_000552
 
 =head1 OPTIONS
 
@@ -193,23 +194,16 @@ C<ann_exons_ncbi.pl> extracts domain information from a msyql
 database.  Currently, the program works with database sequence
 descriptions in one of two formats:
 
- >pf26|649|O94823|AT10B_HUMAN -- RPD2_seqs
+  >gi|23065544|ref|NP_000552.2|   or
+  >NP_000552
 
-(pf26 databases have auto_pfamseq in the second field) and
-
- >gi|1705556|sp|P54670.1|CAF1_DICDI
-
-C<ann_exons_ncbi.pl> uses the C<pfamA_reg_full_significant>, C<pfamseq>,
-and C<pfamA> tables of the C<pfam> database to extract domain
-information on a protein.  For proteins that have multiple domains
-associated with the same overlapping region (domains overlap by more
-than 1/3 of the domain length), C<auto_pfam.pl> selects the domain
-annotation with the best C<domain_evalue_score>.  When domains overlap
-by less than 1/3 of the domain length, they are shortened to remove
-the overlap.
+C<ann_exons_ncbi.pl> uses the C<ref_exons> table of the C<seqdb2>
+database to extract exon position information on a protein.  The
+C<seqdb2/ref_exons> table is constructed from refseq gff files using
+the C<ncbi_refseq_ex2prot.pl> script.
 
 C<ann_exons_ncbi.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_exons_ncbi.pl> or C<-V "\!ann_exons_ncbi.pl --neg"> option.
+the C<-V \!ann_exons_ncbi.pl> option.
 
 =head1 AUTHOR
 
