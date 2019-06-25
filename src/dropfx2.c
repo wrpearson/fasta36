@@ -3804,7 +3804,7 @@ sprintf_btop(char *tmp_str,
   /* only aligned identities update counts */
   if (op==3 && sim_code == M_IDENT) {
     if ((sp0 == '*' && (sp1 == '*' || toupper(sp1) == 'U'))
-	|| sp1 == '*' && (sp0 == '*' || toupper(sp0) == 'U')) {
+	|| (sp1 == '*' && (sp0 == '*' || toupper(sp0) == 'U'))) {
       if (up_dp->p_op_cnt > 0) {
 	sprintf(tmp_str,"%d**",up_dp->p_op_cnt);
 	up_dp->p_op_cnt = 0;
