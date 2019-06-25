@@ -1,6 +1,15 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8h** March, 2019
+
+ 1. Translation table 1 (```-t 1```) now translates 'TGA'->'U'
+ (selenocysteine).
+
+ 2. New script for extracting DNA sequences from genoems
+ (```scripts/get_genome_seq.py```).  Currently works with human
+ (hg38), mouse (mm10), and rat (rn6).
+
 Changes in **fasta-36.3.8h** January, 2019
 
  1. Bug fixes: `fastx`/`tfastx` searches done with the `-t t` option
@@ -17,7 +26,7 @@ Changes in **fasta-36.3.8h** January, 2019
  and `P30711`, to SwissProt, by downloading them from Uniprot using
  the `get_protein.py` script (which can download sequences using
  either Uniprot or RefSeq protein accessions). Often, the leading `!`
- must be escaped from shell interpretation with `\\!`.y
+ must be escaped from shell interpretation with `\\!`.
 
  New scripts that return FASTA sequences using accessions or genome
  coordinates are available in `scripts/`. `get_protein.py`,
