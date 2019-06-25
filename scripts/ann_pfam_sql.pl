@@ -48,7 +48,7 @@ use vars qw($host $db $port $user $pass);
 
 my $hostname = `/bin/hostname`;
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam31", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam32", 0, "web_user", "fasta_www");
 #$host = 'xdb';
 #$host = 'localhost';
 #$db = 'RPD2_pfam28u';
@@ -75,8 +75,8 @@ GetOptions(
     "color!" => \$show_color,
     "clan_fam|clan-fam" => \$clan_fam,
     "no_over|no-over" => \$no_over,
-    "split_over|split-over" => \$split_over,
-    "over_fract|over-fract" => \$over_fract,
+    "split_over|split-over=f" => \$split_over,
+    "over_fract|over-fract=f" => \$over_fract,
     "no-clans|no_clans" => \$no_clans,
     "neg|neg_doms|neg-doms" => \$neg_doms,
     "min_nodom=i" => \$min_nodom,
@@ -207,6 +207,12 @@ EOSQL
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
+################
+## check for db=*_qfo -- do not use get_upfam_acc in that case
+if ($db =~ m/_qfo/) {
+    $get_upfam_acc= '';
+}
+
 # get the query
 my ($query, $seq_len) = @ARGV;
 $seq_len = 0 unless defined($seq_len);
@@ -323,8 +329,10 @@ sub show_annots {
     $get_annots_sql = $get_pfam_id;
     $get_annots_sql->execute($id);
     unless ($get_annots_sql->rows()) {
-      $get_annots_sql = $get_annots_sql_u;
-      $get_annots_sql->execute($id);
+      if ($get_annots_sql_u) {
+	$get_annots_sql = $get_annots_sql_u;
+	$get_annots_sql->execute($id);
+      }
     }
   } else {
     unless ($acc) {
@@ -342,8 +350,10 @@ sub show_annots {
 
       $get_annots_sql->execute($acc);
       unless ($get_annots_sql->rows()) {
-	$get_annots_sql = $get_annots_sql_u;
-	$get_annots_sql->execute($acc);
+	if ($get_annots_sql_u) {
+	  $get_annots_sql = $get_annots_sql_u;
+	  $get_annots_sql->execute($id);
+	}
       }
     }
   }

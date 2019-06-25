@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+## get_protein.py -- 
+## get a protein sequence from Uniprot or NCBI/Refseq using the accession
+##
+
 import sys
 import re
 import textwrap

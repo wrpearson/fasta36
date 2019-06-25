@@ -1772,6 +1772,13 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
 
     /* run annot_script annot_bline_file > annot_descr_file */
     status = system(annot_script);
+
+#ifdef DEBUG
+    if (debug) {
+      fprintf(stderr,"%s\n",annot_script);
+    }
+#endif
+
     if (!debug) {
 #ifdef UNIX
       unlink(annot_bline_file);
