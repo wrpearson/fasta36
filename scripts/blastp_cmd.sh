@@ -26,6 +26,6 @@ export BLAST_PATH="/seqprg/bin"
 
 $BLAST_PATH/blastp -outfmt 11 $cmd > $bl_asn
 $BLAST_PATH/blast_formatter -archive $bl_asn -outfmt 0 -html > $bl0_out
-$BLAST_PATH/blast_formatter -archive $bl_asn -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop'  > $blt_out
+$BLAST_PATH/blast_formatter -archive $bl_asn -outfmt '7 qseqid qlen sseqid slen pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop'  > $blt_out
 $BLAST_PATH/blast_formatter -archive $bl_asn -outfmt 2  > $blm_out
 

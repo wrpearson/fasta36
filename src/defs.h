@@ -68,7 +68,7 @@
 
 #ifndef MAX_MEMK
 #if defined(BIG_LIB64) && (defined(COMP_THR) || defined(PCOMPLIB))
-#define MAX_MEMK 8*1024*1024	/* 12 GB (<<10) for library in memory */
+#define MAX_MEMK 16*1024*1024	/* 16 GB (<<10) for library in memory */
 #else
 #define MAX_MEMK 2*1024*1024	/* 2 GB (<<10) for library in memory */
 #endif
