@@ -13,6 +13,17 @@ Modest extensions made to support reading makeblastdb format v5
 databases. Changes have only been made to read the db.pin file, but
 things work in simple tests.
 
+>July 16, 2019
+[src/comp_lib9.c]
+
+Fixed a memory leak problem when searching with large libraries that
+could be memory mapped (libraries with .xin index files).  If the
+library did not fit in memory, then the kept allocating new memory.
+By default, the largest database that fits in memory must be less than
+16 GB.  Larger libraries will be re-read, which slows down multi-query
+searches considerably.  To increase the size of the library allowed in
+memory, use the option: "-X M32G" to fit 32 GB libraries.
+
 >>Mar. 8, 2019
 [src/initfa.c,faatran.c,dropfx2.c]
 Modify translation table 1 to allow selenocysteine translation

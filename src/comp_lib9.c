@@ -2382,7 +2382,8 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
   /* if the library is NCBIBL20 and memory mapped, simply return
      pointers to the memory map */
   m_fd = getlib_info->lib_list_p->m_file_p;
-  if (m_fd->get_mmap_chain) {
+
+  if (m_fd->get_mmap_chain && getlib_info->use_memory>=0) {
     /* get a new seqr_chain */
     my_seqr_chain = 
       new_seqr_chain(m_bufi_p->max_chain_seqs,(m_bufi_p->seq_buf_size+1),
