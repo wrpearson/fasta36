@@ -24,6 +24,7 @@
 
 #define FORMATDBV3	3	/* formatdb version */
 #define FORMATDBV4	4	/* formatdb version */
+#define FORMATDBV5	5	/* formatdb version */
 
 #define NULLB		'\0'	/* sentinel byte */
 

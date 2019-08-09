@@ -80,7 +80,7 @@ subset database.
 
 
 /* ****************************************************************
-This code reads NCBI Blast2 format databases from formatdb version 3 and 4
+This code reads NCBI Blast2 format databases from formatdb version 3 -- 5
 
 (From NCBI) This section describes the format of the databases.
 
@@ -450,7 +450,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
   src_uint4_read(ifile,(unsigned *)&dbformat); /* get format DB version number */
   src_uint4_read(ifile,(unsigned *)&dbtype);   /* get 1 for protein/0 DNA */
 
-  if (dbformat != FORMATDBV3 && dbformat!=FORMATDBV4) {
+  if (dbformat != FORMATDBV3 && dbformat!=FORMATDBV4 && dbformat!=FORMATDBV5) {
     fprintf(stderr,"error - %s wrong formatdb version (%d/%d)\n",
 	    tname,dbformat,FORMATDBV3);
     return NULL;
@@ -788,11 +788,17 @@ struct lmf_str
   int title_len;
   char *title_str=NULL;
   int date_len;
+  char *pdb_title_str=NULL;
+  int pdb_title_len;
   char *date_str=NULL;
   long ltmp;
   int64_t l8tmp;
   int i, tmp;
   unsigned int *f_pos_arr;
+
+  if (dbformat == FORMATDBV5) {
+    src_uint4_read(ifile,(unsigned int *)&ltmp);
+  }
 
   src_uint4_read(ifile,(unsigned *)&title_len);
 
@@ -804,6 +810,17 @@ struct lmf_str
     fread(title_str,(size_t)1,(size_t)title_len,ifile);
   }
   
+  if (dbformat == FORMATDBV5) {
+    src_uint4_read(ifile,(unsigned int *)&pdb_title_len);
+    if (pdb_title_len > 0) {
+      if ((pdb_title_str = calloc((size_t)pdb_title_len+1,sizeof(char)))==NULL) {
+	fprintf(stderr," cannot allocate pdb_title string (%d)\n",pdb_title_len);
+	goto error_r;
+      }
+      fread(pdb_title_str,(size_t)1,(size_t)pdb_title_len,ifile);
+    }
+  }
+
   src_uint4_read(ifile,(unsigned *)&date_len);
 
   if (date_len > 0) {
