@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # 
 # given a -m8CB file with exon annotations for the query and subject,
 # provide a function that maps subject coordinates to query, or vice versa

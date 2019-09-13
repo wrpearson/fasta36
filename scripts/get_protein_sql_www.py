@@ -15,7 +15,7 @@ from urllib.error import URLError
 ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
 uniprot_url = "https://www.uniprot.org/uniprot/"
 
-(host, user, passwd, db) = ("wrpxdb.its.virginia.edu","wrplab","gstmu","seqdb_demo2")
+(host, user, passwd, db) = ("wrpxdb.its.virginia.edu","web_user","fasta_www","seqdb_demo2")
 
 db = MySQLdb.connect(host,user,passwd,db)
 cur = db.cursor()

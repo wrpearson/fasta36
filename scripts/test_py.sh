@@ -43,7 +43,7 @@ get_up_prot_iso_sql.py P09488
 echo '################################################################'
 echo 'map_exon_coords.py -- look for chrA:start-stop::chrB:start-stop in output'
 # (a) produce an appropriate alignment file
-fasta36 -q -m 8CBL -V \!ann_exons_up_sql.pl+--gen_coord+--exon_label -V q\!ann_exons_up_sql.pl+--gen_coord+--exon_label \!get_protein_www.py+P30711 \!get_protein_www.py+P20135 > hum_chk_map_test.m8CBL
+fasta36 -q -m 8CBL -V \!ann_exons_up_sql.pl+--gen_coord+--exon_label -V q\!ann_exons_up_sql.pl+--gen_coord+--exon_label \!get_protein.py+P30711 \!get_protein.py+P20135 > hum_chk_map_test.m8CBL
 # (b) expand chromosome locations on subject and query exons to both genomes
 map_exon_coords.py  hum_chk_map_test.m8CBL
 

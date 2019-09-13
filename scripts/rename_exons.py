@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # 
 # given a -m8CB file with exon annotations for the query and subject,
 # adjust the subject exon names to match the query exon names

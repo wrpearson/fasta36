@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ################
 ## get_hg38_bed.py parses an HG38 coordinate into a pseudo-bed entry,

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ## get_protein_www.py -- 
 ## get a protein sequence from the Uniprot or NCBI/Refseq web sites using the accession

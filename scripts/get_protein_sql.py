@@ -9,7 +9,7 @@ import re
 import textwrap
 import MySQLdb.cursors
 
-db = MySQLdb.connect(db='uniprot', host='xdb', user='web_user', passwd='fasta_www',
+db = MySQLdb.connect(db='uniprot', host='wrpxdb.bioch.virginia.edu', user='web_user', passwd='fasta_www',
                      cursorclass=MySQLdb.cursors.DictCursor)
 
 cur1 = db.cursor()

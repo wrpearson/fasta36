@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Given a blast_tabular file with search results from one or more protein queries
 # 
