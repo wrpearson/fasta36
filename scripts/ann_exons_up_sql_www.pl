@@ -92,11 +92,9 @@ my $dbh = DBI->connect($connect,
 
 my $get_annot_sub = \&get_annots;
 
-
 my $ua = LWP::UserAgent->new(ssl_opts=>{verify_hostname => 0});
 my $uniprot_url = 'https://www.ebi.ac.uk/proteins/api/coordinates/';
 my $uniprot_suff = ".json";
-
 
 if ($use_www) {
   $get_annot_sub = \&get_annots_up_www;

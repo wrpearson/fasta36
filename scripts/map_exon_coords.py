@@ -2,7 +2,13 @@
 # 
 # given a -m8CB file with exon annotations for the query and subject,
 # provide a function that maps subject coordinates to query, or vice versa
-
+#
+# appropriate exon annotations can be produced by:
+#
+# fasta36 -q -m 8CBL -V \!ann_exons_up_sql.pl+--gen_coord+--exon_label -V q\!ann_exons_up_sql.pl+--gen_coord+--exon_label \!get_protein.py+P30711 \!get_protein.py+Q2NL00 > hum_v_bov_gstt1.m8CBL
+# ann_exons_up_sql.pl --gen_coord --exon_label is required to produce the appropriate exons
+#
+#
 ################################################################
 # copyright (c) 2018 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
@@ -24,7 +30,6 @@ import fileinput
 import sys
 import re
 import argparse
-import copy
 
 ################
 # "domain" class that describes a domain/exon alignment annotation
@@ -142,7 +147,7 @@ def parse_protein(line_data,fields, req_name):
     # last part (domain annotions) split('|') and parsed by parse_domain()
 
     data = {}
-    data = dict(zip(fields, line_data))
+    data = dict(list(zip(fields, line_data)))
     if (re.search(r'\|',data['qseqid'])):
         data['qseq_acc'] = data['qseqid'].split('|')[1]
     else:
@@ -310,6 +315,9 @@ def map_align_coords(btop_str, q_start, s_start, s_target, coord_list):
 #
 def aa_to_exon(aa_coords, exon_info_list):
 
+    if len(exon_info_list) < 1:
+        return []
+
     sorted_aa_coords = sorted(aa_coords)
 
     pos_strand = True
@@ -376,9 +384,10 @@ def set_data_fields(args, line_data) :
 ################################################################
 #
 # main program 
-# print "#"," ".join(sys.argv)
 
 def main():
+
+    print("#"+" ".join(sys.argv))
 
     data_fields_reset=False
 
@@ -403,7 +412,7 @@ def main():
     for line in fileinput.input(args.files):
     # pass through comments
         if (line[0] == '#'):
-            print line,	# ',' because have not stripped
+            print(line, end='')	# ',' because have not stripped
             continue
 
         ################
@@ -450,7 +459,7 @@ def main():
         ################
         # print out non-exon info
 
-        print '\t'.join([str(data[x]) for x in fields[:end_field]]),
+        print('\t'.join([str(data[x]) for x in fields[:end_field]]), end='')
 
         ################
         # edit the full text to insert the other aligned coordinates
@@ -478,7 +487,7 @@ def main():
             this_outstr=re.sub(r'\{',qg_replace,s_exon.text)
             s_exalign_out.append(this_outstr)
 
-        print "\t|"+"|".join(q_exalign_out+s_exalign_out)+"\t"+line_data[-1]
+        print("\t|"+"|".join(q_exalign_out+s_exalign_out)+"\t"+line_data[-1])
 
 ################
 # run the program ...

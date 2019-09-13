@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ################
 ## get_hg38_bed.py parses an HG38 coordinate into a pseudo-bed entry,
@@ -16,10 +16,11 @@ import argparse
 
 genome_dict={'hg38':'genome_dna/hg38/reference.fa',
              'mm10':'genome_dna/mm10/reference.fa',
-             'rn6':'genome_dna/rn6/rn6.fa'}
+             'rn6':'genome_dna/rn6/rn6.fa',
+             'bosTau9':'genome_dna/bosTau9/bosTau9.fa'}
 
 parser=argparse.ArgumentParser(description='get_genome_seq.py : get fasta sequence from genome coordinates ')
-parser.add_argument('--genome', help='genome: hg38 | mm10 | rn6',dest='genome',action='store',default='hg38')
+parser.add_argument('--genome', help='genome: hg38 | mm10 | rn6 | bosTau9',dest='genome',action='store',default='hg38')
 parser.add_argument('coords', help='genome coordinates chr1:12345-54321', nargs='*')
 
 args=parser.parse_args()
@@ -40,14 +41,14 @@ for genome_loc in args.coords:
 
     bed_lines += '%s\t%d\t%d\n' % (chrom, g_start, g_end)
 
-bed_p = Popen(bed_cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=True)
+bed_p = Popen(bed_cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=True, encoding='utf-8')
 out, err = bed_p.communicate(input=bed_lines)
 
 for line in out.split('\n'):
     if (line and line[0]=='>'):
         (chrom, start, stop) = re.search(r'>([^:]+):(\d+)\-(\d+)',line).groups()
-        print line + " @C:%s" % (start)
+        print(line + " @C:%s" % (start))
     elif (line):
-        print line
+        print(line)
 
 

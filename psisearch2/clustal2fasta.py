@@ -68,4 +68,4 @@ for line in fileinput.input(args.files):
 
 for seq_id in seq_ids:
     fmt_seq = re.sub(r'(.{0,60})',r'\1\n',msa[seq_id])
-    print ">%s\n%s" % (seq_id, fmt_seq)
+    print(">%s\n%s" % (seq_id, fmt_seq))

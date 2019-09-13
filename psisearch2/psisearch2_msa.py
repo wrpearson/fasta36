@@ -303,7 +303,7 @@ if (args.srch_pgm) :
     srch_pgm = args.srch_pgm
 
 if (not quiet) :
-    print pgm_command
+    print(pgm_command)
 
 del_file_ext = ["msa","psibl_out","hit_db","asntxt","asnbin"]
 

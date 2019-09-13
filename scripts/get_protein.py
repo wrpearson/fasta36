@@ -1,13 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-## get_protein.py -- 
-## get a protein sequence from Uniprot or NCBI/Refseq using the accession
+## get_protein_www.py -- 
+## get a protein sequence from the Uniprot or NCBI/Refseq web sites using the accession
 ##
 
 import sys
 import re
 import textwrap
-from urllib2 import urlopen
+import time
+from urllib.request import Request, urlopen
+from urllib.error import URLError
 
 ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
 uniprot_url = "https://www.uniprot.org/uniprot/"
@@ -21,13 +23,34 @@ for acc in sys.argv[1:]:
   if (re.match(r'^(sp|tr|iso|ref)\|',acc)):
       acc=acc.split('|')[1]
 
-  if (re.match(r'[NX]P_',acc)):
+  if (re.match(r'[A-Z]P_\d+',acc)):   # get refseq
     db_type="protein"
 
     seq_args = "db=%s&id=" % (db_type) + ",".join(sys.argv[1:])  + "&rettype=fasta"
-    seq_html = urlopen(ncbi_url + seq_args).read()
+
+    url_string = ncbi_url + seq_args
+
+  else:				# get uniprot
+    url_string = uniprot_url + acc + ".fasta"
+
+
+  req = Request(url_string)
+
+  try: 
+    resp = urlopen(req)
+  except URLError as e:
+    seq_html = ''
+    if hasattr(e, 'reason'):
+      sys.stderr.write("Sequence [%s] not found: %s\n"%(acc,str(e.reason)))
+    elif hasattr(e, 'code'):
+      sys.stderr.write("Sequence [%s] not found: %s\n"%(acc,str(e.ecode)))
+    else:
+      sys.stderr.write("Sequence [%s] not found\n"%(acc))
+    exit(0)
+
   else:
-    seq_html = urlopen(uniprot_url + acc + ".fasta").read()
+    seq_html=resp.read().decode('utf-8')
+    time.sleep(0.3)
 
   header=''
   seq = ''
@@ -46,10 +69,10 @@ for acc in sys.argv[1:]:
           new_seq = seq
 
         if (start > 0):
-          print "%s @C%d" %(header, start+1)
+          print("%s @C%d" %(header, start+1))
         else:
-          print header
-        print '\n'.join(textwrap.wrap(new_seq))
+          print(header)
+        print('\n'.join(textwrap.wrap(new_seq)))
 
       header = line;
       seq = ''
@@ -67,8 +90,8 @@ else:
   new_seq = seq
 
 if (start > 0):
-  print "%s @C:%d" %(header, start+1)
+  print("%s @C:%d" %(header, start+1))
 else:
-  print header
+  print(header)
 
-print '\n'.join(textwrap.wrap(new_seq))
+print('\n'.join(textwrap.wrap(new_seq)))

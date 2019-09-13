@@ -51,14 +51,15 @@ else {
   ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
 }
 
-my ($lav, $gen_coord, $shelp, $help) = (0,0,0,0);
+my ($lav, $gen_coord, $exon_label, $use_www, $shelp, $help) = (0,0,0,0,0,0);
 
 my ($show_color) = (1);
 my $color_sep_str = " :";
 $color_sep_str = '~';
 
 GetOptions(
-    "gen_coord!" => \$gen_coord,
+    "gen_coord|gene_coord!" => \$gen_coord,
+    "exon_label|label_exons!" => \$exon_label,
     "host=s" => \$host,
     "db=s" => \$db,
     "user=s" => \$user,
@@ -84,6 +85,7 @@ my $dbh = DBI->connect($connect,
 
 
 my $get_annot_sub = \&get_annots;
+
 
 my $get_annots_id = $dbh->prepare(qq(select up_exons.* from up_exons join annot2 using(acc) where id=? order by ix));
 my $get_annots_acc = $dbh->prepare(qq(select up_exons.* from up_exons where acc=? order by ix));
@@ -190,21 +192,27 @@ sub get_annots {
 	  push @feats, [$exon_hr->{start}, $exon_hr->{end}, "exon_$ix~$ix"];
       }
       else {
-	  push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, "exon_$ix~$ix"];
+	  my ($exon_info,$ex_info_start, $ex_info_end) = ("exon_$ix~$ix","","");
 	  if ($gen_coord) {
-	      if (not defined($exon_hr->{g_start})) {
-		  next;
+	      if (defined($exon_hr->{g_start})) {
+		  my $chr=$exon_hr->{chrom};
+		  $chr = "unk" unless $chr;
+		  if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
+		      $chr = "chr$chr";
+		  }
+		  $ex_info_start = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_start});
+		  $ex_info_end   = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_end});
+		  if ($exon_label) {
+		      $exon_info = sprintf("exon_%d{%s:%d-%d}~%d",$ix, $chr, $exon_hr->{g_start}, $exon_hr->{g_end}, $ix);
+		      push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+		  } else {
+		      push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
+		      push @feats, [$exon_hr->{start},'<','-',$ex_info_start];
+		      push @feats, [$exon_hr->{end},'>','-',$ex_info_end];
+		  }
 	      }
-
-	      my $chr=$exon_hr->{chrom};
-	      $chr = "unk" unless $chr;
-	      if ($chr =~ m/^\d+$/ || $chr =~m/^[XYZ]+$/) {
-		  $chr = "chr$chr";
-	      }
-	      my $ex_info = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_start});
-	      push @feats, [$exon_hr->{start},'<','-',$ex_info];
-	      $ex_info = sprintf("exon_%d::%s:%d",$ix, $chr, $exon_hr->{g_end});
-	      push @feats, [$exon_hr->{end},'>','-',$ex_info];
+	  } else {
+	      push @feats, [$exon_hr->{start}, "-", $exon_hr->{end}, $exon_info];
 	  }
       }
   }
@@ -252,22 +260,22 @@ tab-delimited format:
  153	-	189	exon_7~7
  190	-	218	exon_8~8
 
-C<ann_exons_up_sql.pl --gen_coord 'sp|P09488|GSTM1_HUMAN'>also provides genomic coordinates:
+C<ann_exons_up_sql.pl --gen_coord 'sp|P09488|GSTM1_HUMAN'> also provides genomic coordinates:
 
->sp|P09488|GSTM1_HUMAN
-1	-	12	exon_1~1
-1	<	-	exon_1::chr1:109687874
-12	>	-	exon_1::chr1:109687909
-13	-	37	exon_2~2
-13	<	-	exon_2::chr1:109688170
-37	>	-	exon_2::chr1:109688245
-38	-	59	exon_3~3
-38	<	-	exon_3::chr1:109688673
-59	>	-	exon_3::chr1:109688737
-...
-190	-	218	exon_8~8
-190	<	-	exon_8::chr1:109693206
-218	>	-	exon_8::chr1:109693292
+ >sp|P09488|GSTM1_HUMAN
+ 1	-	12	exon_1~1
+ 1	<	-	exon_1::chr1:109687874
+ 12	>	-	exon_1::chr1:109687909
+ 13	-	37	exon_2~2
+ 13	<	-	exon_2::chr1:109688170
+ 37	>	-	exon_2::chr1:109688245
+ 38	-	59	exon_3~3
+ 38	<	-	exon_3::chr1:109688673
+ 59	>	-	exon_3::chr1:109688737
+ ...
+ 190	-	218	exon_8~8
+ 190	<	-	exon_8::chr1:109693206
+ 218	>	-	exon_8::chr1:109693292
 
 C<ann_exons_up_sql.pl> is designed to be used by the B<FASTA> programs
 with the C<-V \!ann_exons_up_sql.pl> option, or by the

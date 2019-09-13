@@ -2,7 +2,9 @@
 # 
 # given a -m8CB file with exon annotations for the query and subject,
 # adjust the subject exon names to match the query exon names
-
+#
+# see test_py.sh for sample use
+#
 ################################################################
 # copyright (c) 2018 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
@@ -233,7 +235,7 @@ def parse_protein(line_data,fields, req_name):
     # last part (domain annotions) split('|') and parsed by parse_domain()
 
     data = {}
-    data = dict(zip(fields, line_data))
+    data = dict(list(zip(fields, line_data)))
     if (re.search(r'\|',data['qseqid'])):
         data['qseq_acc'] = data['qseqid'].split('|')[1]
     else:
@@ -567,7 +569,7 @@ def label_doms(qdom_list, sdom_list, multi_q_dict, multi_s_dict):
 
     # done with labeling sdoms based on qdoms, but some may be unlabeled
     # check for missing s_doms
-    while (len(sdom_displayed_dict.keys()) < len(sdom_list)):
+    while (len(list(sdom_displayed_dict.keys())) < len(sdom_list)):
         for sdom in sdom_list:
             if (sdom.idnum not in sdom_displayed_dict):
                 sdom.out_str = replace_name(sdom.text, "exon_X","0")
@@ -680,7 +682,7 @@ def main():
     for line in fileinput.input(args.files):
     # pass through comments
         if (line[0] == '#'):
-            print line,	# ',' because have not stripped
+            print(line, end='')	# ',' because have not stripped
             continue
 
         ################
@@ -696,7 +698,7 @@ def main():
         data = parse_protein(line_data,fields,"exon")	# get score/alignment/domain data
 
         if (len(data['sdom_list'])==0 and len(data['qdom_list'])==0):
-            print line	# no domains to be edited, print stripped line and contine
+            print(line)	# no domains to be edited, print stripped line and contine
             continue
 
         # qdom_list=[] outside of loop for cases where the qseqid==sseqid match is not first
@@ -716,7 +718,7 @@ def main():
         # print out non-exon info
     
         if (len(qdom_list) == 0):
-            print line
+            print(line)
             continue
 
         btab_str = '\t'.join(str(data[x]) for x in fields[:end_field])
@@ -740,7 +742,7 @@ def main():
         #
         q_exon_list = data['qdom_list']
 
-        s_exon_list = [sdom_displayed_dict[x] for x in sdom_displayed_dict.keys()]
+        s_exon_list = [sdom_displayed_dict[x] for x in list(sdom_displayed_dict.keys())]
 
         ################
         # if args.fill_gcoords, then do the transformations on the current exon lists
@@ -787,7 +789,7 @@ def main():
         for info in data['qinfo_list'] + data['sinfo_list']:
             info_bar_str += info.text 
 
-        print '\t'.join((btab_str, dom_bar_str, info_bar_str))
+        print('\t'.join((btab_str, dom_bar_str, info_bar_str)))
 
 ################
 # run the program ...

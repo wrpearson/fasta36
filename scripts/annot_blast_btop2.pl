@@ -18,7 +18,7 @@
 ################################################################
 
 ################################################################
-# annot_blast_btop2.pl --query query.file --ann_script ann_pfam_www.pl --include_doms blast_tab_btop_file
+# annot_blast_btop2.pl --query query.file --ann_script ann_pfam_www.pl --dom_info blast_tab_btop_file
 ################################################################
 # annot_blast_btop2.pl associates domain annotation information and
 # subalignment scores with a blast tabular (-outfmt 6 or -outfmt 7)
@@ -31,7 +31,7 @@
 # produces domain content without sub-alignment scores.
 ################################################################
 ## 4-Nov-2018
-# add --include_doms, which adds a new field with the coordinates of
+# add --dom_info, which adds a new field with the coordinates of
 # the domains in the protein (independent of alignment)
 #
 ################################################################
@@ -68,7 +68,9 @@ use File::Temp qw/ tempfile /;
 # and report the domain content ala -m 8CC
 
 my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0);
-my ($have_qslen, $dom_info, $sub2query) = (0,0,0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
+my ($ann_file, $q_ann_file) = ("","");
+
+my ($have_qslen, $dom_info, $inc_btop, $sub2query) = (0,0,0,0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
 my ($query_lib_name) = ("");  # if $query_lib_name, do not use $query_file_name
 my ($out_field_str) = ("");
 my $query_lib_r = 0;
@@ -83,7 +85,10 @@ GetOptions(
     "matrix:s" => \$matrix,
     "ann_script|script:s" => \$ann_script,
     "q_ann_script|q_script:s" => \$q_ann_script,
+    "ann_file|file:s" => \$ann_file,
+    "q_ann_file|q_file:s" => \$q_ann_file,
     "have_qslen|have_sqlen!" => \$have_qslen,
+    "inc_BTOP|BTOP!" => \$inc_btop,
     "domain_info|dom_info!" => \$dom_info,
     "sub2query!" => \$sub2query,
     "query:s" => \$query_lib_name,
@@ -113,6 +118,10 @@ if ($have_qslen) {
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
+
+if ($inc_btop) {
+  push @out_tab_fields, "BTOP";
+}
 
 if ($show_raw) {
   push @out_tab_fields, "raw_score";
@@ -159,7 +168,16 @@ while (1) {
       $q_ann_script =~ s/\+/ /g;
   }
 
-  if ($q_ann_script && -x (split(/\s+/,$q_ann_script))[0]) {
+  if ($q_ann_file && -f $q_ann_file) {
+    my $hit = $hit_list[0];
+    my $q_seq_len = scalar(@{$query_lib_r->{$hit->{q_seqid}}});
+
+    push @q_hit_list,{ s_seq_id=> $hit->{q_seqid}, s_end=> $q_seq_len};
+
+    open(my $Reader, $q_ann_file,'r') || warn "cannot read annotation from $q_ann_file";
+    read_annots($Reader, \@q_hit_list, 0);
+  }
+  elsif ($q_ann_script && -x (split(/\s+/,$q_ann_script))[0]) {
     # get the domains for the q_seqid using --q_ann_script
     #
     my ($Reader, $Writer);
@@ -182,11 +200,16 @@ while (1) {
       $ann_script =~ s/\+/ /g;
   }
 
-  if ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
+  if ($q_ann_file && -f $q_ann_file) {
+
+    open(my $Reader, $ann_file,'r') || warn "cannot read annotation from $q_ann_file";
+    read_annots($Reader, \@hit_list, 1);
+  }
+  elsif ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
     # get the domains for each s_seqid using --ann_script
     #
     # this does not work currently because only one accession is sent.
-    # For mulitple hits, I need to make a tmp_file.
+    # For multiple hits, I need to make a tmp_file.
 
     my ($Reader, $Writer);
     my $pid = open2($Reader, $Writer, $ann_script);
@@ -1333,8 +1356,15 @@ annot_blast_btop2.pl
  --ann_script -- annotation script returning site/domain locations for subject sequences
               -- same as --script
 
+ --dom_info -- show unaligned domain coordinates as additional field:
+            --  |XD:43-64;C=PF02755~4|XD:589-612;C=PF02755~4|XD:626-649;C=PF02755~4
+
  --have_qslen -- use a blast tabular format that includes the query and subject sequence lengths:
 	      -- q_seqid q_len s_seqid s_len ...
+
+ --inc_BTOP|BTOP -- include BTOP field
+
+ --out_fields -- blast tabular fields shown before domain information
 
  --q_ann_script -- annotation script for query sequences
                 -- same as --q_script
@@ -1342,8 +1372,6 @@ annot_blast_btop2.pl
  --query_file -- fasta query sequence
               -- same as --query, --query_lib
                  (can contain multiple sequences for multi-sequence search)
-
- --out_fields -- blast tabular fields shown before domain information
 
  --raw_score -- add the raw_score used to normalized domain scores to
                 tabular output (raw_scores are only calculated for domains)
