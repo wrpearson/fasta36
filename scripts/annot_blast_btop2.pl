@@ -200,7 +200,7 @@ while (1) {
       $ann_script =~ s/\+/ /g;
   }
 
-  if ($q_ann_file && -f $q_ann_file) {
+  if ($ann_file && -f $ann_file) {
 
     open(my $Reader, $ann_file,'r') || warn "cannot read annotation from $q_ann_file";
     read_annots($Reader, \@hit_list, 1);
