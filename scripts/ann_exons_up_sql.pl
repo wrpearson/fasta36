@@ -250,12 +250,14 @@ Given a command line argument that contains a sequence accession
 features available for that sequence and returns them in a
 tab-delimited format:
 
+C<ann_exons_up_sql.pl 'sp|P09488|GSTM1_HUMAN'>:
+
  >sp|P09488|GSTM1_HUMAN
  1	-	12	exon_1~1
- 13	-	38	exon_2~2
- 39	-	59	exon_3~3
- 60	-	87	exon_4~4
- 88	-	120	exon_5~5
+ 13	-	37	exon_2~2
+ 38	-	59	exon_3~3
+ 60	-	86	exon_4~4
+ 87	-	120	exon_5~5
  121	-	152	exon_6~6
  153	-	189	exon_7~7
  190	-	218	exon_8~8
@@ -269,13 +271,19 @@ C<ann_exons_up_sql.pl --gen_coord 'sp|P09488|GSTM1_HUMAN'> also provides genomic
  13	-	37	exon_2~2
  13	<	-	exon_2::chr1:109688170
  37	>	-	exon_2::chr1:109688245
- 38	-	59	exon_3~3
- 38	<	-	exon_3::chr1:109688673
- 59	>	-	exon_3::chr1:109688737
  ...
  190	-	218	exon_8~8
  190	<	-	exon_8::chr1:109693206
  218	>	-	exon_8::chr1:109693292
+
+C<ann_exons_up_sql.pl --gen_coord --label_exons 'sp|P09488|GSTM1_HUMAN'> provides genomic coordinates on a single line:
+
+ >sp|P09488|GSTM1_HUMAN
+ 1	-	12	exon_1{chr1:109687874-109687909}~1
+ 13	-	37	exon_2{chr1:109688170-109688245}~2
+ ...
+ 153	-	189	exon_7{chr1:109690454-109690564}~7
+ 190	-	218	exon_8{chr1:109693206-109693292}~8
 
 C<ann_exons_up_sql.pl> is designed to be used by the B<FASTA> programs
 with the C<-V \!ann_exons_up_sql.pl> option, or by the

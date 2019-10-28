@@ -273,19 +273,60 @@ ann_exons_up_www.pl
 
  -h	short help
  --help include description
- --lav  produce lav2plt.pl annotation format
- --gen_coord produce genome coordinate features
+ --gen_coord  -- provide genomic exon start/stop coordinates as features
+ --lav  produce lav2plt.pl annotation format, only show domains/repeats
+ --host, --user, --password, --port --db -- info for mysql database
 
 =head1 DESCRIPTION
 
-C<ann_exons_up_www.pl> extracts exon coordinates for proteins using
-the EBI Proteins REST API described here:
-C<https://www.ebi.ac.uk/proteins/api/doc/#coordinatesApi>.  Exon
-intron boundaries, in protein coordinates, are available for Uniprot
-proteins with Ensembl entries.
+C<ann_exons_up_www.pl> extracts exon location information from
+a msyql database (default name, uniprot) built from EBI/proteins API data.
 
-C<ann_pfam.pl> is designed to be used by the B<FASTA> programs with
-the C<-V \!ann_exons_up_www.pl> or C<-V "q\!ann_exons_up_www.plg"> option.
+Given a command line argument that contains a sequence accession
+(P09488) or identifier (GSTM1_HUMAN), the program looks up the
+features available for that sequence and returns them in a
+tab-delimited format:
+
+C<ann_exons_up_www.pl 'sp|P09488|GSTM1_HUMAN'>:
+
+ >sp|P09488|GSTM1_HUMAN
+ 1	-	12	exon_1~1
+ 13	-	37	exon_2~2
+ 38	-	59	exon_3~3
+ 60	-	86	exon_4~4
+ 87	-	120	exon_5~5
+ 121	-	152	exon_6~6
+ 153	-	189	exon_7~7
+ 190	-	218	exon_8~8
+
+C<ann_exons_up_www.pl --gen_coord 'sp|P09488|GSTM1_HUMAN'> also provides genomic coordinates:
+
+ >sp|P09488|GSTM1_HUMAN
+ 1	-	12	exon_1~1
+ 1	<	-	exon_1::chr1:109687874
+ 12	>	-	exon_1::chr1:109687909
+ 13	-	37	exon_2~2
+ 13	<	-	exon_2::chr1:109688170
+ 37	>	-	exon_2::chr1:109688245
+ ...
+ 190	-	218	exon_8~8
+ 190	<	-	exon_8::chr1:109693206
+ 218	>	-	exon_8::chr1:109693292
+
+C<ann_exons_up_www.pl --gen_coord --label_exons 'sp|P09488|GSTM1_HUMAN'> provides genomic coordinates on a single line:
+
+ >sp|P09488|GSTM1_HUMAN
+ 1	-	12	exon_1{chr1:109687874-109687909}~1
+ 13	-	37	exon_2{chr1:109688170-109688245}~2
+ ...
+ 153	-	189	exon_7{chr1:109690454-109690564}~7
+ 190	-	218	exon_8{chr1:109693206-109693292}~8
+
+C<ann_exons_up_www.pl> is designed to be used by the B<FASTA> programs
+with the C<-V \!ann_exons_up_www.pl> option, or by the
+C<annot_blast_btop.pl> script.  It can also be used with the
+lav2plt.pl program with the C<--xA "\!ann_exons_up_www.pl --lav"> or
+C<--yA "\!ann_exons_up_www.pl --lav"> options.
 
 =head1 AUTHOR
 
