@@ -20,17 +20,17 @@
 ## usage - expand_refseq_isoforms.pl [--prim_acc] up_hits.file > refseq_isoforms.file
 ##
 ## take a fasta36 -e expand.sh result file of the form:
-## sp|P09488_GSTM1_HUMAN|<tab>1.1e-50
+## NP_000552|<tab>1.1e-50
 ##
 ## and extract the accession number, looking it up from the an SQL
 ## table $table -- in this case "annot2_iso" to provide Uniprot
 ## isoforms based on a uniprot accession.
 ##
 ## if --prim_acc, then the primary accession (used to find the isoforms) is added to the isoform seq_id, e.g.
-## sp|P04988|GSTM1_HUMAN has isoforms:   with --prim_acc, the identifiers become
-## >iso|E7EWW9|E7EWW9_HUMAN    >iso|E7EWW9|E7EWW9_HUMAN_P09488
-## >iso|H3BRM6|H3BRM6_HUMAN    >iso|H3BRM6|H3BRM6_HUMAN_P09488
-## >iso|H3BQT3|H3BQT3_HUMAN    >iso|H3BQT3|H3BQT3_HUMAN_P09488
+## NP_000552 has isoforms: with --prim_acc the identifiers become:
+## >iso|XP_005270839	>iso|NP_666533|NP_666533::NP_000552
+## >iso|NP_666533 	>iso|NP_666533|NP_666533::NP_000552
+##
 
 use warnings;
 use strict;
