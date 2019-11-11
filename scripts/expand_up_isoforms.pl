@@ -108,6 +108,8 @@ for my $line ( @link_lines ) {
   }
 }
 
+my $have_isoforms = 0;
+
 for my $acc ( keys %acc_uniq ) {
 
   $sth{link2seq}->execute($acc);
@@ -117,6 +119,7 @@ for my $acc ( keys %acc_uniq ) {
       $id_str .= "_".$row_href->{prim_acc};
     }
 
+    $have_isoforms = 1;
     printf(">%s|%s|%s %s\n","iso",$acc,$id_str,$row_href->{descr});
     my $iso_seq = $row_href->{seq};
     $iso_seq =~ s/(.{60})/$1\n/g;
@@ -127,6 +130,8 @@ for my $acc ( keys %acc_uniq ) {
 }
 
 $dbh->disconnect();
+
+exit(4) unless $have_isoforms;
 
 sub process_line{
   my ($seqid,$sth_acc, $sth_id)=@_;
