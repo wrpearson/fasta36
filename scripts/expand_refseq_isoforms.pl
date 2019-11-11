@@ -104,6 +104,8 @@ for my $line ( @link_lines ) {
   }
 }
 
+my $have_isoforms = 0;
+
 for my $acc ( keys %acc_uniq ) {
 
   $sth{link2seq}->execute($acc);
@@ -125,6 +127,8 @@ for my $acc ( keys %acc_uniq ) {
 }
 
 $dbh->disconnect();
+
+exit(4) unless $have_isoforms;
 
 sub process_line{
   my ($seqid,$sth_acc)=@_;
