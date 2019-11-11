@@ -6,6 +6,16 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov. 11, 2019
+[scripts/expand_up_isoforms.pl]
+Add exit(4), which should be recognized by
+complib2e.c/build_link_data(), to recognize that no link-data will be
+found.  This should reduce error messages dramatically.
+
+[scripts/expand_refseq_isoforms.pl]
+Equivalent of expand_up_isoforms.pl for RefSeq sequences.  Both
+programs require appropriate SQL tables.
+
 >>Sept. 10, 2019
 [scripts/*.py, psisearch2/*.py]
 Converted to python3.
