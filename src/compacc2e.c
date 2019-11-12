@@ -495,6 +495,7 @@ print_header2(FILE *fd, int qlib, char *info_qlabel, unsigned char **aa0,
 	      const char * info_lib_range_p) {
   int j;
   char tmp_str[MAX_STR];
+  int have_feat = 0;
   double db_tt;
 
   /* if (m_msp->markx & MX_HTML) fputs("<pre>\n",fd); */
@@ -516,14 +517,26 @@ print_header2(FILE *fd, int qlib, char *info_qlabel, unsigned char **aa0,
 
     /* check for annotation */
     if (m_msp->ann_flg && m_msp->aa0a != NULL) {
-      fprintf(fd,"Annotation: ");
+      /* first check for non-domain annotation */
+      have_feat = 0;
       for (j=0; j<m_msp->n0; j++) {
-	if (m_msp->aa0a[j] && m_msp->ann_arr[m_msp->aa0a[j]] != ' ' ) {
-	  fprintf(fd,"|%ld:%c%c",
-		  j+m_msp->q_off,m_msp->ann_arr[m_msp->aa0a[j]],ppst->sq[aa0[0][j]]);
+	if (m_msp->aa0a[j] && m_msp->ann_arr[m_msp->aa0a[j]] != ' '
+	    && m_msp->ann_arr[m_msp->aa0a[j]] != '[' 
+	    && m_msp->ann_arr[m_msp->aa0a[j]] != ']') {
+	  have_feat = 1;
+	  break;
 	}
       }
-    fprintf(fd,"\n");
+      if (have_feat) {
+	fprintf(fd,"Annotation: ");
+	for (j=0; j<m_msp->n0; j++) {
+	  if (m_msp->aa0a[j] && m_msp->ann_arr[m_msp->aa0a[j]] != ' ' ) {
+	    fprintf(fd,"|%ld:%c%c",
+		    j+m_msp->q_off,m_msp->ann_arr[m_msp->aa0a[j]],ppst->sq[aa0[0][j]]);
+	  }
+	}
+	fprintf(fd,"\n");
+      }
     }
 
     fprintf(fd,"Library: %s%s\n", m_msp->ltitle,info_lib_range_p);
