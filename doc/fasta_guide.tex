@@ -863,13 +863,28 @@ can use \texttt{-m 1 -m 6 -m 9}.
   comment lines.  BLAST tabular format has been extended to include
   either a CIGAR string alignment encoding (\texttt{-m 8CC} with BLAST
   comments, \texttt{-m 8XC} without comments) and, if available, an
-  annotation encoding matching FASTA \texttt{-m 9C} output. All the
-  \texttt{-m 9c/C/d/D} encodings are available with BLAST tabular
-  output using \texttt{-m 8C[c/C/d/D]}.  In the v36.3.8h release, a
+  annotation encoding matching FASTA \texttt{-m 9C} output. \texttt{-m
+    8CB} provides the BLAST BTOP encoding, rather than the CIGAR
+  encoding provided by \texttt{-m 8CC}.  All the \texttt{-m 9c/C/d/D}
+  encodings are available with BLAST tabular output using \texttt{-m
+    8C[c/C/d/D]}.  In addition to the BLAST BTOP/CIGAR encoding field
+  added with \texttt{-m 8CB/8CC}, a second additional annotation field is added if annotations are available. The annotation field provides the same annotation boundary and score information as in standard alignment, but in a more compact form:
+\begin{verbatim}
+  |RX:3-82:3-82:s=780;b=201.;I=0.866;Q=570.;C=C.Thio|XR:3-82:3-82:s=780;b=201.;I=0.866;Q=570.5;C=C.Thio...
+\end{verbatim}
+  \texttt{|RX} annotations are based on the query sequence; \texttt{|XR} on the subject. In the example above, the boundaries of the domain in the query and subject are shown (\texttt{3-82:3-82}, as well as the raw score, bit-score, identity, Q-score, and domain name.
+
+  In the v36.3.8h release, a
   new option has been added to \texttt{-m 8CB}, \texttt{-m 8CBL} (or
-  \texttt{-m 8CBl}. The \texttt{L/l} option adds the lengths of the
-  query and subject sequences after the \texttt{seqid}'s to BLAST
+  \texttt{-m 8CBl}. The \texttt{- m8CBl} option adds the lengths of
+  the query and subject sequences after the \texttt{seqid}'s to BLAST
   tabular output, e.g. \texttt{qseqid qlen sseqid slen percid ...}
+
+  \texttt{-m 8CBL} does the same thing, but also adds a new field with
+  the raw domain coordinate information for the query and subject, with \texttt{DX/XD} used to indicate the domains.
+\begin{verbatim}
+  |DX:3-82;C=C.Thio|DX:105-201;C=C.GST_C|XD:3-82;C=C.Thio|XD:105-201;C=C.GST_C
+\end{verbatim}
 
 \item[\texttt{-m 9}] display alignment coordinates and scores with the
   best score information.  \texttt{-m 9i} provides alignment length,

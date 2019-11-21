@@ -171,7 +171,7 @@ def read_annots(Reader, hit_list_r):
 
         last_dom = hit['domains'][-1]
 
-        if ( (not re.search('NODOM',last_dom['descr'])) and (hit['s_end'] - last_dom['d_pos'] + 1) < 10):
+        if ( (re.search('NODOM',last_dom['descr'])) and (hit['s_end'] - last_dom['d_pos'] + 1) < 10):
             hit['domains'].pop(-1)
 
 
@@ -204,6 +204,27 @@ def get_file_annots(file_name, hit_list):
 
     with open(file_name,'r') as Reader:
         read_annots(Reader, hit_list)
+
+
+################
+# get_script_annots(script_name, hit_list)
+#
+# set up stdin/stdout pipe to send in hit list info and read results
+#
+def get_script_annots(script_name, hit_list, key_list):
+
+    proc = subprocess.Popen(script_name, stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True, encoding='utf-8')
+
+    for hit in hit_list:
+        (seq_id, seq_len) = (hit[key_list[0]],hit[key_list[1]])
+        proc.stdin.write(("%s\t%s\n"%(seq_id,seq_len)))
+
+    proc.stdin.close()
+
+    while (proc.returncode is None):
+        proc.poll()
+
+    read_annots(proc.stdout, hit_list)
 
 # input: a blast BTOP string of the form: "1VA160TS7KG10RK27"
 # returns a list_ref of tokens: (1, "VA", 60, "TS", 7, "KG, 10, "RK", 27)
@@ -330,7 +351,7 @@ def alignment_score(query_r, hit, matrix_2d, matrix_diag, g_open, g_ext):
 # calculate a score, identity and boundaries in both sequences and return values
 #
 
-def one_sub_alignment_stats(domain_r, x_map, y_map, xa_start, xa_end):
+def one_sub_alignment_stats(domain_r, x_map, y_map, xa_start, xa_end, ya_start, ya_end):
 
     td_start, td_end = (domain_r['d_pos'],domain_r['d_end'])
 
@@ -346,11 +367,15 @@ def one_sub_alignment_stats(domain_r, x_map, y_map, xa_start, xa_end):
     td_start -= xa_start
     td_end -= xa_start
 
-    score = x_map[td_end]['s'] - x_map[td_start]['s']
+    left_score = 0
+    if (td_start>0) :
+        left_score = x_map[td_start-1]['s']
+
+    score = x_map[td_end]['s'] - left_score
 
     # map[] coordinates are 0-based
-    ya_start = x_map[td_start]['y_ix']+1
-    ya_end = x_map[td_end]['y_ix']+1
+    # ya_start = x_map[td_start]['y_ix']+1
+    # ya_end = x_map[td_end]['y_ix']+1
 
     #### identity calculation:
     n_len = 0
@@ -361,24 +386,24 @@ def one_sub_alignment_stats(domain_r, x_map, y_map, xa_start, xa_end):
         x_res=this_x['res']
         if (this_x['y_ix'] >= 0):
             n_len += 1
-            y_res = y_map[this_x['y_ix']]['res']
+            y_res = y_map[this_x['y_ix']-ya_start+1]['res']
             if (x_res.upper() == y_res.upper()):
                 n_id += 1
 
     ident = float(n_id)/float(n_len)
 
-    return score, ident, domain_r['d_pos'], domain_r['d_end'], ya_start, ya_end
+    return score, ident, td_start+xa_start, td_end+xa_start, x_map[td_start]['y_ix'], x_map[td_end]['y_ix']
 
 ################
 # get domain scores, idents, boundaries for list of domains
 #
-def do_sub_alignment_stats(domain_list, x_map, y_map, xa_start, xa_end, keys_str):
+def do_sub_alignment_stats(domain_list, x_map, y_map, xa_start, xa_end, ya_start, ya_end, keys_str):
 
     aligned_doms = []
 
     for domain in domain_list:
-        subalign_data = one_sub_alignment_stats(domain, x_map, y_map, xa_start, xa_end)
-        if (len(subalign_data)==6):
+        subalign_data = one_sub_alignment_stats(domain, x_map, y_map, xa_start, xa_end, ya_start, ya_end)
+        if (subalign_data and len(subalign_data)==6):
             sub_data = dict(zip(keys_str,subalign_data))
             for k in ('type','descr'):
                 sub_data[k] = domain[k]
@@ -418,8 +443,8 @@ def format_annot_info(annot_list_r, hit):
             if (annot_r['target']):
                 rx_str = "RX"
             annot_str += ';'.join(("|%s:%d-%d:%d-%d:s=%d"%(rx_str,
-                                      annot_r['qa_start'],annot_r['qa_end'],
-                                      annot_r['sa_start'],annot_r['sa_end'],ns_score),
+                                      annot_r['qa_start']+1,annot_r['qa_end']+1,
+                                      annot_r['sa_start']+1,annot_r['sa_end']+1,ns_score),
                                    "b=%.1f"%(s_bit),"I=%.3f"%(annot_r['ident']),
                                    "Q=%.1f"%(qval),"C=%s"%(annot_r['descr'])))
 
@@ -449,7 +474,7 @@ def main(args):
 
     tab_fields = "q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits BTOP".split(' ')
     int_fields = "alen mismatch gopen q_start q_end s_start s_end".split(' ')
-    float_fields = "percid evalue bits".split(' ')
+    float_fields = "percid evalue bits score".split(' ')
 
     if (args.have_qslen):
         tab_fields = "q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits BTOP".split(' ')
@@ -457,9 +482,17 @@ def main(args):
 
     # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
     out_tab_fields = tab_fields[0:-1]
+    in_tab_fields = tab_fields[0:-1]
 
-    if (args.raw_score):
+    if (args.score_out):
         out_tab_fields.append("raw_score")
+
+    if (args.score_in):
+        in_tab_fields.append("score")
+
+    ## always add BTOP
+    in_tab_fields.append("BTOP")
+    tab_fields = in_tab_fields
 
     if (args.out_fields):
         out_tab_fields = out_fields.split(" ")
@@ -503,10 +536,10 @@ def main(args):
     elif (args.q_ann_script):
         args.q_ann_script = re.sub(r'\+',' ',args.q_ann_script)
 
-        if (args.q_ann_script and shutils.which(args.q_ann_script.split(" ")[0])):
+        if (args.q_ann_script and shutil.which(args.q_ann_script.split(" ")[0])):
             q_seqid = hit_list[0]['q_seqid']
             q_hit_list.append({'s_seq_id':q_seqid, 's_end':len(query_lib_r[q_seqid])})
-            get_script_annots(args.q_ann_script, q_hit_list)
+            get_script_annots(args.q_ann_script, q_hit_list, ['s_seq_id','s_end'])
 
     # get the subject annotations
     # first set up the list with sequence lengths
@@ -521,8 +554,8 @@ def main(args):
         get_file_annots(args.ann_file, hit_list)
     elif (args.ann_script):
         args.ann_script = re.sub(r'\+',' ',args.ann_script)
-        if (shutils.which(args.ann_script.split(" ")[0])):
-            get_script_annots(args.ann_script, hit_list)
+        if (shutil.which(args.ann_script.split(" ")[0])):
+            get_script_annots(args.ann_script, hit_list,['s_seq_id','s_end'])
 
     for line in header_lines:
         print(line, end='')
@@ -534,42 +567,42 @@ def main(args):
     for hit in hit_list:
         list_covered = []
 
-    # If I have an encoded aligment {BTOP} and a query sequence $query_lib_r && $query_lib_r['$hit['q_seqid']}
-    # then I can calculate sub-alignment scores
-    if ('BTOP' in hit and query_lib_r and hit['q_seqid'] in query_lib_r):
+        # If I have an encoded aligment {BTOP} and a query sequence $query_lib_r && $query_lib_r['$hit['q_seqid']}
+        # then I can calculate sub-alignment scores
+        if ('BTOP' in hit and query_lib_r and hit['q_seqid'] in query_lib_r):
 
-        # calculate raw_score and mappings
-        hit['raw_score'], q_map, s_map = alignment_score(query_lib_r[hit['q_seqid']],
-                                                         hit,blosum62, blosum62_diag, g_open, g_ext)
-        if ('score' not in hit):
-            hit['score'] = hit['raw_score']
+            # calculate raw_score and mappings
+            hit['raw_score'], q_map, s_map = alignment_score(query_lib_r[hit['q_seqid']],
+                                                             hit,blosum62, blosum62_diag, g_open, g_ext)
+            if ('score' not in hit):
+                hit['score'] = hit['raw_score']
 
-        # calculate sub-alignment scores in subject/library coordinates
+            # calculate sub-alignment scores in subject/library coordinates
 
-        if ('domains' in hit and len(hit['domains'])>0):
-            hit['aligned_domains'] = do_sub_alignment_stats(hit['domains'], s_map, q_map, hit['s_start'],hit['s_end'],
-                                                            ('score','ident','sa_start', 'sa_end', 'qa_start', 'qa_end'))
+            if ('domains' in hit and len(hit['domains'])>0):
+                hit['aligned_domains'] = do_sub_alignment_stats(hit['domains'], s_map, q_map, hit['s_start'],hit['s_end'],hit['q_start'],hit['q_end'],
+                                                                ('score','ident','sa_start', 'sa_end', 'qa_start', 'qa_end'))
 
-        # calculate sub-alignment scores in query coordinates
-        if ('domains' in q_hit_list[0] and len(q_hit_list[0]['domains'])>0):
-            hit['q_aligned_domains'] = do_sub_alignment_stats(q_hit_list[0]['domains'], s_map, q_map, hit['s_start'],hit['s_end'],
-                                                              ('score','ident','qa_start', 'qa_end', 'sa_start', 'sa_end'))
-    ################
-    ## final output display
+            # calculate sub-alignment scores in query coordinates
+            if (len(q_hit_list) > 0 and 'domains' in q_hit_list[0] and len(q_hit_list[0]['domains'])>0):
+                hit['q_aligned_domains'] = do_sub_alignment_stats(q_hit_list[0]['domains'], q_map, s_map, hit['q_start'],hit['q_end'],hit['s_start'],hit['s_end'],
+                                                                  ('score','ident','qa_start', 'qa_end', 'sa_start', 'sa_end'))
+        ################
+        ## final output display
 
-    print("\t".join([str(hit[x]) for x in out_tab_fields]),end='') # show fields from original blast tabular file
+        print("\t".join([str(hit[x]) for x in out_tab_fields]),end='') # show fields from original blast tabular file
 
-    merged_annots_r = merge_annots(hit)                # merge the four possible annotation lists into one.
+        merged_annots_r = merge_annots(hit)                # merge the four possible annotation lists into one.
 
-    if (len(merged_annots_r)>0):
-        print("\t"+format_annot_info(merged_annots_r, hit),end='')
-        if (args.dom_info):
-            print("\t"+format_dom_info(q_hit['domains'], hit['domains']))
-    elif (len(list_covered)>0):
-        print("\t" + ";".join(list_covered))
-        if (args.dom_info):
-            print("\t"+format_dom_info(q_hit['domains'], hit['domains']))
-    print()
+        if (len(merged_annots_r)>0):
+            print("\t"+format_annot_info(merged_annots_r, hit),end='')
+            if (args.dom_info):
+                print("\t"+format_dom_info(q_hit['domains'], hit['domains']))
+        elif (len(list_covered)>0):
+            print("\t" + ";".join(list_covered))
+            if (args.dom_info):
+                print("\t"+format_dom_info(q_hit['domains'], hit['domains']))
+        print()
 
     for line in header_lines:
         print(line,end="")
@@ -577,18 +610,21 @@ def main(args):
 
 if __name__ == '__main__':
 
+    print('# ' + ' '.join(sys.argv))
+
     parser=argparse.ArgumentParser(description='annot_blast_btop3.py : annotate blast tabular format with btop ')
     parser.add_argument('--matrix', help='scoring matrix',dest='matrix',action='store',default='BL62')
     parser.add_argument('--ann_script', help='script for subject annotations',dest='ann_script',action='store')
     parser.add_argument('--q_ann_script', help='script for query annotations',dest='q_ann_script',action='store')
     parser.add_argument('--ann_file', help='subject annotation file',dest='ann_file',action='store')
     parser.add_argument('--q_ann_file', help='query annotation file',dest='q_ann_file',action='store')
-    parser.add_argument('--have_qslen', help='query/subject lenghts in tab file',dest='have_qslen',action='store_true',default='FALSE')
+    parser.add_argument('--have_qslen', help='query/subject lenghts in tab file',dest='have_qslen',action='store_true',default=False)
     parser.add_argument('--dom_info', help='show unaligned domain coordinates',dest='dom_info',action='store_true',default=False)
     parser.add_argument('--sub2query', help='get query annots from self-subject',dest='sub_query',action='store_true',default=False)
     parser.add_argument('--query', help='file of query sequences',dest='query_file',action='store')
     parser.add_argument('--out_fields', help='names/order of output fields',dest='out_fields',action='store')
-    parser.add_argument('--raw_score', help='include raw score',dest='raw_score',action='store_true',default=False)
+    parser.add_argument('--score_in', help='read raw score',dest='score_in',action='store_true',default=True)
+    parser.add_argument('--score_out', help='display raw score',dest='score_out',action='store_true',default=False)
     parser.add_argument('files', metavar='FILE', help='Blast tabular BTOP files to read', nargs='*')
 
     args=parser.parse_args()
