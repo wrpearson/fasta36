@@ -221,17 +221,17 @@ Current versions of the FASTA programs expect a query file and library, if you s
 \begin{verbatim}
 % ssearch36
 USAGE
- ssearch36 [-options] query_file library_file
+ ssearch36 [-options] query_file library_file [ktup]
  ssearch36 -help for a complete option list
 
 DESCRIPTION
- SSEARCH performs a Smith-Waterman search
- version: 36.3.4 Mar, 2011
+ FASTA searches a protein or DNA sequence data bank
+ version: 36.3.8h Aug, 2019
 
-COMMON OPTIONS (options must precede query_file library_file)
- -s:  [BL50] scoring matrix;
- -f:  [-10] gap-open penalty;
- -g:  [-2] gap-extension penalty;
+COMMON OPTIONS (options must preceed query_file library_file)
+ -s:  scoring matrix;
+ -f:  gap-open penalty;
+ -g:  gap-extension penalty;
  -S   filter lowercase (seg) residues;
  -b:  high scores reported (limited by -E by default);
  -d:  number of alignments shown (limited by -E by default);
