@@ -67,7 +67,7 @@ use File::Temp qw/ tempfile /;
 
 # and report the domain content ala -m 8CC
 
-my ($matrix, $ann_script, $q_ann_script, $show_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0);
+my ($matrix, $ann_script, $q_ann_script, $show_raw, $have_raw, $shelp, $help) = ("BLOSUM62", "", "", 0, 0, 0, 0);
 my ($ann_file, $q_ann_file) = ("","");
 
 my ($have_qslen, $dom_info, $inc_btop, $sub2query) = (0,0,0,0);		# blast tabular file has sseqid sseqlen qseqid qseqlen
@@ -79,6 +79,7 @@ my @blosum62 = ();
 my @blosum62_diag = ();
 my %aa_map = ();
 my ($g_open, $g_ext) = (-11, -1);
+
 init_blosum62();
 
 GetOptions(
@@ -95,7 +96,8 @@ GetOptions(
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
     "out_fields:s" => \$out_field_str,
-    "raw_score" => \$show_raw,
+    "have_raw_score|have_raw!" => \$have_raw,
+    "show_raw" => \$show_raw,
     "h|?" => \$shelp,
     "help" => \$help,
     );
@@ -110,21 +112,25 @@ if ($query_lib_name) {
   $query_lib_r = parse_query_lib($query_lib_name);
 }
 
-my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
+my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits BTOP);
 
 if ($have_qslen) {
-  @tab_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
+  @tab_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits BTOP);
+}
+
+if ($have_raw) {
+  @tab_fields = (@tab_fields[0 .. $#tab_fields-1], 'raw_score' , 'BTOP');
 }
 
 # the fields that are displayed are listed here.  By default, all fields except score and BTOP are displayed.
 my @out_tab_fields = @tab_fields[0 .. $#tab_fields-1];
 
-if ($inc_btop) {
-  push @out_tab_fields, "BTOP";
-}
-
 if ($show_raw) {
   push @out_tab_fields, "raw_score";
+}
+
+if ($inc_btop) {
+  push @out_tab_fields, "BTOP";
 }
 
 if ($out_field_str) {
@@ -174,7 +180,7 @@ while (1) {
 
     push @q_hit_list,{ s_seq_id=> $hit->{q_seqid}, s_end=> $q_seq_len};
 
-    open(my $Reader, $q_ann_file,'r') || warn "cannot read annotation from $q_ann_file";
+    open(my $Reader, "<$q_ann_file") || warn "cannot read annotation from $q_ann_file";
     read_annots($Reader, \@q_hit_list, 0);
   }
   elsif ($q_ann_script && -x (split(/\s+/,$q_ann_script))[0]) {
@@ -202,7 +208,7 @@ while (1) {
 
   if ($ann_file && -f $ann_file) {
 
-    open(my $Reader, $ann_file,'r') || warn "cannot read annotation from $q_ann_file";
+    open(my $Reader, "<$ann_file") || warn "cannot read annotation from $q_ann_file";
     read_annots($Reader, \@hit_list, 1);
   }
   elsif ($ann_script && -x (split(/\s+/,$ann_script))[0]) {
@@ -1272,17 +1278,17 @@ sub format_dom_info {
 sub format_annot_info {
   my ($hit_r, $annot_list_r) = @_;
 
-  my $raw_score = 0;
+  my $raw_score = 1.0;
 
   if  ($hit_r->{raw_score} ) {
     $raw_score = $hit_r->{raw_score};
   }
   else {
 #    warn "no raw_score at: ".$hit_r->{s_seqid}."\n";
-    $raw_score = $hit_r->{score};
+    $raw_score = $hit_r->{bits};
   }
 
-  my $score_scale = $hit_r->{score}/$raw_score;
+  my $score_scale = $hit_r->{bits}/$raw_score;
 
   my $annot_str = "";
 
