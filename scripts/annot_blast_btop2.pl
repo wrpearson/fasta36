@@ -96,8 +96,8 @@ GetOptions(
     "query_file:s" => \$query_lib_name,
     "query_lib:s" => \$query_lib_name,
     "out_fields:s" => \$out_field_str,
-    "have_raw_score|have_raw!" => \$have_raw,
-    "show_raw" => \$show_raw,
+    "raw_score!" => \$have_raw,
+    "raw_score_out!" => \$show_raw,
     "h|?" => \$shelp,
     "help" => \$help,
     );

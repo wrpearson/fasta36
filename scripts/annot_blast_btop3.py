@@ -392,7 +392,7 @@ def one_sub_alignment_stats(domain_r, x_map, y_map, xa_start, xa_end, ya_start, 
 
     ident = float(n_id)/float(n_len)
 
-    return score, ident, td_start+xa_start, td_end+xa_start, x_map[td_start]['y_ix'], x_map[td_end]['y_ix']
+    return score, ident, td_start+xa_start-1, td_end+xa_start-1, x_map[td_start]['y_ix'], x_map[td_end]['y_ix']
 
 ################
 # get domain scores, idents, boundaries for list of domains
@@ -484,10 +484,10 @@ def main(args):
     out_tab_fields = tab_fields[0:-1]
     in_tab_fields = tab_fields[0:-1]
 
-    if (args.score_out):
+    if (args.raw_out):
         out_tab_fields.append("raw_score")
 
-    if (args.score_in):
+    if (args.raw_in):
         in_tab_fields.append("score")
 
     ## always add BTOP
@@ -623,8 +623,10 @@ if __name__ == '__main__':
     parser.add_argument('--sub2query', help='get query annots from self-subject',dest='sub_query',action='store_true',default=False)
     parser.add_argument('--query', help='file of query sequences',dest='query_file',action='store')
     parser.add_argument('--out_fields', help='names/order of output fields',dest='out_fields',action='store')
-    parser.add_argument('--score_in', help='read raw score',dest='score_in',action='store_true',default=True)
-    parser.add_argument('--score_out', help='display raw score',dest='score_out',action='store_true',default=False)
+    parser.add_argument('--raw_score', help='raw score after bit score',dest='raw_in',action='store_true',default=True)
+    parser.add_argument('--no_raw_score', help='raw score after bit score',dest='raw_in',action='store_false', default=True)
+    parser.add_argument('--no-raw_score', help='raw score after bit score',dest='raw_in',action='store_false', default=True)
+    parser.add_argument('--raw_score_out', help='display raw score',dest='raw_out',action='store_true',default=False)
     parser.add_argument('files', metavar='FILE', help='Blast tabular BTOP files to read', nargs='*')
 
     args=parser.parse_args()
