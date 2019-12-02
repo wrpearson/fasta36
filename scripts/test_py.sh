@@ -50,6 +50,13 @@ map_exon_coords.py  hum_chk_map_test.m8CBL
 echo 'rename_exons.py -- look for exon_X in output'
 rename_exons.py hum_chk_map_test.m8CBL   # produces a renamed exon_x
 
-## echo 'relabel_domains.py
-## relabel_domains.py
+echo '################################################################'
+echo 'annot_blast_btop3.py -- put annotations on blast BTOP alignment with (or without) raw_score'
+# (a) from FASTA -m8CBl -- no raw score
+echo '.fa_tab no raw score'
+annot_blast_btop4.py --no_raw_score --have_qslen --query ../seq/mgstm1.aa --q_ann_file gstm1_mouse.annot --ann_file a1zb72_drome.annot mgstm1_v_a1zb72_dr.fa_tab
+
+## .bl_tab uses --ann_script because of multiple HSPs
+echo '.bl_tab yes raw score'
+annot_blast_btop4.py --raw_score --have_qslen --query ../seq/mgstm1.aa --q_ann_file gstm1_mouse.annot --ann_script ann_pfam_sql.pl mgstm1_v_a1zb72.bl_tab
 
