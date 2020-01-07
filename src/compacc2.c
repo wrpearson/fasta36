@@ -184,8 +184,7 @@ reset_maxn(struct mngmsg *m_msp, int over_len, int maxn) {
 				   set low manually */
 
       if (m_msp->n0*4+2 < m_msp->max_tot) { /* m_msg0*3 + m_msg0 */
-	fprintf(stderr,
-		"*** error [%s:%d] - query sequence too long for library segment: %d - resetting to %d\n",
+	fprintf(stderr,	"*** error [%s:%d] - query sequence too long for library segment: %d - resetting to %d\n",
 		__FILE__, __LINE__,
 		maxn,m_msp->n0*3);
 	maxn = m_msp->ldb_info.maxn = m_msp->n0*3;
@@ -986,7 +985,8 @@ pre_load_best(unsigned char *aa1save, int maxn,
 #ifdef DEBUG
     if (bbp_arr[i]->n1 != bbp_arr[i]->seq->n1) {
       fprintf(stderr,"*** error [%s:%d] - n1 (%d) != seq->n1 (%d)\n",
-	      __FILE__, __LINE__, bbp_arr[i]->n1, bbp_arr[i]->seq->n1);
+	      __FILE__, __LINE__, 
+	      bbp_arr[i]->n1, bbp_arr[i]->seq->n1);
     }
 #endif
 
@@ -1026,7 +1026,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
   for (i=0; i<nbest; i++) {
     bbp = bbp_arr[i];
 
-    if ((m_fptr=re_openlib(bbp->mseq->m_file_p,!m_msp->quiet))==NULL) {
+    if ((m_fptr=re_openlib(bbp->mseq->m_file_p,m_msp->quiet==0))==NULL) {
       fprintf(stderr,"*** error [%s:%d] - cannot re-open %s\n",
 	      __FILE__, __LINE__, bbp->mseq->m_file_p->lb_name);
       exit(1);

@@ -50,7 +50,7 @@ echo 'rename_exons.py -- look for exon_X in output'
 rename_exons.py hum_chk_map_test.m8CBL   # produces a renamed exon_x
 
 echo '################################################################'
-echo 'annot_blast_btop3.py -- put annotations on blast BTOP alignment with (or without) raw_score'
+echo 'annot_blast_btop4.py -- put annotations on blast BTOP alignment with (or without) raw_score'
 # (a) from FASTA -m8CBl -- no raw score
 echo '.fa_tab no raw score'
 annot_blast_btop4.py --no_raw_score --have_qslen --query ../seq/mgstm1.aa --q_ann_file gstm1_mouse.annot --ann_file a1zb72_drome.annot mgstm1_v_a1zb72_dr.fa_tab

@@ -18,9 +18,9 @@
 ################################################################
 
 ################################################################
-# annot_blast_btop2.py --query query.file --ann_script ann_pfam_www.pl --include_doms blast_tab_btop_file
+# annot_blast_btop3.py --query query.file --ann_script ann_pfam_www.pl --include_doms blast_tab_btop_file
 ################################################################
-# annot_blast_btop2.py associates domain annotation information and
+# annot_blast_btop3.py associates domain annotation information and
 # subalignment scores with a blast tabular (-outfmt 6 or -outfmt 7)
 # file that contains the raw score and the BTOP alignment encoding
 # This file can be generated from "blastp/n" or "blast_formatter"

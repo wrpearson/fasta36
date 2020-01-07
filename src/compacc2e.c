@@ -1039,7 +1039,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
   for (i=0; i<nbest; i++) {
     bbp = bbp_arr[i];
 
-    if ((m_fptr=re_openlib(bbp->mseq->m_file_p,!m_msp->quiet))==NULL) {
+    if ((m_fptr=re_openlib(bbp->mseq->m_file_p,m_msp->quiet==0))==NULL) {
       fprintf(stderr,"*** error [%s:%d] - cannot re-open %s\n",
 	      __FILE__, __LINE__, bbp->mseq->m_file_p->lb_name);
       exit(1);
