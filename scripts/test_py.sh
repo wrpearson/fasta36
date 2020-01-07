@@ -25,7 +25,6 @@ get_protein_sql_www.py 'sp|P09488|GSTM1_HUMAN'
 get_protein_sql_www.py 'P09488'
 get_protein_sql_www.py 'NP_000552'
 
-
 echo 'get_refseq.py'
 get_refseq.py NP_000552
 get_refseq.py NP_0000552

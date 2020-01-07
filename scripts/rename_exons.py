@@ -296,9 +296,11 @@ def parse_protein(line_data,fields, req_name):
 
     return data
 
+################
 # "domain" : RX:1-38:3-40:s=37;b=17.0;I=0.289;Q=15.9;C=exon_1~1
 # "name"   : like exon_2
 # expanded for domain: RX:1-38:3-40:s=37;b=17.0;I=0.289;Q=15.9;C=exon_1{chr1:12345678-123456987}~1
+#
 def replace_name(domain_text, new_name, new_color_s):
     out = "=".join(domain_text.split("=")[:-1])  # out has everything to last '='
 
@@ -660,7 +662,7 @@ def set_data_fields(args, line_data) :
 
 def main():
 
-    parser=argparse.ArgumentParser(description='scan_exons.py result_file.m8CB : re-label subject exons to match query')
+    parser=argparse.ArgumentParser(description='rename_exons.py result_file.m8CB : re-label subject exons to match query')
     parser.add_argument('--have_qslen', help='bl_tab fields include query/subject lengths',dest='have_qslen',action='store_true',default=False)
     parser.add_argument('--dom_info', help='raw domain coordinates included',action='store_true',default=False)
     parser.add_argument('--fill_gcoords', help='fill in genomic coordinates',action='store_true',default=False)

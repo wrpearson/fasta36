@@ -55,15 +55,17 @@ use Getopt::Long;
 
 # and report the domain content ala -m 8CC
 
-my ($shelp, $help, $evalue) = (0, 0, 0.001);
-my ($query_file, $bound_file) = ("","");
-my ($out_field_str) = ("");
+my ($shelp, $help, $evalue, $percid) = (0, 0, 0.001, 0.0);
+my ($query_file, $bound_file, $have_qslen, $label_coords) = ("","",0,0);
 my $query_lib_r = 0;
 
 GetOptions(
     "query=s" => \$query_file,
     "query_file=s" => \$query_file,
+    "have_qslen" => \$have_qslen,
     "evalue=f" => \$evalue,
+    "percid=f" => \$percid,
+    "coords!" => \$label_coords,
     "bound_file=s" => \$bound_file,
     "bound=s" => \$bound_file,
     "seqbdr=s" => \$bound_file,
@@ -109,6 +111,10 @@ if ($bound_file) {
 
 my @tab_fields = qw(q_seqid s_seqid percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
 
+if ($have_qslen) {
+    @tab_fields = qw(q_seqid q_len s_seqid s_len percid alen mismatch gopen q_start q_end s_start s_end evalue bits score BTOP);
+}
+
 while (my $line = <>) {
   if ($line =~ m/^# Fields:/ && $line !~ m/bit score, score, BTOP/)  {
     # raw score missing, edit @tab_fields
@@ -126,6 +132,8 @@ while (my $line = <>) {
   @hit_data{@tab_fields} = split(/\t/,$line);
 
   next if ($hit_data{evalue} > $evalue);
+
+  next if ($hit_data{percid} < $percid);
 
 #  push @hit_list, \%hit_data;
   if (length($hit_data{s_seqid}) > $max_sseqid_len) {
@@ -150,14 +158,34 @@ $max_sseqid_len += 4;
 print "SSEARCHm8 multiple sequence alignment\n\n\n";
 
 my $i_pos = 0;
+my $del_cnt = 0;
 for (my $j = 0; $j < $query_len/60; $j++) {
   my $i_end = $i_pos + 59;
   if ($i_end > $query_len) {$i_end = $query_len-1;}
+
+  my $label_str = "%-".$max_sseqid_len."s";
+  my $coord_str = " " x ($max_sseqid_len);
+
+  # build a coordinate line using the first sequence
+  if ($label_coords) {
+      my $cline = '';
+      for (my $ip=$i_pos; $ip <= $i_end; $ip++) {
+	  $del_cnt++ if (${multi_align[0]}[$ip]eq'-');
+	  my $ci_pos = $ip - $del_cnt;
+	  last if $ci_pos > $query_len;
+	  if ($ci_pos % 10 == 9) {
+	      $cline .= sprintf("  %8d",$ci_pos+1);
+	  }
+      }
+      print("$coord_str $cline\n");
+  }
+
   for (my $n = 0; $n < scalar(@multi_names); $n++) {
-    printf("%-".$max_sseqid_len."s %s\n",$multi_names[$n],join("",@{$multi_align[$n]}[$i_pos .. $i_end]));
+    printf("$label_str %s\n",$multi_names[$n],join("",@{$multi_align[$n]}[$i_pos .. $i_end]));
   }
   $i_pos += 60;
-  print "\n\n";
+  print "\n";
+  print "\n" unless ($label_coords);
 }
 
 
@@ -187,7 +215,6 @@ sub decode_btop {
 
   return \@out_tokens;
 }
-
 
 sub btop2alignment {
   my ($query_seq_r, $query_len, $hit_data_hr) = @_;
@@ -351,60 +378,31 @@ __END__
 
 =head1 NAME
 
-annot_blast_btop2.pl
+m8_btop_msa.pl
 
 =head1 SYNOPSIS
 
- annot_blast_btop2 --ann_script ann_pfam_www_e.pl [--query_file query.fasta] --out_fields "q_seqid s_seqid percid evalue" blast_tabular_file
+ m8_btop_msa.pl --query ../seq/mgstm1.aa blast_tabular_file
 
 =head1 OPTIONS
 
  -h	short help
  --help include description
 
- --ann_script -- annotation script returning site/domain locations for subject sequences
-              -- same as --script
-
- --q_ann_script -- annotation script for query sequences
-                -- same as --q_script
-
- --query_file -- fasta query sequence
-              -- same as --query, --query_lib
+ --query      -- fasta query sequence
+              -- same as --query_file
                  (can contain multiple sequences for multi-sequence search)
 
- --out_fields -- blast tabular fields shown before domain information
-
- --raw_score -- add the raw_score used to normalized domain scores to
-                tabular output (raw_scores are only calculated for domains)
+ --have_qslen -- blast tabular file includes q_len, s_len
+ --evalue     -- only include alignments better than E()-value
+ --bound_file -- also --bound, --seqbdr -- file specifying regions to be included
+ --coords     -- provide coordinates based on query sequence
 
 =head1 DESCRIPTION
 
-C<annot_blast_btop2.pl> runs the script specified by
-C<--ann_script/--q_ann_script> to annotate functional sites domain
-content of the sequences specified by the subject/query seqid field of
-blast tabular format (-outfmt 6 or 7) or FASTA blast tabular format
-(-m 8).  The C<--ann_script/--q_ann_script> file is run to produce
-domain boundary coordinates.  For searches against SwissProt
-sequences, C<--ann_script ann_feats_up_www2.pl> will acquire features
-and domains from Uniprot.  C<--ann_script ann_pfam_www.pl --neg> will
-get domain information from Pfam, and score non-domain (NODOM)
-regions.
-
-The tab file is read and parsed, and then the subject/query seqid is used to
-capture domain locations in the subject/query sequence.  If the domains
-overlap the aligned region, the domain names are appended to the
-intput.
-
-If a C<--query_file> is specified and two additional fields, C<score>
-and C<btop> are present, C<annot_blast_btop2.pl> calculates
-sub-alignment scores, including fraction identity, bit score, and
-Q-value (-log10(E-value)), partitioning the alignment score, identity,
-and bit score across the overlapping domains.
-
-The C<--out_fields> specifies the blast tabular fields that can be
-returned.  By default, C<q_seqid s_seqid percid alen mismatch gopen
-q_start q_end s_start s_end evalue bits> (but not C<score> and
-C<BTOP>) are shown.
+C<m8_btop_msa.pl> takes a Blast tabular output file with a BTOP
+encoded alignment (or a fasta -m8CB output file) and produces a
+Clustal-like MSA from the implied alignments to the query sequence.
 
 =head1 AUTHOR
 

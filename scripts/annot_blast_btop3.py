@@ -159,6 +159,7 @@ def read_annots(Reader, hit_list_r):
     
     Reader.close()
 
+    # get the last one
     hit_list_r[hit_ix]['domains'] = hit_domains;
     hit_list_r[hit_ix]['sites']   = hit_sites;
 
