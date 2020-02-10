@@ -1158,7 +1158,7 @@ programs. (There is an option in the \texttt{Makefile},
 
 \item[\texttt{-t \#}] Translation table - fastx36, tfastx36, fasty36,
   and tfasty3 now support the BLAST translation tables.  See
-  \url{http://www.ncbi.nih.gov/Taxonomy/Utils/wprintgc.cgi}.  
+  \url{http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi}.  
 
   \texttt{-t 1} also enables translation of \texttt{'TGA'} to
   \texttt{'U'} (seleno-cysteine) (by default, \texttt{'TGA'} is
@@ -1551,8 +1551,8 @@ is \texttt{"/seqdata"}, then the resulting substitution yields:
 
 The FASTA program package does not include any protein or DNA sequence
 libraries.  Protein and DNA sequence databases are available via
-anonymous FTP from the NCBI (\url{ftp://ftp.ncbi.nih.gov/blast/db},
-\url{ftp://ftp.ncbi.nih.gov/blast/db}), UniProt
+anonymous FTP from the NCBI (\url{ftp://ftp.ncbi.nlm.nih.gov/blast/db},
+\url{ftp://ftp.ncbi.nlm.nih.gov/blast/db}), UniProt
 (\url{ftp://ftp.uniprot.org/pub/databases/uniprot}), and the EBI
 (\texttt{ftp.ebi.ac.uk/pub/databases}).
 
@@ -1569,7 +1569,7 @@ comparisons with \texttt{fastx36} or \texttt{fasty36}, show be scanned
 to remove low-complexity regions.  Matches between low complexity
 regions can violate the composition assumptions used by the FASTA
 statistical estimates. The \texttt{pseg} program (\cite{woo935},
-\url{ftp://ftp.ncbi.nih.gov/pub/seg/pseg}) can be used to lower-case
+\url{ftp://ftp.ncbi.nlm.nih.gov/pub/seg/pseg}) can be used to lower-case
 low complexity regions, which then can be ignored during the initial
 database search by using the \texttt{-S} option.  To lower-case low
 complexity regions, run the \texttt{pseg} program against the protein sequence database:
@@ -1687,7 +1687,7 @@ which are available from the NCBI \texttt{ftp} site.
 
 The NCBI also provides the comprehensive \texttt{nt} DNA database, and
 several EST databases in Blast2.0/\texttt{formatdb} format from
-\texttt{ftp://ncbi.nih.gov/blast/db}.
+\texttt{ftp://ncbi.nlm.nih.gov/blast/db}.
 
 
 \subsection{Finding the library files}

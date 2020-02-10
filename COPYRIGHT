@@ -16,4 +16,7 @@
    Code in the smith_waterman_sse2.c and smith_waterman_sse2.h files
    is copyright (c) 2006 by Michael Farrar.  Code in the
    global_sse2.c, global_sse2.h, glocal_sse2.c, and glocal_sse2.h
-   files is copyright (c) 2010 by Michael Farrar.
+   files is copyright (c) 2010 by Michael Farrar.  This code has been
+   released under the BSD open source license, see COPYRIGHT.sse2.
+
+

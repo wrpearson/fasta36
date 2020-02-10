@@ -1,10 +1,13 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8h** February, 2020
+
+1. The license for Michael Farrar's Smith-Waterman sse2 code and global/glocal sse2 code is now open source (BSD), see COPYRIGHT.sse2 for details.
+
 Changes in **fasta-36.3.8h** August, 2019
 
 1. Modifications to support makeblastdb format v5 databases. Currently, only simple database reads have been tested.
-
 
 Changes in **fasta-36.3.8h** March, 2019
 

@@ -3,15 +3,21 @@ COPYRIGHT.sse2
 
 The source code in the following files:
 
-global_sse2.c
-global_sse2.h
-glocal_sse2.c
-glocal_sse2.h
 smith_waterman_sse2.c
 smith_waterman_sse2.h
 
 is Copyright 2006 by Michael Farrar.  
-Freely distributed under the BSD open source license.
+
+The source code in the files:
+
+global_sse2.c
+global_sse2.h
+glocal_sse2.c
+glocal_sse2.h
+
+is Copyright 2010 by Michael Farrar.
+
+This code is freely distributed under the BSD open source license.
 -----
 
 Redistribution and use in source and binary forms, with or without

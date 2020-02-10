@@ -34,7 +34,7 @@
 use warnings;
 # use strict;
 
-use GetOpt::Long;
+use Getopt::Long;
 use Pod::Usage;
 use LWP::Simple;
 use XML::Twig;

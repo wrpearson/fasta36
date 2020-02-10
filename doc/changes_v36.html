@@ -19,12 +19,24 @@ font-size: 12px; font-family: sans-serif; text-decoration:none; background-color
 <body>
 <div class=fasta>
 <h2>ChangeLog - FASTA v36</h2>
-<pre><small>
- $Id: changes_v36.html $
-</small>
-</pre>
 <hr>
-<h2>Latest Updates - FASTA version 36.3.8h (March, 2019)</h2>
+<h2>Latest Updates - FASTA version 36.3.8h (February, 2020)</h2>
+<ol>
+  <li> The SSE2 implementations of the Smith-Waterman algorithm and a
+  corresponding global alignment algorithm are now available under the
+    BSD open source license.
+
+  <li> FASTA can now use shell-scripts to produce both query and library sequence sets.
+
+  <li> Scripts are available for extracting genomic DNA sequences
+  using BEDTools.  Combined with the ability to specify sequences
+  using shell-scripts, this greatly simplifies the process of aligning
+  a protein or DNA sequence to a region of a genome.
+
+  <li> preliminary code is available to read NCBI BLAST version 5 format libraries.
+</ol>
+<p>
+<h2>Updates - FASTA version 36.3.8h (March, 2019)</h2>
 <ol>
   <li>The FASTA programs have been released under the Apache2.0 Open
   Source License.  The COPYRIGHT file, and copyright notices in
