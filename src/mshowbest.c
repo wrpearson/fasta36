@@ -419,7 +419,7 @@ l1:
 	bbp->rst.score[2]=rst.score[2];
       }
 
-      if (!bbp->have_ares & 0x1) {
+      if (!(bbp->have_ares & 0x1)) {
 	bbp->a_res = build_ares_code(aa0[bbp->frame], m_msp->n0, aa1, bbp->seq,
 				     bbp->frame, &bbp->have_ares,
 				     bbp->repeat_thresh, m_msp, ppst, f_str[bbp->frame] );
