@@ -4,9 +4,17 @@
 The **FASTA** (pronounced FAST-Aye, not FAST-Ah) programs are a comprehensive set of similarity searching and alignment programs for searching protein and DNA sequence databases.  Like the **BLAST** programs `blastp` and `blastn`, the `fasta` program itself uses a rapid heuristic strategy for finding similar regions in protein and DNA sequences.  But in addition to heuristic similarity searching, the FASTA package provides
 programs for rigorous local (`ssearch`) and global (`ggsearch`) similarity searching, as well as a program for finding non-overlapping sequence similarities (`lalign`).  Like BLAST, the FASTA package also includes programs for aligning translated DNA sequences against proteins (`fastx`, `fasty` are equivalent to `blastx`,  and  `tfastx`, `tfasty` are similar to `tblastn`).
 
-#### August, 2019
+#### February, 2020
 
 See doc/README_v36.3.8h.md and doc/readme.v36 for a more complete summary of changes.
+
+The major update in this release is the change of the license terms
+for the SSE2 accelerated versions of the Smith-Waterman and
+global/glocal alignment algorithms.  All of the FASTA package is now
+distributed under open source licesnses, either Apache (for the
+majority of the code) or BSD (for the SSE2 accelerated code).
+
+#### August, 2019
 
 Bug fix to recover properly when memory mapped databases are too large.
 
