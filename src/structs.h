@@ -124,7 +124,7 @@ struct mngmsg 		/* Message from host to manager */
   char sqnam[4];	/* "aa" or "nt" */ 
   char sqtype[10];	/* "DNA" or "protein" */
   int long_info;	/* long description flag*/
-  int blast_ident;		/* calculate identities excluding gaps */
+  int blast_ident;	/* calculate identities excluding gaps */
   long sq0off, sq1off;	/* virtual offset into aa0, aa1 */
   int markx;		/* alignment display type */
   int tot_markx;	/* markx as summ of all alternative markx */

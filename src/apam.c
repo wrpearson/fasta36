@@ -166,7 +166,7 @@ initpam (char *mfname, struct pstruct *ppst)
        p_i = pascii['X'];
      }
      if (fgets(line,sizeof(line),fmat)==NULL) {
-       fprintf (stderr," error reading pam line: %s\n",line);
+       fprintf (stderr,"*** ERROR [%s:%d] reading pam line: %s\n",__FILE__, __LINE__, line);
        exit (1);
      }
      /*     fprintf(stderr,"%d/%d %s",iaa,nsq,line); */
@@ -468,7 +468,7 @@ validate_novel_aa(int *xascii, int p_nsq, int dnaseq) {
   err_p_nsq_limit = 0;
   for (isq = 'A'; isq <= 'Z'; isq++) {
     if (xascii[isq] < NA && xascii[isq] > p_nsq) {
-      fprintf(stderr, " *** ERROR *** xascii['%c']:%d > %d\n",isq, xascii[isq], p_nsq);
+      fprintf(stderr, "*** error [%s:%d] xascii['%c']:%d > %d\n",__FILE__,__LINE__,isq, xascii[isq], p_nsq);
       err_p_nsq_limit = 1;
     }
   }
