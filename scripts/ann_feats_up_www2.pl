@@ -264,7 +264,9 @@ sub json_annots {
       } elsif ($label =~ m/STRAND/) {
 	push @feats2, [$pos, "-", $end, $label];
       } elsif ($label =~ m/VARIANT/ || $label =~ m/MUTAGEN/) {
-	push @sites, [$pos, $annot_types->{$label}, $feat->{alternativeSequence}, $value];
+	my $alt = $feat->{alternativeSequence};
+	if ($alt=='') { $alt = '-';}
+	push @sites, [$pos, $annot_types->{$label}, $alt, $value];
       } 
       else {
 	next unless ($pos == $end);

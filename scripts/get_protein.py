@@ -31,7 +31,11 @@ for acc in sys.argv[1:]:
     url_string = ncbi_url + seq_args
 
   else:				# get uniprot
-    url_string = uniprot_url + acc + ".fasta"
+    acc_fields = acc.split('|')
+    if (len(acc_fields)==1):
+      url_string = uniprot_url + acc + ".fasta"
+    else:
+      url_string = uniprot_url + acc_fields[0] + ".fasta"
 
 
   req = Request(url_string)
