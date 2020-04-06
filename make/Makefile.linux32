@@ -11,12 +11,12 @@
 
 SHELL=/bin/bash
 
-#CC= gcc -g -O
+CC= gcc -g -O
 #CC = gcc -g -DDEBUG
 #LIB_DB=
 
 #CC=gcc -Wall -pedantic -ansi -g -O
-CC= /usr/local/parasoft/bin/insure -g -DDEBUG
+#CC= /usr/local/parasoft/bin/insure -g -DDEBUG
 LIB_DB=-lz
 
 # EBI uses the following with pgcc, -O3 does not work:
