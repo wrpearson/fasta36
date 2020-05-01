@@ -1885,6 +1885,9 @@ main (int argc, char *argv[])
       getlib_info->eof = 0;
       getlib_info->lib_list_p = lib_list_p;
       close_lib_list(getlib_info->lib_list_p,0,0);
+      m_msg.db.length = m_msg.ldb.length = 0l;
+      m_msg.db.entries = m_msg.db.carry = 
+	m_msg.ldb.entries = m_msg.ldb.carry = qtt.entries = qtt.carry = 0;
     }
     else {
       reset_seqr_chain(getlib_info->start_seqr_chain);
