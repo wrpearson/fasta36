@@ -706,7 +706,7 @@ main (int argc, char *argv[])
   /* this probably cannot happen any more */
   if (m_msg.n0 > MAXTST) {
     if (m_msg.quiet < 2) {
-      fprintf(stderr,"*** warning [%s:%d] sequence truncated to %d\n %s\n",__FILE__,__LINE__,MAXTST,m_msg.sqnam);
+      fprintf(stderr,"*** Warning [%s:%d] sequence truncated to %d\n %s\n",__FILE__,__LINE__,MAXTST,m_msg.sqnam);
     }
     aa0[0][MAXTST]='\0';
     m_msg.n0=MAXTST;
@@ -1115,7 +1115,7 @@ main (int argc, char *argv[])
       if (m_msg.qframe == 2) {
 	if ((aa0[1]=(unsigned char *)calloc((size_t)m_msg.n0+2+SEQ_PAD,
 					    sizeof(unsigned char)))==NULL) {
-	  fprintf(stderr,"*** warning [%s:%d]  cannot allocate aa0[1][%d] for alignments\n",
+	  fprintf(stderr,"*** Warning [%s:%d]  cannot allocate aa0[1][%d] for alignments\n",
 		  __FILE__,__LINE__,m_msg.n0+2+SEQ_PAD);
 	}
 	*aa0[1]='\0';
@@ -1161,7 +1161,7 @@ main (int argc, char *argv[])
       /* check for bestp_arr corruption */
       for (i=0; i<nbest; i++) {
 	if (bestp_arr[i]->n1 != bestp_arr[i]->seq->n1) {
-	  fprintf(stderr," *** error [%s:%d] *** n1 conflict[%d]: n1: %d != seq->n1: %d\n",
+	  fprintf(stderr," *** ERROR [%s:%d] *** n1 conflict[%d]: n1: %d != seq->n1: %d\n",
 		  __FILE__, __LINE__, i, bestp_arr[i]->n1, bestp_arr[i]->seq->n1);
 	}
       }
@@ -1230,7 +1230,7 @@ main (int argc, char *argv[])
     if (m_msg.annot0_sname[0]) {
       if (get_annot(m_msg.annot0_sname, &m_msg, m_msg.qtitle, m_msg.q_offset+m_msg.q_off-1,m_msg.n0, &m_msg.annot_p, 0, pst.debug_lib) < 0) {
 	if (m_msg.quiet > 1) {
-	  fprintf(stderr,"*** warning [%s:%d] - %s did not produce annotations\n",__FILE__, __LINE__, m_msg.annot0_sname);
+	  fprintf(stderr,"*** Warning [%s:%d] - %s did not produce annotations\n",__FILE__, __LINE__, m_msg.annot0_sname);
 	}
 	m_msg.annot0_sname[0] = '\0';
       }
@@ -1272,14 +1272,14 @@ main (int argc, char *argv[])
 
     if (m_msg.outfile[0]!='\0') {	/* have an output file name */
       if ((outfd=fopen(m_msg.outfile,"w"))==NULL) {
-	fprintf(stderr,"*** warning [%s:%d]  could not open %s\n",__FILE__, __LINE__, m_msg.outfile);
+	fprintf(stderr,"*** Warning [%s:%d]  could not open %s\n",__FILE__, __LINE__, m_msg.outfile);
 	if (m_msg.quiet==0) goto l3;
 	else goto l4;		/* skip output file */
       }
 
       if (m_msg.markx_list==NULL) {	/* no -m 9 options, need one */
 	if ((m_msg.markx_list = (struct markx_str *)calloc(1,sizeof(struct markx_str)))==NULL) {
-	  fprintf(stderr,"*** warning [%s:%d] cannot allocate m_msg.markx_list\n",__FILE__,__LINE__);
+	  fprintf(stderr,"*** Warning [%s:%d] cannot allocate m_msg.markx_list\n",__FILE__,__LINE__);
 	  goto l4;
 	}
 	else {
@@ -1299,7 +1299,7 @@ main (int argc, char *argv[])
 
       if (cur_markx->out_file && cur_markx->out_file[0] && cur_markx->out_fd == NULL) {
 	if ((cur_markx->out_fd=fopen(cur_markx->out_file,"w"))==NULL) {
-	  fprintf(stderr,"*** error [%s:%d] could not open %s\n",__FILE__, __LINE__, cur_markx->out_file);
+	  fprintf(stderr,"*** ERROR [%s:%d] could not open %s\n",__FILE__, __LINE__, cur_markx->out_file);
 	}
       }
       if (cur_markx->out_fd == NULL) continue;
@@ -1416,7 +1416,7 @@ main (int argc, char *argv[])
 	  if (bestp_arr[i]->seq->aa1b != NULL) {
 	    preserve_seq2(bestp_arr[i],best_seqs, best_mseqs, best);
 	    if (bestp_arr[i]->n1 != bestp_arr[i]->seq->n1) {
-	      fprintf(stderr,"*** error [%s:%d] -n1:%d != seq->n1:%d\n",
+	      fprintf(stderr,"*** ERROR [%s:%d] -n1:%d != seq->n1:%d\n",
 		      __FILE__, __LINE__, bestp_arr[i]->n1, bestp_arr[i]->seq->n1);
 	    }
 	  }
@@ -1459,7 +1459,7 @@ main (int argc, char *argv[])
       /* check for bestp_arr corruption */
       for (i=0; i<m_msg.nshow; i++) {
 	if (bestp_arr[i]->n1 != bestp_arr[i]->seq->n1) {
-	  fprintf(stderr,"*** error [%s:%d] : n1 conflict[%d]: n1: %d != seq->n1: %d\n",
+	  fprintf(stderr,"*** ERROR [%s:%d] : n1 conflict[%d]: n1: %d != seq->n1: %d\n",
 		  __FILE__, __LINE__, i, bestp_arr[i]->n1, bestp_arr[i]->seq->n1);
 	}
       }
@@ -1471,7 +1471,7 @@ main (int argc, char *argv[])
       /* check for bestp_arr corruption */
       for (i=0; i<m_msg.nshow; i++) {
 	if (bestp_arr[i]->n1 != bestp_arr[i]->seq->n1) {
-	  fprintf(stderr,"*** error [%s:%d] : n1 conflict[%d]: n1: %d != seq->n1: %d\n",
+	  fprintf(stderr,"*** ERROR [%s:%d] : n1 conflict[%d]: n1: %d != seq->n1: %d\n",
 		  __FILE__, __LINE__, i, bestp_arr[i]->n1, bestp_arr[i]->seq->n1);
 	}
       }
@@ -1758,7 +1758,7 @@ main (int argc, char *argv[])
     /* check to see if there are ANY un-reset have_ares */
     for (i=0; i< nbest; i++) {
       if (bestp_arr[i]->have_ares) {
-	fprintf(stderr,"*** error [%s;%d] : Un-reset have_ares[%d]: %d\n",__FILE__, __LINE__, i,bestp_arr[i]->have_ares);
+	fprintf(stderr,"*** ERROR [%s;%d] : Un-reset have_ares[%d]: %d\n",__FILE__, __LINE__, i,bestp_arr[i]->have_ares);
 	bestp_arr[i]->have_ares = 0;
       }
     }
@@ -1864,7 +1864,7 @@ main (int argc, char *argv[])
     if (count_not_seg(aa0[0],m_msg.n0, &pst) == 0) { /* if no un-seg'ed query residues, convert to upper case */
       upper_seq(aa0[0],m_msg.n0, qascii, pst.sqx);
       if (m_msg.quiet < 2) {
-	fprintf(stderr,"*** warning [%s:%d] : all lower-case query converted to upper case: %s\n", __FILE__, __LINE__, info_qlabel);
+	fprintf(stderr,"*** Warning [%s:%d] : all lower-case query converted to upper case: %s\n", __FILE__, __LINE__, info_qlabel);
       }
     }
 
@@ -2379,7 +2379,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
 	 open_lib(cur_lib_p, m_msp->ldb_info.ldnaseq, lascii, !m_msp->quiet))
 	==NULL) {
       if (m_msp->quiet < 2) {
-	fprintf(stderr,"*** warning [%s:%d] cannot open library %s\n",__FILE__,__LINE__,cur_lib_p->file_name);
+	fprintf(stderr,"*** Warning [%s:%d] cannot open library %s\n",__FILE__,__LINE__,cur_lib_p->file_name);
       }
       getlib_info->lib_list_p = getlib_info->lib_list_p->next;
       if (getlib_info->lib_list_p == NULL) {
@@ -2578,7 +2578,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
       if ((bp=strchr(current_mseq_p->libstr,' '))!=NULL) *bp='\0';
     }
     if (aa1[-1]!='\0' || aa1ptr[n1]!='\0') {
-      fprintf(stderr,"*** error [%s:%d] %s: aa1[%d] at %ld:%lld  missing NULL boundaries: %d %d\n",
+      fprintf(stderr,"*** ERROR [%s:%d] %s: aa1[%d] at %ld:%lld  missing NULL boundaries: %d %d\n",
 	      __FILE__, __LINE__, 
 	      current_mseq_p->libstr,n1, m_msp->db.entries+1,current_mseq_p->lseek,
 	      aa1[-1],aa1ptr[n1]);
@@ -2620,7 +2620,7 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
     if (ppst->debug_lib)
       for (i=0; i<n1; i++) {
 	if (aa1[i]>ppst->nsqx || aa1[i] <= 0) {
-	  fprintf(stderr, "*** error [%s:%d] : %s residue[%d/%d] %d range (%d) lcont/ocont: %d/%d\n%s\n",
+	  fprintf(stderr, "*** ERROR [%s:%d] : %s residue[%d/%d] %d range (%d) lcont/ocont: %d/%d\n%s\n",
 		  __FILE__, __LINE__, 
 		  current_mseq_p->libstr,i,current_seq_p->n1,aa1[i],ppst->nsq,
 		  getlib_info->lcont,getlib_info->ocont,aa1ptr+i);
@@ -2846,7 +2846,7 @@ seqr_chain_work(unsigned char **aa0, unsigned char *aa0s, struct buf_head *lib_b
 	
 #ifdef DEBUG
       if (current_seq_p->aa1b[-1] != '\0') {
-	fprintf(stderr,"*** error [%s:%d] invalid current_seq_p->aa1b[-1] = %d\n",__FILE__, __LINE__, current_seq_p->aa1b[-1]);
+	fprintf(stderr,"*** ERROR [%s:%d] invalid current_seq_p->aa1b[-1] = %d\n",__FILE__, __LINE__, current_seq_p->aa1b[-1]);
       }	
 #endif
       /* check to see whether this score (or a shuff score) should
@@ -3081,10 +3081,10 @@ check_rbuf(struct buf_head *cur_buf) {
 
   while (buf_cnt-- > 0) {
     if (cur_buf2_dp->seq == NULL || cur_buf2_dp->seq->aa1b == NULL) {
-      fprintf(stderr, "*** error [%s/check_rbuf] NULL buffer->seq entry: at %d\n",prog_func, index);
+      fprintf(stderr, "*** ERROR [%s/check_rbuf] NULL buffer->seq entry: at %d\n",prog_func, index);
     }
     if (cur_buf2_dp->seq->adler32_crc != adler32(1L,cur_buf2_dp->seq->aa1b, cur_buf2_dp->seq->n1)) {
-      fprintf(stderr, "*** error [%s/check_rbuf] CRC mismatch at %d (%d)\n",prog_func, index,cur_buf2_dp->seq->n1);
+      fprintf(stderr, "*** ERROR [%s/check_rbuf] CRC mismatch at %d (%d)\n",prog_func, index,cur_buf2_dp->seq->n1);
     }
     cur_buf2_dp++;
     index++;
