@@ -568,8 +568,9 @@ void
 newname(char *nname, char *oname, char *suff, int maxn)
 {
   strncpy(nname,oname,maxn-1);
-  strncat(nname,".",1);
-  strncat(nname,suff,maxn-strlen(nname));
+  nname[maxn-1]='\0';
+  strncat(nname,".",maxn-strlen(nname)-1);
+  strncat(nname,suff,maxn-strlen(nname)-1);
 }
 
 /* init_ascii0 -- initializes an ascii mapping from a sequence

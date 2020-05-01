@@ -434,7 +434,7 @@ calc_cons_u( /* inputs */
     update_data_p = init_update_data(show_code);
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] --- cal_cons_u() invalid calc_func_mode: %d\n",
+    fprintf(stderr,"*** ERROR [%s:%d] --- cal_cons_u() invalid calc_func_mode: %d\n",
 	    __FILE__, __LINE__, calc_func_mode);
     exit(1);
   }
@@ -904,7 +904,7 @@ init_update_data(int show_code) {
   struct update_code_str *update_data_p;
 
   if ((update_data_p = (struct update_code_str *)calloc(1,sizeof(struct update_code_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - init_update_data(): cannot allocate update_code_str\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - init_update_data(): cannot allocate update_code_str\n",
 	      __FILE__, __LINE__);
     return NULL;
   }

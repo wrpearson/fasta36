@@ -161,7 +161,7 @@ initpam (char *mfname, struct pstruct *ppst)
    for (iaa = 1; iaa < l_nsq; iaa++) {	/* read pam value line */
      p_i = pascii[l_sq[iaa]];
      if (p_i > MAXSQ) {
-       fprintf(stderr,"*** error [%s:%d] - residue character %c out of range %d\n",
+       fprintf(stderr,"*** ERROR [%s:%d] - residue character %c out of range %d\n",
 	       __FILE__, __LINE__, l_sq[iaa], p_i);
        p_i = pascii['X'];
      }
@@ -468,7 +468,7 @@ validate_novel_aa(int *xascii, int p_nsq, int dnaseq) {
   err_p_nsq_limit = 0;
   for (isq = 'A'; isq <= 'Z'; isq++) {
     if (xascii[isq] < NA && xascii[isq] > p_nsq) {
-      fprintf(stderr, "*** error [%s:%d] xascii['%c']:%d > %d\n",__FILE__,__LINE__,isq, xascii[isq], p_nsq);
+      fprintf(stderr, "*** ERROR [%s:%d] xascii['%c']:%d > %d\n",__FILE__,__LINE__,isq, xascii[isq], p_nsq);
       err_p_nsq_limit = 1;
     }
   }

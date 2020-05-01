@@ -110,10 +110,8 @@
 #endif
 #define MAX_STATS 60000
 #endif
-#define BIGNUM  1000000000
-#ifndef MAXINT
-#define MAXINT 2147483647
-#endif
+#define BIGNUM   500000000
+
 #define MAXLN	120	/* size of a library name */
 #else
 #define MAXTST	1500
@@ -129,7 +127,6 @@
 #define MAX_BEST 2000
 #define MAX_STATS 20000
 #define BIGNUM  32767
-#define MAXINT  32767
 #define MAXLN	40	/* size of a library name */
 #endif
 #if !defined(TFAST)

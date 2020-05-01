@@ -60,7 +60,7 @@ void encode_json_lines(FILE *fp, const char *label, const char *annot_s, int fir
   
   n_tmp_annot_s = strlen(annot_s)+1;
   if ((tmp_annot_s = (char *)calloc(n_tmp_annot_s,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] *** cannot allocate tmp_annot_s[%d]\n",
+    fprintf(stderr,"*** ERROR [%s:%d] *** cannot allocate tmp_annot_s[%d]\n",
 	    __FILE__, __LINE__,n_tmp_annot_s);
     return;
   }
@@ -221,7 +221,7 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
     etmp_domain_s = "";
     if (n_tmp_domain > 0) {
       if ((tmp_domain_s=(char *)calloc(n_tmp_domain,sizeof(char)))==NULL) {
-	fprintf(stderr,"*** error [%s:%d] *** cannot allocate tmp_domain_s[%d]\n",
+	fprintf(stderr,"*** ERROR [%s:%d] *** cannot allocate tmp_domain_s[%d]\n",
 		__FILE__, __LINE__,n_tmp_domain);
       }
       else {
@@ -320,7 +320,7 @@ char *display_domains(char target, struct annot_entry **annot_arr_p, int n_annot
 
   /* since (currently) annot_var_s is MAX_LSTR, do the same for domain_s */
   if ((domain_s = (char *)calloc(n_domain_s, sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] *** cannot allocate domain_s[%d]\n",__FILE__, __LINE__,n_domain_s);
+    fprintf(stderr,"*** ERROR [%s:%d] *** cannot allocate domain_s[%d]\n",__FILE__, __LINE__,n_domain_s);
     return NULL;
   }
 
@@ -361,7 +361,7 @@ char *web_encode(const char *annot_var_s) {
   /* make string largest possible size */
   n_tmp_annot_s = strlen(annot_var_s)*3 + 1;
   if ((tmp_annot_s = (char *)calloc(n_tmp_annot_s,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] *** cannot allocate tmp_annot_s[%d]\n",__FILE__, __LINE__,n_tmp_annot_s);
+    fprintf(stderr,"*** ERROR [%s:%d] *** cannot allocate tmp_annot_s[%d]\n",__FILE__, __LINE__,n_tmp_annot_s);
     return NULL;
   }
 

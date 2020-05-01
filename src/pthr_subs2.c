@@ -53,8 +53,8 @@ void init_thr(int nthreads, struct thr_str *work_info,
   pthread_attr_t thread_attr;
 
   if (fa_threads == NULL && (fa_threads=(pthread_t *)calloc(nthreads, sizeof(pthread_t)))==NULL) {
-      fprintf(stderr, "Cannot allocate %d pthread_t\n",nthreads);
-      exit(1);
+    fprintf(stderr, "*** ERROR [%s:%d] - Cannot allocate %d pthread_t\n",__FILE__, __LINE__, nthreads);
+    exit(1);
   }
 
   /* set up work_info[] structure, set parameters */

@@ -189,8 +189,8 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 	*bp='\0';
 	sscanf(bp+1,"%d",&lib_type);
 	if (lib_type<0 || lib_type >= LASTLIB) {
-	  fprintf(stderr,"\n invalid library type: %d (>%d)- resetting\n%s\n",
-		  lib_type,LASTLIB,lib_p->file_name);
+	  fprintf(stderr,"*** Warning [%s:%d] - invalid library type: %d (>%d)- resetting\n%s\n",
+		  __FILE__, __LINE__, lib_type,LASTLIB,lib_p->file_name);
 	  lib_type=0;
 	}
     }  /* don't change lib_type if its not a number */
@@ -207,7 +207,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   else use_stdin=0;
 
   if (use_stdin && !(lib_type ==0 || lib_type==ACC_SCRIPT)) {
-    fprintf(stderr,"\n @/- STDIN libraries must be in FASTA format\n");
+    fprintf(stderr,"*** Warning [%s:%d] -  @/- STDIN libraries must be in FASTA format\n",__FILE__, __LINE__);
     return NULL;
   }
 
@@ -219,8 +219,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 #else
     if ((bp=strchr(lib_p->file_name+3,':'))!=NULL && *(bp+1)!='\0') {
 #endif
-      strncpy(opt_text,bp+1,sizeof(opt_text));
-      opt_text[sizeof(opt_text)-1]='\0';
+      SAFE_STRNCPY(opt_text,bp+1,sizeof(opt_text));
       *bp = '\0';
     }
   }
@@ -235,8 +234,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
     else if (lib_type==ACC_SCRIPT) {
       bp = lib_p->file_name;
       if (lib_p->file_name[0] == '!') {	bp += 1;}
-      strncpy(acc_script, bp, sizeof(acc_script)-1);
-      acc_script[sizeof(acc_script)-1] = '\0';
+      SAFE_STRNCPY(acc_script, bp, sizeof(acc_script));
 
       /* convert '+' in annot_script to ' ' */
       bp = strchr(acc_script,'+');
@@ -258,7 +256,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
     */
     if (lib_p->acc_file_p != NULL) {
       if ((acc_fptr = open_lib(lib_p, ldnaseq, sascii, outtty))==NULL) {
-	fprintf(stderr, "Cannot open %s library for ACC_LIST\n",lib_p->file_name);
+	fprintf(stderr, "*** Warning [%s:%d] - Cannot open %s library for ACC_LIST\n",__FILE__, __LINE__,lib_p->file_name);
 	return NULL;
       }
       else {
@@ -280,18 +278,18 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
     }
 
     if (!opnflg) {
-      fprintf(stderr, "Cannot open %s library\n",lib_p->file_name);
+      fprintf(stderr, "*** Warning [%s:%d] - Cannot open %s library\n",__FILE__, __LINE__,lib_p->file_name);
       return NULL;
     }
     else {
       /* read in the file line */
       if (fgets(f_line, sizeof(f_line), libf)==NULL) {
-	fprintf(stderr, "Cannot read ACC_LIST file line\n");
+	fprintf(stderr, "*** Warning [%s:%d] - Cannot read ACC_LIST file line\n",__FILE__, __LINE__);
 	return NULL;
       }
       /* else parse the file line */
       if (f_line[0] != '<') {
-	fprintf(stderr, "missing < - %s\n",f_line); return NULL;
+	fprintf(stderr, "*** Warning [%s:%d] - missing < - %s\n",__FILE__, __LINE__,f_line); return NULL;
       }
       if ((bp=strchr(f_line+1,'\r'))!=NULL) {*bp = '\0';}
       if ((bp=strchr(f_line+1,'\n'))!=NULL) {*bp = '\0';}
@@ -324,7 +322,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 
       /* check that we can open the library file */
       if ((acc_fptr = open_lib(this_lib_p, ldnaseq, sascii, outtty))==NULL) {
-	fprintf(stderr, "Cannot open %s library for ACC_LIST\n",f_line+1);
+	fprintf(stderr, "*** Warning [%s:%d] - Cannot open %s library for ACC_LIST\n",__FILE__, __LINE__,f_line+1);
 	free(this_lib_p);
 	return NULL;
       }
@@ -400,19 +398,19 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
     }
     else {
       if ((m_fptr = calloc(1,sizeof(struct lmf_str)))==NULL) {
-	fprintf(stderr,"\n *** cannot allocate lmf_str (%ld) for %s\n",
-		sizeof(struct lmf_str),lib_p->file_name);
+	fprintf(stderr,"\n*** Warning [%s:%d] - cannot allocate lmf_str (%ld) for %s\n",
+		__FILE__, __LINE__,sizeof(struct lmf_str),lib_p->file_name);
 	return NULL;
       }
       if ((m_fptr->lline = calloc(MAX_STR,sizeof(char)))==NULL) {
-	fprintf(stderr,"\n *** cannot allocate lline (%d) for %s\n",
-		MAX_STR,lib_p->file_name);
+	fprintf(stderr,"\n *** Warning [%s:%d] - cannot allocate lline (%d) for %s\n",
+		__FILE__, __LINE__,MAX_STR,lib_p->file_name);
 	return NULL;
       }
     }
 
     m_fptr->lb_name = lib_p->file_name;
-    strncpy(m_fptr->opt_text,opt_text,MAX_FN);
+    SAFE_STRNCPY(m_fptr->opt_text,opt_text,MAX_FN);
     m_fptr->opt_text[MAX_FN-1]='\0';
     m_fptr->sascii = sascii;
     m_fptr->get_mmap_chain = NULL;
@@ -546,7 +544,7 @@ struct lmf_str *
 #endif
 
   if (!opnflg) {
-    fprintf(stderr,"*** could not re_open %s\n",om_fptr->lb_name);
+    fprintf(stderr,"*** Warning [%s:%d] - could not re_open %s\n",__FILE__, __LINE__,om_fptr->lb_name);
     return NULL;
   }
 
@@ -592,8 +590,7 @@ agetlib(unsigned char *seq, int maxs,
       sscanf(bp+3,"%ld",l_off);
     }
 
-    strncpy(libstr,lm_fd->lline+lm_fd->acc_off,n_libstr-1);
-    libstr[n_libstr-1]='\0';
+    SAFE_STRNCPY(libstr,lm_fd->lline+lm_fd->acc_off,n_libstr);
 
     if ((lm_fd->sel_acc_p != NULL) &&
 	(sel_status = (lm_fd->sel_acc_p)(libstr, 0, lm_fd->sel_local)) <= 0) {
@@ -660,8 +657,7 @@ agetlib(unsigned char *seq, int maxs,
   }
   goto done;
  new:
-  strncpy(lm_fd->lline,(char *)seqp,MAX_STR);
-  lm_fd->lline[MAX_STR-1]='\0';
+  SAFE_STRNCPY(lm_fd->lline,(char *)seqp,MAX_STR);
   /* be certain to get complete line, if possible */
   if (strchr(lm_fd->lline,'\n')==NULL)
     fgets(&lm_fd->lline[strlen(lm_fd->lline)],MAX_STR-strlen(lm_fd->lline),lm_fd->libf);
@@ -702,8 +698,7 @@ aranlib(char *str, int cnt, fseek_t seek, char *libstr, struct lmf_str *lm_fd)
     fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
 
     if (lm_fd->lline[0]=='>' || lm_fd->lline[0]==';') {
-      strncpy(str,lm_fd->lline+lm_fd->acc_off,cnt);
-      str[cnt-1]='\0';
+      SAFE_STRNCPY(str,lm_fd->lline+lm_fd->acc_off,cnt);
       if ((bp = strchr(str,'\r'))!=NULL) *bp='\0';
       if ((bp = strchr(str,'\n'))!=NULL) *bp='\0';
       /*
@@ -752,8 +747,7 @@ qgetlib(unsigned char *seq, int maxs,
       if (fgets(lm_fd->lline,MAX_STR,lm_fd->libf)==NULL) return (-1);
     }
 
-    strncpy(libstr,lm_fd->lline+lm_fd->acc_off,n_libstr-1);
-    libstr[n_libstr-1]='\0';
+    SAFE_STRNCPY(libstr,lm_fd->lline+lm_fd->acc_off,n_libstr);
 
     if ((bp=strchr(libstr,'\r'))!=NULL) *bp='\0';
     if ((bp=strchr(libstr,'\n'))!=NULL) *bp='\0';
@@ -793,8 +787,7 @@ qgetlib(unsigned char *seq, int maxs,
   }
   goto done;
  new:
-  strncpy(lm_fd->lline,(char *)seqp,MAX_STR);
-  lm_fd->lline[MAX_STR-1]='\0';
+  SAFE_STRNCPY(lm_fd->lline,(char *)seqp,MAX_STR);
   /* be certain to get complete line, if possible */
   if (strchr(lm_fd->lline,'\n')==NULL)
     fgets(&lm_fd->lline[strlen(lm_fd->lline)],MAX_STR-strlen(lm_fd->lline),lm_fd->libf);
@@ -823,8 +816,7 @@ qranlib(char *str, int cnt, fseek_t seek, char *libstr, struct lmf_str *lm_fd)
     fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
 
     if (lm_fd->lline[0]=='@') {
-      strncpy(str,lm_fd->lline+lm_fd->acc_off,cnt);
-      str[cnt-1]='\0';
+      SAFE_STRNCPY(str,lm_fd->lline+lm_fd->acc_off,cnt);
       if ((bp = strchr(str,'\r'))!=NULL) *bp='\0';
       if ((bp = strchr(str,'\n'))!=NULL) *bp='\0';
       bp = str;
@@ -870,8 +862,7 @@ lgetlib(unsigned char *seq, int maxs,
     *libpos= lm_fd->lpos;
 
     if (n_libstr <= 21) {
-      strncpy(libstr,&lm_fd->lline[12],12);
-      libstr[12]='\0';
+      SAFE_STRNCPY(libstr,&lm_fd->lline[12],12);
     }
     else {
       lget_ann(lm_fd,libstr,n_libstr);
@@ -933,7 +924,7 @@ lget_ann(struct lmf_str *lm_fd, char *libstr, int n_libstr) {
   char *bp, *bp_gid, locus[120], desc[120], acc[120], ver[120];
 
   /* copy in locus from lm_fd->lline */
-  strncpy(locus,&lm_fd->lline[12],sizeof(locus));
+  SAFE_STRNCPY(locus,&lm_fd->lline[12],sizeof(locus));
   if ((bp=strchr(locus,' '))!=NULL) *(bp+1) = '\0';
 
   /* get description */
@@ -971,9 +962,9 @@ lget_ann(struct lmf_str *lm_fd, char *libstr, int n_libstr) {
 
       /* build up FASTA header line */
   if (bp_gid != NULL) {
-    strncpy(libstr,"gi|",n_libstr-1);
-    strncat(libstr,bp_gid,n_libstr-4);
-    strncat(libstr,"|gb|",n_libstr-20);
+    SAFE_STRNCPY(libstr,"gi|",n_libstr);
+    SAFE_STRNCAT(libstr,bp_gid,n_libstr);
+    SAFE_STRNCAT(libstr,"|gb|",n_libstr);
   }
   else {libstr[0]='\0';}
 
@@ -981,16 +972,16 @@ lget_ann(struct lmf_str *lm_fd, char *libstr, int n_libstr) {
 	 otherwise locus/description */
 
   if (ver[0]=='V') {
-    strncat(libstr,&ver[12],n_libstr-1-strlen(libstr));
-    strncat(libstr,"|",n_libstr-1-strlen(libstr));
+    SAFE_STRNCAT(libstr,&ver[12],n_libstr);
+    SAFE_STRNCAT(libstr,"|",n_libstr);
   }
   else if (acc[0]=='A') {
-    strncat(libstr,&acc[12],n_libstr-1-strlen(libstr));
-    strncat(libstr," ",n_libstr-1-strlen(libstr));
+    SAFE_STRNCAT(libstr,&acc[12],n_libstr);
+    SAFE_STRNCAT(libstr," ",n_libstr);
   }
 
-  strncat(libstr,locus,n_libstr-1-strlen(libstr));
-  strncat(libstr,&desc[11],n_libstr-1-strlen(libstr));
+  SAFE_STRNCAT(libstr,locus,n_libstr);
+  SAFE_STRNCAT(libstr,&desc[11],n_libstr);
   libstr[n_libstr-1]='\0';
 }
 
@@ -1068,8 +1059,7 @@ pgetlib(unsigned char *seq, int maxs,
 	lm_fd->lpos = FTELL(lm_fd->libf);
 	if (fgets(lm_fd->lline,MAX_STR,lm_fd->libf)==NULL) return (-1);
       }
-    strncpy(libstr,&lm_fd->lline[16],8);
-    libstr[8]='\0';
+    SAFE_STRNCPY(libstr,&lm_fd->lline[16],8);
     *libpos = lm_fd->lpos;
     while (lm_fd->lline[2]!='Q' || lm_fd->lline[0]!='S' || strncmp(lm_fd->lline,"SEQUENCE",8))
       { /* find SEQUENCE */
@@ -1123,13 +1113,12 @@ pranlib(char *str,
   FSEEK(lm_fd->libf, seek, 0);
   fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
 
-  strncpy(str,&lm_fd->lline[16],8);
-  str[8]='\0';
+  SAFE_STRNCPY(str,&lm_fd->lline[16],8);
   fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
   while (lm_fd->lline[0]!='T' || lm_fd->lline[1]!='I' || strncmp(lm_fd->lline,"TITLE",5))
     fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
-  strncpy(&str[8],&lm_fd->lline[16],cnt-9);
-  str[cnt-9]='\0';
+
+  SAFE_STRNCAT(str,&lm_fd->lline[16],cnt);
   if ((bp = strchr(str,'\n'))!=NULL) *bp='\0';
 
   FSEEK(lm_fd->libf,seek,0);
@@ -1256,8 +1245,8 @@ eranlib(char *str,
   if (lm_fd->lfflag) getc(lm_fd->libf);
 
   while (lm_fd->lline[0]!='D' || lm_fd->lline[1]!='E') fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
-  strncpy(str+12,&lm_fd->lline[5],cnt-11);
-  str[cnt-11]='\0';
+
+  SAFE_STRNCAT(str,&lm_fd->lline[5],cnt);
   if ((bp = strchr(str,'\r'))!=NULL) *bp='\0';
   if ((bp = strchr(str,'\n'))!=NULL) *bp='\0';
 
@@ -1295,8 +1284,7 @@ igetlib(unsigned char *seq, int maxs,
 			}
 		*libpos = lm_fd->lpos;
 		while (lm_fd->lline[0]==';') fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
-		strncpy(libstr,lm_fd->lline+1,12);
-		libstr[12]='\0';
+		SAFE_STRNCPY(libstr,lm_fd->lline+1,12);
 		if((bp=strchr(libstr,'\n'))!=NULL) *bp='\0';
 		}
 
@@ -1323,8 +1311,7 @@ igetlib(unsigned char *seq, int maxs,
 		lm_fd->lpos = FTELL(lm_fd->libf);
 		}
 	goto done;
-new:	strncpy(lm_fd->lline,(char *)seqp,MAX_STR);
-	lm_fd->lline[MAX_STR-1]='\0';
+new:	SAFE_STRNCPY(lm_fd->lline,(char *)seqp,MAX_STR);
 	if (strchr((char *)seqp,'\n')==NULL)
 	    fgets(lm_fd->lline,MAX_STR-strlen(lm_fd->lline),lm_fd->libf);
 	goto done;
@@ -1360,8 +1347,7 @@ iranlib(char *str,
 	fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
 
 	if (lm_fd->lline[0]=='>' || lm_fd->lline[0]==';') {
-		strncpy(tline,lm_fd->lline+1,sizeof(tline));
-		tline[sizeof(tline)-1]='\0';
+		SAFE_STRNCPY(tline,lm_fd->lline+1,sizeof(tline));
 		if ((bp = strchr(tline,'\n'))!=NULL) *bp='\0';
 		}
 	else {
@@ -1371,10 +1357,9 @@ iranlib(char *str,
 	while (lm_fd->lline[0]==';') fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
 	if ((bp=strchr(lm_fd->lline,'\n'))!=NULL) *bp=0;
 	if ((bp=strchr(lm_fd->lline,' '))!=NULL) *bp=0;
-	strncpy(str,lm_fd->lline,cnt);
-	str[cnt-1]='\0';
-	strncat(str,"  ",cnt-strlen(str)-1);
-	strncat(str,tline,cnt-strlen(str)-1);
+	SAFE_STRNCPY(str,lm_fd->lline,cnt);
+	SAFE_STRNCAT(str,"  ",cnt);
+	SAFE_STRNCAT(str,tline,cnt);
 	
 	FSEEK(lm_fd->libf,seek,0);
 	fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
@@ -1411,8 +1396,7 @@ vgetlib(unsigned char *seq, int maxs,
     }
 
     if ((bp=strchr(lm_fd->lline,'\n'))!=NULL) *bp='\0';
-    strncpy(libstr,&lm_fd->lline[4],12);
-    libstr[12]='\0';
+    SAFE_STRNCPY(libstr,&lm_fd->lline[4],12);
     if ((bp=strchr(libstr,' '))!=NULL) *bp='\0';
     if ((bp=strchr(libstr,'\n'))!=NULL) *bp='\0';
     
@@ -1421,7 +1405,7 @@ vgetlib(unsigned char *seq, int maxs,
 
     if (n_libstr > 21) {
       strcat(libstr," ");
-      strncat(libstr,lm_fd->lline,n_libstr-1-strlen(libstr));
+      SAFE_STRNCAT(libstr,lm_fd->lline,n_libstr);
       if ((bp=strchr(libstr,'\n'))!=NULL) *bp='\0';
       libstr[n_libstr-1]='\0';
     }
@@ -1453,8 +1437,7 @@ vgetlib(unsigned char *seq, int maxs,
   }
   goto done;
 new:
-  strncpy(lm_fd->lline,(char *)seqp,MAX_STR);
-  lm_fd->lline[MAX_STR-1]='\0';
+  SAFE_STRNCPY(lm_fd->lline,(char *)seqp,MAX_STR);
   if (strchr((char *)seqp,'\n')==NULL) {
     fgets(&lm_fd->lline[strlen(lm_fd->lline)],MAX_STR-strlen(lm_fd->lline),lm_fd->libf);
     if (lm_fd->lfflag && (ich=getc(lm_fd->libf))!=LFCHAR) ungetc(ich,lm_fd->libf);
@@ -1495,8 +1478,7 @@ vranlib(char *str,
   if (lm_fd->lline[0]=='>'&&(lm_fd->lline[3]==';'||
 			     lm_fd->lline[3]=='>')	/* GCG ascii */
       ) {
-    strncpy(str,&lm_fd->lline[4],cnt-1);
-    str[cnt-1]='\0';
+    SAFE_STRNCPY(str,&lm_fd->lline[4],cnt-1);
 
     if (lm_fd->lline[3]=='>' && (bp = strchr(str,' '))!=NULL) *bp='\0';
 
@@ -1514,8 +1496,8 @@ vranlib(char *str,
 
     if ((bp=strchr(llp,'\r'))!=NULL) *bp=' ';
     if ((bp=strchr(llp,'\n'))!=NULL) *bp='\0';
-    strncat(str," ",(size_t)1);
-    strncat(str,llp,(size_t)cnt-strlen(str)-1);
+    SAFE_STRNCAT(str," ",cnt);
+    SAFE_STRNCAT(str,llp,cnt);
   }
   else {
     str[0]='\0';
@@ -1576,8 +1558,8 @@ gcg_getlib(unsigned char *seq, int maxs,
       libstr[12]='\0';
     }
     else {
-      strncat(libstr," ",1);
-      strncat(libstr,lm_fd->lline,n_libstr-1-strlen(libstr));
+      SAFE_STRNCAT(libstr," ",n_libstr);
+      SAFE_STRNCAT(libstr,lm_fd->lline,n_libstr);
       if ((bp = strchr(libstr,'\n'))!=NULL) *bp='\0';
       libstr[n_libstr-1]='\0';
     }
@@ -1631,8 +1613,7 @@ gcg_ranlib(char *str,
   fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
 
   if (lm_fd->lline[0]=='>'&&(lm_fd->lline[3]==';'||lm_fd->lline[3]=='>')) {
-    strncpy(str,&lm_fd->lline[4],cnt-1);
-    str[cnt-1]='\0';
+    SAFE_STRNCPY(str,&lm_fd->lline[4],cnt-1);
     if ((bp = strchr(str,' '))!=NULL) *bp='\0';
     else if ((bp=strchr(str,'\r'))!=NULL) *bp='\0';
     else if ((bp = strchr(str,'\n'))!=NULL) *bp='\0';
@@ -1660,9 +1641,9 @@ gcg_ranlib(char *str,
     bp1 = llp;
     if ((bp=strchr(bp1,'\r'))!=NULL) *bp='\0';
     if ((bp=strchr(bp1,'\n'))!=NULL) *bp='\0';
-    strncat(str," ",(size_t)1);
-    strncat(str,bp1,(size_t)cnt-strlen(str));
-    if (bp1!=llp) strncat(str,llp,(size_t)cnt-strlen(str));
+    SAFE_STRNCAT(str," ",cnt);
+    SAFE_STRNCAT(str,bp1,cnt);
+    if (bp1!=llp) SAFE_STRNCAT(str,llp,cnt);
   }
   else {
     str[0]='\0';
@@ -1730,15 +1711,14 @@ void *sel_acc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   int buff_siz;		/* fread buff_siz */
 
   if ((sel_acc_ptr = (struct sel_acc_str *)calloc(1,sizeof(struct sel_acc_str)))==NULL) {
-    fprintf(stderr, "Cannot allocate struct sel_acc_str\n");
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate struct sel_acc_str\n",__FILE__, __LINE__);
     return NULL;
   }
 
   /*
   if (fmt && *fmt != '\0') {
     sel_acc_ptr->fmt = (char *)calloc(strlen(fmt)+1,sizeof(char));
-    strncpy(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
-    sel_acc_ptr->fmt[strlen(fmt)] = '\0';
+    SAFE_STRNCPY(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
   }
   */
 
@@ -1749,7 +1729,7 @@ void *sel_acc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   abuff_siz = new_buff_siz = 640000;
 
   if ((acc_buff = (char *)calloc(abuff_siz*10, sizeof(char)))==NULL) {
-    fprintf(stderr, "Cannot allocate acc buff %d\n",abuff_siz*10);
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate acc buff %d\n",__FILE__, __LINE__,abuff_siz*10);
     free(sel_acc_ptr);
     return NULL;
   }
@@ -1759,7 +1739,7 @@ void *sel_acc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   acc_buff_p = acc_buff;
   while ((buff_siz = fread(acc_buff_p, sizeof(char), new_buff_siz, libf))==new_buff_siz) {
     if ((new_buff = realloc(acc_buff, (size_t)(abuff_siz+new_buff_siz)))==NULL) {
-      fprintf(stderr, " cannot reallocate for acc_buf[%d]\n",abuff_siz);
+      fprintf(stderr, "*** Warning [%s:%d] - cannot reallocate for acc_buf[%d]\n",__FILE__, __LINE__,abuff_siz);
       break;
     }
     else {
@@ -1787,7 +1767,7 @@ void *sel_acc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
 
   /* allocate the acc_list */
   if ((acc_list=(char **)calloc(acc_cnt+1, sizeof(char **)))==NULL) {
-    fprintf(stderr," cannot allocate acc_list[%d]\n",acc_cnt+1);
+    fprintf(stderr,"*** Warning [%s:%d] - cannot allocate acc_list[%d]\n",__FILE__, __LINE__,acc_cnt+1);
     free(sel_acc_ptr);
     return NULL;
   }
@@ -1843,15 +1823,14 @@ void *sel_acc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
   int buff_siz;		/* fread buff_siz */
 
   if ((sel_acc_ptr = (struct sel_acc_str *)calloc(1,sizeof(struct sel_acc_str)))==NULL) {
-    fprintf(stderr, "Cannot allocate struct sel_acc_str\n");
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate struct sel_acc_str\n",__FILE__, __LINE__);
     return NULL;
   }
 
   /*
   if (fmt != NULL && *fmt != '\0') {
     sel_acc_ptr->fmt = (char *)calloc(strlen(fmt)+1,sizeof(char));
-    strncpy(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
-    sel_acc_ptr->fmt[strlen(fmt)] = '\0';
+    SAFE_STRNCPY(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
   }
   else {
     sel_acc_ptr->fmt = NULL;
@@ -1865,7 +1844,7 @@ void *sel_acc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
   abuff_siz = new_buff_siz = 64000;
 
   if ((gi_list = (int *)calloc(abuff_siz, sizeof(int)))==NULL) {
-    fprintf(stderr, "Cannot allocate acc buff %d\n",abuff_siz);
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate acc buff %d\n",__FILE__, __LINE__,abuff_siz);
     free(sel_acc_ptr);
     return NULL;
   }
@@ -1877,7 +1856,7 @@ void *sel_acc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
     gi_list[acc_cnt++] = atoi(acc_line);
     if (acc_cnt >= abuff_siz) {
       if ((new_buff = realloc(gi_list,(abuff_siz + new_buff_siz)*sizeof(int)))==NULL) {
-	fprintf(stderr,"cannot realloc gi_list[%d]\n",abuff_siz+new_buff_siz);
+	fprintf(stderr,"*** Warning [%s:%d] - cannot realloc gi_list[%d]\n",__FILE__, __LINE__,abuff_siz+new_buff_siz);
 	break;
       }
       else {
@@ -1949,15 +1928,14 @@ void *sel_hacc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   int link_save;
 
   if ((sel_acc_ptr = (struct sel_acc_str *)calloc(1,sizeof(struct sel_acc_str)))==NULL) {
-    fprintf(stderr, "Cannot allocate struct sel_acc_str\n");
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate struct sel_acc_str\n",__FILE__, __LINE__);
     return NULL;
   }
 
   /*
   if (fmt && *fmt != '\0') {
     sel_acc_ptr->fmt = (char *)calloc(strlen(fmt)+1,sizeof(char));
-    strncpy(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
-    sel_acc_ptr->fmt[strlen(fmt)] = '\0';
+    SAFE_STRNCPY(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
   }
   */
 
@@ -1968,7 +1946,7 @@ void *sel_hacc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   abuff_siz = new_buff_siz = 640000;
 
   if ((acc_buff = (char *)calloc(abuff_siz, sizeof(char)))==NULL) {
-    fprintf(stderr, "Cannot allocate acc buff %d\n",abuff_siz);
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate acc buff %d\n",__FILE__, __LINE__,abuff_siz);
     free(sel_acc_ptr);
     return NULL;
   }
@@ -1978,7 +1956,7 @@ void *sel_hacc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   acc_buff_p = acc_buff;
   while ((buff_siz = fread(acc_buff_p, sizeof(char), new_buff_siz, libf))==new_buff_siz) {
     if ((new_buff = realloc(acc_buff, (size_t)(abuff_siz+new_buff_siz)))==NULL) {
-      fprintf(stderr, " cannot reallocate for acc_buf[%d]\n",abuff_siz);
+      fprintf(stderr, "*** Warning [%s:%d] - cannot reallocate for acc_buf[%d]\n",__FILE__, __LINE__,abuff_siz);
       break;
     }
     else {
@@ -2006,7 +1984,7 @@ void *sel_hacc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
 
   /* allocate the acc_list */
   if ((acc_list=(char **)calloc(acc_cnt+1, sizeof(char **)))==NULL) {
-    fprintf(stderr," cannot allocate acc_list[%d]\n",acc_cnt+1);
+    fprintf(stderr,"*** Warning [%s:%d] - cannot allocate acc_list[%d]\n",__FILE__, __LINE__,acc_cnt+1);
     free(sel_acc_ptr);
     return NULL;
   }
@@ -2023,13 +2001,13 @@ void *sel_hacc_libstr_init(FILE *libf, int *acc_off, char fmt_term) {
   hash_mask = hash_max - 1;
 
   if ((acc_hash = (int *)calloc(hash_max, sizeof(int)))==NULL) {
-    fprintf(stderr, "cannot allocate acc_hash[%ld]\n",hash_max*sizeof(int));
+    fprintf(stderr, "*** Warning [%s:%d] - cannot allocate acc_hash[%ld]\n",__FILE__, __LINE__,hash_max*sizeof(int));
     return NULL;
   }
 
   /* allocate the acc_list link table */
   if ((acc_hash_link = (int *)calloc(acc_cnt+1,sizeof(char *)))==NULL) {
-    fprintf(stderr, "cannot allocate acc_hash_link[%ld]\n",acc_cnt*sizeof(char *));
+    fprintf(stderr, "*** Warning [%s:%d] - cannot allocate acc_hash_link[%ld]\n",__FILE__, __LINE__,acc_cnt*sizeof(char *));
     return NULL;
   }
 
@@ -2100,15 +2078,14 @@ void *sel_hacc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
   int *gi_hash, *gi_hash_link;
 
   if ((sel_acc_ptr = (struct sel_acc_str *)calloc(1,sizeof(struct sel_acc_str)))==NULL) {
-    fprintf(stderr, "Cannot allocate struct sel_acc_str\n");
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate struct sel_acc_str\n",__FILE__, __LINE__);
     return NULL;
   }
 
   /*
   if (fmt != NULL && *fmt != '\0') {
     sel_acc_ptr->fmt = (char *)calloc(strlen(fmt)+1,sizeof(char));
-    strncpy(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
-    sel_acc_ptr->fmt[strlen(fmt)] = '\0';
+    SAFE_STRNCPY(sel_acc_ptr->fmt, fmt, strlen(fmt)+1);
   }
   else {
     sel_acc_ptr->fmt = NULL;
@@ -2122,7 +2099,7 @@ void *sel_hacc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
   abuff_siz = new_buff_siz = 64000;
 
   if ((gi_list = (int *)calloc(abuff_siz, sizeof(int)))==NULL) {
-    fprintf(stderr, "Cannot allocate acc buff %d\n",abuff_siz);
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate acc buff %d\n",__FILE__, __LINE__,abuff_siz);
     free(sel_acc_ptr);
     return NULL;
   }
@@ -2134,7 +2111,7 @@ void *sel_hacc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
     gi_list[acc_cnt++] = atoi(acc_line);
     if (acc_cnt >= abuff_siz) {
       if ((new_buff = realloc(gi_list,(abuff_siz + new_buff_siz)*sizeof(int)))==NULL) {
-	fprintf(stderr,"cannot realloc gi_list[%d]\n",abuff_siz+new_buff_siz);
+	fprintf(stderr,"*** Warning [%s:%d] - cannot realloc gi_list[%d]\n",__FILE__, __LINE__,abuff_siz+new_buff_siz);
 	break;
       }
       else {
@@ -2151,13 +2128,13 @@ void *sel_hacc_gi_init(FILE *libf, int *acc_off, char fmt_term) {
   hash_mask = hash_max - 1;
 
   if ((gi_hash = (int *)calloc(hash_max, sizeof(int)))==NULL) {
-    fprintf(stderr, "cannot allocate gi_hash[%ld]\n",hash_max*sizeof(int));
+    fprintf(stderr, "*** Warning [%s:%d] - cannot allocate gi_hash[%ld]\n",__FILE__, __LINE__,hash_max*sizeof(int));
     return NULL;
   }
 
   /* allocate the gi_list link table */
   if ((gi_hash_link = (int *)calloc(acc_cnt+1,sizeof(char *)))==NULL) {
-    fprintf(stderr, "cannot allocate gi_hash_link[%ld]\n",acc_cnt*sizeof(char *));
+    fprintf(stderr, "*** Warning [%s:%d] - cannot allocate gi_hash_link[%ld]\n",__FILE__, __LINE__,acc_cnt*sizeof(char *));
     return NULL;
   }
 
@@ -2266,12 +2243,12 @@ char *alloc_file_name(char *f_name) {
 
   fn_len = strlen(f_name);
   if ((alloc_f_name = calloc(fn_len+1,sizeof(char)))==NULL) {
-    fprintf(stderr, "Cannot allocate %d space for %s\n",
-	    fn_len+1, f_name);
+    fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate %d space for %s\n",
+	    __FILE__, __LINE__,fn_len+1, f_name);
     exit(1);
   }
   else {
-    strncpy(alloc_f_name,f_name,fn_len);
+    SAFE_STRNCPY(alloc_f_name,f_name,fn_len);
     return alloc_f_name;
   }
 }

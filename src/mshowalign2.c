@@ -618,7 +618,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #ifdef DEBUG
       /*
 	if (lsw_score < bbp->rst.score[ppst->score_ix]) {
-	fprintf(stderr," *** warning - SW score=%d < opt score=%d ***\n",
+	fprintf(stderr," *** Warning - SW score=%d < opt score=%d ***\n",
 	lsw_score, bbp->rst.score[ppst->score_ix]);
 	}
       */
