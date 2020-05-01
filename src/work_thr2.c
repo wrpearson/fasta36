@@ -188,27 +188,27 @@ void work_comp(int my_worker)
     buf_alloc_flag = 1;
     /* must allocate buffers for data, sequences, results */
     if ((my_cur_buf = cur_buf = (struct buf_head *)calloc(1,sizeof(struct buf_head)))==NULL) {
-      fprintf(stderr,"cannot allocate buf_head\n");
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate buf_head\n", __FILE__,__LINE__);
       exit(1);
     }
 
     /* allocate results array */
     if ((my_buf2_res = (struct buf2_res_s*)calloc(max_buf2_res+1,sizeof(struct buf2_res_s)))==NULL) {
-      fprintf(stderr,"cannot allocate buf2_data[%d]\n",max_buf2_res);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate buf2_data[%d]\n", __FILE__,__LINE__,max_buf2_res);
       exit(1);
     }
     cur_buf->buf2_res = my_buf2_res;
 
     /* allocate buffers for ares alignment encodings */
     if ((my_buf2_ares = (struct buf2_ares_s*)calloc(max_buf2_res+1,sizeof(struct buf2_ares_s)))==NULL) {
-      fprintf(stderr,"cannot allocate buf2_data[%d]\n",max_buf2_res);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate buf2_data[%d]\n", __FILE__,__LINE__,max_buf2_res);
       exit(1);
     }
     cur_buf->buf2_ares = my_buf2_ares;
 
     /* allocate buffers for data */
     if ((my_buf2_data = (struct buf2_data_s*)calloc(max_buf2_res+1,sizeof(struct buf2_data_s)))==NULL) {
-      fprintf(stderr,"cannot allocate buf2_data[%d]\n",max_buf2_res);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate buf2_data[%d]\n", __FILE__,__LINE__,max_buf2_res);
       exit(1);
     }
     cur_buf->buf2_data = my_buf2_data;
@@ -217,14 +217,14 @@ void work_comp(int my_worker)
     if ((my_seq_buf = 
 	 (struct seq_record *)calloc((size_t)(max_buf2_res+1), sizeof(struct seq_record)))
         ==NULL) {
-      fprintf(stderr,"%d: cannot allocate seq_record buffer[%d]\n",my_worker,max_buf2_res+1);
+      fprintf(stderr,"*** ERROR [%s:%d] - %d: cannot allocate seq_record buffer[%d]\n", __FILE__,__LINE__,my_worker,max_buf2_res+1);
       exit(1);
     }
     cur_buf->buf2_data[0].seq = cur_buf->hdr.seq_b = my_seq_buf;
 
     if ((my_aa1b_buf = (unsigned char *)calloc((size_t)(seq_buf_size+1),sizeof(unsigned char)))
         ==NULL) {
-      fprintf(stderr,"%d: cannot allocate sequence buffer[%d]\n",my_worker, seq_buf_size);
+      fprintf(stderr,"*** ERROR [%s:%d] - %d: cannot allocate sequence buffer[%d]\n", __FILE__,__LINE__,my_worker, seq_buf_size);
       exit(1);
     }
     else {	  /* now associate the my_aa1b_buf with cur_buf */
@@ -357,8 +357,8 @@ void work_comp(int my_worker)
 
   if ((aa0[0]=(unsigned char *)calloc((size_t)n0+2+SEQ_PAD,sizeof(unsigned char)))
       ==NULL) {
-    fprintf(stderr," cannot allocate aa00[%d] for worker %d\n",
-	    n0, my_worker);
+    fprintf(stderr,"*** ERROR [%s:%d] -  cannot allocate aa00[%d] for worker %d\n",
+	    __FILE__,__LINE__, n0, my_worker);
     exit(1);
   }
   *aa0[0]='\0';
@@ -375,7 +375,7 @@ void work_comp(int my_worker)
   /* also get annotation if available */
   if (my_msp->ann_flg && my_msp->aa0a != NULL) {
     if ((my_msp->aa0a = (unsigned char *)calloc(my_msp->n0+2,sizeof(char)))==NULL) {
-      fprintf(stderr, "*** error -- cannot allocate annotation array\n");
+      fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate annotation array\n", __FILE__,__LINE__);
       exit(1);
     }
     MPI_Recv(my_msp->aa0a, (my_msp->n0+2)*sizeof(char), MPI_BYTE, 0,

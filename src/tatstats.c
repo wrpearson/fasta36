@@ -288,7 +288,7 @@ calc_tatusov ( struct slink *last,
 
     newtat = (struct tat_str *) malloc(sizeof(struct tat_str));
     if(newtat == NULL) {
-      fprintf(stderr, "Couldn't calloc memory for newtat.\n");
+      fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc memory for newtat.\n",__FILE__, __LINE__);
       exit(1);
     }
     
@@ -296,7 +296,7 @@ calc_tatusov ( struct slink *last,
 
     newtat->probs = (double *) calloc(f_str->tatprobs[index]->highscore - f_str->tatprobs[index]->lowscore + 1, sizeof(double));
     if(newtat->probs == NULL) {
-      fprintf(stderr, "Couldn't calloc memory for newtat->probs.\n");
+      fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc memory for newtat->probs.\n",__FILE__,__LINE__);
       exit(1);
     }
 
@@ -317,7 +317,7 @@ calc_tatusov ( struct slink *last,
 
     query = (unsigned char *) calloc(length, sizeof(unsigned char));
     if(query == NULL) {
-      fprintf(stderr, "Couldn't calloc memory for query.\n");
+      fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc memory for query.\n",__FILE__,__LINE__);
       exit(1);
     }
     
@@ -416,19 +416,19 @@ generate_tatprobs(const unsigned char *query,
   int last_zero;
 
   if((tatprobs = (struct tat_str *) calloc(1, sizeof(struct tat_str)))==NULL) {
-    fprintf(stderr, "Couldn't allocate individual tatprob struct.\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't allocate individual tatprob struct.\n",__FILE__, __LINE__);
     exit(1);
   }
 
   n = end - begin + 1;
 
   if ( (lowrange = (int *) calloc(n, sizeof(int))) == NULL ) {
-    fprintf(stderr, "Couldn't allocate memory for lowrange.\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't allocate memory for lowrange.\n",__FILE__, __LINE__);
     exit(1);
   }
   
   if ( (highrange = (int *) calloc(n, sizeof(int))) == NULL ) {
-    fprintf(stderr, "Couldn't allocate memory for highrange.\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't allocate memory for highrange.\n",__FILE__, __LINE__);
     exit(1);
   }
 
@@ -474,7 +474,7 @@ generate_tatprobs(const unsigned char *query,
   /* scores (including 0): */
   N = highscore - lowscore;
   if ( (probs = (double *) calloc(N + 1, sizeof(double))) == NULL ) {
-    fprintf(stderr, "Couldn't allocate probability matrix : %d.\n", N + 1);
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't allocate probability matrix : %d.\n",__FILE__, __LINE__, N + 1);
     exit(1);
   }
 
@@ -498,7 +498,7 @@ generate_tatprobs(const unsigned char *query,
   }
 
   if ( (newprobs = (double *) calloc(N + 1, sizeof(double))) == NULL ) {
-    fprintf(stderr, "Couldn't allocate newprobs matrix.\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't allocate newprobs matrix.\n",__FILE__, __LINE__);
     exit(1);
   }
 
@@ -564,7 +564,7 @@ generate_tatprobs(const unsigned char *query,
     tmp = probs[i];
     if (tmp >= 0.0 && tmp < 1e-200) {
       if (i == 1 || i == N) {
-	fprintf(stderr," *** tatstats.c/generate_tatprobs() probs[%d] near zero: %lg\n",i+lowscore,tmp);
+	fprintf(stderr,"*** Warning [%s:%d] - generate_tatprobs() probs[%d] near zero: %lg\n",__FILE__, __LINE__, i+lowscore,tmp);
       }
       last_zero = i;
     }

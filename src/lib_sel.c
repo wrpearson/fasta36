@@ -73,7 +73,7 @@ get_lnames(char *iname, struct lib_struct *cur_lib_p)
   if ((bp=strchr(tname,' '))!=NULL) *bp='\0';
 
   if ((tptr=fopen(tname,"r"))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] could not open file of names: %s\n",__FILE__,__LINE__,tname);
+    fprintf(stderr,"*** ERROR [%s:%d] could not open file of names: %s\n",__FILE__,__LINE__,tname);
     return NULL;
   }
 
@@ -109,12 +109,12 @@ lib_choice(char *lname, int nl, char *flstr, int ldnaseq)
   if (strlen(flstr)> (size_t)0) {
     chlen = MAX_CH*MAX_FN;
     if ((chtmp=charr=calloc((size_t)chlen,sizeof(char)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] cannot allocate choice file array\n",__FILE__,__LINE__);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot allocate choice file array\n",__FILE__,__LINE__);
       goto l1;
     }
     chlen--;
     if ((fch=fopen(flstr,"r"))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] cannot open choice file: %s\n",__FILE__,__LINE__,flstr);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot open choice file: %s\n",__FILE__,__LINE__,flstr);
       goto l1;
     }
     fprintf(stderr,"\n Choose sequence library:\n\n");
@@ -196,7 +196,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
   }
   else {
     if (*flstr=='\0') {
-      fprintf(stderr,"*** error [%s:%d] abbrv. list request but FASTLIBS undefined, cannot use %s\n",__FILE__,__LINE__,lname);
+      fprintf(stderr,"*** ERROR [%s:%d] abbrv. list request but FASTLIBS undefined, cannot use %s\n",__FILE__,__LINE__,lname);
       exit(1);
     }
 
@@ -218,7 +218,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
 
     if (strlen(flstr) > (size_t)0) {
       if ((fch=fopen(flstr,"r"))==NULL) {
-	fprintf(stderr,"*** error [%s:%d] cannot open choice file: %s\n",__FILE__,__LINE__,flstr);
+	fprintf(stderr,"*** ERROR [%s:%d] cannot open choice file: %s\n",__FILE__,__LINE__,flstr);
 	return NULL;
       }
     }
@@ -269,7 +269,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
 	    }
 	    *bp1='+';
 	  }
-	  else fprintf(stderr,"*** error [%s:%d] %s missing final '+'\n",__FILE__,__LINE__,bp);
+	  else fprintf(stderr,"*** ERROR [%s:%d] %s missing final '+'\n",__FILE__,__LINE__,bp);
 	}
       }
     }

@@ -427,11 +427,11 @@ aainit(int tr_type, int debug)
   for (i=0; i<64; i++) {
     aamap[i]=aascii[aacmap[i]];
     if (aamap[i] > TERM) {
-      fprintf(stderr," *** error - codon out of range: %d %d (%c)\n",i,aamap[i], NCBIstdaa_l[aamap[i]] );
+      fprintf(stderr," *** ERROR - codon out of range: %d %d (%c)\n",i,aamap[i], NCBIstdaa_l[aamap[i]] );
     }
     aamapr[i]=aascii[aacmap[(~i)&63]];
     if (aamapr[i] > TERM) {
-      fprintf(stderr," *** error - codon_r out of range: %d %d (%c)\n",i,aamapr[i], NCBIstdaa_l[aamapr[i]]);
+      fprintf(stderr," *** ERROR - codon_r out of range: %d %d (%c)\n",i,aamapr[i], NCBIstdaa_l[aamapr[i]]);
     }
   }
   aascii['*'] = ascii_star;

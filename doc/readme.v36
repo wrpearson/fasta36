@@ -6,6 +6,14 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>May 1, 2020
+[src/comp_lib9.c]
+Correct bug where library sequence and residue count was not reset when large memory mapped databases were searched that did not fit into memory.
+
+[src/*.c]
+changes to reduce compile warnings with gcc8 and gcc9, and to
+regularize ***ERROR and ***Warning messages set to stderr.
+
 >>Feb. 10, 2020
 [src/*_sse2.*  files]
 change to open source copyright for Michael Farrar SSE2 code.  See COPYRIGHT.sse2
@@ -42,11 +50,12 @@ things work in simple tests.
 
 Fixed a memory leak problem when searching with large libraries that
 could be memory mapped (libraries with .xin index files).  If the
-library did not fit in memory, then the kept allocating new memory.
-By default, the largest database that fits in memory must be less than
-16 GB.  Larger libraries will be re-read, which slows down multi-query
-searches considerably.  To increase the size of the library allowed in
-memory, use the option: "-X M32G" to fit 32 GB libraries.
+library did not fit in memory, then the program kept allocating new
+memory.  By default, the largest database that fits in memory must be
+less than 16 GB.  Larger libraries will be re-read, which slows down
+multi-query searches considerably.  To increase the size of the
+library allowed in memory, use the option: "-X M32G" to fit 32 GB
+libraries.
 
 >>Mar. 8, 2019
 [src/initfa.c,faatran.c,dropfx2.c]

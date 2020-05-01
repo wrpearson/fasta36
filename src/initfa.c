@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8h Aug, 2019 MPI";
+char *verstr="36.3.8h May, 2020 MPI";
 #else
-char *verstr="36.3.8h Aug, 2019";
+char *verstr="36.3.8h May, 2020";
 #endif
 
 static int mktup=3;
@@ -545,17 +545,16 @@ void h_init (struct pstruct *ppst, struct mngmsg *m_msp, char *info_pgm_abbr)
 
   /* check that pgm_def_arr[] is valid */
   if (pgm_def.pgm_id != pgm_id) {
-    fprintf(stderr,
-	    "**pgm_def integrity failure: def.pgm_id %d != pgm_id %d**\n",
-	    pgm_def.pgm_id, pgm_id);
+    fprintf(stderr,"*** ERROR [%s:%d] mpgm_def integrity failure: def.pgm_id %d != pgm_id %d**\n",
+	    __FILE__,__LINE__,pgm_def.pgm_id, pgm_id);
     exit(1);
   }
 
   /* check that msg_def_arr[] is valid */
   if (msg_def_arr[pgm_id].pgm_id != pgm_id) {
     fprintf(stderr,
-	    "**msg_def integrity failure: def.pgm_id %d != pgm_id %d**\n",
-	    msg_def_arr[pgm_id].pgm_id, pgm_id);
+	    "*** ERROR [%s:%d] msg_def integrity failure: def.pgm_id %d != pgm_id %d**\n",
+	    __FILE__,__LINE__,msg_def_arr[pgm_id].pgm_id, pgm_id);
     exit(1);
   }
 
@@ -1182,8 +1181,8 @@ f_getopt (char copt, char *optarg,
     }
     if (m_msg->n1_high == 0) m_msg->n1_high = BIGNUM;
     if (m_msg->n1_low > m_msg->n1_high) {
-      fprintf(stderr," low cutoff %d greater than high %d\n",
-	      m_msg->n1_low, m_msg->n1_high);
+      fprintf(stderr,"*** ERROR [%s:%d] low cutoff %d greater than high %d\n",
+	      __FILE__, __LINE__, m_msg->n1_low, m_msg->n1_high);
       m_msg->n1_low = 0;
       m_msg->n1_high = BIGNUM;
     }
@@ -1468,8 +1467,8 @@ recode(unsigned char *seq, int n, int *qascii, int nsqx) {
     save_c = seq[i];
     if (seq[i] > '@' || seq[i]=='*') seq[i] = qascii[seq[i]];
     if (seq[i] > nsqx && seq[i]!=ESS) {
-      fprintf(stderr, "*** Warning - unrecognized residue at %d:%c - %2d\n",
-	      i,save_c,save_c);
+      fprintf(stderr, "*** Warning [%s:%d] - unrecognized residue at %d:%c - %2d\n",
+	      __FILE__, __LINE__, i,save_c,save_c);
       seq[i] = qascii['X'];
     }
   }
@@ -1502,15 +1501,15 @@ resetp (struct mngmsg *m_msg, struct pstruct *ppst) {
   ppst->shuffle_dna3 = 0;
 #if defined(TFAST)
   if (m_msg->qdnaseq == SEQT_DNA || m_msg->qdnaseq == SEQT_RNA) {
-    fprintf(stderr," %s compares a protein to a translated\n\
-DNA sequence library.  Do not use a DNA query/scoring matrix.\n",prog_func);
+    fprintf(stderr,"*** ERROR [%s:%d] %s compares a protein to a translated\n\
+DNA sequence library.  Do not use a DNA query/scoring matrix.\n",__FILE__,__LINE__,prog_func);
     exit(1);
   }
   ppst->shuffle_dna3 = 1;
 #else
 #if (defined(FASTX) || defined(FASTY))
   if (!(m_msg->qdnaseq == SEQT_DNA || m_msg->qdnaseq == SEQT_RNA)) {
-    fprintf(stderr," FASTX/Y compares a DNA sequence to a protein database\n");
+    fprintf(stderr,"*** ERROR  FASTX/Y compares a DNA sequence to a protein database\n");
     fprintf(stderr," Use a DNA query\n");
     exit(1);
   }
@@ -1814,7 +1813,7 @@ last_init (struct mngmsg *m_msg, struct pstruct *ppst)
 /* a sanity check */
 #if !defined(TFAST)
    if (m_msg->revcomp && m_msg->qdnaseq!=SEQT_DNA && m_msg->qdnaseq!=SEQT_RNA) {
-     fprintf(stderr," cannot reverse complement protein\n");
+     fprintf(stderr,"*** Warning -- cannot reverse complement protein\n");
      m_msg->revcomp = 0;
    }
 #endif
@@ -1825,7 +1824,7 @@ last_init (struct mngmsg *m_msg, struct pstruct *ppst)
        ppst->param_u.fa.ktup = -ppst->param_u.fa.ktup;
 
      if (ppst->param_u.fa.ktup < 1 || ppst->param_u.fa.ktup > mktup) {
-       fprintf(stderr," warning ktup = %d out of range [1..%d], reset to %d\n",
+       fprintf(stderr,"*** Warning: ktup = %d out of range [1..%d], reset to %d\n",
 	       ppst->param_u.fa.ktup, mktup, ppst->param_u.fa.bktup);
        ppst->param_u.fa.ktup = ppst->param_u.fa.bktup;
      }
@@ -1964,7 +1963,7 @@ last_init (struct mngmsg *m_msg, struct pstruct *ppst)
 
 #if defined(FASTF) || defined(FASTS) || defined(FASTM)
    if (ppst->ext_sq_set) {
-     fprintf(stderr," -S not available on [t]fast[fs]\n");
+     fprintf(stderr,"*** Warning: -S not available on [t]fast[fs]\n");
      ppst->ext_sq_set = 0;
      ppst->nsq_e = ppst->nsq;
 
@@ -1983,12 +1982,12 @@ alloc_pam2p(int **pam2p, int len, int nsq) {
 
   if (pam2p == NULL) {
     if ((pam2p = (int **)calloc(len,sizeof(int *)))==NULL) {
-      fprintf(stderr," Cannot allocate pam2p: %d\n",len);
+      fprintf(stderr,"*** Warning [%s:%d] - Cannot allocate pam2p: %d\n",__FILE__, __LINE__, len);
       return NULL;
     }
 
     if((pam2p[0] = (int *)calloc((nsq+1)*len,sizeof(int)))==NULL) {
-      fprintf(stderr, "Cannot allocate pam2p[0]: %d\n", (nsq+1)*len);
+      fprintf(stderr, "*** Warning [%s:%d] - Cannot allocate pam2p[0]: %d\n", __FILE__, __LINE__, (nsq+1)*len);
       free(pam2p);
       return NULL;
     }
@@ -1998,13 +1997,13 @@ alloc_pam2p(int **pam2p, int len, int nsq) {
     pam2pp = pam2p[0];
     if ((pam2pp = (int *)realloc(pam2pp,pam2p_len))==NULL) {
       fprintf(stderr,
-	      "Cannot reallocate pam2p[0]: %ld\n", (nsq+1)*len*sizeof(int));
+	      "*** Warning [%s:%d] - Cannot reallocate pam2p[0]: %ld\n", __FILE__, __LINE__, (nsq+1)*len*sizeof(int));
       return NULL;
     }
     memset(pam2pp,0,pam2p_len);
 
     if ((pam2p = (int **)realloc(pam2p,len*sizeof(int *)))==NULL) {
-      fprintf(stderr," Cannot reallocate pam2p: %d\n",len);
+      fprintf(stderr,"*** Warning [%s:%d] - Cannot reallocate pam2p: %d\n",__FILE__, __LINE__, len);
       return NULL;
     }
     pam2p[0] = pam2pp;
@@ -2096,7 +2095,7 @@ qshuffle(unsigned char *aa0, int n0, int nm0, void *rand_state) {
 
   if ((aa0start=(unsigned char **)calloc(nm0+1,
 					 sizeof(unsigned char *)))==NULL) {
-    fprintf(stderr,"cannot calloc for qshuffle %d\n",nm0);
+    fprintf(stderr,"*** ERROR [%s:%d] cannot calloc for qshuffle %d\n",__FILE__, __LINE__, nm0);
     exit(1);
   }
 
@@ -2201,14 +2200,15 @@ get_lambda(int **pam2p, int n0, int nsq, unsigned char *query) {
   int i, ioff, j, min, max, q_i;
 
   /* get min and max scores */
-  min = BIGNUM;
-  max = -BIGNUM;
   if(pam2p[0][1] == -BIGNUM) {
     ioff = 1;
     n0++;
   } else {
     ioff = 0;
   }
+
+  min = BIGNUM;
+  max = -BIGNUM;
 
   for (i = ioff ; i < n0 ; i++) {
     for (j = 1; j < nsq ; j++) {
@@ -2221,8 +2221,8 @@ get_lambda(int **pam2p, int n0, int nsq, unsigned char *query) {
 
   /*  fprintf(stderr, "min: %d\tmax:%d\n", min, max); */
   
-  if ((pr = (double *) calloc(max - min + 1, sizeof(double))) == NULL) {
-    fprintf(stderr, "Couldn't allocate memory for score probabilities: %d\n", max - min + 1);
+  if (max > 1023 || min < -1024 || ((pr = (double *) calloc(max - min + 1, sizeof(double))) == NULL)) {
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't allocate memory for score probabilities: %d - %d\n", __FILE__, __LINE__, max,min);
     exit(1);
   }
 
@@ -2248,7 +2248,7 @@ get_lambda(int **pam2p, int n0, int nsq, unsigned char *query) {
   for(i = 0 ; i <= max-min ; i++) { pr[i] /= sum; }
 
   if (!karlin(min, max, pr, &lambda, &H)) {
-    fprintf(stderr, "Karlin lambda estimation failed\n");
+    fprintf(stderr, "*** Warning [%s:%d] Karlin lambda estimation failed\n,",__FILE__,__LINE__);
   }
 
   /*   fprintf(stderr, "lambda: %g\n", lambda); */
@@ -2886,12 +2886,12 @@ validate_params(const unsigned char *aa0, int n0,
 
   for (i=0; i< ppst->nsq; i++) {
     if (ppst->pam2[0][0][i] > -1000) {
-      fprintf(stderr," *** error[%s:%d]***  pam2[0][0][%d/%c] == %d\n",
+      fprintf(stderr," *** ERROR[%s:%d]***  pam2[0][0][%d/%c] == %d\n",
 	      __FILE__, __LINE__, i,NCBIstdaa[i],ppst->pam2[0][0][i]);
       good_params = 0;
     }
     if (ppst->pam2[0][i][0] > -1000) {
-      fprintf(stderr," *** error[%s:%d] (validate_params)-  pam2[0][%d/%c][0] == %d\n",
+      fprintf(stderr," *** ERROR[%s:%d] (validate_params)-  pam2[0][%d/%c][0] == %d\n",
 	      __FILE__,__LINE__,i,NCBIstdaa[i],ppst->pam2[0][i][0]);
       good_params = 0;
     }
@@ -2901,12 +2901,12 @@ validate_params(const unsigned char *aa0, int n0,
   if (ppst->ext_sq_set) {
     for (i=0; i< ppst->nsqx; i++) {
       if (ppst->pam2[1][0][i] > -1000) {
-	fprintf(stderr," *** error[%s:%d] (validate_params) -  pam2[1][0][%d] == %d\n",
+	fprintf(stderr," *** ERROR[%s:%d] (validate_params) -  pam2[1][0][%d] == %d\n",
 		__FILE__, __LINE__, i,ppst->pam2[1][0][i]);
       good_params = 0;
       }
       if (ppst->pam2[1][i][0] > -1000) {
-	fprintf(stderr," *** error[%s:%d] (validate_params) - pam2[1][%d][0] == %d\n",
+	fprintf(stderr," *** ERROR[%s:%d] (validate_params) - pam2[1][%d][0] == %d\n",
 		__FILE__, __LINE__, i,ppst->pam2[1][i][0]);
       good_params = 0;
       }
@@ -2916,7 +2916,7 @@ validate_params(const unsigned char *aa0, int n0,
   /* check for valid residues in query */
   for (i=0; i<n0; i++) {
     if (aa0[i] > ppst->nsq_e && aa0[i] != ESS) {
-      fprintf(stderr," *** error [%s:%d] (validate_params) - aa0[%d] = %c[%d > %d] out of range\n",
+      fprintf(stderr," *** ERROR [%s:%d] (validate_params) - aa0[%d] = %c[%d > %d] out of range\n",
 	      __FILE__,__LINE__,i, aa0[i], aa0[i], ppst->nsq_e);
       good_params = 0;
     }
@@ -2924,7 +2924,7 @@ validate_params(const unsigned char *aa0, int n0,
 
   for (i=0; i<128; i++) {
     if (lascii[i] < NA && lascii[i] > ppst->nsq_e) {
-      fprintf(stderr," *** error[%s:%d] (validate_params) - lascii [%c|%d] = %d > %d out of range\n",
+      fprintf(stderr," *** ERROR [%s:%d] (validate_params) - lascii [%c|%d] = %d > %d out of range\n",
 	      __FILE__, __LINE__, i, i, lascii[i], ppst->nsq_e);
       good_params = 0;
     }

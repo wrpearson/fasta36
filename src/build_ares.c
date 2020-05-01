@@ -154,7 +154,7 @@ build_ares_code(unsigned char *aa0, int n0,
 	cur_ares_p->aln_code_n = seq_code_len = strlen(seq_code);
 	if (seq_code[1] == '0' && seq_code[0] == '=') {
 	  if (m_msp->quiet > 1) {
-	    fprintf(stderr,"*** warning [%s:%d] code begins with 0: %s\n", __FILE__, __LINE__, seq_code);
+	    fprintf(stderr,"*** Warning [%s:%d] code begins with 0: %s\n", __FILE__, __LINE__, seq_code);
 	  }
 	}
 

@@ -240,6 +240,8 @@ def get_script_annots(script_name, hit_list, key_list):
 #
 # link_annots(hit_list, annot_set)
 #
+# put 'domains' and 'sites' into each hit in the hit list
+#
 def link_annots(hit_list, annot_set):
 
     for hit in hit_list:
@@ -435,6 +437,22 @@ def do_sub_alignment_stats(domain_list, x_map, y_map, xa_start, xa_end, ya_start
 
     return(aligned_doms)
 
+####
+# print raw domain info:
+# |DX:%d-%d;C=dom_info|XD:%d-%d:C=dom_info
+#
+def format_dom_info(q_dom_r, dom_r):
+
+    dom_str = ""
+    for dom  in q_dom_r:
+        dom_str += "|DX:%d-%d;C=%s"%(dom['d_pos'],dom['d_end'], dom['descr'])
+
+    for dom  in dom_r:
+        dom_str += "|XD:%d-%d;C=%s"%(dom['d_pos'],dom['d_end'], dom['descr'])
+
+    return dom_str
+
+
 def format_annot_info(annot_list_r, hit):
 
     annot_str = "";
@@ -491,6 +509,7 @@ def main(args):
     blosum62, blosum62_diag, g_open, g_ext = init_blosum62()
 
     if (args.query_file):
+        # query_lib_r has a set of query sequences
         query_lib_r = parse_query_lib(args.query_file)
     else:
         sys.stderr.write("--query required\n")
@@ -595,7 +614,7 @@ def main(args):
     for hit in hit_list:
         list_covered = []
 
-        # If I have an encoded aligment {BTOP} and a query sequence $query_lib_r && $query_lib_r['$hit['q_seqid']}
+        # If I have an encoded aligment {BTOP} and a query sequence query_lib_r && query_lib_r[hit['q_seqid']]
         # then I can calculate sub-alignment scores
         if ('BTOP' in hit and query_lib_r and hit['q_seqid'] in query_lib_r):
 
@@ -625,11 +644,14 @@ def main(args):
         if (len(merged_annots_r)>0):
             print("\t"+format_annot_info(merged_annots_r, hit),end='')
             if (args.dom_info):
-                print("\t"+format_dom_info(q_hit['domains'], hit['domains']))
+                if (len(q_hit_list) > 0 and 'domains' in q_hit_list[0]):
+                    print("\t"+format_dom_info(q_hit_list[0]['domains'], hit['domains']),end='')
+                else:
+                    print("\t"+format_dom_info([], hit['domains']),end='')
         elif (len(list_covered)>0):
             print("\t" + ";".join(list_covered))
             if (args.dom_info):
-                print("\t"+format_dom_info(q_hit['domains'], hit['domains']))
+                print("\t"+format_dom_info(q_hit_list[0]['domains'], hit['domains']),end='')
         print()
 
     for line in header_lines:

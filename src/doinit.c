@@ -537,7 +537,7 @@ ann_scan(unsigned char *aa0, int n0, unsigned char **aa0a_p, int seqtype)
   aa0d = aa0;
   /* n_n0 has the real sequence length */
   if ((*aa0a_p = calloc(n_n0+2, sizeof(char)))==NULL) {
-    fprintf(stderr,"*** warning [%s:%d]  cannot allocate annotation sequence: %d\n",__FILE__,__LINE__,n_n0);
+    fprintf(stderr,"*** Warning [%s:%d]  cannot allocate annotation sequence: %d\n",__FILE__,__LINE__,n_n0);
 
     /* this section is for failure, simply copy the correct sequence
        and ignore the annotations */
@@ -644,7 +644,7 @@ get_annot_def_file(struct mngmsg *m_msp, char *fa_annot_env) {
   subs_env(tmp_annot_env, fa_annot_env, sizeof(tmp_annot_env));
   /* check that the file exists */
   if ((def_fp = fopen(tmp_annot_env,"r"))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] *** annotation definition file: %s not found\n",
+    fprintf(stderr,"*** ERROR [%s:%d] *** annotation definition file: %s not found\n",
 	    __FILE__, __LINE__, tmp_annot_env);
     if (bpf) *bpf=' ';
     return;
@@ -737,7 +737,7 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
   }
   else {
     if ((tmp_markx = (struct markx_str *)calloc(1,sizeof(struct markx_str)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] Cannot allocate markx_list\n",__FILE__,__LINE__);
+      fprintf(stderr,"*** ERROR [%s:%d] Cannot allocate markx_list\n",__FILE__,__LINE__);
       return;
     }
 
@@ -774,12 +774,12 @@ pre_parse_markx(char *opt_arg, struct mngmsg *m_msp) {
   /* first check for -m "F file" format */
   if (optarg[0] == 'F') {
     if ((bp=strchr(optarg+1,' '))==NULL && (bp=strchr(optarg+1,'='))==NULL) {
-      fprintf(stderr,"*** warning [%s:%d] -m F missing file name: %s\n",__FILE__,__LINE__,optarg);
+      fprintf(stderr,"*** Warning [%s:%d] -m F missing file name: %s\n",__FILE__,__LINE__,optarg);
       return;
     }
     /* allocate space for file name */
     if ((tmp_markx->out_file = calloc(strlen(bp+1)+1,sizeof(char)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] Cannot allocate markx->out_file\n",__FILE__,__LINE__);
+      fprintf(stderr,"*** ERROR [%s:%d] Cannot allocate markx->out_file\n",__FILE__,__LINE__);
       return;
     }
     strncpy(tmp_markx->out_file, bp+1, strlen(bp+1));
@@ -945,7 +945,7 @@ build_optstr(char *opt_str, int max_len, struct opt_def_str *opt_defs) {
   opt_pos = opt_str;
   for (i=0; opt_defs[i].opt_char != '\0'; i++) {
     if (opt_len + 2 > max_len) {
-      fprintf(stderr,"*** error [%s:%d] -- options too long %d >= %d\n", __FILE__, __LINE__, opt_len, max_len);
+      fprintf(stderr,"*** ERROR [%s:%d] -- options too long %d >= %d\n", __FILE__, __LINE__, opt_len, max_len);
       break;
     }
     *opt_pos++ = opt_defs[i].opt_char;

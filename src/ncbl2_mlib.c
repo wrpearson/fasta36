@@ -1562,18 +1562,18 @@ ncbl2_getlibn(unsigned char *seq,
       filepos = ftell(m_fd->libf);
       /* find the size of the ambiguity table */
       if (fseek(m_fd->libf, amb_start, SEEK_SET) != 0) {
-	fprintf(stderr, "*** error [%s:%d] *** -- Seek amb start 0x%08x error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] *** -- Seek amb start 0x%08x error %d\n", 
 		__FILE__, __LINE__, amb_start, ferror(m_fd->libf));
       }
       if (fread(&amb_cnt, sizeof(unsigned int), 1, m_fd->libf) != 1) {
-	fprintf(stderr, "*** error [%s:%d] *** -- Read amb count error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb count error %d\n", 
 		__FILE__, __LINE__, ferror(m_fd->libf));
       }
     } else {
       mmap_pos = m_fd->mmap_addr;
       m_fd->mmap_addr = m_fd->mmap_base + amb_start;
       if (readMFILE((void *)&amb_cnt, sizeof(unsigned int), 1, m_fd) != 1) {
-	fprintf(stderr, "*** error [%s:%d] *** -- Read amb count error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb count error %d\n", 
 		__FILE__, __LINE__, ferror(m_fd->libf));
       }
     }
@@ -1590,7 +1590,7 @@ ncbl2_getlibn(unsigned char *seq,
     /* allocate enough space for the ambiguity table */
     amb_ptr = (unsigned int *) malloc(amb_cnt * sizeof(unsigned int));
     if (amb_ptr == NULL) {
-      fprintf(stderr, "*** error [%s:%d] malloc amb table error size %ld\n",
+      fprintf(stderr, "*** ERROR [%s:%d] malloc amb table error size %ld\n",
 	      __FILE__, __LINE__, amb_cnt * sizeof(unsigned int));
     }
 
@@ -1598,13 +1598,13 @@ ncbl2_getlibn(unsigned char *seq,
     if (!m_fd->mm_flg) {
       if (fread((unsigned char *) amb_ptr, sizeof(unsigned int), amb_cnt, m_fd->libf)
 	  != amb_cnt) {
-	fprintf(stderr, "*** error [%s:%d] *** -- Read amb table %d error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb table %d error %d\n", 
 		__FILE__, __LINE__, amb_cnt, ferror(m_fd->libf));
       }
     } else {
       if (readMFILE((void *) amb_ptr, sizeof(unsigned int), amb_cnt, m_fd)
 	  != amb_cnt) {
-	fprintf(stderr, "*** error [%s:%d] *** -- Read amb table %d error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb table %d error %d\n", 
 		__FILE__, __LINE__, amb_cnt, ferror(m_fd->libf));
       }
     }
@@ -1936,7 +1936,7 @@ get_asn_int(unsigned char *abp, int *val) {
 
   v = 0;
   if (*abp++ != ASN_IS_INT) { /* check for int */
-    fprintf(stderr,"*** error [%s:%d] -- int missing\n",__FILE__, __LINE__);
+    fprintf(stderr,"*** ERROR [%s:%d] -- int missing\n",__FILE__, __LINE__);
   }
   else {
     v_len = *abp++;
@@ -1956,7 +1956,7 @@ get_asn_text(unsigned char *abp, char *text, int t_len) {
 
   text[0] = '\0';
   if (*abp++ != ASN_IS_STR) { /* check for str */
-    fprintf(stderr,"*** error [%s:%d] - str missing\n",__FILE__,__LINE__);
+    fprintf(stderr,"*** ERROR [%s:%d] - str missing\n",__FILE__,__LINE__);
   }
   else {
     if ((tch = *abp++) > 128) {	/* string length is in next bytes */
@@ -2077,7 +2077,7 @@ get_asn_dbtag(unsigned char *abp, char *name, size_t name_len, char *str, size_t
     abp = get_asn_text(abp+2, name, name_len);
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] -  missing dbtag:db %d %d\n",__FILE__, __LINE__, abp[0],abp[1]);
+    fprintf(stderr,"*** ERROR [%s:%d] -  missing dbtag:db %d %d\n",__FILE__, __LINE__, abp[0],abp[1]);
     abp += 2;
   }
 
@@ -2088,7 +2088,7 @@ get_asn_dbtag(unsigned char *abp, char *name, size_t name_len, char *str, size_t
     else abp = get_asn_text(abp, str, str_len);
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] - missing dbtag:tag %2x %2x\n",__FILE__, __LINE__, abp[0],abp[1]);
+    fprintf(stderr,"*** ERROR [%s:%d] - missing dbtag:tag %2x %2x\n",__FILE__, __LINE__, abp[0],abp[1]);
     abp += 2;
   }
   return abp+2;	/* skip 2 NULL's */
@@ -2121,7 +2121,7 @@ get_asn_date_std(unsigned char *abp, char *date) {
       abp = get_asn_int(abp+2, &day);
       break;
     default: 
-      fprintf(stderr, "*** error [%s:%d] - incorrect date-std code: %0x1 %0x1\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - incorrect date-std code: %0x1 %0x1\n",
 	      __FILE__, __LINE__, abp[0], abp[1]);
     }
   }
@@ -2142,7 +2142,7 @@ get_asn_date(unsigned char *abp, char *date, size_t date_len) {
     abp = get_asn_date_std(abp+2, date);
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - incorrect date code: %0x1 %0x1\n",
+    fprintf(stderr, "*** ERROR [%s:%d] - incorrect date code: %0x1 %0x1\n",
 	    __FILE__, __LINE__, abp[0], abp[1]);
   }
   return abp+2;
@@ -2185,7 +2185,7 @@ get_asn_seqid_ori(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_
   *gi_p = 0;
 
   if (*abp != ASN_SEQ) {
-    fprintf(stderr, "*** error [%s:%d] - seqid - missing SEQ 1: %2x %2x\n",
+    fprintf(stderr, "*** ERROR [%s:%d] - seqid - missing SEQ 1: %2x %2x\n",
 	    __FILE__, __LINE__, abp[0], abp[1]);
     return abp;
   }
@@ -2295,7 +2295,7 @@ get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len,
   *gi_p = 0;
 
   if (*abp != ASN_SEQ) {
-    fprintf(stderr, "*** error [%s:%d] - get_asn_seqid - missing SEQ 1: %2x %2x\n",
+    fprintf(stderr, "*** ERROR [%s:%d] - get_asn_seqid - missing SEQ 1: %2x %2x\n",
 	    __FILE__, __LINE__, abp[0], abp[1]);
     return abp;
   }
@@ -2313,7 +2313,7 @@ get_asn_seqid(unsigned char *abp, int *gi_p, int *db, char *acc, size_t acc_len,
       *db = db_type;
     }
     else {
-      fprintf(stderr,"*** error [%s:%d] -- get_asn_seqid not TEXTSEQ/not GI: %2x %2x\n",
+      fprintf(stderr,"*** ERROR [%s:%d] -- get_asn_seqid not TEXTSEQ/not GI: %2x %2x\n",
 	      __FILE__, __LINE__,abp[0], abp[1]);
       return abp;
     }
@@ -2332,7 +2332,7 @@ get_asn_seqid_other(unsigned char *abp, int *gi_p, char *acc, size_t acc_len, ch
   name[0] = acc[0] = '\0';
 
   if (*abp != ASN_SEQ) {
-    fprintf(stderr, "*** error [%s:%d] - get_asn_seqid - missing SEQ 1: %2x %2x\n",
+    fprintf(stderr, "*** ERROR [%s:%d] - get_asn_seqid - missing SEQ 1: %2x %2x\n",
 	    __FILE__, __LINE__, abp[0], abp[1]);
     return abp;
   }
@@ -2352,7 +2352,7 @@ get_asn_seqid_other(unsigned char *abp, int *gi_p, char *acc, size_t acc_len, ch
       abp = get_asn_int(abp, &itmp );
     }
     else {
-      fprintf(stderr,"*** error [%s:%d] -- get_asn_seqid not SEQID_ACC: %2x %2x\n",
+      fprintf(stderr,"*** ERROR [%s:%d] -- get_asn_seqid not SEQID_ACC: %2x %2x\n",
 	      __FILE__, __LINE__,abp[0], abp[1]);
       return abp;
     }

@@ -181,7 +181,7 @@ process_hist(struct stat_str *sptr, int nstats,
 
   if (*rs_sp == NULL) {
     if ((rs_s=(struct pstat_str *)calloc(1,sizeof(struct pstat_str)))==NULL) {
-      fprintf(stderr," cannot allocate rs_snion: %ld\n",sizeof(struct pstat_str));
+      fprintf(stderr,"*** ERROR [%s:%d] -  cannot allocate rs_snion: %ld\n",__FILE__, __LINE__, sizeof(struct pstat_str));
       exit(1);
     }
     else *rs_sp = rs_s;
@@ -202,7 +202,7 @@ process_hist(struct stat_str *sptr, int nstats,
   }
 
   if (nstats < 20) {
-    fprintf(stderr," too few sequences for sampling: %d\n",nstats);
+    fprintf(stderr,"*** Warning [%s:%d] - too few sequences for sampling: %d\n",__FILE__,__LINE__,nstats);
     free(rs_s);
     *rs_sp = NULL;
     return -1;
@@ -581,7 +581,7 @@ inithistz(int mh, struct hist_str *histp )
   if (histp->hist_a==NULL) {
     if ((histp->hist_a=(int *)calloc((size_t)histp->maxh,sizeof(int)))==
 	NULL) {
-      fprintf(stderr," cannot allocate %d for histogram\n",histp->maxh);
+      fprintf(stderr,"*** Warning [%s:%d] cannot allocate %d for histogram\n",__FILE__, __LINE__, histp->maxh);
       histp->histflg = 0;
     }
     else histp->histflg = 1;
@@ -1107,19 +1107,19 @@ scale_tat(double *escore, int nstats,
 
   x = (double *) calloc(nstats, sizeof(double));
   if(x == NULL) {
-    fprintf(stderr, "Couldn't calloc tatE/x\n");
+    fprintf(stderr, "*** ERROR [%s:%d] Couldn't calloc tatE/x\n",__FILE__,__LINE__);
     exit(1);
   }
 
   lnx = (double *) calloc(nstats,sizeof(double));
   if(lnx == NULL) {
-    fprintf(stderr, "Couldn't calloc tatE/lnx\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc tatE/lnx\n",__FILE__, __LINE__);
     exit(1);
   }
   
-  lny = (double *) calloc(nstats,sizeof(double));
+   lny = (double *) calloc(nstats,sizeof(double));
   if(lny == NULL) {
-    fprintf(stderr, "Couldn't calloc tatE/lny\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc tatE/lny\n",__FILE__, __LINE__);
     exit(1);
   }
   
@@ -1227,7 +1227,7 @@ last_stats(const unsigned char *aa0, int n0,
 
   if (*rs_sp == NULL) {
     if ((rs_s=(struct pstat_str *)calloc(1,sizeof(struct pstat_str)))==NULL) {
-      fprintf(stderr," cannot allocate rs_s: %ld\n",sizeof(struct pstat_str));
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate rs_s: %ld\n",__FILE__, __LINE__,sizeof(struct pstat_str));
       exit(1);
     }
     else *rs_sp = rs_s;
@@ -1252,7 +1252,7 @@ last_stats(const unsigned char *aa0, int n0,
     }
 
     if ((obs_escore = (double *)calloc(nobs,sizeof(double)))==NULL) {
-      fprintf(stderr," cannot allocate obs_escore[%d]\n",nbest);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot allocate obs_escore[%d]\n",__FILE__,__LINE__,nbest);
       exit(1);
     }
 
@@ -1411,13 +1411,13 @@ double calc_spacefactor(const unsigned char *aa0, int n0,
 
   counts = (int **) calloc(nsq, sizeof(int *));
   if(counts == NULL) {
-    fprintf(stderr, "couldn't calloc counts array!\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - couldn't calloc counts[%d] array!\n",__FILE__,__LINE__,nsq);
     exit(1);
   }
 
   counts[0] = (int *) calloc(nsq * (nmoff - 1), sizeof(int));
   if(counts[0] == NULL) {
-    fprintf(stderr, "couldn't calloc counts array!\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - couldn't calloc *counts[%d] array!\n",__FILE__,__LINE__, nsq*(nmoff-1));
     exit(1);
   }
 
@@ -1426,20 +1426,20 @@ double calc_spacefactor(const unsigned char *aa0, int n0,
   }
 
   for(i = 0 ; i < nm0 ; i++) {
-    for(j = 0 ; j < (nmoff - 1) ; j++) {
+    for(j = 0 ; j < (nmoff - 1)  ; j++) {
       counts[ aa0[nmoff * i + j] ] [ j ] ++;
     }
   }
 
   factors = (int **) calloc(nm0 + 1, sizeof(int *));
   if(factors == NULL) {
-    fprintf(stderr, "Couldn't calloc factors array!\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc factors[%d] array!\n",__FILE__, __LINE__, nm0+1);
     exit(1);
   }
 
   factors[0] = (int *) calloc((nm0 + 1) * (nmoff - 1), sizeof(int));
   if(factors[0] == NULL) {
-    fprintf(stderr, "Couldn't calloc factors array!\n");
+    fprintf(stderr, "*** ERROR [%s:%d] - Couldn't calloc *factors[%d] array!\n",__FILE__,__LINE__, (nm0+1)*(nmoff-1));
     exit(1);
   }
 

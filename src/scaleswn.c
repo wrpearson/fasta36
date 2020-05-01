@@ -680,7 +680,7 @@ proc_hist_a(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   if (r_v != 1) {
       r_v = look_p(bl62_p,t_gdelval,t_ggapval,&K,&Lambda,&H);
 #ifdef DEBUG
-    fprintf(stderr,"+++ Warning : [%s:%d] Parameters not available for: %s: %d/%d -- using BL62\n",
+    fprintf(stderr,"*** Warning : [%s:%d] Parameters not available for: %s: %d/%d -- using BL62\n",
 	    __FILE__, __LINE__, ppst->pam_name,t_gdelval-t_ggapval,t_ggapval);
 #endif
   }
@@ -1063,7 +1063,8 @@ mle_cen(struct stat_str *sptr, int n, int M, double fc,
   /*  lambda = 0.2; */
   lambda = PI_SQRT6/sqrt(var_s);
   if (lambda > 1.0) {
-    fprintf(stderr," Lambda initial estimate error: lambda: %6.4g; var_s: %6.4g\n",lambda,var_s);
+    fprintf(stderr,"*** Warning [%s:%d] - Lambda initial estimate error: lambda: %6.4g; var_s: %6.4g\n",
+	    __FILE__, __LINE__, lambda,var_s);
     lambda = 0.2;
   }
 
@@ -1832,7 +1833,7 @@ inithistz(int mh, struct hist_str *histp, double zs_off)
   if (histp->hist_a==NULL) {
     if ((histp->hist_a=(int *)calloc((size_t)histp->maxh,sizeof(int)))==
 	NULL) {
-      fprintf(stderr," cannot allocate %d for histogram\n",histp->maxh);
+      fprintf(stderr,"*** Warning [%s:%d] cannot allocate %d for histogram\n",__FILE__, __LINE__, histp->maxh);
       histp->histflg = 0;
     }
     else histp->histflg = 1;
@@ -2385,7 +2386,7 @@ fit_llen2(struct llen_str *llen, struct rstat_str *pr)
   /* allocate space for s2str */
   if ((ss2=(struct s2str *)calloc(llen->max+1,sizeof(struct s2str)))==NULL) {
     llen->fit_flag = 0;
-    fprintf(stderr," cannot allocate ss2\n");
+    fprintf(stderr,"*** Warning [%s:%d] cannot allocate ss2\n",__FILE__, __LINE__);
     return;
   }
 
@@ -2814,7 +2815,7 @@ E1_to_s(double e_val, int n0, int n1, int db_size,
     break;
 
   default: 
-    fprintf(stderr,"\n*** statistics method: %d not yet supported ***\n", pu->zsflag);
+    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, pu->zsflag);
     score = 999;
   }
 
@@ -2858,7 +2859,8 @@ s_to_bit(int score, int n0, int  n1, struct pstat_str *pu) {
     break;
 
   default: 
-    fprintf(stderr,"\n*** s_to_bit -- statistics method: %d not yet supported ***\n", pu->zsflag);
+    fprintf(stderr,"*** Warning [%s:%d] s_to_bit -- statistics method: %d not yet supported ***\n", 
+	    __FILE__, __LINE__, pu->zsflag);
     bit = -1.0;
   }
 

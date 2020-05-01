@@ -106,7 +106,7 @@ init_aa0(unsigned char **aa0, int n0, int nm0,
 
   if (qframe == 2) {
     if ((aa0[1]=(unsigned char *)calloc((size_t)n0+2+SEQ_PAD,sizeof(unsigned char)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot allocate aa01[%d]\n", __FILE__, __LINE__, n0);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate aa01[%d]\n", __FILE__, __LINE__, n0);
     }
     *aa0[1]='\0';
     aa0[1]++;
@@ -119,7 +119,7 @@ init_aa0(unsigned char **aa0, int n0, int nm0,
 
   if (qshuffle_flg) {
     if ((*aa0s=(unsigned char *)calloc(n0+2+SEQ_PAD,sizeof(char)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot allocate aa0s[%d]\n",__FILE__, __LINE__, n0+2);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate aa0s[%d]\n",__FILE__, __LINE__, n0+2);
       exit(1);
     }
     **aa0s='\0';
@@ -133,7 +133,7 @@ init_aa0(unsigned char **aa0, int n0, int nm0,
 
   /* always allocate shuffle space */
   if((*aa1s=calloc(max_tot+1,sizeof(char))) == NULL) {
-    fprintf(stderr,"*** error [%s:%d] - unable to allocate shuffled library sequence [%d]\n", __FILE__, __LINE__, max_tot);
+    fprintf(stderr,"*** ERROR [%s:%d] - unable to allocate shuffled library sequence [%d]\n", __FILE__, __LINE__, max_tot);
     exit(1);
   }
   else {
@@ -162,7 +162,7 @@ reset_maxn(struct mngmsg *m_msp, int over_len, int maxn) {
       m_msp->qdnaseq == SEQT_RNA) {/* !TFAST - either FASTA or FASTX */
 
     if (m_msp->n0 > m_msp->max_tot - m_msp->ldb_info.dupn) {
-      fprintf(stderr,"*** error [%s:%d] -  query sequence is too long %d > %d - %d %s\n",
+      fprintf(stderr,"*** ERROR [%s:%d] -  query sequence is too long %d > %d - %d %s\n",
 	      __FILE__, __LINE__,
 	      m_msp->n0,
 	      m_msp->max_tot, m_msp->ldb_info.dupn,
@@ -175,7 +175,7 @@ reset_maxn(struct mngmsg *m_msp, int over_len, int maxn) {
   }
   else {	/* is TFAST */
     if (m_msp->n0 > MAXTST) {
-      fprintf(stderr,"*** error [%s:%d] -  query sequence is too long %d %s\n",
+      fprintf(stderr,"*** ERROR [%s:%d] -  query sequence is too long %d %s\n",
 	      __FILE__, __LINE__, m_msp->n0,m_msp->sqnam);
       exit(1);
     }
@@ -186,13 +186,13 @@ reset_maxn(struct mngmsg *m_msp, int over_len, int maxn) {
 
       if (m_msp->n0*4+2 < m_msp->max_tot) { /* m_msg0*3 + m_msg0 */
 	fprintf(stderr,
-		"*** error [%s:%d] - query sequence too long for library segment: %d - resetting to %d\n",
+		"*** ERROR [%s:%d] - query sequence too long for library segment: %d - resetting to %d\n",
 		__FILE__, __LINE__,
 		maxn,m_msp->n0*3);
 	maxn = m_msp->ldb_info.maxn = m_msp->n0*3;
       }
       else {
-	fprintf(stderr,"*** error [%s:%d] -  query sequence too long for translated search: %d * 4 > %d %s\n",
+	fprintf(stderr,"*** ERROR [%s:%d] -  query sequence too long for translated search: %d * 4 > %d %s\n",
 		__FILE__, __LINE__, m_msp->n0,maxn, m_msp->sqnam);
 	exit(1);
       }
@@ -250,7 +250,7 @@ void subs_env(char *dest, char *src, int dest_size) {
       }
       else {	/* have  ${ENV} - put it in */
 	if ((bp1 = strchr(bp+2,'}'))==NULL) {
-	  fprintf(stderr, "*** error [%s:%d] - Unterminated ENV: %s\n",
+	  fprintf(stderr, "*** ERROR [%s:%d] - Unterminated ENV: %s\n",
 		  __FILE__, __LINE__, src);
 	  break;
 	}
@@ -998,7 +998,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
     */
 #ifdef DEBUG
     if (bbp_arr[i]->n1 != bbp_arr[i]->seq->n1) {
-      fprintf(stderr,"*** error [%s:%d] - n1 (%d) != seq->n1 (%d)\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - n1 (%d) != seq->n1 (%d)\n",
 	      __FILE__, __LINE__, bbp_arr[i]->n1, bbp_arr[i]->seq->n1);
     }
 #endif
@@ -1011,7 +1011,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
   /* have required sequence space (seq_buf_len), allocate it */
 
   if ((m_msp->aa1save_buf_b=(unsigned char *)calloc(seq_buf_len, sizeof(char)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate space[%d] for sequence encoding\n",
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate space[%d] for sequence encoding\n",
 	    __FILE__, __LINE__, seq_buf_len);
     exit(1);
   }
@@ -1031,7 +1031,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
 
   /* allocate more bline than we need for simplicity */
   if ((bline_buf_p=m_msp->bline_buf_b=(char *)calloc(nbest*tmp_bline_len, sizeof(char)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate space[%d] for bline descriptions\n",
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate space[%d] for bline descriptions\n",
 	    __FILE__, __LINE__,  nbest*tmp_bline_len);
     exit(1);
   }
@@ -1040,7 +1040,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
     bbp = bbp_arr[i];
 
     if ((m_fptr=re_openlib(bbp->mseq->m_file_p,m_msp->quiet==0))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot re-open %s\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-open %s\n",
 	      __FILE__, __LINE__, bbp->mseq->m_file_p->lb_name);
       exit(1);
     }
@@ -1058,14 +1058,14 @@ pre_load_best(unsigned char *aa1save, int maxn,
 		     bbp->mseq->cont,m_msp->ldb_info.term_code,
 		     &bbp->seq->l_offset,&bbp->seq->l_off,bbp->mseq->m_file_p);
       if (n1 != bbp->seq->n1) {
-	fprintf(stderr,"*** error [%s:%d] - n1[%d/%d] != n1[%d] from re_getlib() at %s [maxn:%d/maxt3:%d]\n",
+	fprintf(stderr,"*** ERROR [%s:%d] - n1[%d/%d] != n1[%d] from re_getlib() at %s [maxn:%d/maxt3:%d]\n",
 		__FILE__, __LINE__,
 		bbp->n1, bbp->seq->n1, n1, bbp->mseq->libstr, maxn, m_msp->ldb_info.maxt3);
       }
 
 #ifdef DEBUG
       if (adler32(1L,aa1save,n1)!=bbp->adler32_crc) {
-	fprintf(stderr,"*** error [%s:%d] - adler32_crc from re_getlib() at %d(%d):  %s\n",
+	fprintf(stderr,"*** ERROR [%s:%d] - adler32_crc from re_getlib() at %d(%d):  %s\n",
 		__FILE__, __LINE__,
 		bbp->mseq->index,bbp->n1, bline);
       }
@@ -1085,7 +1085,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
   /*
   if (m_msp->annot0_sname[0]) {
     if (get_annot(m_msp->annot0_sname, m_msp, m_msp->qtitle, m_msp->q_offset+m_msp->q_off-1,m_msp->n0, &m_msp->annot_p, 0, debug) < 0) {
-      fprintf(stderr,"*** error [%s:%d] - %s did not produce annotations\n",__FILE__, __LINE__, m_msp->annot0_sname);
+      fprintf(stderr,"*** ERROR [%s:%d] - %s did not produce annotations\n",__FILE__, __LINE__, m_msp->annot0_sname);
       m_msp->annot0_sname[0] = '\0';
     }
     if (m_msp->annot_p && m_msp->annot_p->n_annot > 0) {
@@ -1099,7 +1099,7 @@ pre_load_best(unsigned char *aa1save, int maxn,
   /* must do after bline is set */
   if (m_msp->annot1_sname[0]) {
     if (get_annot_list(m_msp->annot1_sname, m_msp, bbp_arr, nbest, 1, debug)< 0) {
-      fprintf(stderr,"*** error [%s:%d] - %s did not produce annotations for %s\n",__FILE__, __LINE__, m_msp->annot1_sname,m_msp->qtitle);
+      fprintf(stderr,"*** ERROR [%s:%d] - %s did not produce annotations for %s\n",__FILE__, __LINE__, m_msp->annot1_sname,m_msp->qtitle);
       m_msp->annot1_sname[0] = '\0';
     };
     if (!m_msp->ann_arr[0]) {m_msp->ann_arr[0] = ' '; m_msp->ann_arr[1] = '\0';}
@@ -1426,7 +1426,7 @@ build_link_data(char **link_lib_file_p,
   link_acc_file[0] = '\0';
 
   if ((link_lib_file=(char *)calloc(MAX_STR,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - [build_link_data] Cannot allocate link_lib_file",
+    fprintf(stderr,"*** ERROR [%s:%d] - [build_link_data] Cannot allocate link_lib_file",
 	    __FILE__, __LINE__);
   }
   link_lib_file[0] = '\0';
@@ -1445,7 +1445,7 @@ build_link_data(char **link_lib_file_p,
 
   /* write out accessions to link_acc_file */
   if ((link_fd =fdopen(link_acc_fd,"w"))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - Cannot open link_acc_file: %s\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - Cannot open link_acc_file: %s\n",
 	    __FILE__, __LINE__, link_acc_file);
     goto no_links;
   }
@@ -1509,7 +1509,7 @@ build_link_data(char **link_lib_file_p,
   }
 
   if (status < 0 || status == 127) {
-    fprintf(stderr,"*** error [%s:%d] - script: %s failed\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - script: %s failed\n",
 	    __FILE__, __LINE__,link_script);
     goto no_links;
   }
@@ -1520,7 +1520,7 @@ build_link_data(char **link_lib_file_p,
   else fclose(link_fd);
 
   if ((link_lib_str=(char *)calloc(MAX_STR,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - [build_link_data] Cannot allocate link_lib_str",
+    fprintf(stderr,"*** ERROR [%s:%d] - [build_link_data] Cannot allocate link_lib_str",
 	    __FILE__, __LINE__);
   }
 
@@ -1567,7 +1567,7 @@ build_lib_db(char *script_file) {
   char *bp, *lib_bp;
 
   if ((lib_db_file=(char *)calloc(MAX_STR,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - [build_lib_db] Cannot allocate lib_db_file",
+    fprintf(stderr,"*** ERROR [%s:%d] - [build_lib_db] Cannot allocate lib_db_file",
 	    __FILE__, __LINE__);
     goto no_lib;
   }
@@ -1618,14 +1618,14 @@ build_lib_db(char *script_file) {
   }
 
   if (status < 0 || status == 127) {
-    fprintf(stderr,"*** error [%s:%d] - [build_lib_db] script: %s failed\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - [build_lib_db] script: %s failed\n",
 	    __FILE__, __LINE__, lib_db_script);
     goto no_lib;
   }
 
   /* build the file string (possibly @lib_db_str libtype) */
   if ((lib_db_str=calloc(lib_db_str_len+1,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - [build_lib_db] cannot allocate lib_db_str[%d]\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - [build_lib_db] cannot allocate lib_db_str[%d]\n",
 	    __FILE__, __LINE__, lib_db_str_len+1);
     goto no_lib;
   }
@@ -1660,7 +1660,7 @@ init_tmp_annot(struct annot_mstr *this, int size) {
   if (this->tmp_arr_p == NULL || this->max_annot <= 0) {
     this->max_annot = 32;
     if ((this->tmp_arr_p=(struct annot_entry *)calloc(this->max_annot, sizeof(struct annot_entry)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot allocate annot_entry[%d]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate annot_entry[%d]\n",
 		__FILE__,__LINE__,this->max_annot);
 	return 0;
     }
@@ -1673,7 +1673,7 @@ update_tmp_annot(struct annot_mstr *this) {
 
   this->max_annot += (this->max_annot/2);
   if ((this->tmp_arr_p= (struct annot_entry *)realloc(this->tmp_arr_p, this->max_annot*sizeof(struct annot_entry)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot reallocate tmp_ann_astr[%d]\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot reallocate tmp_ann_astr[%d]\n",
 	    __FILE__, __LINE__, this->max_annot);
     return 0;
   }
@@ -1730,7 +1730,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     annot_bline_file[0] = '\0';
 
     if ((annot_descr_file=(char *)calloc(MAX_STR,sizeof(char)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - [get_annot_list] Cannot allocate annot_file",
+      fprintf(stderr,"*** ERROR [%s:%d] - [get_annot_list] Cannot allocate annot_file",
 	      __FILE__, __LINE__);
     }
     annot_descr_file[0] = '\0';
@@ -1750,7 +1750,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
 
     /* write out accessions to annot_bline_file */
     if ((annot_fd =fdopen(annot_bline_fd,"w"))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - Cannot open annot_bline_file: %s\n",__FILE__, __LINE__, annot_bline_file);
+      fprintf(stderr,"*** ERROR [%s:%d] - Cannot open annot_bline_file: %s\n",__FILE__, __LINE__, annot_bline_file);
       goto no_annots;
     }
 
@@ -1805,7 +1805,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     }
 
     if (status < 0 || status == 127) {
-      fprintf(stderr,"*** error [%s:%d] - script: %s failed\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - script: %s failed\n",
 	      __FILE__, __LINE__, annot_script);
       goto no_annots;
     }
@@ -1814,7 +1814,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     annot_descr_file = sname+1;
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] - %s not script (!) or file (<)\n",__FILE__, __LINE__, sname);
+    fprintf(stderr,"*** ERROR [%s:%d] - %s not script (!) or file (<)\n",__FILE__, __LINE__, sname);
     goto no_annots;
   }
 
@@ -1845,7 +1845,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
   while (tmp_line[0] == '#' || tmp_line[0] == '=') {
     if (tmp_line[0] == '=') add_annot_def(m_msp, tmp_line+1,1);
     if (fgets(tmp_line, sizeof(tmp_line), annot_fd)==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - premature annotation file end (%s)\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - premature annotation file end (%s)\n",
 	      __FILE__,__LINE__, annot_descr_file);
       goto no_annots;
     }
@@ -1867,7 +1867,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     if ((bp=strchr(tmp_line,'\n'))!=NULL) *bp = '\0';
     if ((bp=strchr(tmp_line,'\t'))!=NULL) *bp = '\0';
     if (tmp_line[0] != '>' || strncmp(&tmp_line[1], bestp_arr[i]->mseq->bline, strlen(&tmp_line[1])) != 0) {
-      fprintf(stderr,"*** error [%s:%d] - %s description mismatch (%s:%s)\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - %s description mismatch (%s:%s)\n",
 	      __FILE__,__LINE__,annot_descr_file, tmp_line, bestp_arr[i]->mseq->bline);
       goto no_annots;
     }
@@ -2015,7 +2015,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
     }
     else {	/* ctmp_label == ']' -- closing domain */
       if (last_left_bracket < 0) {
-	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) - ']' without '[': %s\n",
+	fprintf(stderr,"*** ERROR [%s:%d] -- next_annot_entry(%s) - ']' without '[': %s\n",
 		__FILE__,__LINE__, annot_acc, tmp_line);
 	continue;
       }
@@ -2025,7 +2025,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
     }
 
     if (f_end < f_pos) {
-	fprintf(stderr,"*** error [%s:%d] -- %s: domain start (%d) > domain end (%d)\n",
+	fprintf(stderr,"*** ERROR [%s:%d] -- %s: domain start (%d) > domain end (%d)\n",
 		__FILE__,__LINE__, annot_acc, f_pos+1, f_end+1);
 	continue;
     }
@@ -2086,7 +2086,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 
     for (i_ann=0; i_ann < n_annot; i_ann++) {
       if (tmp_ann_entry_arr[i_ann].label == '[') {
-	fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) -  unpaired '[' %d:%s\n",
+	fprintf(stderr,"*** ERROR [%s:%d] -- next_annot_entry(%s) -  unpaired '[' %d:%s\n",
 		__FILE__,__LINE__, annot_acc, i_ann, tmp_ann_entry_arr[i_ann].comment);
 	return NULL;
       }
@@ -2098,7 +2098,7 @@ next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_st
 
     /* provide sorted array */
     if ((s_tmp_ann_entry_arr = (struct annot_entry **)calloc((n_annot+1),sizeof(struct annot_entry *)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] -- next_annot_entry(%s) -  cannot alloc s_tmp_ann_entry_arr[%d]",
+      fprintf(stderr,"*** ERROR [%s:%d] -- next_annot_entry(%s) -  cannot alloc s_tmp_ann_entry_arr[%d]",
 	      __FILE__,__LINE__, annot_acc, n_annot+1);
       return NULL;
     }
@@ -2145,7 +2145,7 @@ add_annot_char(unsigned char *ann_arr, char ctmp_label) {
   if (strchr((char *)ann_arr,ctmp_label)==NULL) {
     /* check for room for another character */
     if (strlen((char *)ann_arr) >= MAX_FN) {
-      fprintf(stderr,"*** error [%s:%d] -- add_annot_char - too many annotation characters: len(%s) + %c > %d\n",
+      fprintf(stderr,"*** ERROR [%s:%d] -- add_annot_char - too many annotation characters: len(%s) + %c > %d\n",
 	      __FILE__, __LINE__, ann_arr, ctmp_label, MAX_FN-1);
       return 0;
     }
@@ -2228,7 +2228,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
     annot_fd=fopen(annot_data_file,"r");
   }
   else {
-    fprintf(stderr,"*** error [%s:%d] -- get_annot() - %s not script (!) or file (<)\n",__FILE__, __LINE__, sname);
+    fprintf(stderr,"*** ERROR [%s:%d] -- get_annot() - %s not script (!) or file (<)\n",__FILE__, __LINE__, sname);
     goto no_annots;
   }
 
@@ -2242,7 +2242,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
     while (tmp_line[0] == '#' || tmp_line[0] == '=') {
       if (tmp_line[0] == '=') add_annot_def(m_msp, tmp_line+1,1);
       if (fgets(tmp_line, sizeof(tmp_line), annot_fd)==NULL) {
-	fprintf(stderr,"*** error [%s:%d] -- get_annot() -  premature annotation file end (%s)\n",
+	fprintf(stderr,"*** ERROR [%s:%d] -- get_annot() -  premature annotation file end (%s)\n",
 		__FILE__,__LINE__, annot_data_file);
 	goto no_annots;
       }
@@ -2254,7 +2254,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
 
     /* strlen(&tmp_line[1])-1 to remove '>' and beginning and '\n' at end */
     if (tmp_line[0] != '>') {
-      fprintf(stderr,"*** error [%s:%d] -- get_annot() - no %s description: [%s]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] -- get_annot() - no %s description: [%s]\n",
 	      __FILE__,__LINE__,annot_data_file, tmp_line);
       goto no_annots;
     }
@@ -2294,7 +2294,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
   char *bp;
 
   if ((aa1a_tmp = (unsigned char *)calloc(n1+2,sizeof(char)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] -- s_annot_to_aa1a() - cannot allocate aa1a_ann[%d] array\n",
+    fprintf(stderr,"*** ERROR [%s:%d] -- s_annot_to_aa1a() - cannot allocate aa1a_ann[%d] array\n",
 	    __FILE__, __LINE__, n1);
     return;
   }
@@ -2311,7 +2311,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
 	  aa1a_tmp[this_annot->pos-offset] = qascii['['] - NANN;
 	}
 	else {
-	  fprintf(stderr,"*** error [%s:%d] -- s_annot_to_aa1a() - attempt to write off end of aa1a_tmp[%d]: %ld -- %s\n",
+	  fprintf(stderr,"*** ERROR [%s:%d] -- s_annot_to_aa1a() - attempt to write off end of aa1a_tmp[%d]: %ld -- %s\n",
 		  __FILE__,__LINE__, n1, this_annot->pos - offset, tmp_line);
 	  continue;
 	}
@@ -2319,7 +2319,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
       else {
 	if (this_annot->end - offset < 0) continue;
 	/*
-	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%ld:%d] out of range\n",
+	fprintf(stderr,"*** ERROR [%s:%d] --- s_annot_to_aa1a[%ld:%d] out of range\n",
 		__FILE__, __LINE__, this_annot->pos - offset, 0);
 	*/
 	aa1a_tmp[0] = qascii['['] - NANN;
@@ -2328,7 +2328,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
       if (this_annot->end - offset < n1) {aa1a_tmp[this_annot->end-offset]=qascii[']'] - NANN;}
       else {
 	/*
-	fprintf(stderr,"*** error [%s:%d] --- s_annot_to_aa1a[%ld:%d] out of range\n",
+	fprintf(stderr,"*** ERROR [%s:%d] --- s_annot_to_aa1a[%ld:%d] out of range\n",
 		__FILE__, __LINE__, this_annot->end - offset, n1);
 	
 	*/
@@ -2344,7 +2344,7 @@ s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *a
       }
     }
     else {
-      fprintf(stderr, "*** error [%s:%d] -- s_annot_to_aa1() - athis_annot->pos:[%ld - %ld] out of range: %d : %s\n",
+      fprintf(stderr, "*** ERROR [%s:%d] -- s_annot_to_aa1() - athis_annot->pos:[%ld - %ld] out of range: %d : %s\n",
 	      __FILE__, __LINE__, this_annot->pos,offset, n1, tmp_line);
     }
   }
@@ -2601,7 +2601,7 @@ save_best(struct buf_head *lib_bhead_p,
 
       if (rbuf_dp->stats_idx >= 0 && t_valid_stat) {
 	if (rbuf_dp->stats_idx >= MAX_STATS || nstats > MAX_STATS) {
-	  fprintf(stderr, "*** error [%s:%d] - nstats index [%d] out of range [%d,%d]\n",
+	  fprintf(stderr, "*** ERROR [%s:%d] - nstats index [%d] out of range [%d,%d]\n",
 		  __FILE__, __LINE__,
 		  rbuf_dp->stats_idx, nstats,MAX_STATS);
 	}
@@ -2829,7 +2829,7 @@ save_best2(struct buf_head *lib_bhead_p,
     }
 
     if (rbuf_dp->stats_idx >= MAX_STATS || nstats > MAX_STATS) {
-      fprintf(stderr, "*** error [%s:%d] - nstats index [%d] out of range [%d,%d]\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - nstats index [%d] out of range [%d,%d]\n",
 	      __FILE__, __LINE__,
 	      rbuf_dp->stats_idx, nstats,MAX_STATS);
       continue;
@@ -2988,7 +2988,7 @@ save_align(struct buf_head *lib_bhead_p, struct beststr **bestp_arr)
     }
 #ifdef DEBUG
     else {
-      fprintf(stderr,"*** error [%s:%d] - attempt to re-save a_res for [%d]: %s\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - attempt to re-save a_res for [%d]: %s\n",
 	      __FILE__, __LINE__, rbuf_ap->best_idx, bestp_arr[rbuf_ap->best_idx]->mseq->bline);
     }
 #endif
@@ -3062,7 +3062,7 @@ buf_do_work(unsigned char **aa0,  int n0,
 #ifdef DEBUG
     if (check_seq_range(lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1,
 			ppst->nsqx, "buf_do_work()")) {
-      fprintf(stderr, "*** error [%s:%d] - [%s/buf_do_work] range error at: %d/%d (n1:%d)\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - [%s/buf_do_work] range error at: %d/%d (n1:%d)\n",
 	      __FILE__, __LINE__,
 	      prog_func,lib_bhead_p->hdr.buf2_cnt - (buf2_cnt+1),
 	      lib_bhead_p->hdr.buf2_cnt, lib_buf2_dp->seq->n1);
@@ -3071,7 +3071,7 @@ buf_do_work(unsigned char **aa0,  int n0,
 
     /* also check for adler32_crc match */
     if (lib_buf2_dp->seq->adler32_crc != (atmp=adler32(1L,lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1))) {
-      fprintf(stderr, "*** error [%s:%d] - [%s/buf_do_work] CRC error [%lu!=%lu] at: %d/%d (n1:%d/l_offset:%ld)\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - [%s/buf_do_work] CRC error [%lu!=%lu] at: %d/%d (n1:%d/l_offset:%ld)\n",
 	      __FILE__, __LINE__,
 	      prog_func,lib_buf2_dp->seq->adler32_crc, atmp,
 	      lib_bhead_p->hdr.buf2_cnt - (buf2_cnt+1),
@@ -3145,13 +3145,13 @@ buf_do_align(unsigned char **aa0,  int n0,
 
 #ifdef DEBUG
     if (lib_buf2_dp->seq->aa1b == NULL) {
-      fprintf(stderr,"*** error [%s:%d] - [buf_do_align] null aa1b\n",__FILE__, __LINE__);
+      fprintf(stderr,"*** ERROR [%s:%d] - [buf_do_align] null aa1b\n",__FILE__, __LINE__);
       lib_buf2_ap->a_res = NULL;
       break;
     }
     if (check_seq_range(lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1,
 			ppst->nsqx, "buf_do_align()")) {
-      fprintf(stderr, "*** error [%s:%d] - [%s/buf_do_align] range error at: %d/%d (n1:%d)\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - [%s/buf_do_align] range error at: %d/%d (n1:%d)\n",
 	      __FILE__, __LINE__,
 	      prog_func,lib_bhead_p->hdr.buf2_cnt - (buf2_cnt+1),
 	      lib_bhead_p->hdr.buf2_cnt, lib_buf2_dp->seq->n1);
@@ -3159,7 +3159,7 @@ buf_do_align(unsigned char **aa0,  int n0,
 
     /* also check for adler32_crc match */
     if (lib_buf2_dp->seq->adler32_crc != adler32(1L,lib_buf2_dp->seq->aa1b, lib_buf2_dp->seq->n1)) {
-      fprintf(stderr, "*** error [%s:%d] - [%s/buf_do_align] CRC error at: %d/%d (n1:%d)\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - [%s/buf_do_align] CRC error at: %d/%d (n1:%d)\n",
 	      __FILE__, __LINE__,
 	      prog_func,lib_bhead_p->hdr.buf2_cnt - (buf2_cnt+1),
 	      lib_bhead_p->hdr.buf2_cnt, lib_buf2_dp->seq->n1);
@@ -3241,7 +3241,7 @@ buf_qshuf_work(unsigned char *aa0s,  int n0,
       }
 #ifdef DEBUG
       else {
-	fprintf(stderr,"*** error [%s:%d] - tq_best_rp NULL at: %ld\n",
+	fprintf(stderr,"*** ERROR [%s:%d] - tq_best_rp NULL at: %ld\n",
 		__FILE__, __LINE__, lib_buf2_rp - lib_bhead_p->buf2_res);
       }
 #endif
@@ -3308,7 +3308,7 @@ buf_shuf_work(unsigned char **aa0,  int n0, unsigned char *aa1s, struct buf_head
 #ifdef DEBUG
     if (check_seq_range(aa1s, lib_buf2_dp->seq->n1,
 			ppst->nsqx, "buf_do_align()")) {
-      fprintf(stderr, "*** error [%s:%d] - [%s/buf_do_shuff] range error at: %d/%d (n1:%d)\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - [%s/buf_do_shuff] range error at: %d/%d (n1:%d)\n",
 	      __FILE__, __LINE__,
 	      prog_func,lib_bhead_p->hdr.buf2_cnt - (buf2_cnt+1),
 	      lib_bhead_p->hdr.buf2_cnt, lib_buf2_dp->seq->n1);
@@ -3387,7 +3387,7 @@ buf_shuf_seq(unsigned char **aa0, int n0,
 /* figure out how much space we need, first checking whether we have
    dups */
   if ((tmp_bestp = (struct beststr **)calloc(nbest, sizeof(struct beststr *)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - %s/buf_shuf_seq() *** cannot allocate tmp_bestp[%d]\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - %s/buf_shuf_seq() *** cannot allocate tmp_bestp[%d]\n",
 	    __FILE__, __LINE__, prog_name, nbest);
     exit(1);
   }
@@ -3414,7 +3414,7 @@ buf_shuf_seq(unsigned char **aa0, int n0,
       if (n1lib_req >= maxn) { /* we need new space, aa1shuff is too small */
 	if ((*aa1shuff_b = aa1shuff =
 	     (unsigned char *)realloc(*aa1shuff_b, n1lib_req*sizeof(char)))==NULL) {
-	  fprintf(stderr,"*** error [%s:%d] - cannot realloc aa1shuff[%d]\n",
+	  fprintf(stderr,"*** ERROR [%s:%d] - cannot realloc aa1shuff[%d]\n",
 		  __FILE__, __LINE__, n1lib_req);
 	  exit(1);
 	}
@@ -3425,7 +3425,7 @@ buf_shuf_seq(unsigned char **aa0, int n0,
 
 #else
       if (n1lib_req < 2) {
-	fprintf(stderr,"*** error [%s:%d] - [%s/buf_shuf_seq] no residues to shuffle: %d (%d)\n",
+	fprintf(stderr,"*** ERROR [%s:%d] - [%s/buf_shuf_seq] no residues to shuffle: %d (%d)\n",
 		__FILE__, __LINE__,
 		prog_func,n1lib_req,ndiff);
 	exit(1);
@@ -3433,7 +3433,7 @@ buf_shuf_seq(unsigned char **aa0, int n0,
 
       if ((*aa1shuff_b = aa1shuff =
 	   (unsigned char *)calloc(n1lib_req,sizeof(char)))==NULL) {
-	fprintf(stderr,"*** error [%s:%d] - cannot calloc aa1shuff[%d]\n",
+	fprintf(stderr,"*** ERROR [%s:%d] - cannot calloc aa1shuff[%d]\n",
 		__FILE__, __LINE__, n1lib_req);
 	exit(1);
       }
@@ -3694,12 +3694,12 @@ buf_align_seq(unsigned char **aa0, int n0,
   m_msp->align_done = 1;
 
   if (n_pre_align != nbest) {
-    fprintf(stderr,"*** error [%s:%d] -  n_pre_align:%d != nbest: %d\n",
+    fprintf(stderr,"*** ERROR [%s:%d] -  n_pre_align:%d != nbest: %d\n",
 	    __FILE__, __LINE__, n_pre_align, nbest);
   }
   for (i=0; i < nbest; i++) {
     if (bestp_arr[i]->a_res == NULL) {
-      fprintf(stderr, "*** error [%s:%d] - have NULL a_res: %d\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - have NULL a_res: %d\n",
 	      __FILE__, __LINE__, i);
     }
   }
@@ -3733,13 +3733,13 @@ struct stack_str *init_stack(int size, int inc) {
   struct stack_str *stack;
 
   if ((stack=(struct stack_str *)calloc(1,sizeof(struct stack_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate stack\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate stack\n",
 	    __FILE__, __LINE__);
     return NULL;
   }
 
   if ((stack->stack=(void *)calloc(size,sizeof(void *)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate stack->stack[%d]\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate stack->stack[%d]\n",
 	    __FILE__, __LINE__,size);
     free(stack);
     return NULL;
@@ -3757,12 +3757,12 @@ void push_stack(struct stack_str *stack, void *value) {
   if (stack->top >= stack->size) {
     stack->size += stack->inc;
     if ((stack->stack = (void *)realloc(stack->stack, stack->size*sizeof(void *)))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot re-allocate stack to [%d]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate stack to [%d]\n",
 	      __FILE__, __LINE__, stack->size);
       return;
     }
     /*
-    fprintf(stderr,"*** error [%s:%d] - stack corruption: %d >= %d\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - stack corruption: %d >= %d\n",
 	    __FILE__, __LINE__, stack->top, stack->size);
     return;
     */
@@ -3779,7 +3779,7 @@ int get_stack_len(struct stack_str *stack) {
 void * pop_stack(struct stack_str *stack) {
   if (stack == NULL) {
 #ifdef DEBUG
-    fprintf(stderr," *** error [%s:%d] - pop_stack NULL stack\n",__FILE__, __LINE__);
+    fprintf(stderr," *** ERROR [%s:%d] - pop_stack NULL stack\n",__FILE__, __LINE__);
 #endif
     return NULL;
   }
@@ -3805,13 +3805,13 @@ init_dyn_string(int size, int inc) {
   struct dyn_string_str *dyn_string;
 
   if ((dyn_string=(struct dyn_string_str *)calloc(1,sizeof(struct dyn_string_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate dyn_string\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate dyn_string\n",
 	    __FILE__, __LINE__);
     return NULL;
   }
 
   if ((dyn_string->string=(void *)calloc(size,sizeof(void *)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - cannot allocate dyn_string->string[%d]\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate dyn_string->string[%d]\n",
 	    __FILE__, __LINE__,size);
     free(dyn_string);
     return NULL;
@@ -3841,7 +3841,7 @@ dyn_strcat(struct dyn_string_str *dyn_string, char *value) {
     while (dyn_string->inc < add_len) { dyn_string->inc *= 2; }
     dyn_string->mx_size += dyn_string->inc;
     if ((dyn_string->string = (void *)realloc(dyn_string->string, dyn_string->mx_size))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot re-allocate dyn_string to [%d]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate dyn_string to [%d]\n",
 	      __FILE__, __LINE__, dyn_string->mx_size);
       dyn_string->mx_size = 0;
       return;
@@ -3861,7 +3861,7 @@ void dyn_strcpy(struct dyn_string_str *dyn_string, char *value) {
     while (dyn_string->inc < add_len) { dyn_string->inc *= 2; }
     dyn_string->mx_size += dyn_string->inc;
     if ((dyn_string->string = (void *)realloc(dyn_string->string, dyn_string->mx_size))==NULL) {
-      fprintf(stderr,"*** error [%s:%d] - cannot re-allocate dyn_string to [%d]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate dyn_string to [%d]\n",
 	      __FILE__, __LINE__, dyn_string->mx_size);
       dyn_string->mx_size = 0;
       return;
@@ -3884,7 +3884,7 @@ init_domfeat_data(const struct annot_str *annot_p) {
   struct domfeat_data *domfeats_head, *domfeats_current;
 
   if ((domfeats_head = (struct domfeat_data *)calloc(annot_p->n_annot+1, sizeof(struct domfeat_data)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - calc_cons_u(): cannot allocate left_domain_list [%d]\n", __FILE__, __LINE__, annot_p->n_annot+1);
+    fprintf(stderr,"*** ERROR [%s:%d] - calc_cons_u(): cannot allocate left_domain_list [%d]\n", __FILE__, __LINE__, annot_p->n_annot+1);
     return NULL;
   }
 
@@ -4282,7 +4282,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
    * subject -- so it has been disabled */
   /*
   if ((n_stack = get_stack_len(annot_stack)) > 16) {
-    fprintf(stderr," *** warning [%s:%d] - annot stack >16: %d: n0: %d; n1: %d\n",__FILE__, __LINE__, n_stack,n0,n1);
+    fprintf(stderr," *** Warning [%s:%d] - annot stack >16: %d: n0: %d; n1: %d\n",__FILE__, __LINE__, n_stack,n0,n1);
   }
   */
 
@@ -4352,7 +4352,7 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
       dyn_strcat(annot_var_dyn, tmp_lstr);
       /*
       if (annot_var_dyn->c_size > 8192) {
-	fprintf(stderr,"*** error [%s:%d] -- display_push_annot() long ann_code[%d]: %s\n",  __FILE__,__LINE__,annot_var_dyn->c_size,tmp_lstr);
+	fprintf(stderr,"*** ERROR [%s:%d] -- display_push_annot() long ann_code[%d]: %s\n",  __FILE__,__LINE__,annot_var_dyn->c_size,tmp_lstr);
       }
       */
     }

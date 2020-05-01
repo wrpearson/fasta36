@@ -388,7 +388,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
   asnp->abp = chk_asn_buf(asnp,32);
 
   if (*asnp->abp++ != ASN_IS_REAL) { /* check for packed float */
-    fprintf(stderr,"*** error [%s:%d] - float missing\n",__FILE__,__LINE__);
+    fprintf(stderr,"*** ERROR [%s:%d] - float missing\n",__FILE__,__LINE__);
     *d_val_p = 0;
     return asnp->abp;
   }
@@ -396,7 +396,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
     v_len = *asnp->abp++;
 
     if (v_len > 63) {
-      fprintf(stderr,"*** error [%s:%d] - real string too long: %d\n",__FILE__,__LINE__,v_len);
+      fprintf(stderr,"*** ERROR [%s:%d] - real string too long: %d\n",__FILE__,__LINE__,v_len);
     }
 
     asnp->abp = chk_asn_buf(asnp,v_len+16);
@@ -407,7 +407,7 @@ get_astr_packedreal(struct asn_bstruct *asnp, long *l_val_p, double *d_val_p) {
     }
     else {	/* copy and scan it */
       if (*asnp->abp != '\0') {
-	fprintf(stderr, "*** error [%s:%d] -  packedreal - expected 0, got %d\n", __FILE__,__LINE__,*asnp->abp);
+	fprintf(stderr, "*** ERROR [%s:%d] -  packedreal - expected 0, got %d\n", __FILE__,__LINE__,*asnp->abp);
 	*d_val_p = -1.0;
 	return asnp->abp;
       }
@@ -786,7 +786,7 @@ get_astr_seqdescr(struct asn_bstruct *asnp,
     ABP_INC2;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - missing ASN_SEQOF '1': %0x %0x\n",__FILE__, __LINE__,ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - missing ASN_SEQOF '1': %0x %0x\n",__FILE__, __LINE__,ABP, asnp->abp[1]);
   }
 
   while (ABP != '\0') {
@@ -800,7 +800,7 @@ get_astr_seqdescr(struct asn_bstruct *asnp,
       asnp->abp = get_astr_user(asnp);
     }
     else {
-      fprintf(stderr, "*** error [%s:%d] - Un-parsed Seq-descr: %x %x\n",__FILE__,__LINE__,asnp->abp[0],asnp->abp[1]);
+      fprintf(stderr, "*** ERROR [%s:%d] - Un-parsed Seq-descr: %x %x\n",__FILE__,__LINE__,asnp->abp[0],asnp->abp[1]);
       return asnp->abp;
     }
   }
@@ -836,7 +836,7 @@ get_astr_seqinst(struct asn_bstruct *asnp,
     ABP_INC2;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - missing ASN_SEQ '0': %0x %0x\n",__FILE__, __LINE__, ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - missing ASN_SEQ '0': %0x %0x\n",__FILE__, __LINE__, ABP, asnp->abp[1]);
   }
 
   if (ABP == ASN_BIOSEQ_INST_REPR && *(asnp->abp+1) == 128) {
@@ -844,7 +844,7 @@ get_astr_seqinst(struct asn_bstruct *asnp,
     asnp->abp = get_astr_enum(asnp, &tmp)+2;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - missing ASN_BIOSEQ_INST_REPR 160: %0x %0x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - missing ASN_BIOSEQ_INST_REPR 160: %0x %0x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
   }
 
   if (ABP == ASN_BIOSEQ_INST_MOL && *(asnp->abp+1) == 128) {
@@ -852,7 +852,7 @@ get_astr_seqinst(struct asn_bstruct *asnp,
     asnp->abp = get_astr_enum(asnp, &tmp)+2;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - missing ASN_BIOSEQ_INST_MOL 161: %0x %0x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - missing ASN_BIOSEQ_INST_MOL 161: %0x %0x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
   }
 
   if (ABP == ASN_BIOSEQ_INST_LEN) {
@@ -861,7 +861,7 @@ get_astr_seqinst(struct asn_bstruct *asnp,
     *nq = l_val;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - missing ASN_BIOSEQ_INST_LEN 161: %0x %0x\n",__FILE__, __LINE__, ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - missing ASN_BIOSEQ_INST_LEN 161: %0x %0x\n",__FILE__, __LINE__, ABP, asnp->abp[1]);
     return asnp->abp;
   }
 
@@ -874,14 +874,14 @@ get_astr_seqinst(struct asn_bstruct *asnp,
     asnp->abp = get_astr_iseqd(asnp, *query, *nq+1 ) + 2;
   }
   else {
-    fprintf(stderr, "*** error [%s:%d] - missing ASN_BIOSEQ_INST_SEQD 166: %0x %0x\n",__FILE__, __LINE__, ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - missing ASN_BIOSEQ_INST_SEQD 166: %0x %0x\n",__FILE__, __LINE__, ABP, asnp->abp[1]);
     free(*query);
     *query = NULL;
     return asnp->abp;
   }
 
   if (ABP == ASN_BIOSEQ_INST_HIST ) {
-    fprintf(stderr, "*** error [%s:%d] - Cannot parse bioseq inst history\n",__FILE__,__LINE__);
+    fprintf(stderr, "*** ERROR [%s:%d] - Cannot parse bioseq inst history\n",__FILE__,__LINE__);
     exit(1);
   }
 
@@ -902,7 +902,7 @@ get_astr_textid( struct asn_bstruct *asnp,
   chk_asn_buf(asnp,32);
 
   if (ABP != ASN_SEQ) {
-    fprintf(stderr, "*** error [%s:%d] - %s - Expected ASN_SEQ: %0x %0x\n",__FILE__,__LINE__,this_func,ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - %s - Expected ASN_SEQ: %0x %0x\n",__FILE__,__LINE__,this_func,ABP, asnp->abp[1]);
   }
   else {ABP_INC2; end_seq++;}
 
@@ -1003,7 +1003,7 @@ get_astr_bioseq(struct asn_bstruct *asnp,
   }
 
   if (ABP != ASN_BIOSEQ_ID) {
-    fprintf(stderr, "*** error [%s:%d] - Bioseq - missing ID tag: %2x %2x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - Bioseq - missing ID tag: %2x %2x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
     return asnp->abp;
   }
   else {
@@ -1030,7 +1030,7 @@ get_astr_bioseq(struct asn_bstruct *asnp,
   while (ABP == '\0') { ABP_INC2;}
 
   if (ABP != ASN_BIOSEQ_INST) {
-    fprintf(stderr, "*** error [%s:%d] - Bioseq - missing ID tag: %2x %2x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
+    fprintf(stderr, "*** ERROR [%s:%d] - Bioseq - missing ID tag: %2x %2x\n",__FILE__,__LINE__,ABP, asnp->abp[1]);
     return asnp->abp;
   }
   else {
@@ -1158,12 +1158,12 @@ get_pssm_intermed(struct asn_bstruct *asnp,
 
     if (ABP == ASN_PSSM_INTERMED_WRES_FREQS) {
       if (((*wfreqs) = (double **)calloc(n_cols, sizeof(double *)))==NULL) {
-	fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+	fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
 	exit(1);
       }
 
       if (((*wfreqs)[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
-	fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+	fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
 	exit(1);
       }
 
@@ -1177,12 +1177,12 @@ get_pssm_intermed(struct asn_bstruct *asnp,
 
     if (ABP == ASN_PSSM_INTERMED_FREQ_RATIOS) {
       if ((*freqs = (double **) calloc(n_cols, sizeof(double *)))==NULL) {
-	fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+	fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
 	exit(1);
       }
 
       if (((*freqs)[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
-	fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+	fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
 	exit(1);
       }
 
@@ -1295,12 +1295,12 @@ get_pssm_final_scores(struct asn_bstruct *asnp, int ***iscores, int n_rows, int 
   if (ABP == ASN_SEQ) { ABP_INC2; in_seq=1;}
 
   if (((*iscores) = (int **) calloc(n_cols, sizeof(int *)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
     exit(1);
   }
 
   if (((*iscores)[0] = (int *) calloc(n_cols * n_rows, sizeof(int)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
     exit(1);
   }
 
@@ -1404,22 +1404,22 @@ get_pssm2_intermed(struct asn_bstruct *asnp,
   int **my_iscores;
 
   if ((my_freqs = (double **) calloc(n_cols, sizeof(double *)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate freq cols - %d\n", __FILE__, __LINE__, n_cols);
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq cols - %d\n", __FILE__, __LINE__, n_cols);
     exit(1);
   }
 
   if ((my_wfreqs = (double **) calloc(n_cols, sizeof(double *)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate wfreq cols - %d\n", __FILE__, __LINE__, n_cols);
     exit(1);
   }
 
   if ((my_freqs[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
     exit(1);
   }
 
   if ((my_wfreqs[0] = (double *) calloc(n_cols * n_rows, sizeof(double)))==NULL) {
-    fprintf(stderr, "*** error [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
+    fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq rows * cols - %d * %d\n", __FILE__, __LINE__, n_rows, n_cols);
     exit(1);
   }
 
@@ -1569,7 +1569,7 @@ parse_pssm_asn(FILE *afd,
   chk_asn_buf(asnp, 32);
 
   if (memcmp(asnp->abp, "0\200\240\200",4) != 0) {
-    fprintf(stderr, "*** error [%s:%d] - improper PSSM header\n",__FILE__,__LINE__);
+    fprintf(stderr, "*** ERROR [%s:%d] - improper PSSM header\n",__FILE__,__LINE__);
     return -1;
   }
   else {asnp->abp+=4;}
@@ -1578,7 +1578,7 @@ parse_pssm_asn(FILE *afd,
     asnp->abp = get_astr_int(asnp, &l_val)+2;
     pssm_version = l_val;
     if (pssm_version != 2) {
-      fprintf(stderr, "*** error [%s:%d] - PSSM2 version mismatch: %d\n",__FILE__,__LINE__,pssm_version);
+      fprintf(stderr, "*** ERROR [%s:%d] - PSSM2 version mismatch: %d\n",__FILE__,__LINE__,pssm_version);
       return -1;
     }
     *gap_open_p = *gap_ext_p = 0;
@@ -1604,7 +1604,7 @@ parse_pssm_asn(FILE *afd,
 
     if (*n_rows > 0) { have_rows = 1; }
     else {
-      fprintf(stderr, "*** error [%s:%d] - bad n_row count\n",__FILE__,__LINE__);
+      fprintf(stderr, "*** ERROR [%s:%d] - bad n_row count\n",__FILE__,__LINE__);
       exit(1);
     }
   }
@@ -1617,7 +1617,7 @@ parse_pssm_asn(FILE *afd,
       have_cols = 1;
     }
     else {
-      fprintf(stderr, "*** error [%s:%d] - bad n_row count\n",__FILE__,__LINE__);
+      fprintf(stderr, "*** ERROR [%s:%d] - bad n_row count\n",__FILE__,__LINE__);
       exit(1);
     }
   }
@@ -1646,7 +1646,7 @@ parse_pssm_asn(FILE *afd,
   if (ABP == ASN_PSSM_INTERMED_DATA) {
 
     if (!have_rows || !have_cols) {
-      fprintf(stderr, "*** error [%s:%d] - cannot allocate freq - missing rows/cols - %d/%d\n",
+      fprintf(stderr, "*** ERROR [%s:%d] - cannot allocate freq - missing rows/cols - %d/%d\n",
 	      __FILE__,__LINE__, have_rows, have_cols);
       return -1;
     }

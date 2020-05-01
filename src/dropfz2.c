@@ -2675,7 +2675,7 @@ do_walign (const unsigned char *aa0, int n0,
 
 #ifdef DEBUG
   if (adler32(1L,aa1,n1) != adler32_crc) {
-    fprintf(stderr,"*** error [%s:%d] adler32_crc mismatch n1: %d\n",__FILE__, __LINE__, n1);
+    fprintf(stderr,"*** ERROR [%s:%d] adler32_crc mismatch n1: %d\n",__FILE__, __LINE__, n1);
   }
 #endif
 
@@ -3233,7 +3233,7 @@ init_update_data(show_code) {
   struct update_code_str *update_data_p;
 
   if ((update_data_p = (struct update_code_str *)calloc(1,sizeof(struct update_code_str)))==NULL) {
-    fprintf(stderr,"*** error [%s:%d] - init_update_data(): cannot allocate update_code_str\n",
+    fprintf(stderr,"*** ERROR [%s:%d] - init_update_data(): cannot allocate update_code_str\n",
 	      __FILE__, __LINE__);
     return NULL;
   }
