@@ -3,7 +3,7 @@
 
 Changes in **fasta-36.3.8h** May, 2020
 
-1. fasta-36.3.8h (May 2020) fixes a bug that appeared with
+1. fasta-36.3.8h (May 2020) fixes a bug that appeared when
 multiple query sequences were searched against a large library
 that would not fit in memory. In that case, the number of
 library sequences and residues increased by the library size

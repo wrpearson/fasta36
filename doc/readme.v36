@@ -8,7 +8,9 @@ BLAST could show multiple HSPs, FASTA did not.
 
 >>May 1, 2020
 [src/comp_lib9.c]
-Correct bug where library sequence and residue count was not reset when large memory mapped databases were searched that did not fit into memory.
+Correct bug where library sequence and residue count was not reset
+when large memory mapped databases were searched that did not fit into
+memory.
 
 [src/*.c]
 changes to reduce compile warnings with gcc8 and gcc9, and to
