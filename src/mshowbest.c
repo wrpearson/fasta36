@@ -51,7 +51,6 @@
 
 #define RANLIB (m_fptr->ranlib)
 
-
 int
 re_getlib(unsigned char *, struct annot_str **, 
 	  int, int, int, int, int, long *, long *, 
@@ -62,6 +61,7 @@ re_getlib(unsigned char *, struct annot_str **,
 void
 s_annot_to_aa1a(int n1, struct annot_str *annot_p, unsigned char *ann_arr);
 
+/* from build_ares.c */
 struct a_res_str *
 build_ares_code(unsigned char *aa0, int n0,
 		unsigned char *aa1, struct seq_record *seq,
@@ -72,9 +72,11 @@ build_ares_code(unsigned char *aa0, int n0,
 
 struct lmf_str *re_openlib(struct lmf_str *, int outtty);
 
+/* from c_dispn.c */
 extern void calc_coord(int n0, int n1, long qoffset, long loffset,
 		      struct a_struct *aln);
 
+/* from mshowalign2.c */
 extern float
 calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail);
 
@@ -139,7 +141,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct rstruct rst;
   int l_score0, ngap;
   double lzscore, lzscore2, lbits;
-  float percent, gpercent, ng_percent, disp_percent, disp_similar;
+  float percent, gpercent, ng_percent, ng_similar, disp_percent, disp_similar;
   int disp_alen;
   struct a_struct *aln_p;
   struct a_res_str *cur_ares_p;
@@ -246,11 +248,21 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   /* display number of hits for -m 8C (Blast Tab-commented format) */
   if (m_msp->markx & MX_M8COMMENT) {
     /* line below copied from BLAST+ output */
-    if (m_msp->markx & MX_M8_BTAB_LEN) {
-      fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    if (m_msp->markx & MX_M8_BTAB_LEN) {  /* yes qslen */
+      if (m_msp->markx & MX_M8_BTAB_SIM) {  /* yes similarity */
+	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% similar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+      }
+      else { /* no similarity */
+	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+      }
     }
-    else {
-      fprintf(fp,"# Fields: query id, subject id, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+    else {  /* no qslen */
+      if (m_msp->markx & MX_M8_BTAB_SIM) {  /* yes similarity */
+	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% simlar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+      }
+      else { /* no similarity */
+	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+      }
     }
 
     if (ppst->zsflag > 20) {fprintf(fp,", eval2");}
@@ -560,10 +572,11 @@ l1:
         disp_percent = percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc, m_msp->tot_ident, -100.0);
         ng_percent = calc_fpercent_id(100.0,aln_p->nident,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 	disp_similar = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
+        ng_similar = calc_fpercent_id(100.0,aln_p->nsim,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 	disp_alen = aln_p->lc;
 	if (m_msp->blast_ident) {
 	  disp_percent = ng_percent;
-	  disp_similar = calc_fpercent_id(100.0, cur_ares_p->aln.npos, aln_p->lc - ngap, m_msp->tot_ident, -100.0);
+	  disp_similar = ng_similar;
 	  disp_alen = aln_p->lc - ngap;
 	}
 
@@ -608,8 +621,14 @@ l1:
 	    }
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
-	    fprintf(fp,"\t%.2f\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
-		    ng_percent,aln_p->lc-ngap,aln_p->nmismatch,
+	    if (m_msp->markx & MX_M8_BTAB_SIM) {
+	      fprintf(fp,"\t%.2f\t%.2f",ng_percent, ng_similar);
+	    }
+	    else {
+	      fprintf(fp,"\t%.2f",ng_percent);
+	    }
+	    fprintf(fp,"\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
+		    aln_p->lc-ngap,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,

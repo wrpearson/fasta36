@@ -157,6 +157,7 @@
 #define MX_ANNOT_MID  32768 /* markx 0M, 1M, 2M annotations in middle */
 #define MX_RES_ALIGN_SCORE (1<<20)  /* show residue alignment score, not alignment */
 #define MX_M8_BTAB_LEN  (1<<21) /* show query/subject seq. lens in -m 8 output */
+#define MX_M8_BTAB_SIM  (1<<22) /* show similarity + identity in -m 8 output */
 
 /* codes for -m 9, -m 8C? */
 #define SHOW_CODE_ID	1	/* identity only */

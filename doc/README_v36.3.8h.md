@@ -13,6 +13,8 @@ with each new search.
 
 3. Corrections to code to address compiler warnings with gcc8/9.
 
+4. addition of 's' option to show similarity in -m8CBls (or -m8CBs, -m8CBsl) and 'd' option to show raw (unaligned) domain information.
+
 Changes in **fasta-36.3.8h** February, 2020
 
 1. The license for Michael Farrar's Smith-Waterman sse2 code and global/glocal sse2 code is now open source (BSD), see COPYRIGHT.sse2 for details.

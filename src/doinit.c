@@ -840,9 +840,12 @@ void
 parse_markx(char *optarg, struct markx_str *this) {
   int itmp;
   char ctmp, ctmp2, ctmp3;
+  char stmp[20];
+
 
   itmp = 0;
   ctmp = ctmp2 = ctmp3 = '\0';
+  stmp[19] = stmp[0]='\0';
 
   if (optarg[0] == 'B') {	/* BLAST alignment output */
     this->markx = MX_MBLAST;
@@ -869,7 +872,13 @@ parse_markx(char *optarg, struct markx_str *this) {
     return;
   }
   else {
-    sscanf(optarg,"%d%c%c%c",&itmp,&ctmp,&ctmp2,&ctmp3);
+    if (strlen(optarg) < sizeof(stmp)) {
+      sscanf(optarg,"%d%c%c%s",&itmp,&ctmp,&ctmp2,stmp);
+    }
+    else {
+      fprintf(stderr,"*** ERROR [%s:%d] -m option too long: %s\n",__FILE__,__LINE__,optarg);
+      sscanf(optarg,"%d%c%c%c",&itmp,&ctmp,&ctmp2,&ctmp3);
+    }
   }
   if (itmp==9) {
     if (ctmp=='c') {this->show_code = SHOW_CODE_ALIGN;}
@@ -893,14 +902,19 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
     else if (ctmp2 == 'B') {this->show_code = SHOW_CODE_BTOP;}
     
-    if (ctmp3 == 'L') {
+    if (strchr(stmp,'L')) {
       this->markx |= MX_M8_BTAB_LEN;
       this->show_code |= SHOW_CODE_DOMINFO;
     }
-    else if (ctmp3 == 'l') {
+    else if (strchr(stmp,'l')) {
       this->markx |= MX_M8_BTAB_LEN;
     }
-
+    if (strchr(stmp,'s')) {
+      this->markx |= MX_M8_BTAB_SIM;
+    }
+    if (strchr(stmp,'d')) {
+      this->show_code |= SHOW_CODE_DOMINFO;
+    }
   }
 }
 
