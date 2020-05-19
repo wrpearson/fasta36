@@ -1,95 +1,81 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<meta charset="utf-8"/>
 <title>ChangeLog - FASTA v36</title>
-<style type="text/css">
+<style>
 body {  margin-left: 6px; }
 .sidebar { 
 font-size: 12px; font-family: sans-serif; text-decoration:none; background-color: #FFFFCC; }
+li:not(:last-child) {
+ margin-bottom: 5px;
+}
 .fasta { font-family: sans-serif; }
 .fasta h2 { font-size: 16px; color: #000000 }
 .fasta h3 { font-size: 14px; color: #000000 }
 .fasta td {background-color: #FFFFCC }
 .fasta a { text-decoration: none; }
-.fasta li { margin-left:-1em }
+.fasta li { margin-left:-1em;}
 </style>
-<head>
 <body>
 <div class=fasta>
 <h2>ChangeLog - FASTA v36</h2>
 <hr>
 <h2>Latest updates - FASTA version 36.3.8h (May, 2020)</h2>
 <ol>
-
   <li> Correct bug where library sequence and residue
   count was not reset when large memory mapped databases 
-  that did not fit into memory were searched with multiple query sequences.
-
-  <li> Regularization of ***ERROR and ***Warning messages
-
-  <li> Changes to reduce compiler warnings
+  that did not fit into memory were searched with multiple query sequences.</li>
+  <li> Regularization of ***ERROR and ***Warning messages</li>
+  <li> Changes to reduce compiler warnings</li>
 </ol>
 <p>
 <h2>Updates - FASTA version 36.3.8h (February, 2020)</h2>
 <ol>
-  <li> The SSE2 implementations of the Smith-Waterman algorithm and a
-  corresponding global alignment algorithm are now available under the
-    BSD open source license.
+<li> The SSE2 implementations of the Smith-Waterman algorithm and a
+corresponding global alignment algorithm are now available under the
+BSD open source license.
 </ol>
 <p>
 <h2>Updates - FASTA version 36.3.8h (March, 2019)</h2>
 <ol>
-  <li>The FASTA programs have been released under the Apache2.0 Open
-  Source License.  The COPYRIGHT file, and copyright notices in
-  program files, have been updated to reflect this change.
-  <p>
-  <li> FASTA can now use shell-scripts to produce both query and library sequence sets.
-  <p>
-      <li> [Feb, 2019] Scripts are available for extracting genomic DNA sequences
-	using BEDTools.  Combined with the ability to specify sequences
-	using shell-scripts, this greatly simplifies the process of aligning
-	a protein or DNA sequence to a region of a genome.
-
-      <li> preliminary code is available to read NCBI BLAST version 5 format libraries.
-      <li>
-	fasta-36.3.8h includes bug fixes for translated alignments
-	with termination codons, the ability to use scripts as query
-	and library sequences, and new scripts for extracting genomic
-	DNA sequences given chromosome coordinates.
-      <li>
-	fasta-36.3.8g includes bug fixes for sub-alignment scoring and 
-	psisearch2 scripts, new annotation scripts for exons, and
-	fixes enabling very low statistical thresholds with ggsearch36
-	and glsearch36.
-      <li>
-	fasta-36.3.8e/scripts includes updated scripts for
-	capturing domain and feature annotations using the
-	EBI/proteins API (https://www.ebi.ac.uk/proteins/api/) to get
-	Uniprot annotations and exon locations.
-<p>
-      <li>
-	The <tt>fasta-36.3.8e/psisearch2/</tt> directory now
-	provides <tt>psisearch2_msa.pl</tt>
-	and <tt>psisearch2_msa.py</tt>, functionally identical scripts
-	for iterative searching with <tt>psiblast</tt>
-	or <tt>ssearch36</tt>.  <tt>psisearch2-msa.pl</tt> offers an
-	option, <tt>--query_seed</tt>, that can dramatically reduce
-	false-positives caused by alignment overextension, with very
-	little loss of search sensitivity.
-    <p>
-<li>
-The <tt>fasta-36.3.8d/scripts/</tt> directory now provides a
-script, <tt>annot_blast_btop2.pl</tt> that allows annotations and
+<li>The FASTA programs have been released under the Apache2.0 Open
+Source License.  The COPYRIGHT file, and copyright notices in
+program files, have been updated to reflect this change.
+<li> FASTA can now use shell-scripts to produce both query and library sequence sets.
+<li> [Feb, 2019] Scripts are available for extracting genomic DNA sequences
+using BEDTools.  Combined with the ability to specify sequences
+using shell-scripts, this greatly simplifies the process of aligning
+a protein or DNA sequence to a region of a genome.
+<li> preliminary code is available to read NCBI BLAST version 5 format libraries.
+<li>fasta-36.3.8h includes bug fixes for translated alignments
+with termination codons, the ability to use scripts as query
+and library sequences, and new scripts for extracting genomic
+DNA sequences given chromosome coordinates.
+<li>fasta-36.3.8g includes bug fixes for sub-alignment scoring and 
+psisearch2 scripts, new annotation scripts for exons, and
+fixes enabling very low statistical thresholds with ggsearch36
+and glsearch36.
+<li>fasta-36.3.8e/scripts includes updated scripts for
+capturing domain and feature annotations using the
+EBI/proteins API (https://www.ebi.ac.uk/proteins/api/) to get
+Uniprot annotations and exon locations.
+<li>The <code>fasta-36.3.8e/psisearch2/</code> directory now
+provides <code>psisearch2_msa.pl</code>
+and <code>psisearch2_msa.py</code>, functionally identical scripts
+for iterative searching with <code>psiblast</code>
+or <code>ssearch36</code>.  <code>psisearch2-msa.pl</code> offers an
+option, <code>--query_seed</code>, that can dramatically reduce
+false-positives caused by alignment overextension, with very
+little loss of search sensitivity.
+<li>The <code>fasta-36.3.8d/scripts/</code> directory now provides a
+script, <code>annot_blast_btop2.pl</code> that allows annotations and
 sub-alignment scoring on BLAST alignments that use the tabular format
 with BTOP alignment encoding.
-<p>
 <li>Alignment sub-scoring scripts have been extended to allow
 overlapping domains.  This requires a modified annotation file format.
-  The "classic" format placed the beginning and end of a domain on different lines:
-<pre>
-    1   [    -     GST_N
+The "classic" format placed the beginning and end of a domain on different lines:
+<pre>   1   [    -     GST_N
    88   ]    -
    90   [    -     GST_C
   208   ]    - 
@@ -97,8 +83,7 @@ overlapping domains.  This requires a modified annotation file format.
 Since the closing "]" was associated with the previous "[", domains could not overlap.
 <p>
 The new format is:
-<pre>
-    1   -    88     GST_N
+<pre>   1   -    88     GST_N
    90   -   208    GST_C
 </pre>
 which allows annotations of the form:
@@ -107,15 +92,15 @@ which allows annotations of the form:
    75   -   123    GST-middle
    90   -   208    GST_C
 </pre>
-<p>
-  <li> New annotation scripts are available in
-  the <tt>fasta-36.3.8/scripts</tt> directory,
-  e.g. <tt>ann_pfam_www_e.pl</tt> (Pfam) and <tt>ann_up_www2_e.pl</tt>
-  (Uniprot) to support this new format.  If the domain annotations
-  provided by Pfam or Uniprot overlap, then overlapping domains are
-  provided.  The <tt>_e.pl</tt> new scripts can be directed to provide
-  non-overlapping domains, using the boundary averaging strategy in
-  the older scripts, by specifying the <tt>--no-over</tt> option.
+
+<li> New annotation scripts are available in
+the <code>fasta-36.3.8/scripts</code> directory,
+e.g. <code>ann_pfam_www_e.pl</code> (Pfam) and <code>ann_up_www2_e.pl</code>
+(Uniprot) to support this new format.  If the domain annotations
+provided by Pfam or Uniprot overlap, then overlapping domains are
+provided.  The <code>_e.pl</code> new scripts can be directed to provide
+non-overlapping domains, using the boundary averaging strategy in
+the older scripts, by specifying the <code>--no-over</code> option.</li>
 </ol>
       
 <h2>Updates - FASTA version 36.3.6f (August, 2014)</h2>
@@ -123,24 +108,24 @@ which allows annotations of the form:
 FASTA version 36.3.6f extends previous versions in several ways:
 <ol>
 <li>
-There is a new command line option, <tt>-XI</tt>, that causes the
+There is a new command line option, <code>-XI</code>, that causes the
 alignment programs to report 100% identity only when there are no
 mismatches.  In previous versions, one mismatch in 10,000 would round
-up to 100.0% identity; with <tt>-XI</tt>, the identity will be
+up to 100.0% identity; with <code>-XI</code>, the identity will be
 reported as 99.9%.
 <li>
 The option to provide alignment encodings (-m 9c, or -m 9C forCIGAR
 strings) has been extended to provide mis-match information in the
 alignment encoding using the -m 9d (classic FASTA alignment encoding)
-or -m 9D (CIGAR string).  For protein alignments, which are often <
-40% identity, enabling mismatch encoding produces very long CIGAR
+or -m 9D (CIGAR string).  For protein alignments, which are often &lt; 40% identity,
+ enabling mismatch encoding produces very long CIGAR
 strings.
 <li>
 Provide more scripts for annotating proteins using either UniProt or
 Pfam web resources.
 </ol>
 <p>
-Additional bug fixes are documented in <tt>fasta-36.3.6f/doc/readme.v36</tt>
+Additional bug fixes are documented in <code>fasta-36.3.6f/doc/readme.v36</code>
 <p>
 <h2>Updates - FASTA version 36.3.6 (July, 2013)</h2>
 <p>
@@ -162,32 +147,32 @@ of SwissProt and Uniprot.
 
 <p><i>(fasta-36.3.5 January 2013)</i>
 The NCBI's transition from BLAST to BLAST+ several years ago broke the
-ability of <tt>ssearch36</tt> to use PSSMs, because <tt>psiblast</tt>
-did not produce the binary ASN.1 PSSMs that <tt>ssearch36</tt> could
-parse. With the January 2013 <tt>fasta-36.3.5f</tt>,
-release <tt>ssearch36</tt> can read binary ASN.1 PSSM files produced
-by the NCBI <tt>datatool</tt> utility.
+ability of <code>ssearch36</code> to use PSSMs, because <code>psiblast</code>
+did not produce the binary ASN.1 PSSMs that <code>ssearch36</code> could
+parse. With the January 2013 <code>fasta-36.3.5f</code>,
+release <code>ssearch36</code> can read binary ASN.1 PSSM files produced
+by the NCBI <code>datatool</code> utility.
 See <a href='fasta_guide.pdf'>fasta_guide.pdf</a> for more information
-(look for the <tt>-P</tt> option).
+(look for the <code>-P</code> option).
 <hr>
 <h2>Summary - Major Changes in FASTA version 36.3.5 (May, 2011)</h2>
 <ol>
 <li>
   By default, the FASTA36 programs are no longer interactive.  Typing
-<tt>fasta36</tt> presents a short help message, and
-<tt>fasta36 -help</tt> presents a complete list of options.  To see the interactive prompts, use
-<tt>fasta36 -I</tt>.
+<code>fasta36</code> presents a short help message, and
+<code>fasta36 -help</code> presents a complete list of options.  To see the interactive prompts, use
+<code>fasta36 -I</code>.
 <p>Likewise, the score histogram is no longer shown by default; use
-  the <tt>-H</tt> option to show the histogram (or compile with
+  the <code>-H</code> option to show the histogram (or compile with
   -DSHOW_HIST for previous behavior).
 <p>
-The <tt>_t</tt> (<tt>fasta36_t</tt>) versions of the programs are
+The <code>_t</code> (<code>fasta36_t</code>) versions of the programs are
 built automatically on Linux/MacOSX machines and
-named <tt>fasta36</tt>, etc. (the programs are threaded by default,
+named <code>fasta36</code>, etc. (the programs are threaded by default,
 and only one program version is built).
 <p>
 Documentation has been significantly revised and updated.
-See <tt>doc/fasta_guide.pdf</tt> for a description of the programs and options.
+See <code>doc/fasta_guide.pdf</code> for a description of the programs and options.
 <p>
 <li>
   Display of all significant alignments between query and library
@@ -196,46 +181,46 @@ See <tt>doc/fasta_guide.pdf</tt> for a description of the programs and options.
   versions of the FASTA programs displayed only the best alignment,
   even when other high-scoring alignments were present.  This is the
   major change in FASTA36. For most programs
-  (<tt>fasta36</tt>, <tt>ssearch36</tt>,
-  <tt>[t]fast[xy]36</tt>), if the library sequence contains additional
+  (<code>fasta36</code>, <code>ssearch36</code>,
+  <code>[t]fast[xy]36</code>), if the library sequence contains additional
   significant alignments, they will be displayed with the alignment
-  output, and as part of <tt>-m 9</tt> output (the initial list of high
+  output, and as part of <code>-m 9</code> output (the initial list of high
   scores).
 <p>
   By default, the statistical threshold for alternate alignments
   (HSPs) is the E()-threshold / 10.0.  For proteins, the default
-  expect threshold is E()< 10.0, the secondary threshold for showing
-  alternate alignments is thus E() < 1.0.  Fror translated
+  expect threshold is E() &lt; 10.0, the secondary threshold for showing
+  alternate alignments is thus E() &lt; 1.0.  Fror translated
   comparisons, the E()-thresholds are 5.0/0.5; for DNA:DNA 2.0/0.2.
 <p>
   Both the primary and secondary E()-thresholds are set with the
   -E&nbsp;"prim&nbsp;sec" command line option.  If the secondary
   value is betwee zero and 1.0, it is taken as the actual
-  threshold. If it is > 1.0, it is taken as a divisor for the primary
+  threshold. If it is &gt; 1.0, it is taken as a divisor for the primary
   threshold. If it is negative, alternative alignments are disabled
   and only the best alignment is shown.
 <p>
 <li>
-  New statistical options, <tt>-z 21, 22, 26</tt>, provide a second E()-value
+  New statistical options, <code>-z 21, 22, 26</code>, provide a second E()-value
   estimate based on shuffles of the highest scoring sequences.
 <p>
 <li>
-New output options.  <tt>-m 8</tt> provides the same output format as
-tabular BLAST; <tt>-m 8C</tt> mimics tabular blast with comment
-lines.  <tt>-m 9C</tt> provides CIGAR encoded alignments.
+New output options.  <code>-m 8</code> provides the same output format as
+tabular BLAST; <code>-m 8C</code> mimics tabular blast with comment
+lines.  <code>-m 9C</code> provides CIGAR encoded alignments.
 <p>
-(fasta-36.3.4) Alignment option <tt>-m B</tt> provides BLAST-like alignments (no context, coordinates at the beginning and end of the alignment line, <tt>Query/Sbjct</tt>.
+(fasta-36.3.4) Alignment option <code>-m B</code> provides BLAST-like alignments (no context, coordinates at the beginning and end of the alignment line, <code>Query/Sbjct</code>.
 <p>
 <li>
  Improved performance using statistics based thresholds for
  gap-joining and band-optimization in the heuristic FASTA local
- alignment programs (<tt>fasta36</tt>, <tt>[t]fast[xy]36</tt>). By
- default (fasta36.3) <tt>fasta36</tt>, <tt>[t]fast[xy]36</tt> can use
+ alignment programs (<code>fasta36</code>, <code>[t]fast[xy]36</code>). By
+ default (fasta36.3) <code>fasta36</code>, <code>[t]fast[xy]36</code> can use
  a similar strategy to BLAST to set the thresholds for combining
  ungapped regions and performing band alignments.  This dramatically
  reduces the number of band alignments performed, for a speed increase
  of 2 - 3X.  The original statistical thresholds can be enabled with
- the <tt>-c O</tt> (upper-case letter 'O') command line option.
+ the <code>-c O</code> (upper-case letter 'O') command line option.
  Protein and translated protein alignment programs can also use ktup=3
  for increased speed, though ktup=2 is still the default.
 <p>
@@ -247,18 +232,18 @@ lines.  <tt>-m 9C</tt> provides CIGAR encoded alignments.
  for some matrices and gap pentalies, e.g. BLOSUM62 -11/-1.
 <p>
  With the new joining thresholds, the
-<tt>-c "E-opt E-join"</tt> options have expanded meanings.  <tt>-c "E-opt E-join"</tt>
+<code>-c "E-opt E-join"</code> options have expanded meanings.  <code>-c "E-opt E-join"</code>
  calculates a threshold designed (but not guaranteed) to do band
- optimization and joining for that fraction of sequences.  Thus, <tt>-c
- "0.02 0.1"</tt> seeks to do band optimization (E-opt) on 2% of alignments,
- and joining on 10% of alignments.  <tt>-c "40 10"</tt> sets the gap
+ optimization and joining for that fraction of sequences.  Thus, <code>-c
+ "0.02 0.1"</code> seeks to do band optimization (E-opt) on 2% of alignments,
+ and joining on 10% of alignments.  <code>-c "40 10"</code> sets the gap
  threshold as in earlier versions.
 <p>
 <li>
-A new option (<tt>-e expand_script.sh</tt>) is available that allows
+A new option (<code>-e expand_script.sh</code>) is available that allows
 the set of sequences that are aligned to be larger than the set of
-sequences searched. When the <tt>-e expand_script.sh</tt> option is
-used, the <tt>expand_script.sh</tt> script is run with an input
+sequences searched. When the <code>-e expand_script.sh</code> option is
+used, the <code>expand_script.sh</code> script is run with an input
 argument that is a file of accession numbers and E()-values; this
 information can be used to produce a fasta-formatted list of
 additional sequences, which will then be compared and aligned (if they
@@ -268,7 +253,7 @@ database size o statisical parameters, it simply expands the set of
 high-scoring sequences.
 <p>
 <li>
-The <tt>-m F</tt> option can be used to produce multiple output formats in different files from the same search.  For example, <tt>-m "F9c,10 m9c10.output" -m "FBB blastBB.output"</tt> produces two output files in addition to the normally formatted output sent to <tt>stdout</tt>. The <tt>m9c10.output</tt> file contains <tt>-m 9c</tt> score descriptions and <tt>-m 10</tt> alignments, while <tt>blastBB.output</tt> contains BLAST-like output (<tt>-m BB</tt>).
+The <code>-m F</code> option can be used to produce multiple output formats in different files from the same search.  For example, <code>-m "F9c,10 m9c10.output" -m "FBB blastBB.output"</code> produces two output files in addition to the normally formatted output sent to <code>stdout</code>. The <code>m9c10.output</code> file contains <code>-m 9c</code> score descriptions and <code>-m 10</code> alignments, while <code>blastBB.output</code> contains BLAST-like output (<code>-m BB</code>).
 <p>
 <li>
  Scoring matrices can vary with query sequence length. In large-scale
@@ -291,14 +276,14 @@ The <tt>-m F</tt> option can be used to produce multiple output formats in diffe
 
 <li>
 Several less-used options
-(<tt>-1</tt>, <tt>-B</tt>, <tt>-o</tt>, <tt>-x</tt>, <tt>-y</tt>) have
-become <i>extended</i> options, available via the <tt>-X</tt> (upper case X) option.
-The old <tt>-X off1,off2</tt> option is now <tt>-o off1,off2</tt>.
+(<code>-1</code>, <code>-B</code>, <code>-o</code>, <code>-x</code>, <code>-y</code>) have
+become <i>extended</i> options, available via the <code>-X</code> (upper case X) option.
+The old <code>-X off1,off2</code> option is now <code>-o off1,off2</code>.
 <p>
 By default, the program will read up to 2 GB (32-bit systems) or 12 GB
 (64-bit systems) of the database into memory for multi-query searches.
 The amount of memory available for databases can be set with
-the <tt>-XM4G</tt> option.
+the <code>-XM4G</code> option.
 <p>
 <li>
  Much greater flexibility in specifying combinations of library files
@@ -308,13 +293,13 @@ the <tt>-XM4G</tt> option.
  indirect files of library names.
 <p>
 <li>
- <tt>fasta-36.3.2</tt> <b>ggsearch36</b> (global/global)
+ <code>fasta-36.3.2</code> <b>ggsearch36</b> (global/global)
  and <b>glsearch36</b> now incorporate SSE2 accelerated global
  alignment, developed by Michael Farrar.  These programs are now about
  20-fold faster.
 <p>
 <li>
-<tt>fasta-36.2.1</tt> (and later versions) are fully threaded, both for
+<code>fasta-36.2.1</code> (and later versions) are fully threaded, both for
 searches, and for alignments.  The programs routinely run 12 - 15X
 faster on dual quad-core machines with "hyperthreading".
 </ol>
@@ -322,13 +307,11 @@ faster on dual quad-core machines with "hyperthreading".
 <h2>Summary - Major Changes in FASTA version 35 (August, 2007)</h2>
 <ol>
 <li>Accurate shuffle based statistics for searches of small libraries (or pairwise comparisons).
-<p/>
 <li>
 Inclusion of <b>lalign35</b> (SIM) into FASTA3.  Accurate statistics for
 <b>lalign35</b> alignments.  <b>plalign</b> has been replaced by
 <b>lalign35</b> and <b>lav2ps</b>.
 </li>
-<p/>
 <li>
 Two new global alignment programs: <b>ggsearch35</b> and <b>glsearch35</b>.
 </li>
@@ -351,7 +334,7 @@ the protein sequence.
 libraries that contain 'O' (pyrrolysine) and 'U' (selenocysteine).
 ('J' was supported already). Currently, 'O' is mapped automatically to
 'K' and 'U' to 'C'.
-<p />
+<p>
 <h3>Dec. 13, 2007 CVS fa35_03_02m</h3>
 <p>
 Add ability to search a subset of a library using a file name and a
@@ -391,18 +374,19 @@ and the delimiter is '&nbsp;' (space, the default).
 <p>
 Accession formats 1 and 3 expect strings; accession formats 2 and 4
 work with integers (e.g. gi numbers).
-<p />
+<p>
 <h3>December 10, 2007</h3>
 Provide encoded annotation information with
 -m 9c alignment summaries.  The encoded alignment information makes it
 much simpler to highlight changes in critical residues.
-<p />
-<h3>August 22, 2007</h3> <a name="lav2svg" /> A new program is
-available, <tt>lav2svg</tt>, which creates SVG (Scalable Vector
-Graphics) output.  In addition, <a href="#ps_lav"><tt>ps_lav</tt></a>,
+<p>
+<h3>August 22, 2007</h3>
+<p>
+A new program is available, <code>lav2svg</code>, which creates SVG (Scalable Vector
+Graphics) output.  In addition, <code>ps_lav</code>,
 which was introduced May 30, 2007, has been replaced
-by <tt>lav2ps</tt>.  SVG files are more easily edited with Adobe
-Illustrator than postscript (<tt>lav2ps</tt>) files.
+by <code>lav2ps</code>.  SVG files are more easily edited with Adobe
+Illustrator than postscript (<code>lav2ps</code>) files.
 <p>
 <h3>July 25, 2007  CVS fa35_02_02</h3>
 Change default gap penalties for OPTIMA5 matrix to -20/-2 from -24/-4.
@@ -423,7 +407,7 @@ also true for the query sequence file).
 <p>
 <h3>July 3, 2007  CVS fa35_02_01</h3>
 
-Merge of previous <tt><b>fasta34</tt></b> with development version <tt><b>fasta35</tt></b>.
+Merge of previous <code><b>fasta34</b></code> with development version <code><b>fasta35</b></code>.
 
 <h3>June 26, 2007</h3>
 
@@ -433,16 +417,16 @@ Add Mueller and Vingron (2000) J. Comp. Biol. 7:761-776 VT160 matrix,
 "-s VT160", and OPTIMA_5 (Kann et al. (2000) Proteins 41:498-503).
 <h3>June 7, 2007</h3>
 
-<tt><b>ggssearch35(_t)</b></tt>, <tt><b>glsearch35(_t)</b></tt> can now use PSSMs.
+<code><b>ggssearch35(_t)</b></code>, <code><b>glsearch35(_t)</b></code> can now use PSSMs.
 
 <h3>May 30, 2007  CVS fa35_01_04</h3>
 
-<a name="ps_lav" /> Addition of <tt><b>ps_lav</b></tt>
+Addition of <code><b>ps_lav</b></code>
 (now <a href="#lav2svf">lav2ps</a> or <a href="#lav2svg">lav2svg</a>) -- which can be used to plot the lav
 output of
-<tt><b>lalign35 -m 11</b></tt>.
-<pre>lalign35 -m 11 | lav2ps</pre> replaces <tt><b>plalign</b></tt>
-(from <tt><b>FASTA2</b></tt>).
+<code><b>lalign35 -m 11</b></code>.
+<pre>lalign35 -m 11 | lav2ps</pre> replaces <code><b>plalign</b></code>
+(from <code><b>FASTA2</b></code>).
 
 <h3>May 2, 2007</h3>
 
@@ -456,8 +440,8 @@ Smith-Waterman score: 1497; 100.0% identity (100.0% similar) in 218 aa overlap (
 </pre>
 where the highlighted text was either: "Smith-Waterman" or "banded
 Smith-Waterman". In fact, scores were calculated in other ways,
-including global/local for <tt><b>fasts</b></tt> and <tt><b>fastf</b></tt>.  With the addition of
-<tt><b>ggsearch35,</b></tt> <tt><b>glsearch35,</b></tt> and <tt><b>lalign35,</b></tt> there are many more ways to
+including global/local for <code><b>fasts</b></code> and <code><b>fastf</b></code>.  With the addition of
+<code><b>ggsearch35,</b></code> <code><b>glsearch35,</b></code> and <code><b>lalign35,</b></code> there are many more ways to
 calculate alignments: "Smith-Waterman" (ssearch and protein fasta),
 "banded Smith-Waterman" (DNA fasta), "Waterman-Eggert",
 "trans. Smith-Waterman", "global/local", "trans. global/local",
@@ -467,16 +451,16 @@ algorithm.
 
 <h3>April 19, 2007	CVS fa34t27br_lal_3</h3>
 
-Two new programs, <tt><b>ggsearch35(_t)</b></tt> and <tt><b>glsearch35(_t)</b></tt> are now available.
-<tt><b>ggsearch35(_t)</b></tt> calculates an alignment score that is global in the
-query and global in the library; <tt><b>glsearch35(_t)</b></tt> calculates an alignment
+Two new programs, <code><b>ggsearch35(_t)</b></code> and <code><b>glsearch35(_t)</b></code> are now available.
+<code><b>ggsearch35(_t)</b></code> calculates an alignment score that is global in the
+query and global in the library; <code><b>glsearch35(_t)</b></code> calculates an alignment
 that is global in the query and local, while local in the library
 sequence.  The latter program is designed for global alignments to domains.
 
 Both programs assume that scores are normally distributed.  This
 appears to be an excellent approximation for ggsearch35 scores, but
 the distribution is somewhat skewed for global/local (glsearch)
-scores.  <tt><b>ggsearch35(_t)</b></tt> only compares the query to library sequences
+scores.  <code><b>ggsearch35(_t)</b></code> only compares the query to library sequences
 that are beween 80% and 125% of the length of the query; glsearch
 limits comparisons to library sequences that are longer than 80% of
 the query.  Initial results suggest that there is relatively little
@@ -485,12 +469,12 @@ dramatically outside these ranges).
 
 <h3>March 29, 2007     CVS fa34t27br_lal_1</h3>
 
-At last, the <tt><b>lalign</b></tt> (SIM) algorithm has been moved from <b>FASTA21</b> to
-<b>FASTA35</b>.  A <tt><b><a href="#ps_lav">plalign</a></b></tt>
-equivalent is also available using <tt>lalign -m 11 | lav2ps</tt>
-or <tt>| lav2svg</tt>.
+At last, the <code><b>lalign</b></code> (SIM) algorithm has been moved from <b>FASTA21</b> to
+<b>FASTA35</b>.  A <code><b><a href="#ps_lav">plalign</a></b></code>
+equivalent is also available using <code>lalign -m 11 | lav2ps</code>
+or <code>| lav2svg</code>.
 
-The statistical estimates for <tt>lalign35</tt> should be much more accurate
+The statistical estimates for <code>lalign35</code> should be much more accurate
 than those from the earlier lalign, because lambda and K are estimated
 from shuffles.
 

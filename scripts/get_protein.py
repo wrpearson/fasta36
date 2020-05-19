@@ -56,46 +56,27 @@ for acc in sys.argv[1:]:
     seq_html=resp.read().decode('utf-8')
     time.sleep(0.3)
 
-  header=''
-  seq = ''
-  for line in seq_html.split('\n'):
-    if (line and line[0]=='>'):
-      # print out old one if there
-      if (header):
-        if (sub_range):
-          start, stop = sub_range.split('-')
-          start, stop = int(start), int(stop)
-          if (start > 0):
-            start -= 1
-          new_seq = seq[start:stop]
-        else:
-          start = 0
-          new_seq = seq
+  if (not sub_range):
+    print(seq_html)
+  else:
+    (start, stop) = sub_range.split('-')
 
-        if (start > 0):
-          print("%s @C%d" %(header, start+1))
-        else:
-          print(header)
-        print('\n'.join(textwrap.wrap(new_seq)))
+    (start, stop) = (int(start), int(stop))
 
-      header = line;
-      seq = ''
-    else:
-      seq += line
+    lines = seq_html.split('\n')
 
-start=0
-if (sub_range):
-  start, stop = sub_range.split('-')
-  start, stop = int(start), int(stop)
-  if (start > 0):
-    start -= 1
+    header=lines[0]
+    seq = ''.join(lines[1:])
+    
+    if (start > 0):
+      start -= 1
+
     new_seq = seq[start:stop]
-else:
-  new_seq = seq
+    ## print the header
+    if (start > 0):
+      print("%s @C:%d" %(header, start+1))
+    else:
+      print(header)
 
-if (start > 0):
-  print("%s @C:%d" %(header, start+1))
-else:
-  print(header)
+    print('\n'.join(textwrap.wrap(new_seq)))
 
-print('\n'.join(textwrap.wrap(new_seq)))
