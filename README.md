@@ -6,7 +6,16 @@ programs for rigorous local (`ssearch`) and global (`ggsearch`) similarity searc
 
 See doc/README_v36.3.8h.md and doc/readme.v36 for a more complete summary of changes.
 
-#### May, 2020
+#### May 20, 2020, pt 2
+
+1. added options to -m8CB to (a) provide percent similarity as well as
+percent identity in blast tabular alignment output: '-m8CBs'; (b) add
+raw domain information '-m8CBd'; and (c) changed parsing after -m8CB
+so that any combination of 'l', 's', 'd', and 'L' (which is equivalent
+to 'ld') can be used in any order and combination.
+
+
+#### May, 2020, pt 1
 
 1. fix a bug that appeared when
 multiple query sequences were searched against a large library
