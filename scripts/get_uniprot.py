@@ -2,7 +2,7 @@
 
 import sys
 import re
-from urllib.request import urlopen
+import requests
 
 ARGV = sys.argv[1:];
 
@@ -17,5 +17,5 @@ for acc_arg in ARGV :
 
   url = "https://www.uniprot.org/uniprot/" + acc + ".fasta"
 #  print url
-  fa_seq = urlopen(url).read().decode('utf-8')
-  print(fa_seq)
+  fa_req = requests.get(url)
+  print(fa_req.text)

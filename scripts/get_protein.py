@@ -8,8 +8,8 @@ import sys
 import re
 import textwrap
 import time
-from urllib.request import Request, urlopen
-from urllib.error import URLError
+import requests
+
 
 ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
 uniprot_url = "https://www.uniprot.org/uniprot/"
@@ -26,7 +26,7 @@ for acc in sys.argv[1:]:
   if (re.match(r'[A-Z]P_\d+',acc)):   # get refseq
     db_type="protein"
 
-    seq_args = "db=%s&id=" % (db_type) + ",".join(sys.argv[1:])  + "&rettype=fasta"
+    seq_args = "db=%s&id=" % (db_type) + acc  + "&rettype=fasta"
 
     url_string = ncbi_url + seq_args
 
@@ -37,24 +37,21 @@ for acc in sys.argv[1:]:
     else:
       url_string = uniprot_url + acc_fields[0] + ".fasta"
 
-
-  req = Request(url_string)
-
   try: 
-    resp = urlopen(req)
-  except URLError as e:
+    req = requests.get(url_string)
+  except requests.exceptions.RequestException as e:
     seq_html = ''
-    if hasattr(e, 'reason'):
-      sys.stderr.write("Sequence [%s] not found: %s\n"%(acc,str(e.reason)))
-    elif hasattr(e, 'code'):
-      sys.stderr.write("Sequence [%s] not found: %s\n"%(acc,str(e.ecode)))
-    else:
-      sys.stderr.write("Sequence [%s] not found\n"%(acc))
-    exit(0)
+    sys.stderr.print(e.response.text+'\n')
+    continue
 
   else:
-    seq_html=resp.read().decode('utf-8')
-    time.sleep(0.3)
+    seq_html=req.text
+
+  if (re.search(r'Error',seq_html)):
+      sys.stderr.write("*** %s returned Error\n"%(acc))
+      continue
+
+  time.sleep(0.3)
 
   if (not sub_range):
     print(seq_html)

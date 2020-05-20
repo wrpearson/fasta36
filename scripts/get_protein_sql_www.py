@@ -9,8 +9,7 @@ import re
 import textwrap
 import MySQLdb
 import time
-from urllib.request import Request, urlopen
-from urllib.error import URLError
+import requests
 
 ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
 uniprot_url = "https://www.uniprot.org/uniprot/"
@@ -39,22 +38,13 @@ def get_ncbi_www(acc):
 
 ##   seq_html = urlopen(ncbi_url + seq_args)
 
-    req = Request(ncbi_url+seq_args)
-
     try: 
-        resp = urlopen(req)
-    except URLError as e:
+        req = requests.get(ncbi_url+seq_args)
+    except requests.exceptions.RequestException as e:
         seq_html = ''
-        if hasattr(e, 'reason'):
-            sys.stderr.write("Sequence [%s] not found: %s\n"%(acc,str(e.reason)))
-        elif hasattr(e, 'code'):
-            sys.stderr.write("Sequence [%s] not found: %s\n"%(acc,str(e.ecode)))
-        else:
-            sys.stderr.write("Sequence [%s] not found\n"%(acc))
-        exit(0)
-
+        sys.stderr.print(e.response.text+'\n')
     else:
-        seq_html=resp.read().decode('utf-8')
+        seq_html=req.text
 
     time.sleep(0.3)
     return seq_html
@@ -72,8 +62,40 @@ def get_uniprot_sql(acc, cur):
         return False
 
 def get_uniprot_www(acc):
-    seq_html = urlopen(uniprot_url + acc + ".fasta").read().decode('utf-8')
+    up_req = requests.get(uniprot_url + acc + ".fasta")
+    seq_html = up_req.text
+
+    if (re.search(r'Error',seq_html)):
+        sys.stderr.write("*** ERROR : %s not found\n"%(acc))
+        seq_html=''
     return seq_html
+
+def print_seq(seq_html, sub_range):
+
+    if not seq_html:
+        return
+
+    lines = seq_html.split('\n');
+
+    header = lines[0]
+    seq = ''.join(lines[1:])
+
+    if (sub_range):
+        start, stop = sub_range.split('-')
+        start, stop = int(start), int(stop)
+        if (start > 0):
+            start -= 1
+            new_seq = seq[start:stop]
+    else:
+        start = 0
+        new_seq = seq
+
+    if (start > 0):
+        print("%s @C%d" %(header, start+1))
+    else:
+        print(header)
+
+    print('\n'.join(textwrap.wrap(new_seq)))
 
 sub_range = ''
 for acc in sys.argv[1:]:
@@ -93,50 +115,6 @@ for acc in sys.argv[1:]:
         if (not seq_html):
             seq_html = get_uniprot_www(acc)
 
-    if not seq_html:
-        continue;
+    print_seq(seq_html, sub_range)
 
-    header=''
-    seq = ''
-    for line in seq_html.split('\n'):
-        if (line and line[0]=='>'):
-            # print out old one if there
-            if (header):
-                if (sub_range):
-                    start, stop = sub_range.split('-')
-                    start, stop = int(start), int(stop)
-                    if (start > 0):
-                        start -= 1
-                    new_seq = seq[start:stop]
-                else:
-                    start = 0
-                    new_seq = seq
 
-                if (start > 0):
-                    print("%s @C%d" %(header, start+1))
-                else:
-                    print(header)
-
-                print('\n'.join(textwrap.wrap(new_seq)))
-
-            header = line;
-            seq = ''
-        else:
-            seq += line
-
-start=0
-if (sub_range):
-    start, stop = sub_range.split('-')
-    start, stop = int(start), int(stop)
-    if (start > 0):
-        start -= 1
-        new_seq = seq[start:stop]
-else:
-    new_seq = seq
-
-if (start > 0):
-    print("%s @C:%d" %(header, start+1))
-else:
-    print(header)
-
-print('\n'.join(textwrap.wrap(new_seq)))

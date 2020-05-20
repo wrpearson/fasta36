@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
-# Given a blast_tabular file with search results from one or more protein queries
+# Given a blast_tabular file with search results from one or more
+# protein queries, modify the domain color numbers (e.g. ~1, ~2) so
+# that the query and subject domains use the same color numbers, even
+# when the different annotation scripts may have assigned different
+# numbers.
 # 
-
 ################################################################
 # copyright (c) 2018 by William R. Pearson and The Rector & Visitors
 # of the University of Virginia */
@@ -23,7 +26,6 @@ import fileinput
 import sys
 import re
 import argparse
-import urllib.request, urllib.error, urllib.parse
 
 from rename_exons import *
 
@@ -103,7 +105,7 @@ def main():
         data = parse_protein(line_data,fields,'')	# get score/alignment/domain data
 
         if (len(data['sdom_list'])==0 and len(data['qdom_list'])==0):
-            print(line)	# no domains to be edited, print stripped line and contine
+            print(line)	# no domains to be edited, print stripped line and continue
             continue
 
         ################
