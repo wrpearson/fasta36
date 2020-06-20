@@ -5,7 +5,7 @@
 # Dec 8, 2005 - with gcc4.0.2 (or .1) under Redhat Linux Fedora FC4 -03 breaks the alignment code
 #
 
-CC= gcc -g -O2
+CC ?= gcc -g -O2
 
 #CC=gcc -Wall -pedantic -ansi -g -O
 #CC = gcc -g -DDEBUG
@@ -17,7 +17,7 @@ CC= gcc -g -O2
 # this file works for x86 LINUX
 
 # standard options
-CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DSFCHAR="':'" -DMAX_WORKERS=2 -DTHR_EXIT=pthread_exit -DPROGRESS  -DUSE_MMAP -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DSAMP_STATS -DPGM_DOC
+CFLAGS += -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DSFCHAR="':'" -DMAX_WORKERS=2 -DTHR_EXIT=pthread_exit -DPROGRESS  -DUSE_MMAP -D_REENTRANT -DHAS_INTTYPES -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DUSE_FSEEKO -DSAMP_STATS -DPGM_DOC
 # -I/usr/local/include/mysql -DMYSQL_DB 
 #
 #(for mySQL databases)  (also requires change to Makefile34.common)
@@ -34,6 +34,7 @@ THR_SUBS = pthr_subs2
 THR_LIBS = -lpthread
 THR_CC =
 
+BIN = ../bin
 XDIR = /seqprg/bin
 
 DROPGSW_NA_O = dropgsw2.o wm_align.o calcons_sw.o
