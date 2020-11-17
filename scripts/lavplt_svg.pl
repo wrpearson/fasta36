@@ -20,6 +20,8 @@
 use warnings;
 use strict;
 
+use vars qw($have_zdb $have_bits);
+
 #define SX(x) (int)((double)(x)*fxscal+fxoff+6)
 sub SX {
   my $xx = shift;
@@ -334,7 +336,7 @@ sub legend
   else {$last = 4;}
 
   if ($have_zdb)  {printf("<text x=\"%d\" y=\"%d\">E(): </text>",54,$max_y + $y_off - 24 + $y_delta);}
-  elsif ($have_bits) {printf("<text x=\"%d\" y=\"%d\">bits: </text>",54,$max_y + $y_off - 24 + $_delta);}
+  elsif ($have_bits) {printf("<text x=\"%d\" y=\"%d\">bits: </text>",54,$max_y + $y_off - 24 + $y_delta);}
 
   $del = 10;
   for ($i=0; $i<$last ; $i++) {

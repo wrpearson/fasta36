@@ -197,7 +197,7 @@ static int markx_set = 0;
 void initenv (int argc, char **argv, struct mngmsg *m_msp, 
 		 struct pstruct *ppst, unsigned char **aa0)
 {
-  char *cptr, *bp, *bp1;
+  char *cptr;
   int  copt;
 #ifdef WIN32
   SYSTEM_INFO siSysInfo;
@@ -636,7 +636,7 @@ void add_annot_def(struct mngmsg *m_msp, char *line, int qa_flag) {
 static void
 get_annot_def_file(struct mngmsg *m_msp, char *fa_annot_env) {
   FILE *def_fp;
-  char *bp, *bpf, line[MAX_STR];
+  char *bpf, line[MAX_STR];
   char tmp_annot_env[MAX_STR];
 
   if ((bpf=strchr(fa_annot_env,' '))!=NULL) *bpf = '\0';

@@ -345,7 +345,7 @@ calc_cons_u( /* inputs */
 				   the list of annotations */
   long i0_left_end, i1_left_end; /* left-most coordinate of domain end */
 
-  int show_code, annot_fmt, start_flag;
+  int show_code, annot_fmt;
 
   int v_delta, v_tmp;
   int d1_score, d1_ident, d1_alen, d1_gaplen;

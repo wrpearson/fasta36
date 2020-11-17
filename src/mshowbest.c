@@ -279,7 +279,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   /* **************************************************************** */
 
   if (m_msp->markx & MX_MBLAST2) {
-    fprintf(fp, "%81s\n"," Score     E");
+    fprintf(fp, "%81s\n"," Score     E");  /* space over for two line column label */
     fprintf(fp, "Sequences producing significant alignments:                          (Bits)  Value\n\n");
   }
   else if (!(m_msp->markx & MX_M8OUT)) {
@@ -733,7 +733,6 @@ dominfo_to_str(struct dyn_string_str *dominfo_dstr, struct annot_str *annots) {
   int i;
   char tmp_string[MAX_STR];
   struct annot_entry *annot;
-  struct dyn_string_str *dyn_dom_str;
 
   for (i=0; i < annots->n_annot; i++) {
 

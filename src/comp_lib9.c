@@ -413,7 +413,7 @@ void fsigint();
 int
 main (int argc, char *argv[]) 
 {
-  unsigned char *aa0[6], *aa0s;
+  unsigned char *aa0[6], *aa0s=NULL;
   unsigned char *aa1save;	/* aa1shuff and aa1save must be distinct */
   unsigned char *aa1shuff, *aa1shuff_b=NULL;	/* for new unthreaded version */
   char *lib_db_file;
@@ -456,7 +456,9 @@ main (int argc, char *argv[])
   int utmp;		/* user input tmp */
 
   struct pstruct pst;
-  void *f_str[6], *qf_str;	/* different f_str[]'s for forward,reverse */
+  void *f_str[6];	/* different f_str[]'s for forward,reverse */
+
+  void *qf_str;
   int have_f_str=0;
 
   /* these variables track buffers of library sequences */
@@ -2328,7 +2330,6 @@ next_seqr_chain(const struct mng_thr *m_bufi_p, struct getlib_str *getlib_info,
 
   int maxt;	/* continued sequence */
   int sstart, sstop, is, id, i;
-  int igncnt=0;			/* count for ignoring sequences warning */
   struct lmf_str *m_file_p;
   unsigned char *aa1ptr, *aa1;
   char *bp;

@@ -78,8 +78,7 @@ initpam (char *mfname, struct pstruct *ppst)
    int     i, j, iaa, pval, p_i, p_j;
    int l_nsq;
    unsigned char l_sq[MAXSQ+1];
-   int ess_tmp, max_val, min_val;
-   int have_es = 0;
+   int max_val, min_val;
    FILE   *fmat;
 
    pam_opts(mfname, ppst);

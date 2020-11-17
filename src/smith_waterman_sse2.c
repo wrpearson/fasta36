@@ -20,7 +20,8 @@
 #ifdef __SUNPRO_C
 #include <sunmedia_intrin.h>
 #else
-#include <emmintrin.h>
+/*  #include <emmintrin.h> */
+#include <x86intrin.h>
 #endif
 
 #ifdef SW_SSE2

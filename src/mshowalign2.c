@@ -141,7 +141,10 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   unsigned char *aa1, *aa1a;
   char tmp_str[20];
   char info_str[200];
-  char bline[2048], *qline_p, *bline_p, *bl_ptr, *bp, *bp1, fmt[40];
+  char bline[2048], *qline_p, *bline_p, *bl_ptr, *bp, fmt[40];
+#ifdef LALIGN
+  char *bp1;
+#endif
   struct dyn_string_str *annot_var_dyn, *align_code_dyn;
   char *annot_var_s10;
   int tmp_len, ttmp_len, l_llen, desc_llen, ranlib_done;
@@ -989,7 +992,7 @@ void freeseq_ann(char **seqc0a, char **seqc1a)
    identical*/
 float calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail) {
   float f_id, f_decimal;
-  int n_sig;
+  /* int n_sig; */
 
   if (n_alen <= 0) { return fail;}
 

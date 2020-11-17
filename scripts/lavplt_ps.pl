@@ -20,6 +20,8 @@
 use warnings;
 use strict;
 
+use vars qw($have_zdb $have_bits);
+
 #define SX(x) (int)((double)(x)*fxscal+fxoff+24)
 sub SX {
   my $xx = shift;
@@ -47,7 +49,10 @@ my @bblk_col=(0.33, 0.8, 0.5, 0.15, 0.0);
 
 # void openplt(long n0, long n1, int sq0off, int sq1off, char *xtitle, char *ytitle)
 sub openplt {
-  my ($n0, $n1, $sq0off, $sq1off, $xtitle, $ytitle, $x_annot_r, $y_annot_r, $have_zdb, $have_bits) = @_;
+  my ($n0, $n1, $sq0off, $sq1off, $xtitle, $ytitle, $x_annot_r, $y_annot_r, $my_have_zdb, $my_have_bits) = @_;
+
+  $have_zdb = $my_have_zdb;
+  $have_bits = $my_have_bits;
 
   if ($lvstr) {
     @elinval = split(/\s+/,$lvstr);
@@ -341,6 +346,7 @@ sub ygrid {
   if ($show_block) {$text_offset = 24;}
   my $color=4;
 
+  print("%% ygrid: $n0 $n1\n");
   print("gsave\n");
   print("/Courier findfont 11 scalefont setfont\n");
   print("currentlinewidth 0.5 mul setlinewidth\n");
@@ -463,7 +469,7 @@ sub closeplt {
 
 # void opnline(int s, double bits)
 sub opnline {
-  my ($s, $bits) = shift;
+  my ($s, $bits) = @_;
 
   my $e_val;
 
