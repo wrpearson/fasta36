@@ -6,6 +6,9 @@
 
 /*
   Written by Michael Farrar, 2010.
+
+  Nov-2020 - Modified to support the SIMDe vector instruction mapping
+  by Michael R. Crusoe [orcid.org/0000-0002-2961-9670]
 */
 
 #include <stdio.h>
@@ -19,7 +22,8 @@
 #ifdef __SUNPRO_C
 #include <sunmedia_intrin.h>
 #else
-#include <emmintrin.h>
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include "simde/x86/sse2.h"
 #endif
 
 #ifdef SW_SSE2

@@ -78,17 +78,15 @@ initpam (char *mfname, struct pstruct *ppst)
    int     i, j, iaa, pval, p_i, p_j;
    int l_nsq;
    unsigned char l_sq[MAXSQ+1];
-   int ess_tmp, max_val, min_val;
-   int have_es = 0;
+   int max_val, min_val;
    FILE   *fmat;
 
    pam_opts(mfname, ppst);
 
-   if ((fmat = fopen (mfname, "r")) == NULL)
-   {
-      printf ("***WARNING*** cannot open scoring matrix file %s\n", mfname);
-      fprintf (stderr,"***WARNING*** cannot open scoring matrix file %s\n", mfname);
-      return 0;
+   if ((fmat = fopen (mfname, "r")) == NULL) { 
+       printf ("*** Warning [%s:%d] - cannot open scoring matrix file %s\n", __FILE__,__LINE__,mfname);
+       fprintf (stderr,"*** Warning [%s:%d] - cannot open scoring matrix file %s\n", __FILE__,__LINE__,mfname);
+       return 0;
    }
 
 /* removed because redundant, and causes crash under MacOSX -- because copying on top of itself */

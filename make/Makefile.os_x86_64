@@ -12,7 +12,7 @@
 
 SHELL=/bin/bash
 
-CC= cc -O -g -arch x86_64 -msse2
+CC= cc -O -g -arch x86_64 -msse2 -Wno-pointer-sign
 LIB_DB=
 
 #CC= cc -g -DDEBUG -fsanitize=address -arch x86_64 -msse2

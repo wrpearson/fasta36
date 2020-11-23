@@ -712,7 +712,7 @@ ag_parm(char *pam_name, int gdelval, int ggapval, struct pstat_str *pu)
   double Lambda, K, H;
   int r_v;
 
-  if (strcmp(pam_name,"BL50")==0)
+  if (strcmp(pam_name,"BL50")==0) 
     r_v = look_p(bl50_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"BL62")==0)
       r_v = look_p(bl62_p,gdelval,ggapval,&K,&Lambda,&H);
@@ -732,7 +732,9 @@ ag_parm(char *pam_name, int gdelval, int ggapval, struct pstat_str *pu)
       r_v = look_p(nt32_p,gdelval,ggapval, &K,&Lambda,&H);
   else if (strcmp(pam_name,"+1/-3")==0)
       r_v = look_p(nt13_p,gdelval,ggapval, &K,&Lambda,&H);
-  else r_v = 0;
+  else {
+    r_v = 0;
+  }
 
   pu->r_u.ag.K = K;
   pu->r_u.ag.Lambda = Lambda;

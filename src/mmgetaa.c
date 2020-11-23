@@ -212,7 +212,7 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
     mmb_flag=((m_fd->mmap_fd=open(bname,O_RDONLY))>=0);
 
     if (!mmb_flag) {
-      fprintf(stderr," cannot open %s for mmap()", bname);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot open %s for mmap()", __FILE__, __LINE__, bname);
       perror("...");
       goto next_mmap;
     }
@@ -226,7 +226,7 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
 	     MAP_FILE | MAP_SHARED, m_fd->mmap_fd, 0)) == (char *) -1) {
       mm_flag = 0;
 #ifdef DEBUG
-      fprintf(stderr," cannot mmap %s", bname);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot mmap %s", __FILE__, __LINE__, bname);
       perror("...");
 #endif
     }
@@ -252,14 +252,14 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
     /* allocate array of description pointers */
 
     if ((b_pos_arr=(fseek_t *)calloc(max_cnt+1, sizeof(fseek_t)))==NULL) {
-      fprintf(stderr," cannot allocate %d for binary seq array\n",max_cnt+1);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot allocate %d for binary seq array\n",__FILE__,__LINE__,max_cnt+1);
       exit(1);
     }
 
     /* now read the binary offsets (b_pos_arr) */
     if (fread(b_pos_arr,sizeof(fseek_t),max_cnt+1,libi_b)!=
 	max_cnt+1) {
-      fprintf(stderr," error reading bseq offsets: %s\n",xbname);
+      fprintf(stderr,"*** ERROR [%s:%d] error reading bseq offsets: %s\n",__FILE__,__LINE__,bname);
       return NULL;
     }
 
@@ -278,14 +278,14 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
     /* now, start to open mmap()ed file */
     mm_flag=((m_fd->mmap_fd=open(sname,O_RDONLY))>=0);
     if (!mm_flag) {
-      fprintf(stderr," cannot open %s for mmap()", sname);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot open %s for mmap()",__FILE__,__LINE__, sname);
       perror("...");
       return NULL;	/* file did not open */
     }
 
     /* fstat the library file and get size */
     if(fstat(m_fd->mmap_fd, &statbuf) < 0) {
-      fprintf(stderr," cannot stat %s for mmap()", sname);
+      fprintf(stderr,"*** ERROR [%s:%d]  cannot stat %s for mmap()", __FILE__, __LINE__, sname);
       perror("...");
       m_fd->mm_flg = 0;
       goto finish;
@@ -293,8 +293,8 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
 
     /* check for identical sizes - if different, do not mmap */
     if (f_size != statbuf.st_size) {
-      fprintf(stderr," %s file size (%lld) and expected size (%lld) don't match\n",
-	      sname,statbuf.st_size,f_size);
+      fprintf(stderr,"*** ERROR [%s:%d]  %s file size (%lld) and expected size (%lld) don't match\n",
+	      __FILE__, __LINE__, sname,statbuf.st_size,f_size);
       mm_flag = 0;
       goto finish;    
     }
@@ -308,7 +308,7 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
 	     MAP_FILE | MAP_SHARED, m_fd->mmap_fd, 0)) == (char *) -1) {
       mm_flag = 0;
 #ifdef DEBUG
-      fprintf(stderr," cannot mmap %s", sname);
+      fprintf(stderr,"*** ERROR [%s:%d] cannot mmap %s", __FILE__, __LINE__, sname);
       perror("...");
 #endif
     }  
@@ -344,14 +344,14 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
   /* allocate array of description pointers */
   if (!mm64_flag) {
     if ((tmp_pos_arr=(int *)calloc(max_cnt+1,sizeof(int)))==NULL) {
-      fprintf(stderr," cannot allocate %d for tmp_pos array\n",
-	      max_cnt+1);
-		return NULL;
+      fprintf(stderr,"*** ERROR [%s:%d] cannot allocate %d for tmp_pos array\n",
+	      __FILE__, __LINE__, max_cnt+1);
+      return NULL;
     }
   }
 
   if ((d_pos_arr=(fseek_t *)calloc(max_cnt+1, sizeof(fseek_t)))==NULL) {
-    fprintf(stderr," cannot allocate %d for desc. array\n",max_cnt+1);
+    fprintf(stderr,"*** ERROR [%s:%d] cannot allocate %d for desc. array\n",__FILE__, __LINE__, max_cnt+1);
     exit(1);
   }
 
@@ -359,19 +359,19 @@ load_mmap(FILE *libi,	/* fd for already open ".xin" file */
   if (mm64_flag) {
     if (fread(d_pos_arr,sizeof(fseek_t),max_cnt+1,libi)!=
 	max_cnt+1) {
-      fprintf(stderr," error reading desc. offsets: %s\n",sname);
+      fprintf(stderr,"*** ERROR [%s:%d] error reading desc. offsets: %s\n",__FILE__, __LINE__, sname);
       return NULL;
     }
   }
   else {
     if (fread(tmp_pos_arr,sizeof(int),max_cnt+1,libi)!=
 	max_cnt+1) {
-      fprintf(stderr," error reading desc. offsets: %s\n",sname);
+      fprintf(stderr,"*** ERROR [%s:%d] error reading desc. offsets: %s\n",__FILE__,__LINE__,sname);
       return NULL;
     }
 #ifdef DEBUG
-    fprintf(stderr,"d_pos_crc: %ld\n",
-	    crck((char *)tmp_pos_arr,sizeof(int)*(max_cnt+1)));
+    fprintf(stderr,"*** ERROR [%s:%d]  d_pos_crc: %ld\n",
+	    __FILE__, __LINE__, crck((char *)tmp_pos_arr,sizeof(int)*(max_cnt+1)));
 #endif
   }
 

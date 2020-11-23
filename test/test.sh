@@ -7,7 +7,7 @@ if [ ! -d results ]; then
   mkdir results
 fi
 
-export FA_DB=/slib2/fa_dbs/qfo20.lseg
+export FA_DB=$SLIB2/fa_dbs/qfo20.lseg
 
 echo "starting fasta36 - protein" `date`
 ../bin/fasta36 -q -m 6 -Z 100000 ../seq/mgstm1.aa:1-100 $FA_DB > results/test_m1.ok2.html

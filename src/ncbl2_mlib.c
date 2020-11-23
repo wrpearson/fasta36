@@ -367,21 +367,21 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
       }
       /* now load the oid file */
       if ((ifile = fopen(msk_name,RBSTR))==NULL) {
-	fprintf(stderr,"error - cannot load %s file\n",msk_name);
+	fprintf(stderr,"*** ERROR [%s:%d] - cannot load %s file\n",__FILE__,__LINE__,msk_name);
 	return NULL;
       }
       else {
 	src_uint4_read(ifile,&o_max);
 	if (o_max != max_oid) {
-	  fprintf(stderr," error - oid count mismatch %d != %d\n",max_oid, o_max);
+	  fprintf(stderr,"*** ERROR [%s:%d] - oid count mismatch %d != %d\n",__FILE__,__LINE__,max_oid, o_max);
 	}
 	oid_len = (max_oid/32+1);
 	if ((oid_list=(unsigned int *)calloc(oid_len,sizeof(int)))==NULL) {
-	  fprintf(stderr," error - cannot allocate oid_list[%d]\n",oid_len);
+	  fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate oid_list[%d]\n",__FILE__,__LINE__,oid_len);
 	  return NULL;
 	}
 	if ((oid_cnt=fread(oid_list,sizeof(int),oid_len,ifile))==0) {
-	  fprintf(stderr," error - cannot read oid_list[%d]\n",oid_len);
+	  fprintf(stderr,"*** ERROR [%s:%d] - cannot read oid_list[%d]\n",__FILE__,__LINE__,oid_len);
 	  return NULL;
 	}
 	fclose(ifile);
@@ -390,7 +390,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
 #ifdef DEBUG
     else {	/* we had a .msk file, but there are no oid's in
 		   it. */
-      fprintf(stderr," *** WARNING -- found .pal/.nal file %s with no OIDs\n",lname);
+      fprintf(stderr," *** WARNING [%s:%d] -- found .pal/.nal file %s with no OIDs\n",__FILE__,__LINE__,lname);
       return NULL;
     }
 #endif
@@ -431,8 +431,8 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
     for (i=0; i<sizeof(aa_b2toa); i++) {
       if (i != aa_btof[i]) {
 #ifdef DEBUG
-	fprintf(stderr," difference at: i: %d [%c] != aa_btof[i]: %d [%c]\n",
-		i,aa_b2toa[i],aa_btof[i],NCBIstdaa[aa_btof[i]]);
+	fprintf(stderr,"*** ERROR [%s:%d] - difference at: i: %d [%c] != aa_btof[i]: %d [%c]\n",
+		__FILE__,__LINE__,i,aa_b2toa[i],aa_btof[i],NCBIstdaa[aa_btof[i]]);
 #endif
 	aa_btof_null = 0;
       }
@@ -443,7 +443,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
   /* now we have all the file names, open the files and read the data */
   /* open the index/header file, and read the sequence type info  */
   if ((ifile = fopen(tname,RBSTR))==NULL) {
-    fprintf(stderr," cannot open %s (%s) INDEX file",tname,lib_p->file_name);
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot open %s (%s) INDEX file",__FILE__,__LINE__,tname,lib_p->file_name);
     perror("...");
     return NULL;
   }
@@ -451,21 +451,21 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
   src_uint4_read(ifile,(unsigned *)&dbtype);   /* get 1 for protein/0 DNA */
 
   if (dbformat != FORMATDBV3 && dbformat!=FORMATDBV4 && dbformat!=FORMATDBV5) {
-    fprintf(stderr,"error - %s wrong formatdb version (%d/%d)\n",
-	    tname,dbformat,FORMATDBV3);
+    fprintf(stderr,"*** ERROR [%s:%d] - %s wrong formatdb version (%d/%d)\n",
+	    __FILE__,__LINE__,tname,dbformat,FORMATDBV3);
     return NULL;
   }
 
   if ((ldnaseq==SEQT_PROT && dbtype != AAFORMAT) || 
       (ldnaseq==SEQT_DNA && dbtype!=NTFORMAT)) {
-    fprintf(stderr,"error - %s wrong format (%d/%d)\n",
-	    tname,dbtype,(ldnaseq ? NTFORMAT: AAFORMAT));
+    fprintf(stderr,"*** ERROR [%s:%d] - %s wrong format (%d/%d)\n",
+	    __FILE__,__LINE__,tname,dbtype,(ldnaseq ? NTFORMAT: AAFORMAT));
     return NULL;
   }
 
   /* the files are there - allocate lmf_str */
   if ((m_fptr=(struct lmf_str *)calloc(1,sizeof(struct lmf_str)))==NULL) {
-    fprintf(stderr," cannot allocate lmf_str\n");
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate lmf_str\n",__FILE__,__LINE__);
     return NULL;
   }
 
@@ -473,7 +473,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
   m_fptr->tmp_buf_max = 4096;
   if ((m_fptr->tmp_buf=
        (char *)calloc(m_fptr->tmp_buf_max,sizeof(char)))==NULL) {
-    fprintf(stderr," cannot allocate lmf_str->tmp_buffer\n");
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate lmf_str->tmp_buffer\n",__FILE__,__LINE__);
     return NULL;
   }
 
@@ -487,7 +487,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
 
   /* open the header file */
   if ((m_fptr->hfile = fopen(hname,RBSTR))==NULL) {
-    fprintf(stderr," cannot open %s header file\n",hname);
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot open %s header file\n",__FILE__,__LINE__,hname);
     goto error_r;
   }
 
@@ -524,12 +524,12 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
 #if defined (USE_MMAP) 
   m_fptr->mm_flg=((m_fptr->mmap_fd=open(sname,O_RDONLY))>=0);
   if (!m_fptr->mm_flg) {
-    fprintf(stderr," cannot open %s",sname);
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot open %s",__FILE__,__LINE__,sname);
     perror("...");
   }
   else {
     if(fstat(m_fptr->mmap_fd, &statbuf) < 0) {
-      fprintf(stderr," cannot fstat %s",sname);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot fstat %s",__FILE__,__LINE__,sname);
       perror("...");
       m_fptr->mm_flg = 0;
     }
@@ -538,7 +538,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
       if((m_fptr->mmap_base = 
 	  mmap(NULL, m_fptr->st_size, PROT_READ,
 	       MAP_FILE | MAP_SHARED, m_fptr->mmap_fd, 0)) == (char *) -1) {
-	fprintf(stderr," cannot mmap %s",sname);
+	fprintf(stderr,"*** ERROR [%s:%d] - cannot mmap %s",__FILE__,__LINE__,sname);
 	perror("...");
 	m_fptr->mm_flg = 0;
       }  
@@ -556,7 +556,7 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
 
   if  (!m_fptr->mm_flg) {
     if ((m_fptr->libf = fopen(sname,RBSTR))==NULL) {
-      fprintf(stderr," cannot open %s sequence file",sname);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot open %s sequence file",__FILE__,__LINE__,sname);
       perror("...");
       goto error_r;
     }
@@ -672,11 +672,11 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
     src_uint4_read(ifile,&o_max);
     oid_len = (max_oid/32+1);
     if ((oid_list=(unsigned int *)calloc(oid_len,sizeof(int)))==NULL) {
-      fprintf(stderr," error - cannot allocate oid_list[%d]\n",oid_len);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate oid_list[%d]\n",__FILE__,__LINE__,oid_len);
       return NULL;
     }
     if ((oid_cnt=fread(oid_list,sizeof(int),oid_len,ifile))==0) {
-      fprintf(stderr," error - cannot read oid_list[%d]\n",oid_len);
+      fprintf(stderr,"*** ERROR [%s:%d] -  cannot read oid_list[%d]\n",__FILE__,__LINE__,oid_len);
       return NULL;
     }
     fclose(ifile);
@@ -699,7 +699,7 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
   /* now we have all the file names, open the files and read the data */
   /* open the index/header file, and read the sequence type info  */
   if ((ifile = fopen(tname,RBSTR))==NULL) {
-    fprintf(stderr," cannot open %s (%s) INDEX file",tname,m_fptr->lb_name);
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot open %s (%s) INDEX file",__FILE__,__LINE__,tname,m_fptr->lb_name);
     perror("...");
     return NULL;
   }
@@ -709,7 +709,7 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
   m_fptr->tmp_buf_max = 4096;
   if ((m_fptr->tmp_buf=
        (char *)calloc(m_fptr->tmp_buf_max,sizeof(char)))==NULL) {
-    fprintf(stderr," cannot allocate lmf_str->tmp_buffer\n");
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate lmf_str->tmp_buffer\n",__FILE__,__LINE__);
     return NULL;
   }
 
@@ -747,7 +747,7 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
 #if defined (USE_MMAP) 
   m_fptr->mm_flg=((m_fptr->mmap_fd=open(sname,O_RDONLY))>=0);
   if(fstat(m_fptr->mmap_fd, &statbuf) < 0) {
-    fprintf(stderr," cannot fstat %s",sname);
+    fprintf(stderr,"*** ERROR [%s:%d] - cannot fstat %s",__FILE__,__LINE__,sname);
     perror("...");
     m_fptr->mm_flg = 0;
   }
@@ -756,7 +756,7 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
     if((m_fptr->mmap_base = 
 	mmap(NULL, m_fptr->st_size, PROT_READ,
 	     MAP_FILE | MAP_SHARED, m_fptr->mmap_fd, 0)) == (char *) -1) {
-      fprintf(stderr," cannot mmap %s",sname);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot mmap %s",__FILE__,__LINE__,sname);
       perror("...");
       m_fptr->mm_flg = 0;
     }  
@@ -774,7 +774,7 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
   if  (!m_fptr->mm_flg) {
     m_fptr->libf = fopen(sname,RBSTR);
     if (!m_fptr->libf) {
-      fprintf(stderr," cannot open %s\n",sname);
+      fprintf(stderr,"*** ERROR [%s:%d] -  cannot open %s\n",__FILE__,__LINE__,sname);
       return NULL;
     }
     m_fptr->mm_flg = 0;
@@ -804,7 +804,7 @@ struct lmf_str
 
   if (title_len > 0) {
     if ((title_str = calloc((size_t)title_len+1,sizeof(char)))==NULL) {
-      fprintf(stderr," cannot allocate title string (%d)\n",title_len);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate title string (%d)\n",__FILE__,__LINE__,title_len);
       goto error_r;
     }
     fread(title_str,(size_t)1,(size_t)title_len,ifile);
@@ -814,7 +814,7 @@ struct lmf_str
     src_uint4_read(ifile,(unsigned int *)&pdb_title_len);
     if (pdb_title_len > 0) {
       if ((pdb_title_str = calloc((size_t)pdb_title_len+1,sizeof(char)))==NULL) {
-	fprintf(stderr," cannot allocate pdb_title string (%d)\n",pdb_title_len);
+	fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate pdb_title string (%d)\n",__FILE__,__LINE__,pdb_title_len);
 	goto error_r;
       }
       fread(pdb_title_str,(size_t)1,(size_t)pdb_title_len,ifile);
@@ -825,7 +825,7 @@ struct lmf_str
 
   if (date_len > 0) {
     if ((date_str = calloc((size_t)date_len+1,sizeof(char)))==NULL) {
-      fprintf(stderr," cannot allocate date string (%d)\n",date_len);
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate date string (%d)\n",__FILE__,__LINE__,date_len);
       goto error_r;
     }
     fread(date_str,(size_t)1,(size_t)date_len,ifile);
@@ -851,31 +851,32 @@ struct lmf_str
   if (date_str!=NULL) free(date_str);
 
 #ifdef DEBUG
-    fprintf(stderr,"%s format: BL2 (%s)  max_cnt: %d, totlen: %lld, maxlen %ld\n",
+    fprintf(stderr,"*** INFO [%s:%d] - %s format: BL2 (%s)  max_cnt: %d, totlen: %lld, maxlen %ld\n",
+	    __FILE__,__LINE__,
 	    m_fptr->lb_name,m_fptr->mm_flg ? "mmap" : "fopen", 
 	    m_fptr->max_cnt,m_fptr->tot_len,m_fptr->max_len);
 #endif
 
   /* allocate and read hdr indexes */
   if ((f_pos_arr=(unsigned int *)calloc((size_t)m_fptr->max_cnt+1,sizeof(int)))==NULL) {
-      fprintf(stderr," cannot allocate tmp header pointers\n");
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate tmp header pointers\n",__FILE__,__LINE__);
       goto error_r;
-    }
+  }
 
   if ((m_fptr->d_pos_arr=(MM_OFF *)calloc((size_t)m_fptr->max_cnt+1,sizeof(MM_OFF)))==NULL) {
-      fprintf(stderr," cannot allocate header pointers\n");
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate header pointers\n",__FILE__,__LINE__);
       goto error_r;
-    }
+  }
 
   /* allocate and read sequence offsets */
   if ((m_fptr->s_pos_arr=(MM_OFF *)calloc((size_t)m_fptr->max_cnt+1,sizeof(MM_OFF)))==NULL) {
-      fprintf(stderr," cannot allocate sequence pointers\n");
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate sequence pointers\n",__FILE__,__LINE__);
       goto error_r;
-    }
+  }
 
   if (fread(f_pos_arr,(size_t)4,m_fptr->max_cnt+1,ifile)!=m_fptr->max_cnt+1) {
-    fprintf(stderr," error reading hdr offsets: %s\n",m_fptr->lb_name);
-    goto error_r;
+      fprintf(stderr,"*** ERROR [%s:%d] - error reading hdr offsets: %s\n",__FILE__,__LINE__,m_fptr->lb_name);
+      goto error_r;
   }
 
   for (i=0; i<=m_fptr->max_cnt; i++)
@@ -886,7 +887,7 @@ struct lmf_str
 #endif
 
   if (fread(f_pos_arr,(size_t)4,m_fptr->max_cnt+1,ifile)!=m_fptr->max_cnt+1) {
-    fprintf(stderr," error reading seq offsets: %s\n",m_fptr->lb_name);
+    fprintf(stderr,"*** ERROR [%s:%d] - error reading seq offsets: %s\n",__FILE__,__LINE__,m_fptr->lb_name);
     goto error_r;
   }
   for (i=0; i<=m_fptr->max_cnt; i++) {
@@ -900,7 +901,7 @@ struct lmf_str
   if (dbtype == NTFORMAT) {
     /* allocate and ambiguity  offsets */
     if ((m_fptr->a_pos_arr=(MM_OFF *)calloc((size_t)m_fptr->max_cnt+1,sizeof(MM_OFF)))==NULL) {
-      fprintf(stderr," cannot allocate sequence pointers\n");
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate sequence pointers\n",__FILE__,__LINE__);
       goto error_r;
     }
 
@@ -909,7 +910,7 @@ struct lmf_str
     */
 
     if (fread(f_pos_arr,(size_t)4,m_fptr->max_cnt+1,ifile)!=m_fptr->max_cnt+1) {
-      fprintf(stderr," error reading seq offsets: %s\n",m_fptr->lb_name);
+      fprintf(stderr,"*** ERROR [%s:%d] - error reading seq offsets: %s\n",__FILE__,__LINE__,m_fptr->lb_name);
       goto error_r;
     }
     for (i=0; i<=m_fptr->max_cnt; i++) {
@@ -934,7 +935,7 @@ struct lmf_str
   if (!m_fptr->mm_flg) {
     tmp = fgetc(m_fptr->libf);
     if (tmp!=NULLB)
-      fprintf(stderr," phase error: %d:%d found\n",0,tmp);
+      fprintf(stderr,"*** ERROR [%s:%d] - phase error: %d:%d found\n",__FILE__,__LINE__,0,tmp);
   }
 
   m_fptr->bl_lib_pos = 1;
@@ -1101,8 +1102,8 @@ ncbl2_getliba(unsigned char *seq,
   if (m_fd->mm_flg) sptr = (unsigned char *)m_fd->mmap_addr;
   else {
     if ((tmp=fread(seq,(size_t)1,(size_t)seq_len,m_fd->libf))!=(size_t)seq_len) {
-      fprintf(stderr," could not read sequence record: %lld %ld != %ld\n",
-	      *libpos,tmp,seq_len);
+      fprintf(stderr,"*** ERROR [%s:%d] - could not read sequence record: %lld %ld != %ld\n",
+	      __FILE__,__LINE__, *libpos,tmp,seq_len);
       goto error; 
     }
     sptr = seq;
@@ -1146,7 +1147,7 @@ ncbl2_getliba(unsigned char *seq,
   seq[seqcnt]= EOSEQ;
   return (seqcnt);
   
-error:	fprintf(stderr," error reading %s at %lld\n",libstr,*libpos);
+error:	fprintf(stderr,"*** ERROR [%s:%d] - error reading %s at %lld\n",__FILE__,__LINE__,libstr,*libpos);
   fflush(stderr);
   return (-1);
 }
@@ -1430,8 +1431,8 @@ ncbl2_getlibn(unsigned char *seq,
     if (!m_fd->mm_flg) {
       if ((tmp=fread(seq,(size_t)1,(size_t)seqcnt,m_fd->libf))!=(size_t)seqcnt) {
 	fprintf(stderr,
-		" could not read sequence record: %s %lld %ld != %ld: %d\n",
-		libstr,*libpos,tmp,seqcnt,*seq);
+		"*** ERROR [%s:%d] - could not read sequence record: %s %lld %ld != %ld: %d\n",
+		__FILE__,__LINE__,libstr, *libpos,tmp,seqcnt,*seq);
 	goto error; 
       }
       m_fd->bl_lib_pos += tmp;
@@ -1450,8 +1451,8 @@ ncbl2_getlibn(unsigned char *seq,
     seqcnt = ((maxs+3)/4)-1;
     if (!m_fd->mm_flg) {
       if ((tmp=fread(seq,(size_t)1,(size_t)(seqcnt),m_fd->libf))!=(size_t)(seqcnt)) {
-	fprintf(stderr," could not read sequence record: %lld %ld/%ld\n",
-		*libpos,tmp,seqcnt);
+	fprintf(stderr,"*** ERROR [%s:%d] - could not read sequence record: %lld %ld/%ld\n",
+		__FILE__,__LINE__, *libpos,tmp,seqcnt);
 	goto error;
       }
       m_fd->bl_lib_pos += tmp;
@@ -1562,18 +1563,18 @@ ncbl2_getlibn(unsigned char *seq,
       filepos = ftell(m_fd->libf);
       /* find the size of the ambiguity table */
       if (fseek(m_fd->libf, amb_start, SEEK_SET) != 0) {
-	fprintf(stderr, "*** ERROR [%s:%d] *** -- Seek amb start 0x%08x error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] - Seek amb start 0x%08x error %d\n", 
 		__FILE__, __LINE__, amb_start, ferror(m_fd->libf));
       }
       if (fread(&amb_cnt, sizeof(unsigned int), 1, m_fd->libf) != 1) {
-	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb count error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] - Read amb count error %d\n", 
 		__FILE__, __LINE__, ferror(m_fd->libf));
       }
     } else {
       mmap_pos = m_fd->mmap_addr;
       m_fd->mmap_addr = m_fd->mmap_base + amb_start;
       if (readMFILE((void *)&amb_cnt, sizeof(unsigned int), 1, m_fd) != 1) {
-	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb count error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] - Read amb count error %d\n", 
 		__FILE__, __LINE__, ferror(m_fd->libf));
       }
     }
@@ -1598,13 +1599,13 @@ ncbl2_getlibn(unsigned char *seq,
     if (!m_fd->mm_flg) {
       if (fread((unsigned char *) amb_ptr, sizeof(unsigned int), amb_cnt, m_fd->libf)
 	  != amb_cnt) {
-	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb table %d error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] - Read amb table %d error %d\n", 
 		__FILE__, __LINE__, amb_cnt, ferror(m_fd->libf));
       }
     } else {
       if (readMFILE((void *) amb_ptr, sizeof(unsigned int), amb_cnt, m_fd)
 	  != amb_cnt) {
-	fprintf(stderr, "*** ERROR [%s:%d] *** -- Read amb table %d error %d\n", 
+	fprintf(stderr, "*** ERROR [%s:%d] - Read amb table %d error %d\n", 
 		__FILE__, __LINE__, amb_cnt, ferror(m_fd->libf));
       }
     }
@@ -1674,7 +1675,7 @@ ncbl2_getlibn(unsigned char *seq,
     return (4*seqcnt);
   }
   
-error:	fprintf(stderr," error reading %s at %lld\n",libstr,*libpos);
+error:	fprintf(stderr,"*** ERROR [%s:%d] - reading %s at %lld\n",__FILE__,__LINE__,libstr,*libpos);
   fflush(stderr);
   return (-1);
 }
@@ -1721,7 +1722,7 @@ ncbl2_ranlib(char *str,
   else {
     if (llen >= m_fd->tmp_buf_max) {
       if ((my_buff=(unsigned char *)calloc(llen,sizeof(char)))==NULL) {
-	fprintf(stderr," cannot allocate ASN.1 buffer: %d\n",llen);
+	fprintf(stderr,"*** ERROR [%s:%d] - cannot allocate ASN.1 buffer: %d\n",__FILE__,__LINE__,llen);
 	my_buff = (unsigned char *)m_fd->tmp_buf;
 	llen = m_fd->tmp_buf_max;
       }
@@ -1823,7 +1824,7 @@ uint64_t bl2_long8_cvt(uint64_t val)
   res = (res<<16) + (((val>>32)&255)*256) + ((val>>40)&255);
   res = (res<<16) + (((val>>48)&255)*256) + ((val>>56)&255);
 #else
-  fprintf(stderr,"Cannot use bl2_long8_cvt without 64-bit longs\n");
+  fprintf(stderr,"*** ERROR [%s:%d] - cannot use bl2_long8_cvt without 64-bit longs\n",__FILE__,__LINE__);
   exit(1);
 #endif
   return res;

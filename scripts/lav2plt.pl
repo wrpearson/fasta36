@@ -26,6 +26,10 @@ use warnings;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+use FindBin;
+
+use lib "$FindBin::Bin/";
+
 
 use vars qw($pminx $pmaxx $pminy $pmaxy $lvstr $max_x $max_y
 	    $fxscal $fyscal $fxoff $fyoff
@@ -63,10 +67,10 @@ pod2usage(exitstatus => 0, verbose => 2) if $help;
 @blinval=(40.0,30.0,20.0,10.0);
 @ilinval=(200,100,50,25);
 
-require "./color_defs.pl";
+require "color_defs.pl";
 
-if ($lav_dev =~ m/ps/) {require "./lavplt_ps.pl";}
-else {require "./lavplt_svg.pl";}
+if ($lav_dev =~ m/ps/) {require "lavplt_ps.pl";}
+else {require "lavplt_svg.pl";}
 
 my ($g_n0, $g_n1);
 
@@ -107,6 +111,7 @@ while (my $line = <>) {
     unless ($open_plt) {
       if ($y_upd_script) {$y_annot_arr_r = get_annot($s_desc1, $y_upd_script);}
       if ($x_upd_script) {$x_annot_arr_r = get_annot($s_desc0, $x_upd_script);}
+
       openplt($g_n0, $g_n1, $p0_beg, $p1_beg,  $s_desc0, $s_desc1, $x_annot_arr_r, $y_annot_arr_r,$have_zdb, $have_bits);
       if (($g_n0 == $g_n1) && ($p0_beg == $p1_beg) && ($p0_end == $p1_end) && $ss_desc0 eq $ss_desc1) {
 	drawdiag($g_n0, $g_n1);
@@ -290,19 +295,36 @@ sub get_annot {
     chomp $line;
     my %fields = ();
 #    @fields{qw(beg type end descr)} = split(/\t/,$line);
-    @fields{qw(beg end descr)} = ($line =~ m/^\s*(\d+)\s+(\d+)\s+(\S.*)$/);
-    $fields{sdescr} = substr($fields{descr},0,12);
-    ($fields{sname}) = ($fields{sdescr} =~ m/^(\S+)/);
-    push @annots, \%fields;
-    unless ($annot_names{$fields{sname}}) {
-      $annot_names{$fields{sname}} = $annot_color++;
+    $line =~ s/^\s+//;
+    my @line_fields = split(/\s+/,$line);
+    if (scalar(@line_fields) == 3) {
+	@fields{qw(beg end descr)} = @line_fields;
     }
+    else {
+	@fields{qw(beg dash end descr)} = @line_fields;
+    }
+
+    # made short description
+    $fields{sdescr} = substr($fields{descr},0,12);
+    ($fields{sname}) = ($fields{sdescr} =~ m/^([^\s~]+)/);
+    ($fields{sdescr}) = ($fields{sdescr} =~ m/^([^\s~]+)/);
+
+    unless ($annot_names{$fields{sname}}) {
+      if ($fields{descr} =~ m/~(\d+)/) {
+	$annot_names{$fields{sname}} = $1;
+      }
+      else {
+	$annot_names{$fields{sname}} = $annot_color++;
+      }
+    }
+
+    $fields{descr} =~ s/~\d+$//;
+    push @annots, \%fields;
   }
   close($FIN);
   return \@annots;
 }
 
-my $M_LN2=0.69314718055994530942;
 
 # produce e_val from bit score */
 
@@ -310,6 +332,7 @@ my $M_LN2=0.69314718055994530942;
 sub bit_to_E {
   my $bit = shift @_;
 
+  my $M_LN2=0.69314718055994530942;
   my ($p_val);
 
   $p_val = $g_n0 * $g_n1 / exp($bit * $M_LN2);
@@ -326,7 +349,7 @@ lav2plt.pl
 
 =head1 SYNOPSIS
 
- lav2plt.pl -h -help -B -Z=10000 --dev svg|ps --xA x_annot_script.pl --yA y_annot_script.pl  output.lav
+ lav2plt.pl -h -help -B -Z=10000 --dev svg|ps --xA \!x_annot_script.pl --yA \!y_annot_script.pl  output.lav
 
 =head1 OPTIONS
 
@@ -335,7 +358,7 @@ lav2plt.pl
  -B	have bit scores
  -Z=#   simulated database size
  --dev svg|ps graphical output format
- --xA/--yA domain annotation script
+ --xA/--yA domain annotation file/script (!script)
 
 =head1 DESCRIPTION
 

@@ -6,9 +6,34 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov 23, 2020
+[src/smith_waterman_sse2.c,src/global_sse2.c, src/glocal_sse2.c, simde/*]
+
+The *_sse2.c Smith-Waterman and global/glocal_sse2 files have been
+modified to use the SIMDE definitions (simd-everywhere,
+https://github.com/simd-everywhere/simde/blob/master/simde/x86/sse2.h),
+which should enable efficient vectorized comparison on ARM/NEON and
+other architectures. New Makefiles
+(make/Makefile.linux[32|64]_simde_arm) are available and have been
+tested on the RaspberryPi4 platform, with appropriate vectorized
+speedup. A Makefile for the Apple M1 ARM chip is available
+(make/Makefile.os_x_arm64) but has not been tested.  Likewise, some
+version of these files should work on the Amazon Graviton
+architecture.  Many thanks to Michael R. Crusoe
+(https://orcid.org/0000-0002-2961-9670) for the SIMDE code
+converstion, and to Evan Nemerson for creating SIMDe.
+
+
+>>June 18, 2020
+[src/nmgetlib.c]
+Modify the code that reads FASTA format files to allow '#' in the
+first position of a line to be treated as a comment, just as '^;' has
+been treated in the past.  This should allow the FASTA programs to
+read the HUGO Proteomics Standards Initiative (PSI) PSI Extended FASTA
+Format (PEFF) files (http://www.psidev.info/peff).
+
 >>June 2, 2020
 [src/scaleswn.c]
-
 Modifiy line describing query in -R .res file.
 Add line to report ave_n1, sample_fract, zs_off in -R .res file.
 Add line to report properties of library to -R .res file.

@@ -69,13 +69,12 @@ build_ares_code(unsigned char *aa0, int n0,
 		)
 {
   unsigned char *aa1_ann;
-  struct rstruct rst;
   struct a_res_str *my_ares_p, *cur_ares_p;
   struct a_struct *aln_p;
   struct dyn_string_str *annot_str_dyn, *align_code_dyn;
   long loffset;		/* loffset is offset from beginning of real sequence */
   long l_off;		/* l_off is the the virtual coordinate of residue 1 */
-  int seqc_max, annc_max;
+  int seqc_max;
   char *seq_code;
   int seq_code_len, annot_str_len;
   int score_delta;
@@ -210,7 +209,7 @@ build_ares_code(unsigned char *aa0, int n0,
       
       if ((m_msp->tot_show_code & SHOW_CODE_ID)==SHOW_CODE_ID && (annot_str_dyn->string[0] != '\0')) {
 	if ((cur_ares_p->annot_var_id = (char *)calloc(strlen(annot_str_dyn->string)+2, sizeof(char)))==NULL) {
-	  fprintf(stderr,"*** ERROR *** [%s/%d] cannot allocate cur_ares_p->annot_var_s [%d]\n",
+	  fprintf(stderr,"*** ERROR [%s/%d] - cannot allocate cur_ares_p->annot_var_s [%d]\n",
 		  __FILE__, __LINE__, (int)strlen(annot_str_dyn->string)+2);
 	}
 	else {
@@ -233,7 +232,7 @@ build_ares_code(unsigned char *aa0, int n0,
     /*
     if (annot_str_dyn->string[0] != '\0') {
       if ((cur_ares_p->annot_var_s = (char *)calloc(strlen(annot_str_dyn->string)+2, sizeof(char)))==NULL) {
-	fprintf(stderr,"*** ERROR *** [%s/%d] cannot allocate cur_ares_p->annot_var_s [%d]\n",
+	fprintf(stderr,"*** ERROR [%s/%d] - cannot allocate cur_ares_p->annot_var_s [%d]\n",
 		__FILE__, __LINE__, (int)strlen(annot_str_dyn->string)+2);
       }
       else {

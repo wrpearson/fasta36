@@ -38,8 +38,8 @@
 	April 8, 1988 - added PIRLIB format for unix
 	Feb 4, 1989 - added universal subroutines for libraries
 	December, 1995 - added range option file.name:1-1000
-	September, 1999 - added option for mmap()ed files using ".xin" */
-
+	September, 1999 - added option for mmap()ed files using ".xin"
+*/
 
 /*
 	February 4, 1988 - this starts a major revision of the getaa
@@ -227,11 +227,11 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
   /* check to see if file can be open()ed? */
  l1:
   opnflg = 0;
-  if (lib_type<=LASTTXT) {
-    if (!use_stdin) {
+  if (lib_type<=LASTTXT) {  /* FASTA, GCG, GENBANK, etc including ACC_SCRIPT */
+    if (!use_stdin) {       /* read a file, reading an ACC_SCRIPT is similar to STDIN  */
       opnflg=((libf=fopen(lib_p->file_name,RBSTR))!=NULL);
     }
-    else if (lib_type==ACC_SCRIPT) {
+    else if (lib_type==ACC_SCRIPT) {  /* open a pipe to get the results of the script */
       bp = lib_p->file_name;
       if (lib_p->file_name[0] == '!') {	bp += 1;}
       SAFE_STRNCPY(acc_script, bp, sizeof(acc_script));
@@ -244,7 +244,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
       libf=popen(acc_script,"r");
       opnflg=1;
     }
-    else {
+    else {  /* just read STDIN */
       libf=stdin;
       lib_p->file_name = alloc_file_name("STDIN");
       opnflg=1;
@@ -350,8 +350,8 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
 	lib_p->next = this_lib_p->next;		/* insert the chain */
 	return acc_fptr;
       }
-    }
-  }
+    } /* done reading ACC_LIST file */
+  } /* end of if (lib_type==ACC_LIST */
 #ifdef NCBIBL13
   else if (lib_type==NCBIBL13) opnflg=(ncbl_openlib(lib_p->file_name,ldnaseq)!= -1);
 #endif
@@ -579,8 +579,13 @@ agetlib(unsigned char *seq, int maxs,
   *l_off = 1;
   if (*lcont==0) {
 
+    while (lm_fd->lline[0]=='#') {
+      if (lm_fd->libf != stdin) lm_fd->lpos = FTELL(lm_fd->libf);
+      if (fgets(lm_fd->lline,MAX_STR,lm_fd->libf)==NULL) return (-1);
+    }
+
   start_seq:
-    while (lm_fd->lline[0]!='>' && lm_fd->lline[0]!=';') {
+    while (lm_fd->lline[0]!='>' && lm_fd->lline[0]!=';' ) {
       if (lm_fd->libf != stdin) lm_fd->lpos = FTELL(lm_fd->libf);
       if (fgets(lm_fd->lline,MAX_STR,lm_fd->libf)==NULL) return (-1);
     }
@@ -625,7 +630,7 @@ agetlib(unsigned char *seq, int maxs,
   lm_fd->lline[0]='\0';
   while (seqb<seqm1 && fgets((char *)seqb,(size_t)(seqm-seqb),lm_fd->libf)!=NULL) {
     if (*seqb=='>') goto new;
-    if (*seqb==';') {
+    if (*seqb=='#' || *seqb==';') {
       if (strchr((char *)seqb,'\n')==NULL) goto cont;
       continue;
     }
@@ -1278,12 +1283,14 @@ igetlib(unsigned char *seq, int maxs,
 	ap = lm_fd->sascii;
 
 	if (*lcont==0) {
-		while (lm_fd->lline[0]!=';') {
+		while (lm_fd->lline[0]==';') {
 			lm_fd->lpos = FTELL(lm_fd->libf);
 			if (fgets(lm_fd->lline,MAX_STR,lm_fd->libf)==NULL) return (-1);
 			}
 		*libpos = lm_fd->lpos;
-		while (lm_fd->lline[0]==';') fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
+		while (lm_fd->lline[0]==';') {
+		  fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
+		}
 		SAFE_STRNCPY(libstr,lm_fd->lline+1,12);
 		if((bp=strchr(libstr,'\n'))!=NULL) *bp='\0';
 		}
@@ -1354,7 +1361,9 @@ iranlib(char *str,
 		tline[0]='\0';
 		}
 
-	while (lm_fd->lline[0]==';') fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
+	while (lm_fd->lline[0]==';') {
+	  fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
+	}
 	if ((bp=strchr(lm_fd->lline,'\n'))!=NULL) *bp=0;
 	if ((bp=strchr(lm_fd->lline,' '))!=NULL) *bp=0;
 	SAFE_STRNCPY(str,lm_fd->lline,cnt);
@@ -1475,8 +1484,7 @@ vranlib(char *str,
   fgets(lm_fd->lline,MAX_STR,lm_fd->libf);
   if (lm_fd->lfflag) getc(lm_fd->libf);
 
-  if (lm_fd->lline[0]=='>'&&(lm_fd->lline[3]==';'||
-			     lm_fd->lline[3]=='>')	/* GCG ascii */
+  if (lm_fd->lline[0]=='>'&&(lm_fd->lline[3]==';'|| lm_fd->lline[3]=='>')	/* GCG ascii */
       ) {
     SAFE_STRNCPY(str,&lm_fd->lline[4],cnt-1);
 
