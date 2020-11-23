@@ -1673,7 +1673,8 @@ main (int argc, char *argv[])
     if (fdata) {
       fprintf(fdata,"#Algorithm : %s\n",info_gstring2p[0]);
       fprintf(fdata,"#Parameters : %s\n",info_gstring2p[1]);
-      fprintf(fdata,"#Query: %3ld>>>%-50s\n",qtt.entries-1,m_msg.qtitle);
+      fprintf(fdata,"#Query: %ld>>> q_len: %d; %-50s\n",qtt.entries-1,m_msg.n0,m_msg.qtitle);
+      fprintf(fdata,"#Library: n_seq: %ld; %-50s\n",m_msg.db.entries,m_msg.ltitle);
       pstat_info(fdata_pstat_info, sizeof(fdata_pstat_info), "#Stat:",m_msg.pstat_void);
       fputs(fdata_pstat_info,fdata);
       fflush(fdata);

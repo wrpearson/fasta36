@@ -117,7 +117,7 @@ static void st_sort (struct stat_str *v, int n);
 static int
 calc_thresh(struct pstruct *ppst, struct stat_str *sptr, int nstats,
 	    struct score_count_s s_info,
-	    double Lambda, double K, double H, double *zstrim);
+	    double Lambda, double K, double H, double *ave_n1, double *zstrim);
 
 int proc_hist_n(struct stat_str *sptr, int nstats, struct score_count_s s_info,
 		struct pstruct *ppst, struct hist_str *histp, int do_trim,
@@ -372,17 +372,17 @@ process_hist(struct stat_str *sptr, int nstats,
 static int
 calc_thresh(struct pstruct *ppst, struct stat_str *sptr, int nstats,
 	    struct score_count_s s_info,
-	    double Lambda, double K, double H, double *zstrim)
+	    double Lambda, double K, double H, double *ave_n1, double *zstrim)
 {
   int max_hscore;
   int i;
-  double ave_n1, tmp_score, z, l_fact;
+  double tmp_score, z, l_fact;
 
-  ave_n1 = 0.0;
+  *ave_n1 = 0.0;
   for (i=0; i<nstats; i++) {
-    ave_n1 += (double)sptr[i].n1;
+    *ave_n1 += (double)sptr[i].n1;
   }
-  if (nstats >= 1) ave_n1 /= nstats;
+  if (nstats >= 1) *ave_n1 /= nstats;
 
   if (ppst->dnaseq == SEQT_DNA || ppst->dnaseq == SEQT_RNA) {
     l_fact = 1.0;
@@ -406,7 +406,7 @@ calc_thresh(struct pstruct *ppst, struct stat_str *sptr, int nstats,
 
 #ifndef NORMAL_DIST
   if (K < 1.0e-50) K = 0.02;	/* prevent floating pt underflow with K=0 */
-  tmp_score = 0.01/((double)nstats*K*(double)ppst->n0*ave_n1);
+  tmp_score = 0.01/((double)nstats*K*(double)ppst->n0* (*ave_n1));
   tmp_score = -log(tmp_score)/(Lambda*l_fact);
   max_hscore = (int)(tmp_score+0.5);
 
@@ -429,6 +429,7 @@ proc_hist_r(struct stat_str *sptr, int nstats, struct score_count_s s_info,
 	    int do_trim, struct pstat_str *pu)
 {
   int i, max_hscore;
+  double ave_n1;
   double zs, zstrim;
   char s_string[128];
   char rho_str[32];	/* used for simplifying output label */
@@ -439,8 +440,9 @@ proc_hist_r(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   llen.hist=NULL;
 
   max_hscore = calc_thresh(ppst, sptr,  nstats, s_info, pu->ngLambda,
-			   pu->ngK, pu->ngH, &zstrim);
+			   pu->ngK, pu->ngH, &ave_n1, &zstrim);
 
+  pu->ave_n1 = ave_n1;
 
   if (do_trim && zstrim < 0.0) {
     /* too few scores to do a z-trim, shift to Karlin-Altscul */
@@ -539,6 +541,7 @@ proc_hist_ri(struct stat_str *sptr, int nstats, struct score_count_s s_info,
 	     int do_trim, struct pstat_str *pu)
 {
   int i, nit, nprune, max_hscore;
+  double ave_n1;
   double zs, zstrim;
   char s_string[128];
   char *f_string;
@@ -548,7 +551,9 @@ proc_hist_ri(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   llen.hist=NULL;
 
   max_hscore = calc_thresh(ppst, sptr, nstats, s_info, pu->ngLambda,
-			   pu->ngK, pu->ngH, &zstrim);
+			   pu->ngK, pu->ngH, &ave_n1, &zstrim);
+
+  pu->ave_n1 = ave_n1;
 
   if (do_trim && zstrim < 0.0) {
     /* too few scores to do a z-trim, shift to Karlin-Altscul */
@@ -1567,6 +1572,7 @@ proc_hist_n(struct stat_str *sptr, int nstats, struct score_count_s s_info,
 	    int do_trim, struct pstat_str *pu)
 {
   int i, j, t_j;
+  double ave_n1;
   double s_score, s2_score, ssd, zstrim, mean, var;
   double t_score;
   int max_trim, min_trim;
@@ -1578,7 +1584,9 @@ proc_hist_n(struct stat_str *sptr, int nstats, struct score_count_s s_info,
   f_string = histp->stat_info;
 
   max_hscore = calc_thresh(ppst, sptr, nstats, s_info, pu->ngLambda,
-			   pu->ngK, pu->ngH, &zstrim);
+			   pu->ngK, pu->ngH, &ave_n1, &zstrim);
+
+  pu->ave_n1 = ave_n1;
 
   if (do_trim && zstrim < 0.0) {
     /* too few scores to do a z-trim, shift to Karlin-Altscul */
@@ -3111,8 +3119,9 @@ pstat_info(char *info_str, int info_str_n, char *comment, struct pstat_str *pu) 
   SAFE_STRNCPY(info_str,pstat_buf,info_str_n);
   sprintf(pstat_buf,"%s ngLambda: %g; ngK: %g; ngH: %g\n",comment,pu->ngLambda,pu->ngK,pu->ngH);
   SAFE_STRNCAT(info_str,pstat_buf,info_str_n);
-  sprintf(pstat_buf,"%s ave_n1: %g; sample_fract: %g; zs_off: %g\n",comment,
+  sprintf(pstat_buf,"%s ave_n1: %.1lf; sample_fract: %g; zs_off: %g\n",comment,
 	  pu->ave_n1,pu->sample_fract,pu->zs_off);
+  SAFE_STRNCAT(info_str,pstat_buf,info_str_n);
   if (pu->zsflag == MLE2_STATS) {	/* print r_u.m2 */
     sprintf(pstat_buf,"%s mle2_stat_str: {\n",comment);
     SAFE_STRNCAT(info_str,pstat_buf,info_str_n);

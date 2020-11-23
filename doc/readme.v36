@@ -6,6 +6,13 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>June 2, 2020
+[src/scaleswn.c]
+
+Modifiy line describing query in -R .res file.
+Add line to report ave_n1, sample_fract, zs_off in -R .res file.
+Add line to report properties of library to -R .res file.
+
 >>May 19, 2020
 [src/doinit.c, src/defs.h, src/mshowbest.c]
 Add 's' option and 'd' options to -m8CB.

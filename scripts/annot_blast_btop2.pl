@@ -224,7 +224,7 @@ while (1) {
 #      print STDERR  $hit->{s_seqid},"\t", $hit->{s_end},"\n";
 	#      print $Writer $hit->{s_seqid},"\t", $hit->{s_end},"\n";
       my $s_len = 100000;
-      if ($have_qslen) {
+      if ($have_qslen && defined($hit->{s_len})) {
 	$s_len = $hit->{s_len};
       }
       print $Writer $hit->{s_seqid},"\t", $s_len,"\n";
@@ -416,7 +416,7 @@ sub read_annots {
   for my $hit ( @$hit_list_r ) {
     # clean-up last NODOM if < 10
     my $tmp_domains = $hit->{domains};
-    next unless (scalar(@{$tmp_domains}));
+    next unless ($tmp_domains && scalar(@{$tmp_domains}));
     my ($last_dom, $left_coord) = ($tmp_domains->[-1], $hit->{s_end});
     if ($last_dom->{descr} =~ m/^NODOM/ && (($left_coord - $last_dom->{d_pos} + 1) < 10)) {
       pop @$tmp_domains;
