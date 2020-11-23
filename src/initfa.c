@@ -498,9 +498,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8h May, 2020 MPI";
+char *verstr="36.3.8i Nov, 2020 MPI";
 #else
-char *verstr="36.3.8h May, 2020";
+char *verstr="36.3.8i Nov, 2020";
 #endif
 
 static int mktup=3;
@@ -2929,7 +2929,7 @@ validate_params(const unsigned char *aa0, int n0,
 
     /*  currently, pascii[] is not reset for upper-case only
     if (pascii[i] < NA && pascii[i] > ppst->nsq_e) {
-      fprintf(stderr," *** WARNING *** pascii[%c|%d] = %d > %d out of range\n",
+      fprintf(stderr,"*** Warning [%s:%d] - pascii[%c|%d] = %d > %d out of range\n",__FILE__,__LINE__,
 	      i, i, pascii[i], ppst->nsq_e);
     }
     */

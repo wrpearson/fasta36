@@ -209,7 +209,7 @@ build_ares_code(unsigned char *aa0, int n0,
       
       if ((m_msp->tot_show_code & SHOW_CODE_ID)==SHOW_CODE_ID && (annot_str_dyn->string[0] != '\0')) {
 	if ((cur_ares_p->annot_var_id = (char *)calloc(strlen(annot_str_dyn->string)+2, sizeof(char)))==NULL) {
-	  fprintf(stderr,"*** ERROR *** [%s/%d] cannot allocate cur_ares_p->annot_var_s [%d]\n",
+	  fprintf(stderr,"*** ERROR [%s/%d] - cannot allocate cur_ares_p->annot_var_s [%d]\n",
 		  __FILE__, __LINE__, (int)strlen(annot_str_dyn->string)+2);
 	}
 	else {
@@ -232,7 +232,7 @@ build_ares_code(unsigned char *aa0, int n0,
     /*
     if (annot_str_dyn->string[0] != '\0') {
       if ((cur_ares_p->annot_var_s = (char *)calloc(strlen(annot_str_dyn->string)+2, sizeof(char)))==NULL) {
-	fprintf(stderr,"*** ERROR *** [%s/%d] cannot allocate cur_ares_p->annot_var_s [%d]\n",
+	fprintf(stderr,"*** ERROR [%s/%d] - cannot allocate cur_ares_p->annot_var_s [%d]\n",
 		__FILE__, __LINE__, (int)strlen(annot_str_dyn->string)+2);
       }
       else {

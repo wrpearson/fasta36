@@ -83,11 +83,10 @@ initpam (char *mfname, struct pstruct *ppst)
 
    pam_opts(mfname, ppst);
 
-   if ((fmat = fopen (mfname, "r")) == NULL)
-   {
-      printf ("***WARNING*** cannot open scoring matrix file %s\n", mfname);
-      fprintf (stderr,"***WARNING*** cannot open scoring matrix file %s\n", mfname);
-      return 0;
+   if ((fmat = fopen (mfname, "r")) == NULL) { 
+       printf ("*** Warning [%s:%d] - cannot open scoring matrix file %s\n", __FILE__,__LINE__,mfname);
+       fprintf (stderr,"*** Warning [%s:%d] - cannot open scoring matrix file %s\n", __FILE__,__LINE__,mfname);
+       return 0;
    }
 
 /* removed because redundant, and causes crash under MacOSX -- because copying on top of itself */

@@ -169,7 +169,7 @@ main(int argc, char **argv) {
   }
   else {
     if (build_binary) {
-      fprintf(stderr,"*** WARNING ***  map_db -- binary files not available for DNA libraries\n");
+      fprintf(stderr,"*** Warning [%s:%d] - map_db -- binary files not available for DNA libraries\n",__FILE__,__LINE__);
       build_binary = 0;
     }
     init_ascii0(aascii, "\0ACGTURYMWSKDHVBNacgturymwskdhvbn");

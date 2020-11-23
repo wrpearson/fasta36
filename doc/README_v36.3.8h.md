@@ -1,6 +1,21 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8i** Nov, 2020
+
+1. fasta-36.3.8i (November, 2020) incorporates the SIMDe
+   (SIMD-everywhere,
+   https://github.com/simd-everywhere/simde/blob/master/simde/x86/sse2.h)
+   macro definitions that allow the smith\_waterman\_sse2.c,
+   global\_sse2.c, and glocal\_sse2.c code to be compiled on non-Intel
+   architectures (currently tested on ARM/NEON).  Many thanks to
+   Michael R. Crusoe (https://orcid.org/0000-0002-2961-9670) for the
+   SIMDE code converstion, and to Evan Nemerson for creating SIMDe.
+
+2. The code to read FASTA format sequence files now ignores lines with
+   '#' at the beginning, for compatibility with PSI Extended FASTA
+   Format (PEFF) files (http://www.psidev.info/peff).
+
 Changes in **fasta-36.3.8h** May, 2020
 
 1. fasta-36.3.8h (May 2020) fixes a bug that appeared when

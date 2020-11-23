@@ -58,7 +58,7 @@
 #include "defs.h"
 #include "param.h"
 
-static char *verstr="6.0 April 2007";
+static char *verstr="6.0 April 2007/SIMDe Nov 2020";
 
 #include "dropgsw2.h"
 

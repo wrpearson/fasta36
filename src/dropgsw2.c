@@ -55,7 +55,7 @@
 #include "defs.h"
 #include "param.h"
 
-static char *verstr="7.2 Nov 2010";
+static char *verstr="7.2 Nov 2010/SIMDe Nov 2020";
 
 #include "dropgsw2.h"
 
