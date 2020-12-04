@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 ################################################################
-# copyright (c) 2016 by William R. Pearson and The Rector &
+# copyright (c) 2016,2020 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia
 ################################################################
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,12 @@
 # express or implied.  See the License for the specific language
 # governing permissions and limitations under the License.
 ################################################################
+
+################################################################
+# 5-July-2020
+# modification to allow older blast version, (2.6.0+), as current version (2.10.1+)
+# has problem with asnbin/asntxt files
+#
 
 use warnings;
 use strict;
@@ -49,13 +55,23 @@ use vars qw( $prev_m89res $m_format $prev_sel_res $this_iter $prev_msa $next_msa
 # (4) NCBI datatool (required only for ssearch36 PSSMs)
 
 my $pgm_bin = "/seqprg/bin";
+
 my $pgm_data = "/seqprg/data";
 my $ssearch_bin = "$pgm_bin/ssearch36";
-my $psiblast_bin = "$pgm_bin/psiblast";
-my $makeblastdb_bin = "$pgm_bin/makeblastdb";
-my $datatool_bin = "$pgm_bin/datatool -m $pgm_data/NCBI_all.asn";
 my $align2msa_lib = "$pgm_bin/m89_btop_msa2.pl";
 my $clustal2fasta = "$pgm_bin/clustal2fasta.pl";
+
+## this has been added (5-July-2020) because the script does not work with ncbi-blast-2.10.1+ (or 2.10.0+)
+my $ncbi_bin = "~wrp/src/ncbi-blast-2.9.0+/bin";
+if (defined($ENV{NCBI_BLAST_BIN})) {
+  $ncbi_bin = $ENV{NCBI_BLAST_BIN};
+}
+
+my $psiblast_bin = "$ncbi_bin/psiblast";
+my $makeblastdb_bin = "$ncbi_bin/makeblastdb";
+
+## ncbi datatool is not part of the BLAST distribution
+my $datatool_bin = "$pgm_bin/datatool -m $pgm_data/NCBI_all.asn";
 
 my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
 		 'psiblast' => \&get_psiblast_cmd,
@@ -316,7 +332,7 @@ sub get_ssearch_cmd {
 sub get_psiblast_cmd {
   my ($query_file, $db_file, $pssm_file) = @_;
 
-  my $search_cmd = qq($psiblast_bin -num_threads 4 -max_target_seqs 5000 -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' -inclusion_ethresh $pssm_evalue -evalue $srch_evalue -num_iterations 1 -db $db_file);
+  my $search_cmd = qq($psiblast_bin -num_threads 8 -max_target_seqs 5000 -outfmt '7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' -inclusion_ethresh $pssm_evalue -evalue $srch_evalue -num_iterations 1 -db $db_file);
   if ($pssm_file) {
     $search_cmd .= qq( -in_pssm $pssm_file);
 #    $search_cmd .= qq( -comp_based_stats 0);
@@ -392,7 +408,7 @@ sub build_msa_pssm {
 
   log_system("$buildpssm_cmd  > $this_psibl_out 2> $this_psibl_out.err");
 
-  log_system("rm $this_hit_db.p* $blastdb_err");
+  log_system("rm $this_hit_db.p* $blastdb_err") unless $error_log;
 
   # remove uninformative error logs
   log_system("rm $this_psibl_out.err") unless $error_log;
@@ -442,7 +458,7 @@ sub pssm_from_msa {
 
   log_system("$buildpssm_cmd  > $this_psibl_out 2> $this_psibl_out.err");
 
-  log_system("rm $this_hit_db.p* $blastdb_err");
+  log_system("rm $this_hit_db.p* $blastdb_err") unless $error_log;
 
   # remove uninformative error logs
   log_system("rm $this_psibl_out.err") unless $error_log;
