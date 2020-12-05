@@ -6,7 +6,7 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
->>Nov 23, 2020
+>>Nov 23, 2020  [released as v36.3.8i Nov, 2020]
 [src/smith_waterman_sse2.c,src/global_sse2.c, src/glocal_sse2.c, simde/*]
 The *_sse2.c Smith-Waterman and global/glocal_sse2 files have been
 modified to use the SIMDE definitions (simd-everywhere,

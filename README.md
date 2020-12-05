@@ -4,7 +4,24 @@
 The **FASTA** (pronounced FAST-Aye, not FAST-Ah) programs are a comprehensive set of similarity searching and alignment programs for searching protein and DNA sequence databases.  Like the **BLAST** programs `blastp` and `blastn`, the `fasta` program itself uses a rapid heuristic strategy for finding similar regions in protein and DNA sequences.  But in addition to heuristic similarity searching, the FASTA package provides
 programs for rigorous local (`ssearch`) and global (`ggsearch`) similarity searching, as well as a program for finding non-overlapping sequence similarities (`lalign`).  Like BLAST, the FASTA package also includes programs for aligning translated DNA sequences against proteins (`fastx`, `fasty` are equivalent to `blastx`,  and  `tfastx`, `tfasty` are similar to `tblastn`).
 
-See doc/README_v36.3.8h.md and doc/readme.v36 for a more complete summary of changes.
+See doc/README_v36.3.8i.md and doc/readme.v36 for a more complete summary of changes.
+
+#### Nov, 2020
+
+1. Changes to *_sse2 files to enable vectorized comparison
+on architectures other than Intel sse2 (e.g. ARM Neon). fasta-36.3.8i now incorporates the SIMDe
+(SIMD-everywhere,
+https://github.com/simd-everywhere/simde/blob/master/simde/x86/sse2.h)
+macro definitions that allow the smith\_waterman\_sse2.c,
+global\_sse2.c, and glocal\_sse2.c code to be compiled on non-Intel
+architectures (currently tested on ARM/NEON).  Many thanks to
+Michael R. Crusoe (https://orcid.org/0000-0002-2961-9670) for the
+SIMDE code converstion, and to Evan Nemerson for creating SIMDe.
+
+2. The code to read FASTA format sequence files now ignores lines with
+   '#' at the beginning, for compatibility with PSI Extended FASTA
+   Format (PEFF) files (http://www.psidev.info/peff).
+
 
 #### May 20, 2020, pt 2
 
@@ -13,7 +30,6 @@ percent identity in blast tabular alignment output: '-m8CBs'; (b) add
 raw domain information '-m8CBd'; and (c) changed parsing after -m8CB
 so that any combination of 'l', 's', 'd', and 'L' (which is equivalent
 to 'ld') can be used in any order and combination.
-
 
 #### May, 2020, pt 1
 
