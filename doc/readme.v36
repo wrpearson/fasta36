@@ -8,7 +8,6 @@ BLAST could show multiple HSPs, FASTA did not.
 
 >>Nov 23, 2020
 [src/smith_waterman_sse2.c,src/global_sse2.c, src/glocal_sse2.c, simde/*]
-
 The *_sse2.c Smith-Waterman and global/glocal_sse2 files have been
 modified to use the SIMDE definitions (simd-everywhere,
 https://github.com/simd-everywhere/simde/blob/master/simde/x86/sse2.h),
@@ -22,7 +21,6 @@ version of these files should work on the Amazon Graviton
 architecture.  Many thanks to Michael R. Crusoe
 (https://orcid.org/0000-0002-2961-9670) for the SIMDE code
 converstion, and to Evan Nemerson for creating SIMDe.
-
 
 >>June 18, 2020
 [src/nmgetlib.c]
