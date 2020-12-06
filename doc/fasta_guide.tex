@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \RequirePackage{helvet}
-\newcommand{\CURRENT}{fasta-36.3.8}
+\newcommand{\CURRENT}{fasta-36.3.8i}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{cite}
 \usepackage{url}
@@ -135,7 +135,10 @@ acceleration, and is only 2 - 5X slower than \texttt{fasta36} \cite{farrar2007}.
 \texttt{ggsearch36}/ \texttt{glsearch36} &  & Compare a protein sequence to a protein sequence 
 database or a DNA sequence to a DNA sequence database using
 an optimal global:global (\texttt{ggsearch36}) or global:local
-(\texttt{glsearch36}) algorithm.\\[1 ex]
+(\texttt{glsearch36}) algorithm.  \texttt{ggsearch36} limits
+comparisons to sequences that are within 0.8 -- 1.25 the query sequence length,
+ \textit{unless} the \texttt{-M low-high}  option is specified on
+ the command line.\\[1 ex]
 
 \texttt{fastx36}/ \texttt{fasty36} & \texttt{blastx} &
 Compare a DNA sequence to a protein
@@ -757,10 +760,10 @@ Maximum number of alignments to be displayed (must be \texttt{<=} to the number 
   \texttt{<tab>} character), e.g.:
 \begin{quote}
 \begin{verbatim}
-gi|121719|sp|P08010|GSTM2_RAT<tab>2.69e-86
-gi|121746|sp|P09211|GSTP1_HUMAN<tab>1.51e-20
-gi|121749|sp|P04906|GSTP1_RAT<tab>1.16e-19
-gi|62822551|sp|P00502|GSTA1_RAT<tab>9.5e-12
+sp|P08010|GSTM2_RAT<tab>2.69e-86
+sp|P09211|GSTP1_HUMAN<tab>1.51e-20
+sp|P04906|GSTP1_RAT<tab>1.16e-19
+sp|P00502|GSTA1_RAT<tab>9.5e-12
 \end{verbatim}
 \end{quote}
 The script should produce a fasta-formatted list of additional
@@ -836,6 +839,13 @@ Location of library menu file (FASTLIBS).
 Display longer library sequence description.
 \item[\texttt{-M low-high}]
 Range of amino acid sequence lengths to be included in the search.
+This option \textit{excludes} library (subject) sequences outside of the specified
+range.  In addition, it can be used to \textit{include} library
+sequences that would not normally be aligned by \texttt{ggsearch},
+because \texttt{ggsearch} assumes that for global alignments, the two
+sequences should be approximately the same length (between 0.75 and
+1.33 the query sequence length).  Setting \texttt{-M 1-100000} removes
+the library sequence length filter for \texttt{ggsearch}.
 \item[\texttt{-m \#}]
 Specify alignment type: 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, B, BB, ``F\# out\_file''
 \begin{small}
@@ -1236,9 +1246,9 @@ the list of high scoring sequence accessions (the text before the
 first space), e.g.
 \begin{footnotesize}
 \begin{verbatim}
-gi|121735|sp|P09488.3|GSTM1_HUMAN
-gi|1170096|sp|Q03013.3|GSTM4_HUMAN
-gi|67461004|sp|Q5R8E8.3|GSTM2_PONAB
+sp|P09488.3|GSTM1_HUMAN
+sp|Q03013.3|GSTM4_HUMAN
+sp|Q5R8E8.3|GSTM2_PONAB
 ...
 \end{verbatim}
 \end{footnotesize}
@@ -1253,14 +1263,14 @@ position label value
 For example:
 \begin{footnotesize}
 \begin{verbatim}
->gi|121735|sp|P09488.3|GSTM1_HUMAN
+>sp|P09488.3|GSTM1_HUMAN
 23	*	
 33	*	
 34	*	
 116	^	
 173	V	N
 210	V	T
->gi|1170096|sp|Q03013.3|GSTM4_HUMAN
+>sp|Q03013.3|GSTM4_HUMAN
 2	V	P
 116	^	
 160	V	V
@@ -1268,7 +1278,7 @@ For example:
 209	V	F
 211	V	K
 212	V	M
->gi|67461004|sp|Q5R8E8.3|GSTM2_PONAB
+>sp|Q5R8E8.3|GSTM2_PONAB
 ...
 \end{verbatim}
 \end{footnotesize}
@@ -1335,7 +1345,7 @@ lines are taken as annotation definitions, similar to the
 =*:phosphorylation
 =@:active site
 =^:binding site
->gi|121735|sp|P09488.3|GSTM1_HUMAN
+>sp|P09488.3|GSTM1_HUMAN
 23	*	
 33	*	
 34	*	
@@ -1663,7 +1673,7 @@ identifier type can take four formats:
 
 Thus, given the \texttt{0:2 4|} specification above, the line:
 \begin{quote}
-\texttt{>gi|3121763|sp|O15143.3|ARC1B\_HUMAN Actin-related protein 2/3 ...}
+\texttt{>sp|O15143.3|ARC1B\_HUMAN Actin-related protein 2/3 ...}
 \end{quote}
 would be parsed, looking for an number starting at column 4 (the first
 column is numbered 0), and ending with \texttt{|}. The order of
