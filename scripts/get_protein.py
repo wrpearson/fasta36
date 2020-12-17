@@ -10,7 +10,6 @@ import textwrap
 import time
 import requests
 
-
 ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
 uniprot_url = "https://www.uniprot.org/uniprot/"
 
