@@ -150,7 +150,7 @@ unless ($data_file) {
   # unless ($query && ($query =~ m/[\|:]/ 
   # 		     || $query =~ m/^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}\s/
   # 		     || $query =~ m/^(XN)(MP)_\d+/)) {
-  if (-r $query) {
+  if (! $query || -r $query) {
     while (my $a_line = <>) {
       $a_line =~ s/^>//;
       chomp $a_line;

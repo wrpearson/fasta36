@@ -89,7 +89,7 @@ my @annots = ();
 # check to see if it looks like an accession
 ## unless ($query && ($query =~ m/[\|:]/ || $query =~ m/^[NXYW]P_/)) {
 # it would be better to check to see if a file could be opened
-if (-r $query) {
+if (! $query || -r $query) {
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
