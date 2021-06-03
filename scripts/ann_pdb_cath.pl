@@ -112,8 +112,9 @@ $query =~ s/^>// if $query;
 my @annots = ();
 
 #if it's a file I can open, read and parse it
-unless ($query && $query =~ m/[\|:]/) {
+# unless ($query && $query =~ m/[\|:]/) {
 
+if (! $query || -r $query) {
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;

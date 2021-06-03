@@ -2,6 +2,9 @@
 
 # ann_exons_ncbi.pl gets an annotation file from fasta36 -V with a line of the form:
 
+## modified 17-Dec-2020 to allow [NXYW]P_ accessions
+##
+
 # gi|23065544|ref|NP_000552.2|   or
 # NP_000552
 #
@@ -74,7 +77,7 @@ my $get_annots_sql = $get_exons_acc;
 
 my ($tmp, $gi, $sdb, $acc, $id, $use_acc);
 
-# get the query
+# get the query -- which could be an acession/length OR a filename
 my ($query, $seq_len) = @ARGV;
 $seq_len = 0 unless defined($seq_len);
 
@@ -82,9 +85,11 @@ $query =~ s/^>// if ($query);
 
 my @annots = ();
 
-#if it's a file I can open, read and parse it
-unless ($query && ($query =~ m/[\|:]/ || $query =~ m/^[XN]P_/)) {
-
+# if it's a file I can open, read and parse it
+# check to see if it looks like an accession
+## unless ($query && ($query =~ m/[\|:]/ || $query =~ m/^[NXYW]P_/)) {
+# it would be better to check to see if a file could be opened
+if (! $query || -r $query) {
   while (my $a_line = <>) {
     $a_line =~ s/^>//;
     chomp $a_line;
