@@ -1416,6 +1416,11 @@ A number of rarely used options are now only available as extended options:
   than the bit-score in the list of best scores (rarely used, provided
   for backward compatibility).
 
+\item[\texttt{Xg}] (gi\_save) Historically, FASTA and BLAST have
+  treated the string \texttt{>gi|123456} specially, removing it from the list
+  of high scoring sequences and alignment output.  \texttt{-Xg}
+  causes \texttt{gi} numbers to be displayed.
+
 \item[\texttt{XI}] Modify rounding used in percent identity/percent
   similarity display to ensure that sequences that have a mismatch are
   not shown as 100.0\% identical.  Without this option, a single

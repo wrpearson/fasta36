@@ -304,6 +304,8 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    m_msp->blast_ident = 0;
    m_msp->m8_show_annot = 0;
 
+   m_msp->gi_save = 0;
+
    m_msp->mshow_set = 0;
    m_msp->mshow_min = 0;
    m_msp->aln.llen = 60;

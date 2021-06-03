@@ -105,7 +105,7 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
   char *db, *bp;
   char pgm[10], o_pgm[10], lib[MAX_LSTR];
   char *tmp_annot_s, *q_domain_s, *l_domain_s, *tmp_domain_s, *etmp_domain_s;
-  int  n_tmp_annot_s, n_tmp_domain;
+  int  n_tmp_domain;
   long q_offset, l_offset;
   char *ref_url, *lbp=NULL;
   char *srch_url, *srch_url1, *dom_url;
@@ -316,7 +316,7 @@ void do_url1(FILE *fp, const struct mngmsg *m_msp, const struct pstruct *ppst,
 char *display_domains(char target, struct annot_entry **annot_arr_p, int n_annots) {
   char *domain_s;
   char line[MAX_STR];
-  int i, i_doms, n_domain_s = MAX_LSTR;
+  int i, n_domain_s = MAX_LSTR;
 
   /* since (currently) annot_var_s is MAX_LSTR, do the same for domain_s */
   if ((domain_s = (char *)calloc(n_domain_s, sizeof(char)))==NULL) {
@@ -349,14 +349,11 @@ char *display_domains(char target, struct annot_entry **annot_arr_p, int n_annot
 /* '='	    %3D */
 /* '\n'	    %0A */
 
-static char bad_chars[] = "\n =;|";
-
 char *web_encode(const char *annot_var_s) {
   
   int n_tmp_annot_s;
-  char *tmp_annot_s, *tmp_annot_d, *dp;
-  const char *bp, *sp;
-  int bad_cnt = 0;
+  char *tmp_annot_s, *dp;
+  const char *sp;
   
   /* make string largest possible size */
   n_tmp_annot_s = strlen(annot_var_s)*3 + 1;

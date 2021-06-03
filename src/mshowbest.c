@@ -442,7 +442,7 @@ l1:
     n1tot = (bbp->mseq->n1tot_p) ? *bbp->mseq->n1tot_p : bbp->seq->n1;
 
     bline_p = bline;
-    if (!(m_msp->markx & (MX_M8OUT)) && !strncmp(bline,"gi|",3)) {
+    if (!(m_msp->markx & (MX_M8OUT)) && (!m_msp->gi_save && !strncmp(bline,"gi|",3))) {
       bline_p = strchr(bline+4,'|')+1;
       *(bline_p-1) = 0;
       gi_num = atoi(bline+3);

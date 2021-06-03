@@ -146,6 +146,7 @@ struct mngmsg 		/* Message from host to manager */
   int arelv;		/* number of scores to show at alignment */
   int z_bits;		/* z_bits==1: show bit score, ==0 show z-score */
   int tot_ident;	/* tot_ident=1 -> no mismatches for 100% identity */
+  int gi_save;		/* do not remove gi|12345 in displays */
   char alab[3][24];	/* labels for alignment scores */
   int nohist;		/* no histogram option */
   int do_showbest;	/* do not showbest() */

@@ -1302,9 +1302,10 @@ f_getopt (char copt, char *optarg,
    -Xo - use initn score, not opt score, for statistics and ordering results
    -Xx: - penalties for X:X, X:not-X match
    -Xy: - width of band for optimized scores
+   -Xg  - do not remove gi| numbers
  */
 
-static char my_opts[] = "1aBbIM:ox:y:N:";
+static char my_opts[] = "1aBbgIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1330,6 +1331,7 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
   case 'B': m_msp->blast_ident = 1; break;
 
   case 'b': m_msp->z_bits = 0; break;
+  case 'g': m_msp->gi_save = 1; break;
   case 'I': 
     m_msp->tot_ident = 1;
     /*

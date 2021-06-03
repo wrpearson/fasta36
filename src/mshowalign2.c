@@ -185,7 +185,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   annot_var_dyn = init_dyn_string(4096, 4096);
 
   qline_p = m_msp->qtitle;
-  if (!strncmp(m_msp->qtitle,"gi|",3)) {
+  if (!m_msp->gi_save && !strncmp(m_msp->qtitle,"gi|",3)) {
     qline_p = strchr(qline_p+4,'|');
     /* check for additional '|'s associated with NCBI gi|12346|db|acc entry */
     if (!qline_p || strchr(qline_p+1,'|')==NULL) {
@@ -353,7 +353,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
     bline_p = bline;
     /* always remove "gi|" for alignments */
-    if (!strncmp(bline,"gi|",3)) {
+    if (!m_msp->gi_save && !strncmp(bline,"gi|",3)) {
       bline_p = strchr(bline+4,'|');
       if (!bline_p || !strchr(bline_p+1,'|')) {bline_p = bline;}
       else bline_p += 1;
@@ -748,9 +748,9 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 	if (info_str[0]) fprintf(fp,"; %s_info: %s\n",m_msp->f_id0,info_str);
 	if (ppst->zsflag>=0) 
 	  fprintf (fp,"; %s_z-score: %4.1f\n; %s_bits: %3.1f\n; %s_expect: %6.2g\n",
-		   m_msp->f_id0,bbp->zscore,
-		   m_msp->f_id0,zs_to_bit(bbp->zscore, m_msp->n0, bbp->seq->n1),
-		   m_msp->f_id0,bbp->rst.escore);
+		   m_msp->f_id0,lzscore,
+		   m_msp->f_id0,zs_to_bit(lzscore, m_msp->n0, bbp->seq->n1),
+		   m_msp->f_id0,zs_to_E(lzscore, bbp->seq->n1, ppst->dnaseq, ppst->zdb_size, m_msp->db));
 #else
 	if ((m_msp->markx & MX_M11OUT) == 0) {
 	  fprintf (fp,"; %s_%s: %d\n", m_msp->f_id0, m_msp->alab[0], lsw_score);
