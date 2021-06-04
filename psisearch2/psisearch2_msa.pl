@@ -80,7 +80,7 @@ my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
 my %annot_cmds = ('rpd3' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --vdoms --split_over"),
 		  'rpd3nv' => qq("\!ann_pfam28.pl --pfacc --db RPD3 --split_over"),
 		  'rpd3nvn' => qq("\!./annot/ann_pfam28.pl --pfacc --db RPD3 --split_over --neg"),
-		  'pfam' => qq("\!./annot/ann_pfam30.pl --db pfam31_qfo --vdoms --split_over --neg")
+		  'pfam' => qq("\!./annot/ann_pfam30.pl --db pfam33_qfo --vdoms --split_over --neg")
     );
 
 ($num_iter, $pssm_evalue, $srch_evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =

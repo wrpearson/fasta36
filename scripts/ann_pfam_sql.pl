@@ -48,10 +48,9 @@ use vars qw($host $db $port $user $pass);
 
 my $hostname = `/bin/hostname`;
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam32", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam34", 0, "web_user", "fasta_www");
 #$host = 'xdb';
 #$host = 'localhost';
-#$db = 'RPD2_pfam28u';
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
