@@ -1,0 +1,53 @@
+#
+# $Name:  $ - $Id: $
+#
+# commands common to all architectures
+# if your architecture does not support "include", append at the end.
+#
+
+COMP_LIBO=comp_mlib9.o	# reads database into memory for multi-query without delay
+COMP_THRO=comp_mthr9.o	# threaded version
+
+WORK_THRO=work_thr2.o
+GETSEQO = 
+
+# standard nxgetaa, no memory mapping for 0 - 6
+#LGETLIB=getseq.o lgetlib.o
+#NGETLIB=nmgetlib
+
+# memory mapping for 0FASTA, 5PIRVMS, 6GCGBIN
+LGETLIB= $(GETSEQO) lgetlib.o lgetaa_m.o
+NGETLIB=nmgetlib
+
+# use ncbl_lib.c for BLAST1.4 support instead of ncbl2_mlib.c
+#NCBL_LIB=ncbl_lib.o
+
+# this option should support both formats (BLAST1.4 not currently supported): 
+#NCBL_LIB=ncbl_lib.o ncbl2_mlib.o
+
+# normally use ncbl2_mlib.c
+#NCBL_LIB=ncbl2_mlib.o
+#LIB_M= -lm
+
+# this option supports NCBI BLAST2 and mySQL
+# it requires  "-I/usr/include/mysql -DMYSQL_DB" in CFLAGS
+# and "-L/usr/lib64/mysql -lmysqlclient -lz" in LIB_M
+# some systems may also require a LD_LIBRARY_PATH change
+
+#LIB_M= -lm 
+#LIB_M= -L/usr/lib64/mysql -lmysqlclient -lm # -lz 
+LIB_M= -L/usr/lib/x86_64-linux-gnu -lmariadbclient -lz -lm
+#NCBL_LIB=ncbl2_mlib.o
+#NCBL_LIB=ncbl2_mlib.o mysql_lib.o
+NCBL_LIB=ncbl2_mlib.o mysql_lib.o
+
+# threaded as _t, serial
+# include ../make/Makefile.pcom
+
+# threaded without _t
+include ../make/Makefile.pcom_t
+
+# serial only 
+# include ../make/Makefile.pcom_s
+
+include ../make/Makefile.fcom
