@@ -6,6 +6,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Sept 7, 2021
+[faatran.c]
+Enable translation table -t 9 for Echinoderms.  This bug has existed
+since alternate translation tables were first made available.
+
 >>May 18, 2021
 [mshowalign2.c]
 Correct problem with -m 10 z-scores, bit-score, and E()-value for a

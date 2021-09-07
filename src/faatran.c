@@ -99,7 +99,7 @@ char *AA6 ="FFLLSSSSYYQQCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
 9. The Echinoderm Mitochondrial Code (transl_table=9)
 */
 static
-char *AA7 ="FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG";
+char *AA9 ="FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG";
 /*
   Starts = -----------------------------------M----------------------------
   Base1  = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
@@ -388,7 +388,7 @@ aainit(int tr_type, int debug)
     case 4: aasmap = AA4; break;
     case 5: aasmap = AA5; break;
     case 6: aasmap = AA6; break;
-    case 7: aasmap = AA7; break;
+    case 9: aasmap = AA9; break;
     case 10: aasmap = AA10; break;
     case 11: aasmap = AA11; break;
     case 12: aasmap = AA12; break;
