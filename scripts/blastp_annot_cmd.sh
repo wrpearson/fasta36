@@ -12,9 +12,15 @@
 cmd="";
 DO_HTML=1
 
+PGM='blastp'
+
 for i in "$@"
 do
     case $i in
+	-p=*|--pgm=*)
+	    PGM="${i#*=}"
+	    shift # past argument=value
+	    ;;
 	-o=*|--outname=*)
 	    OUTNAME="${i#*=}"
 	    shift # past argument=value
@@ -71,7 +77,7 @@ blr_out="$OUTNAME.bl_tab_rn"
 #export BLAST_PATH="/ebi/extserv/bin/ncbi-blast+/bin"
 export BLAST_PATH="/seqprg/bin"
 
-$BLAST_PATH/blastp -num_threads=8 -outfmt 11 $cmd > $bl_asn
+$BLAST_PATH/$PGM -num_threads=8 -outfmt 11 $cmd > $bl_asn
 $BLAST_PATH/blast_formatter -archive $bl_asn -outfmt '7 qseqid qlen sseqid slen pident length mismatch gapopen qstart qend sstart send evalue bitscore score btop' > $blt_out
 
 # annot_cmd="annot_blast_btop2.pl --query $QUERY --raw --have_qslen --dom_info --ann_script "$ANN_SCRIPT" --q_ann_script "$Q_ANN_SCRIPT" $blt_out > $blt_ann"

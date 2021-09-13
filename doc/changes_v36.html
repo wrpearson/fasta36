@@ -21,18 +21,39 @@ li:not(:last-child) {
 <div class=fasta>
 <h2>ChangeLog - FASTA v36</h2>
 <hr>
-<h2>Latest updates - FASTA version 36.3.8h (May, 2020)</h2>
+<h2>Updates - FASTA version 36.3.8i (Sep, 2021)</h2>
+<ol>
+<li>
+Enable translation table -t 9 for Echinoderms.  This bug has existed
+since alternate translation tables were first made available.
+<li>
+Add an option, -Xg, that preserves the gi|12345 string the score
+summary and alignment output.
+</ol>
+<h2>Updates - FASTA version 36.3.8i (Nov, 2020)</h2>
+<ol>
+<li>
+fasta-36.3.8i (November, 2020) incorporates the SIMDe (SIMD-everywhere,
+https://github.com/simd-everywhere/simde/blob/master/simde/x86/sse2.h)
+macro definitions that allow the smith\_waterman\_sse2.c,
+global\_sse2.c, and glocal\_sse2.c code to be compiled on non-Intel
+architectures (currently tested on ARM/NEON).  Many thanks to
+Michael R. Crusoe (https://orcid.org/0000-0002-2961-9670) for the
+SIMDE code converstion, and to Evan Nemerson for creating SIMDe.
+<li>
+The code to read FASTA format sequence files now ignores lines with
+'#' at the beginning, for compatibility with PSI Extended FASTA
+Format (PEFF) files (http://www.psidev.info/peff).
+</ol>
+<p>
+<h2>Updates - FASTA version 36.3.8h (May, 2020)</h2>
 <ol>
   <li> Correct bug where library sequence and residue
   count was not reset when large memory mapped databases 
   that did not fit into memory were searched with multiple query sequences.</li>
   <li> Regularization of ***ERROR and ***Warning messages</li>
   <li> Changes to reduce compiler warnings</li>
-</ol>
-<p>
-<h2>Updates - FASTA version 36.3.8h (February, 2020)</h2>
-<ol>
-<li> The SSE2 implementations of the Smith-Waterman algorithm and a
+  <li> The SSE2 implementations of the Smith-Waterman algorithm and a
 corresponding global alignment algorithm are now available under the
 BSD open source license.
 </ol>

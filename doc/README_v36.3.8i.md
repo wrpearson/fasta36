@@ -1,6 +1,16 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8i** Sept, 2021
+
+1. Enable translation table -t 9 for Echinoderms.  This bug has existed
+   since alternate translation tables were first made available.
+
+Changes in **fasta-36.3.8i** May, 2021
+
+1. Add an option, -Xg, that preserves the gi|12345 string the score
+   summary and alignment output.
+
 Changes in **fasta-36.3.8i** Nov, 2020
 
 1. fasta-36.3.8i (November, 2020) incorporates the SIMDe
