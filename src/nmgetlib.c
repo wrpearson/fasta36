@@ -70,6 +70,11 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef __GNUC__
+extern FILE *popen(const char *script, const char *mode);
+extern int pclose(FILE *);
+#endif
+
 #include "defs.h"
 #include "structs.h"
 

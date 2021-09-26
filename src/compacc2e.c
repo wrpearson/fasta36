@@ -52,6 +52,14 @@
 extern char ext_qtitle[];
 #endif
 
+#ifdef __GNUC__
+extern FILE *fdopen(int fd, const char *mode);
+extern FILE *popen(const char *script, const char *mode);
+extern int pclose(FILE *);
+extern int mkstemp(char *template);
+extern char *mktemp(char *template);
+#endif
+
 extern void abort ();
 
 #include "drop_func.h"	/* get init_work() */
@@ -1443,7 +1451,7 @@ build_link_data(char **link_lib_file_p,
   SAFE_STRNCAT(link_lib_file,".lib",MAX_STR);
 
   /* write out accessions to link_acc_file */
-  if ((link_fd =fdopen(link_acc_fd,"w"))==NULL) {
+  if ((link_fd = fdopen(link_acc_fd,"w"))==NULL) {
     fprintf(stderr,"*** ERROR [%s:%d] - Cannot open link_acc_file: %s\n",
 	    __FILE__, __LINE__, link_acc_file);
     goto no_links;
@@ -1748,7 +1756,7 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
     SAFE_STRNCAT(annot_descr_file,".annot",MAX_STR);
 
     /* write out accessions to annot_bline_file */
-    if ((annot_fd =fdopen(annot_bline_fd,"w"))==NULL) {
+    if ((annot_fd = fdopen(annot_bline_fd,"w"))==NULL) {
       fprintf(stderr,"*** ERROR [%s:%d] - Cannot open annot_bline_file: %s\n",__FILE__, __LINE__, annot_bline_file);
       goto no_annots;
     }
