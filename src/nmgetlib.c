@@ -241,7 +241,7 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
       for ( ; bp; bp=strchr(bp+1,'+')) {
 	*bp=' ';
       }
-      libf=popen(acc_script,"r");
+      libf=fopen(acc_script,"r");
       opnflg=1;
     }
     else {  /* just read STDIN */
