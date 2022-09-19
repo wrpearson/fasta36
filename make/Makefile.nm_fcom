@@ -219,7 +219,7 @@ smith_waterman_altivec.obj : smith_waterman_altivec.c smith_waterman_altivec.h d
 	$(CC) $(CFLAGS) -c smith_waterman_altivec.c
 
 smith_waterman_sse2.obj : smith_waterman_sse2.c smith_waterman_sse2.h dropgsw2.h defs.h param.h
-	$(CC) $(CFLAGS) -DSW_SSE2 -c smith_waterman_sse2.c
+	$(CC) $(CFLAGS) /Qstd=c99 -DSW_SSE2 -c smith_waterman_sse2.c
 
 dropnw.obj : dropnw.c upam.h param.h structs.h drop_func.h
 	$(CC) $(CFLAGS) -c dropnw.c
