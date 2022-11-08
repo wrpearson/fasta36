@@ -6,6 +6,13 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>July 13, 2022
+[cal_cons2.c]
+Modify add_annot_code.c to NOT add a code for 'V' annotations,
+because, if the 'V' annotation is used, it is annotated by
+compacc2e.c:comment_var().  Without this change, things happened
+twice.
+
 >>Sept 7, 2021
 [faatran.c]
 Enable translation table -t 9 for Echinoderms.  This bug has existed

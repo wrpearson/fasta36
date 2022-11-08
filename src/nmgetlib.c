@@ -59,6 +59,8 @@
 	10 - list of gi/acc's
 	11 - NCBI setdb/blastp (1.3.2) AA/NT
 	12 - NCBI setdb/blastp (2.0) AA/NT
+	13 - NCBI makeblastdb/blastp (3.0) AA/NT
+
 	16 - mySQL queries
 	
 	see file altlib.h to confirm numbers
