@@ -246,8 +246,14 @@ open_lib(struct lib_struct *lib_p, int ldnaseq, int *sascii, int outtty)
       for ( ; bp; bp=strchr(bp+1,'+')) {
 	*bp=' ';
       }
+#ifndef WIN32
       libf=popen(acc_script,"r");
+#else
+      /* windows does not have popen(), but does have _popen() -- not tested */
+      libf=_popen(acc_script,"r");
+#endif      
       opnflg=1;
+
     }
     else {  /* just read STDIN */
       libf=stdin;
