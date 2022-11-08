@@ -81,9 +81,9 @@ struct mngmsg 		/* Message from host to manager */
   int nmoff;		/* length of fastf segment */
   unsigned char *aa0a;	/* annotation array */
   struct annot_str *annot_p;	/* annot_str for query */
-  unsigned char ann_arr[MAX_FN]; /* annotation characters */
+  unsigned char ann_arr[MAX_STR]; /* annotation characters */
   int ann_arr_n;	/* number of annotation characters */
-  char *ann_arr_def[MAX_FN];	/* definitions of ann_arr characters */
+  char *ann_arr_def[MAX_STR];	/* definitions of ann_arr characters */
   int ann_flg;		/* have annotation array, characters */
   int have_ann;		/* have annotation on this query */
   char tname[MAX_FN];	/* Query sequence name */

@@ -11,25 +11,18 @@
 CC= cc -w -64 -mips4 -O2 -TENV:X=3 -DSGI_BUG -Wl,-multigot -DIRIX
 #CC= cc -64 -mips4 -g -DSGI_BUG -DDEBUG -DIRIX
 
-HFLAGS= -64 -mips4 -o
-NFLAGS= -64 -mips4 -o
-
-#CC= cc -g
-#HFLAGS= -o
-#NFLAGS= -o
+HFLAGS= -64 -mips4
 
 LIB_M= -lm
 # For R2000/R3000 MIPS Processors, use -mips1
 #
 #CC= cc -mips1 -O2 
-#HFLAGS= -mips1 -o
-#NFLAGS= -mips1 -o
+#HFLAGS= -mips1
 #
 # For R4000 MIPS Processors, use -mips2:
 #
 #CC = cc -mips2 -O2
-#HFLAGS= -mips2 -o
-#NFLAGS= -mips2 -o
+#HFLAGS= -mips2
 #
 
 CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DBIGMEM -DSFCHAR="':'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit  -DFASTA_HOST='"crick.med.virginia.edu/fasta/cgi"' -DIS_BIG_ENDIAN -DUSE_MMAP -DBIG_LIB64 -DHAS_INTTYPES -DSAMP_STATS -DPGM_DOC -DBIG_LIB64

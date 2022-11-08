@@ -57,7 +57,7 @@ extern FILE *fdopen(int fd, const char *mode);
 extern FILE *popen(const char *script, const char *mode);
 extern int pclose(FILE *);
 extern int mkstemp(char *template);
-extern char *mktemp(char *template);
+/* extern char *mktemp(char *template); */
 #endif
 
 extern void abort ();
@@ -933,8 +933,6 @@ extern char prog_name[], *verstr;
 
 void s_abort (char *p,  char *p1)
 {
-  int i;
-
   fprintf (stderr, "\n***[%s] %s%s***\n", prog_name, p, p1);
 #ifdef PCOMPLIB
   MPI_Abort(MPI_COMM_WORLD,1);
@@ -1446,6 +1444,12 @@ build_link_data(char **link_lib_file_p,
 
   SAFE_STRNCAT(link_acc_file,"link_acc_XXXXXX",sizeof(link_acc_file));
   link_acc_fd = mkstemp(link_acc_file);
+  if (link_acc_fd < 0) {
+    fprintf(stderr,"*** ERROR [%s:%d] - Cannot open link_acc_file: %s\n",
+	    __FILE__, __LINE__, link_acc_file);
+    goto no_links;
+  }
+
   strncpy(link_lib_file,link_acc_file,MAX_STR);
   link_acc_file[sizeof(link_acc_file)-1] = '\0';
   SAFE_STRNCAT(link_lib_file,".lib",MAX_STR);
@@ -1564,11 +1568,11 @@ build_link_data(char **link_lib_file_p,
 /* **************************************************************** */
 char *
 build_lib_db(char *script_file) {
-  int i, status;
+  int  status;
   char tmp_line[MAX_SSTR];
   char *lib_db_file, *lib_db_str;
   char lib_db_script[MAX_LSTR];
-  int lib_db_indirect;
+  int lib_db_file_fd;
   int lib_db_type;
   int lib_db_str_len;
   char *bp, *lib_bp;
@@ -1586,7 +1590,15 @@ build_lib_db(char *script_file) {
   }
 
   SAFE_STRNCAT(lib_db_file,"lib_db_XXXXXX",MAX_STR);
-  mktemp(lib_db_file);
+  lib_db_file_fd = mkstemp(lib_db_file);
+  if (lib_db_file_fd < 0) {
+    fprintf(stderr,"*** ERROR [%s:%d] - [build_lib_db] generate temporary file",
+	    __FILE__, __LINE__);
+    goto no_lib;
+  }    
+
+  close(lib_db_file_fd);
+
   lib_db_str_len = strlen(lib_db_file)+1;
 
   /* check for indirect */
@@ -1751,6 +1763,11 @@ get_annot_list(char *sname, struct mngmsg *m_msp, struct beststr **bestp_arr, in
 
     SAFE_STRNCAT(annot_bline_file,"annot_bline_XXXXXX",sizeof(annot_bline_file));
     annot_bline_fd = mkstemp(annot_bline_file);
+    if (annot_bline_fd < 0) {
+      fprintf(stderr,"*** ERROR [%s:%d] - Cannot open annot_bline_file: %s\n",__FILE__, __LINE__, annot_bline_file);
+      goto no_annots;
+    }
+
     strncpy(annot_descr_file,annot_bline_file,MAX_STR);
     annot_bline_file[sizeof(annot_bline_file)-1] = '\0';
     SAFE_STRNCAT(annot_descr_file,".annot",MAX_STR);
@@ -1955,7 +1972,8 @@ struct annot_str *
 next_annot_entry(FILE *annot_fd, char *tmp_line, int n_tmp_line, struct annot_str *annot_p,
 		 struct annot_mstr *mtmp_annot_p, struct mngmsg *m_msp, int target) {
 
-  unsigned char ctmp_label, ctmp_value, tmp_comment[MAX_STR], annot_acc[MAX_STR];
+  unsigned char ctmp_label, ctmp_value;
+  char tmp_comment[MAX_STR], annot_acc[MAX_STR];
   char *bp;
   int f_pos, f_end;
   int i_ann, l_doms;

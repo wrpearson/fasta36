@@ -6,6 +6,21 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov 7, 2022
+[doinit.c/initenv()]
+Check string size for query and library file names, and abort if they
+are too long.  (Also increase max query file name from 120 to 512.)
+
+[compacc2e.c/build_lib_db()]
+replace mktemp() with mkstemp() to remove error warnings.
+
+[scripts/get_protein.py]
+update for rest.uniprot.org, use urllib.request rather than requests
+
+[make/Makefile*]
+remove -o from HFLAGS to show linking commands more clearly.  remove
+NFLAGS, which were not being used.
+
 >>July 13, 2022
 [cal_cons2.c]
 Modify add_annot_code.c to NOT add a code for 'V' annotations,
