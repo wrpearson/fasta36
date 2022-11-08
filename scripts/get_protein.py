@@ -4,14 +4,17 @@
 ## get a protein sequence from the Uniprot or NCBI/Refseq web sites using the accession
 ##
 
+## modified to work with urllib.request 7-Nov-2022
+
 import sys
 import re
 import textwrap
 import time
-import requests
+import urllib.request
+import urllib.error
 
 ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
-uniprot_url = "https://www.uniprot.org/uniprot/"
+uniprot_url = "https://rest.uniprot.org/uniprotkb/"
 
 sub_range = ''
 for acc in sys.argv[1:]:
@@ -37,18 +40,14 @@ for acc in sys.argv[1:]:
       url_string = uniprot_url + acc_fields[0] + ".fasta"
 
   try: 
-    req = requests.get(url_string)
-  except requests.exceptions.RequestException as e:
+    req = urllib.request.urlopen(url_string)
+  except urllib.error.URLError as e:
     seq_html = ''
-    sys.stderr.print(e.response.text+'\n')
+    sys.stderr.write(e.read().decode('utf-8')+'\n')
     continue
 
   else:
-    seq_html=req.text
-
-  if (re.search(r'Error',seq_html)):
-      sys.stderr.write("*** %s returned Error\n"%(acc))
-      continue
+    seq_html=req.read().decode('utf-8')
 
   time.sleep(0.3)
 
