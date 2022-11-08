@@ -58,7 +58,7 @@
 #define MAX_STR	512 /* standard label/message buffer */
 #define MAX_SSTR 32 /* short string */
 #define MAX_LSTR 4096 /* long label/message buffer */
-#define MAX_FN  120 /* maximum size of a file name */
+#define MAX_FN  MAX_STR /* maximum size of a file name (increased from 120 31-Oct-2022 */
 #define MAX_CH	40 /* maximum number of library choices */
 #ifndef SMALLMEM
 #define MAX_LF  2000 /* maximum numer of library files */
