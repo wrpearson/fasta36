@@ -38,8 +38,7 @@ LIB_M = -lm
 # for mySQL databases
 # LIB_M = -L/usr/lib64/mysql -lmysqlclient -lm
 
-HFLAGS= $(LDFLAGS) $(CPPFLAGS) -o
-NFLAGS= -o
+HFLAGS=
 
 # for Linux
 THR_SUBS = pthr_subs2

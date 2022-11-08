@@ -42,8 +42,7 @@ XDIR =		/usr/local/bin
 
 LIB_M+=		-lm
 
-HFLAGS+=	-o
-NFLAGS+=	-o
+HFLAGS+=
 
 # FreeBSD users BEWARE! Different threading models ahead!
 

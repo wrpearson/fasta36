@@ -34,8 +34,7 @@ CFLAGS= -O3 -qtune=auto -qarch=auto -DUNIX -DTIMES -DBIGMEM -DMAX_WORKERS=4 -DSF
 LIB_M = -L/usr/local/lib/mysql -lmysqlclient -lm
 # for mySQL databases
 
-HFLAGS= -o
-NFLAGS= -o
+HFLAGS=
 
 #for DEC Unix V4.0 
 #THR_SUBS = pthr_subs2
