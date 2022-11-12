@@ -42,7 +42,7 @@ BIN = ../bin
 XDIR = /seqprg/bin
 #XDIR = ./x86_64
 
-# diectory for universal binary process
+# directory for universal binary process
 UDIR = $(BIN)/x86_64
 
 # set up files for SSE2/Altivec acceleration

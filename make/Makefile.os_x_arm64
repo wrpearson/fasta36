@@ -50,6 +50,9 @@ BIN = ../bin
 XDIR = /seqprg/bin
 #XDIR = ~/bin/LINUX
 
+# directory for universal binary process
+UDIR = $(BIN)/arm64
+
 # set up files for SSE2/Altivec acceleration
 #
 include ../make/Makefile.sse_alt
