@@ -223,6 +223,10 @@ sub get_pfam_www {
 
   @pf_domains = ();
 
+  if (! $res) {
+      return \@pf_domains;
+  }
+
   my $twig_dom = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
 #			    start_tag_handlers => {
 #						   'sequence' => \&get_length,
