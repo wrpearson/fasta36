@@ -81,7 +81,7 @@ my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my @domain_list = (0);
 my $domain_cnt = 0;
 
-my $loc="https://pfam.xfam.org/";
+my $loc="https://pfam-legacy.xfam.org/";
 my $url;
 
 my @pf_domains;
@@ -212,9 +212,6 @@ sub get_clan {
 sub get_pfam_www {
   my ($acc, $seq_length) = @_;
 
-#  if ($acc =~ m/_/) {$url = "protein?id=$acc&output=xml"; }
-#  else {$url = "protein/$acc?output=xml"; }
-
   $url = "protein/$acc?output=xml";
 
   my $res = get($loc . $url);
@@ -222,9 +219,6 @@ sub get_pfam_www {
   @pf_domains = ();
 
   my $twig_dom = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
-#			    start_tag_handlers => {
-#						   'sequence' => \&get_length,
-#						  },
 			    twig_handlers => {
 					      'match' => \&push_match,
 					      'sequence' => \&get_length,

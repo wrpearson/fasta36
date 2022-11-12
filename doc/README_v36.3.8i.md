@@ -1,6 +1,14 @@
 
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
+Changes in **fasta-36.3.8i** Nov, 2022
+
+1. bug fix to remove duplicate variant annotations
+
+2. update to scripts/get_protein.py and annotation scripts.
+
+3. modify code to reduce mktemp compilation warning messages
+
 Changes in **fasta-36.3.8i** Sept, 2021
 
 1. Enable translation table -t 9 for Echinoderms.  This bug has existed
@@ -34,7 +42,7 @@ that would not fit in memory. In that case, the number of
 library sequences and residues increased by the library size
 with each new search.
 
-2. More consistent formats for *** ERROR and *** Warning messages.
+2. More consistent formats for **ERROR** and **Warning** messages.
 
 3. Corrections to code to address compiler warnings with gcc8/9.
 

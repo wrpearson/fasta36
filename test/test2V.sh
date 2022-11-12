@@ -5,7 +5,7 @@ echo `uname -a`
 echo ""
 echo "starting fasta36 - protein" `date`
 
-FA_DB=/slib2/fa_dbs/qfo20.lseg
+FA_DB=$SLIB2/fa_dbs/qfo20.lseg
 
 if [ ! -d results ]; then
  mkdir results
