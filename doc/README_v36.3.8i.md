@@ -9,6 +9,8 @@ Changes in **fasta-36.3.8i** Nov, 2022
 
 3. modify code to reduce mktemp compilation warning messages
 
+4. changes to annotation scripts for Pfam shutdown; new ann_pfam_www.py, ann_pfam_sql.py
+
 Changes in **fasta-36.3.8i** Sept, 2021
 
 1. Enable translation table -t 9 for Echinoderms.  This bug has existed
