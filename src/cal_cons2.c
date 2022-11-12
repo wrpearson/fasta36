@@ -125,10 +125,10 @@ display_push_features(void *annot_stack, struct dyn_string_str *annot_var_dyn,
 extern int seq_pos(int pos, int rev, int off);
 
 /* values of calc_func_mode */
-#define CALC_CONS 1
-#define CALC_CODE 2
-#define CALC_ID   3
-#define CALC_ID_DOM   4
+#define CALC_CONS 1    /* standard calculate consensus -- make label */
+#define CALC_CODE 2    /* only calculate annotation code */
+#define CALC_ID   3    /* only calculate identity -- no codes, so no display */
+#define CALC_ID_DOM   4  /* like CALC_ID, but also looks at identity in domains?? (wrp 2022-07-12) */
 
 int
 pre_fill_cons(const unsigned char *aa0, const unsigned char *aa1p,
@@ -288,7 +288,9 @@ add_annot_code(int have_ann, char sp0, char sp1,
 	    ann_ch0,ann_ch1, q_offset+seq_pos(i0,aln->qlrev,0)+1,sp0,
 	    sim_sym[sim_code], l_offset+seq_pos(i1,aln->llrev,0)+1,sp1);
   */
-  if ( ann_ch0 && !(ann_ch1 == '['  || ann_ch1 == ']' || ann_ch0 == '[' || ann_ch0 == ']')) {
+  /* excluding 'V' annotations because they were added by comment_var if they were used */
+
+  if ( ann_ch0 && !(ann_ch1 == '['  || ann_ch1 == ']' || ann_ch0 == '[' || ann_ch0 == ']' || ann_ch1 == 'V' || ann_ch0 == 'V')) {
     sprintf(tmp_astr, "|%c%c:%ld%c%c%ld%c",
 	    ann_ch0,ann_ch1, q_off_pos+1,sp0,
 	    sim_sym_code, l_off_pos+1,sp1);

@@ -10,7 +10,7 @@ BLAST could show multiple HSPs, FASTA did not.
 [scripts/ann_pfam*]
 
 Changes made to address the shutdown of the Pfam web site.
-ann_pfam_www.pl now points to legacy-pfam.xfam.org, but this site goes
+ann_pfam_www.pl now points to pfam-legacy.xfam.org, but this site goes
 away in Jan, 2023.  A new script, ann_pfam_www.py goes to Interpro to
 get pfam information, but this script does not do clan-mapping,
 because clan information is not yet available (or I do not know how to
