@@ -68,7 +68,7 @@ used to infer homology.  The FASTA programs offer several advantages
 over BLAST:
 \begin{enumerate}
 \item
-Rigorous algorithms unavailable in BLAST (Table I).  Smith-Waterman
+Rigorous algorithms unavailable in BLAST (Table \ref{table1}).  Smith-Waterman
 (\texttt{ssearch36}), global: global (\texttt{ggsearch36}), and
 global:local (\texttt{glsearch36}) programs are available, and these
 programs can be used with \texttt{psiblast} PSSM profiles.
@@ -169,6 +169,8 @@ algorithm\cite{wat875} developed by Xiaoqui Huang and Web
 Miller\cite{mil908}.  Statistical estimates are calculated from
 Smith-Waterman scores of shuffled sequences. \\[1 ex]
 
+\texttt{psisearch2} & \texttt{psiblast} & An improved version of \texttt{psiblast} with options to reduce alignment over-extension.\cite{wrp103,wrp171}\\[1 ex]
+
 \hline \\
 \end{tabular}
 \end{table}
@@ -182,7 +184,7 @@ searching with short fragments: \texttt{fasts36}, \texttt{fastf36},
 \texttt{tfasts36}, \texttt{tfastf36}, and \texttt{fastm36}; (3) A
 program for finding non-overlapping local alignments: \texttt{lalign36}.
 Programs that start with \texttt{fast} search protein databases, while
-\texttt{tfast} programs search translated DNA databases.  Table I
+\texttt{tfast} programs search translated DNA databases.  Table \ref{table1}
 gives a brief description of the programs.
 
 In addition, there are several programs included. \texttt{map\_db} is
@@ -1951,7 +1953,7 @@ addition, pre-compiled versions of the programs are available for
 MacOSX and Windows.
 
 \needspace{4\baselineskip}
-{\noindent}\textbf{Which program should I use?} -- See Table I, also:\\
+{\noindent}\textbf{Which program should I use?} -- See Table \ref{table1}, also:\\
 
 \begin{tabular}{l l l l l }
 \hline \\[-1.0ex]
@@ -2073,7 +2075,7 @@ alignments with better statistics.
 computers using MPI (Message Passaging Interface).  The programs can
 be compiled using \texttt{make -f ../make/Makefile.mpi\_sse2} from the
 \texttt{fasta36/src} directory.  Except for \texttt{lalign36}, all the
-programs in Table I are available as \texttt{fasta36\_mpi},
+programs in Table \ref{table1} are available as \texttt{fasta36\_mpi},
 \texttt{ssearch36\_mpi}, etc.
 
 Unfortunately, the current MPI implementation involves substantially
