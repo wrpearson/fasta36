@@ -1,5 +1,73 @@
 
+<head>
+<style>
+h1 {font-size: 16pt;
+    font-family: arial, helvetica, sans-serif;
+    }
+h3 {font-size: 14 pt;
+    font-family: arial, helvetica, sans-serif;
+}
+body { background-color: white ; font-size: 11pt;
+    font-family: arial, helvetica, sans-serif;
+ }
+td {font-size: 11pt; text-align:left;
+    font-family: arial, helvetica, sans-serif;
+}
+th {font-size: 11pt;
+    font-family: arial, helvetica, sans-serif;
+}
+</style>
+</head>
+
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
+
+This directory contains the source code for the FASTA package of
+programs (W. R. Pearson and D. J. Lipman (1988), "Improved Tools
+for Biological Sequence Analysis", *PNAS 85:2444-2448*).  The current verion of the program is `fasta-36.3.8i`.
+
+If you are reading this at
+[fasta.bioch.virginia.edu/wrpearson/fasta/fasta36](https://fasta.bioch.virginia.edu/wrpearson/fasta/fasta36),
+links are available to executable binaries for Linux, MacOS, and
+Windows.  The source code is also available from
+[github.com/wrpearson/fasta36](https://github.com/wrpearson/fasta36).
+
+The FASTA package offers many of the same programs as `BLAST`, but
+takes a different approach to statistical estimates, and provides
+additional optimal programs for local (`ssearch36`) and global
+(`ggsearch36`, `glsearch36`) alignment, and for non-overlapping
+internal local alignments (`lalign36`).
+
+The programs available include:
+
+<table>
+<tr>
+<tr><td colspan=3><hr/></td><tr>
+<th>FASTA </th><th> BLAST </th><th> description </th></tr>
+<tr><td colspan=3><hr/></td><tr>
+<tr>
+<td> fasta36 </td><td> blastp/blastn </td><td> Protein and DNA local similarity search </td></tr>
+<tr>
+<td> ssearch36 </td><td> </td><td> optimal Smith-Waterman search -- vectorized on Intel and Arm architectures </td></tr>
+<tr>
+<td> ggsearch36 </td><td> </td><td> optimal global Needleman-Wunsche search -- vectorized on Intel and Arm architectures </td></tr>
+<tr>
+<td> glsearch36 </td><td> </td><td> optimal global(query)/local (library) search -- vectorized on Intel and Arm architectures </td></tr>
+<tr>
+<td> fastx36 / fasty36 </td><td> blastx </td><td> DNA query search against protein sequence database. (fasty36 uses a slower, more sophisticated frame shift aligner) </td></tr>
+<tr>
+<td> tfastx36 / tfasty36</td><td> tblastn </td><td> protein query search against DNA database</td></tr>
+<tr><td colspan=3><hr/></td><tr>
+<tr>
+<td> fastf36 / tfastf36 </td><td> </td><td> compares an ordered peptide mixture against a protein (fastf36) or DNA (tfastf36) database </td></tr>
+<tr>
+<td> fastm36 / tfastm36 </td><td> </td><td> compares a set of ordered peptide against a protein (fastf36) or DNA (tfastf36) database or oligonucleotides against a DNA database</td></tr>
+<tr>
+<td> fasts36 / tfasts36 </td><td> </td><td> compares an unordered set of peptides against a protein (fasts36) or DNA (tfasts36) database </td></tr>
+<tr><td colspan=3><hr/></td><tr>
+<tr>
+<td> lalign36 </td><td> </td><td> look for non-overlapping internal alignments, similar to a "dot-plot," but with statistical signficance </td></tr>
+<tr><td colspan=3><hr/></td><tr>
+</table>
 
 Changes in **fasta-36.3.8i** Nov, 2022
 
