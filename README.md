@@ -1,24 +1,4 @@
 
-<head>
-<style>
-h1 {font-size: 16pt;
-    font-family: arial, helvetica, sans-serif;
-    }
-h3 {font-size: 14 pt;
-    font-family: arial, helvetica, sans-serif;
-}
-body { background-color: white ; font-size: 11pt;
-    font-family: arial, helvetica, sans-serif;
- }
-td {font-size: 11pt; text-align:left;
-    font-family: arial, helvetica, sans-serif;
-}
-th {font-size: 11pt;
-    font-family: arial, helvetica, sans-serif;
-}
-</style>
-</head>
-
 ## The FASTA package - protein and DNA sequence similarity searching and alignment programs
 
 This directory contains the source code for the FASTA package of
