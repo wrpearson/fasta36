@@ -906,11 +906,15 @@ can use \texttt{-m 1 -m 6 -m 9}.
   \texttt{-m 8CBd} adds a new field with
   the raw domain coordinate information for the query and subject, with \texttt{DX/XD} used to indicate the domains.
   \texttt{-m 8CBL} provides both query/subject lengths and raw domain information.
+
+
 \begin{verbatim}
   |DX:3-82;C=C.Thio|DX:105-201;C=C.GST_C|XD:3-82;C=C.Thio|XD:105-201;C=C.GST_C
 \end{verbatim}
 
-  These \texttt{-m 8CB} options, \texttt{'l/L'}, \texttt{'s'}, \texttt{'d'} can be combined in any order.
+  \texttt(-m 8CBr) (v36.3.8i release, 14-Nov-2022) adds a new field with the raw optimal alignment score (typically Smith-Waterman for proteins).
+
+  These \texttt{-m 8CB} options, \texttt{'l/L'}, \texttt{'s'}, \texttt{'d'}, and \texttt{'r'} can be combined in any order.
 
 \item[\texttt{-m 9}] display alignment coordinates and scores with the
   best score information.  \texttt{-m 9i} provides alignment length,

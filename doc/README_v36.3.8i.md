@@ -79,6 +79,8 @@ Changes in **fasta-36.3.8i** Nov, 2022
 
 4. changes to annotation scripts for Pfam shutdown; new ann_pfam_www.py, ann_pfam_sql.py
 
+5. a new option, `r` for `-m 8CB` that displays the raw optimal alignment score (typically Smith-Waterman).
+
 Changes in **fasta-36.3.8i** Sept, 2021
 
 1. Enable translation table -t 9 for Echinoderms.  This bug has existed

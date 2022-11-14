@@ -16,6 +16,12 @@ because clan information is not yet available (or I do not know how to
 get it).  In addition, ann_pfam_sql.py is available, which largely
 replaces ann_pfam_sql.pl.
 
+>>Nov 14, 2022
+[defs.h, initfa.c, mshowbest.c]
+
+Add option 'r' to -m8CB to display raw optimal score in BLAST tabular
+output, e.g "-m8Cr"  or "-m8CBlr".
+
 >>Nov 7, 2022
 [doinit.c/initenv()]
 Check string size for query and library file names, and abort if they
@@ -82,7 +88,7 @@ Format (PEFF) files (http://www.psidev.info/peff).
 
 >>June 2, 2020
 [src/scaleswn.c]
-Modifiy line describing query in -R .res file.
+Modify line describing query in -R .res file.
 Add line to report ave_n1, sample_fract, zs_off in -R .res file.
 Add line to report properties of library to -R .res file.
 

@@ -250,18 +250,39 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
     /* line below copied from BLAST+ output */
     if (m_msp->markx & MX_M8_BTAB_LEN) {  /* yes qslen */
       if (m_msp->markx & MX_M8_BTAB_SIM) {  /* yes similarity */
-	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% similar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+
+	if (m_msp->markx & MX_M8_BTAB_RAW) {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% similar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, raw score");
+	}
+	else {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% similar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	}
       }
       else { /* no similarity */
-	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	if (m_msp->markx & MX_M8_BTAB_RAW) {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, raw score");
+	}
+	else {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	}
       }
     }
     else {  /* no qslen */
       if (m_msp->markx & MX_M8_BTAB_SIM) {  /* yes similarity */
-	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% simlar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	if (m_msp->markx & MX_M8_BTAB_RAW) {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% simlar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, raw score");
+	}
+	else {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, %% simlar, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	}
       }
       else { /* no similarity */
-	fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	if (m_msp->markx & MX_M8_BTAB_RAW) {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, raw score");
+	}
+	else {
+	  fprintf(fp,"# Fields: query id, query length, subject id, subject length, %% identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score");
+	}
       }
     }
 
@@ -634,6 +655,10 @@ l1:
 		    aln_p->d_start1, aln_p->d_stop1,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db),
 		    lbits);
+
+	    if (m_msp->markx & MX_M8_BTAB_RAW) {
+	      fprintf(fp,"\t%d",cur_ares_p->sw_score);
+	    }
 
 	    if (ppst->zsflag > 20) {
 	      fprintf(fp,"\t%.2g",zs_to_E(lzscore2, n1, ppst->dnaseq, ppst->zdb_size, m_msp->db));

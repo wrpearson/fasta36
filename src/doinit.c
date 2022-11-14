@@ -938,6 +938,9 @@ parse_markx(char *optarg, struct markx_str *this) {
     if (strchr(stmp,'s')) {
       this->markx |= MX_M8_BTAB_SIM;
     }
+    if (strchr(stmp,'r')) {
+      this->markx |= MX_M8_BTAB_RAW;
+    }
     if (strchr(stmp,'d')) {
       this->show_code |= SHOW_CODE_DOMINFO;
     }
