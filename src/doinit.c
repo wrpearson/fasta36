@@ -380,6 +380,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
 	  break;
 	case 'e': 
 	  strncpy(m_msp->link_lname, optarg, MAX_LSTR);
+	  m_msp->quiet = 3;  /* no warning when expansion file missing */
 	  break;
 	case 'F':
 	  sscanf(optarg,"%lg",&m_msp->e_low);

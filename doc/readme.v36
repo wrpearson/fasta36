@@ -6,6 +6,16 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Nov 21, 2022
+[doinit.c]
+set m_msg->quiet=3 when expansion script used to suppress warning messages.
+
+>>Nov 14, 2022
+[defs.h, initfa.c, mshowbest.c]
+
+Add option 'r' to -m8CB to display raw optimal score in BLAST tabular
+output, e.g "-m8Cr"  or "-m8CBlr".
+
 >>Nov 12, 2022   [released as v36.3.8i Nov, 2022]
 [scripts/ann_pfam*]
 Changes made to address the shutdown of the Pfam web site.
@@ -15,12 +25,6 @@ get pfam information, but this script does not do clan-mapping,
 because clan information is not yet available (or I do not know how to
 get it).  In addition, ann_pfam_sql.py is available, which largely
 replaces ann_pfam_sql.pl.
-
->>Nov 14, 2022
-[defs.h, initfa.c, mshowbest.c]
-
-Add option 'r' to -m8CB to display raw optimal score in BLAST tabular
-output, e.g "-m8Cr"  or "-m8CBlr".
 
 >>Nov 7, 2022
 [doinit.c/initenv()]
