@@ -93,6 +93,9 @@ def get_pfam_id_www( acc):
 
 def get_clan_info_www(pf_acc):
 
+    if (pf_acc=='NODOM'):
+        return {'name':'NODOM','accession':'NODOM'}
+
     try:
         req = urllib.request.urlopen(interpro_clan_url + pf_acc)
 
@@ -227,18 +230,18 @@ def print_doms(seq_id, color_ix, args, dom_colors, dom_names, clan_info):
             pf_clan_info = clan_info[pf_acc]
 
 
-        clan_info = clan_info[pf_acc]
+        this_clan_info = clan_info[pf_acc]
 
 
         ## display id or acc?
-        if (clan_info):
-            pf_info = 'C.'+ clan_info['name']
+        if (this_clan_info):
+            pf_info = 'C.'+ this_clan_info['name']
         else:
             pf_info = pf_id
 
         if (args.pfam_acc):
             if (pf_info and not args.no_clans):
-                pf_info = clan_info['accession']
+                pf_info = this_clan_info['accession']
             else:
                 pf_info = pf_acc
 
@@ -256,7 +259,7 @@ def read_print_fd(fd, args):
 
     dom_colors = {'NODOM':'0'}
     dom_names = {}
-    clan_info = {}
+    clan_info =  {'NODOM':{'name':'NODOM','accession':'NODOM'}}
 
     color_ix = 1
 
@@ -300,7 +303,7 @@ def main() :
         color_ix = 1
         dom_colors = {'NODOM':'0'}
         dom_names = {}
-        clan_info = {}
+        clan_info = {'NODOM':{'name':'NODOM','accession':'NODOM'}}
 
         for seq_id in args.files:
             print(">%s"%(seq_id))
