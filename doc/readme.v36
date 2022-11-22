@@ -9,6 +9,8 @@ BLAST could show multiple HSPs, FASTA did not.
 >>Nov 21, 2022
 [doinit.c]
 set m_msg->quiet=3 when expansion script used to suppress warning messages.
+[scripts/ann_pfam_www.py]
+look up clan information
 
 >>Nov 14, 2022
 [defs.h, initfa.c, mshowbest.c]
