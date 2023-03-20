@@ -32,6 +32,15 @@
 #
 # currently, it does not provide clan information, because the
 # EBI/Interpro/Pfam API does not provide clan information
+#
+# to get clan (set) information:
+# https://www.ebi.ac.uk/interpro/api/set/pfam/entry/pfam/PF02798
+#
+# which provides (among other things):
+# "results": {"metadata": {
+#                "accession": "CL0172",
+#                "name": "Thioredoxin",
+#                "source_database": "pfam"}, ... }
 
 import fileinput
 import sys
@@ -43,6 +52,7 @@ import urllib.error
 
 interpro_prot_url = "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/"
 interpro_domain_url = "https://www.ebi.ac.uk/interpro/api/entry/pfam/"
+interpro_clan_url = "https://www.ebi.ac.uk/interpro/api/set/pfam/entry/pfam/"
 
 def get_pfam_id_www( acc):
 
@@ -80,6 +90,42 @@ def get_pfam_id_www( acc):
     pf_dom_id  = json_info['metadata']['name']['short']
 
     return(pf_dom_id)
+
+def get_clan_info_www(pf_acc):
+
+    if (pf_acc=='NODOM'):
+        return {'name':'NODOM','accession':'NODOM'}
+
+    try:
+        req = urllib.request.urlopen(interpro_clan_url + pf_acc)
+
+    except urllib.error.URLError as e:
+        prot_info = ''
+        sys.stderr.write(e.read().decode('utf-8')+'\n')
+
+    else:
+        clan_info = req.read().decode('utf-8')
+
+
+    json_info= json.loads(clan_info)
+
+## results look like:
+## "results": [
+##      {
+##          "metadata": {
+##              "accession": "CL0172",
+##              "name": "Thioredoxin",
+##              "source_database": "pfam"
+##          },
+## ...
+##      }
+## ]
+##
+
+    if ('results') in json_info:
+        return(json_info['results'][0]['metadata'])
+    else:
+        return None
 
 def get_seq_acc(seq_id):
 
@@ -149,7 +195,7 @@ def add_nodoms(pf_dom_list, seq_len, min_nodom=10):
 
     return npf_domains
 
-def print_doms(seq_id, color_ix, args, dom_colors, dom_names):
+def print_doms(seq_id, color_ix, args, dom_colors, dom_names, clan_info):
                
     this_acc = get_seq_acc(seq_id)
 
@@ -178,13 +224,26 @@ def print_doms(seq_id, color_ix, args, dom_colors, dom_names):
         ## check if domain_acc has short name
         if (pf_acc not in dom_names):
             pf_id = dom_names[pf_acc] = get_pfam_id_www(pf_acc)
+            pf_clan_info = clan_info[pf_acc] = get_clan_info_www(pf_acc)
         else:
             pf_id = dom_names[pf_acc]
+            pf_clan_info = clan_info[pf_acc]
+
+
+        this_clan_info = clan_info[pf_acc]
+
 
         ## display id or acc?
-        pf_info = pf_id
+        if (this_clan_info):
+            pf_info = 'C.'+ this_clan_info['name']
+        else:
+            pf_info = pf_id
+
         if (args.pfam_acc):
-            pf_info = pf_acc
+            if (pf_info and not args.no_clans):
+                pf_info = this_clan_info['accession']
+            else:
+                pf_info = pf_acc
 
         if (args.acc_comment):
             pf_info = "%s{%s}"%(pf_info,pf_acc)
@@ -200,6 +259,7 @@ def read_print_fd(fd, args):
 
     dom_colors = {'NODOM':'0'}
     dom_names = {}
+    clan_info =  {'NODOM':{'name':'NODOM','accession':'NODOM'}}
 
     color_ix = 1
 
@@ -208,7 +268,7 @@ def read_print_fd(fd, args):
         seq_id = line.split('\t')[0]
 
         print(">%s"%(seq_id))
-        color_ix = print_doms(seq_id, color_ix, args, dom_colors, dom_names)
+        color_ix = print_doms(seq_id, color_ix, args, dom_colors, dom_names, clan_info)
 
 def main() :
 
@@ -218,6 +278,8 @@ def main() :
     parser.add_argument('--bound_comment',dest='bound_comment',action='store_true',default=False)
     parser.add_argument('--neg_doms',dest='neg_doms',action='store_true',default=False)
     parser.add_argument('--neg-doms',dest='neg_doms',action='store_true',default=False)
+    parser.add_argument('--no-clans',dest='no_clans',action='store_true',default=False)
+    parser.add_argument('--no_clans',dest='no_clans',action='store_true',default=False)
     parser.add_argument('--min_nodom',dest='min_nodom',action='store',default=10)
     parser.add_argument('--no_over',dest='no_over',action='store_true',default=False)
     parser.add_argument('--no-over',dest='no_over',action='store_true',default=False)
@@ -241,10 +303,11 @@ def main() :
         color_ix = 1
         dom_colors = {'NODOM':'0'}
         dom_names = {}
+        clan_info = {'NODOM':{'name':'NODOM','accession':'NODOM'}}
 
         for seq_id in args.files:
             print(">%s"%(seq_id))
-            print_doms(seq_id, color_ix, args, dom_colors, dom_names)
+            print_doms(seq_id, color_ix, args, dom_colors, dom_names, clan_info)
 
 if __name__ == '__main__':
     main()

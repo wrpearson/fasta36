@@ -1577,6 +1577,10 @@ build_lib_db(char *script_file) {
   int lib_db_str_len;
   char *bp, *lib_bp;
 
+#ifndef UNIX
+  return 0;
+#else
+
   if ((lib_db_file=(char *)calloc(MAX_STR,sizeof(char)))==NULL) {
     fprintf(stderr,"*** ERROR [%s:%d] - [build_lib_db] Cannot allocate lib_db_file",
 	    __FILE__, __LINE__);
@@ -1662,6 +1666,7 @@ build_lib_db(char *script_file) {
 
  no_lib:
   return NULL;
+#endif
 }
 
 /* used to temporarily allocate annotation array in next_annot_entry()*/
