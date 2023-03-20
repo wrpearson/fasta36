@@ -6,6 +6,14 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Mar 20, 2023
+[scripts/get_protein.py]
+Add --id option to provide custom identifier after '>' in description line
+
+>>Feb 14, 2023
+[lib_sel.c]
+Add check to ignore blank lines in @.nam file
+
 >>Nov 21, 2022
 [doinit.c]
 set m_msg->quiet=3 when expansion script used to suppress warning messages.
