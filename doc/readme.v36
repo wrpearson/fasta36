@@ -13,6 +13,14 @@ reset to -8, -1.  At some point in the past, they were set to the gap
 penalties for BP62 (BLOSUM62 with BLASTP gap penalties).  The BP62 gap
 penalties are probably more appropriate for today's large databases.
 
+>>Mar 20, 2023
+[scripts/get_protein.py]
+Add --id option to provide custom identifier after '>' in description line
+
+>>Feb 14, 2023
+[lib_sel.c]
+Add check to ignore blank lines in @.nam file
+
 >>Nov 21, 2022
 [doinit.c]
 set m_msg->quiet=3 when expansion script used to suppress warning messages.
