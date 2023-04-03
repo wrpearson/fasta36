@@ -6,6 +6,13 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Apr 3, 2023
+[upam.h]
+The default gap penalties for the BL62 (BLOSUM62) matrix have been
+reset to -8, -1.  At some point in the past, they were set to the gap
+penalties for BP62 (BLOSUM62 with BLASTP gap penalties).  The BP62 gap
+penalties are probably more appropriate for today's large databases.
+
 >>Nov 21, 2022
 [doinit.c]
 set m_msg->quiet=3 when expansion script used to suppress warning messages.

@@ -403,8 +403,7 @@ extern void set_opt_disp_defs(char opt_char, struct opt_def_str *options, int ty
 
 static char z_opt_descr[] = "Statistics estimation method:\n      1 - regression; -1 - no stats.; 0 - no scaling; 2 - Maximum Likelihood Est.;\n      3 - Altschul/Gish; 4 - iter. regress.; 5 - regress w/variance;\n      6 - MLE with comp. adj.;\n     11 - 16 - estimates from shuffled library sequences;\n     21 - 26 - E2()-stats from shuffled high-scoring sequences;";
 
-static char s_opt_descr[] = "Scoring matrix: (protein)\n      BL50, BP62 (sets -f -11 -g -1); P250, OPT5, VT200,\n      VT160, P120, VT120, BL80, VT80, MD40, VT40, MD20, VT20, MD10, VT10;\n      scoring matrix file name; -s ?BL50 adjusts matrix for short queries;";
-
+static char s_opt_descr[] = "Scoring matrix: (protein)\n      BL50, BL62 (sets -f -8 -g -1), BP62 (sets -f -11 -g -1); P250, OPT5, VT200,\n      VT160, P120, VT120, BL80, VT80, MD40, VT40, MD20, VT20, MD10, VT10;\n      scoring matrix file name; -s ?BL50 adjusts matrix for short queries;";
 
 struct opt_def_str f_options[] = {
   {'3', 0, "norevcomp", "compare forward strand only", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -1023,23 +1022,23 @@ f_getopt (char copt, char *optarg,
     sw_flag_set = 1;
     break;
   case 'b':
-    if (optarg[0] == '$') {
+    if (optarg[0] == '$') {       /* show all output, reset -E */
       m_msg->mshow = -1;
       m_msg->e_cut = 10000000.0;
       break;
     }
-    else if (optarg[0] == '=') {
+    else if (optarg[0] == '=') {  /* -b =10 resets -E, and gurantees that much output */
       m_msg->e_cut = 10000000.0;
       m_msg->e_cut_set = 1;
       m_msg->mshow_min = 1;
       sscanf (optarg+1, "%d", &m_msg->mshow);
     }
-    else if (optarg[0] == '>') {
+    else if (optarg[0] == '>') {  /* -b >10 and guarantees that much output */
       m_msg->mshow_min = 2;
       sscanf (optarg+1, "%d", &m_msg->mshow);
     }
     else {
-      sscanf (optarg, "%d", &m_msg->mshow);
+      sscanf (optarg, "%d", &m_msg->mshow);  /* this much output, limited by -E */
       m_msg->mshow_min = 0;
     }
     m_msg->mshow_set = 1;
