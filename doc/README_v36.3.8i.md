@@ -71,7 +71,7 @@ The programs available include:
 
 Changes in **fasta-36.3.8i** May, 2023
 
-1. restore the default `-s BL62` gap penalties to -8, -1 (they were -11, -1, matching `-s BP62`
+1. restore the default `-s BL62` gap penalties to -8, -1 (they were -11, -1, matching `-s BP62`)
 
 2. restore functionality of `-A` option, which forces Smith-Waterman final display alignments with DNA (normally banded Smith-Waterman is used)
 
