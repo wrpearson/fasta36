@@ -497,9 +497,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8i Nov, 2022 MPI";
+char *verstr="36.3.8i May, 2023 MPI";
 #else
-char *verstr="36.3.8i Nov, 2022";
+char *verstr="36.3.8i May, 2023";
 #endif
 
 static int mktup=3;
@@ -1017,8 +1017,7 @@ f_getopt (char copt, char *optarg,
     break;
   case 'a': m_msg->aln.showall = 1; break;
   case 'A':
-    if (ppst->sw_flag) ppst->sw_flag=0;
-    else ppst->sw_flag= 1;
+    ppst->sw_flag= 1;
     sw_flag_set = 1;
     break;
   case 'b':
@@ -1293,6 +1292,7 @@ f_getopt (char copt, char *optarg,
 /* Extended options:
    -X1 - use the init1 score, rather than initn, for statistics and ordering results
    -Xa  - only report annotation information in -m 8CB output (for later merge)
+   -XA  - force banded alignments
    -Xb - report z-score, not bit-score
    -XB - use blast identities
    -XI - ensure that identities are not rounded to 100%
@@ -1304,7 +1304,7 @@ f_getopt (char copt, char *optarg,
    -Xg  - do not remove gi| numbers
  */
 
-static char my_opts[] = "1aBbgIM:ox:y:N:";
+static char my_opts[] = "1aABbgIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1326,6 +1326,10 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
     break;
 
   case 'a': m_msp->m8_show_annot = 1; break;
+
+  case 'A':  /* -XA forces banded alignments */
+    ppst->sw_flag = 0;
+    sw_flag_set=1; break;
 
   case 'B': m_msp->blast_ident = 1; break;
 

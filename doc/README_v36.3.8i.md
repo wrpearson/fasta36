@@ -69,6 +69,14 @@ The programs available include:
 <tr><td colspan=3><hr/></td><tr>
 </table>
 
+Changes in **fasta-36.3.8i** May, 2023
+
+1. restore the default `-s BL62` gap penalties to -8, -1 (they were -11, -1, matching `-s BP62`
+
+2. restore functionality of `-A` option, which forces Smith-Waterman final display alignments with DNA (normally banded Smith-Waterman is used)
+
+3. add `--id` option to `scripts/get_protein.py` to add a custom identifier
+
 Changes in **fasta-36.3.8i** Nov, 2022
 
 1. bug fix to remove duplicate variant annotations

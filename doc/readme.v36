@@ -6,6 +6,17 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>May 3, 2023
+[initfa.c]
+
+Restore the functionality of the '-A' option, which forces
+Smith-Waterman final alignments with DNA sequences (which normally use
+banded alignments).  The '-A' logic was modified to try to allow '-A'
+to force banded alignments for protein sequences, but the change broke
+the '-A' for DNA.  With these changes, '-A' produces full
+Smith-Waterman alignments for DNA, and '-XA' produces banded
+Smith-Waterman for proteins.
+
 >>Apr 3, 2023
 [upam.h]
 The default gap penalties for the BL62 (BLOSUM62) matrix have been
