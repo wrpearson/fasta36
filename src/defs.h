@@ -58,7 +58,7 @@
 #define MAX_STR	512 /* standard label/message buffer */
 #define MAX_SSTR 32 /* short string */
 #define MAX_LSTR 4096 /* long label/message buffer */
-#define MAX_FN  120 /* maximum size of a file name */
+#define MAX_FN  MAX_STR /* maximum size of a file name (increased from 120 31-Oct-2022 */
 #define MAX_CH	40 /* maximum number of library choices */
 #ifndef SMALLMEM
 #define MAX_LF  2000 /* maximum numer of library files */
@@ -158,6 +158,7 @@
 #define MX_RES_ALIGN_SCORE (1<<20)  /* show residue alignment score, not alignment */
 #define MX_M8_BTAB_LEN  (1<<21) /* show query/subject seq. lens in -m 8 output */
 #define MX_M8_BTAB_SIM  (1<<22) /* show similarity + identity in -m 8 output */
+#define MX_M8_BTAB_RAW  (1<<23) /* show raw score */
 
 /* codes for -m 9, -m 8C? */
 #define SHOW_CODE_ID	1	/* identity only */

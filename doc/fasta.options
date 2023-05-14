@@ -1,3 +1,6 @@
+##
+## updated 13-Nov-2022 to correct extended options in initfa.c
+
 doinit.c
   case 'B': m_msg->z_bits = 0;
   case 'C': m_msg->nmlen
@@ -18,14 +21,12 @@ doinit.c
   case 'v':  ppst->zs_win
   case 'w':  m_msg->aln.llen
   case 'W':  m_msg->aln.llcntx
-  case 'X':  m_msg->sq0off,&m_msg->sq1off
   case 'z':  ppst->zsflag
   case 'v':  ppst->zs_win
   case 'V':  m_msg->ann_arr
   case 'Z':  ppst->zdb_size
 
 initfa.c
-  case '1': ppst->param_u.fa.iniflag=1;
   case '3': m_msg->nframe = 3; /* TFASTA */
 	    m_msg->nframe = 1;	/* for TFASTXY */
 	    m_msg->qframe = 1;  /* for FASTA, FASTX */
@@ -44,12 +45,21 @@ initfa.c
   case 'K': ppst->max_repeat
   case 'M': m_msg->n1_low,&m_msg->n1_high
   case 'n': m_msg->qdnaseq = SEQT_DNA (1)
-  case 'o': ppst->param_u.fa.optflag = 0;
   case 'p': m_msg->qdnaseq = SEQT_PROT (0);
   case 'r': ppst->p_d_mat,&ppst->p_d_mis
   case 's': standard_pam(smstr); ppst->pamoff=atoi(bp+1);
-  case 'S': ppst->ext_sq_set = 1;
+  case 'S': ppst->ext_sq_set = 1;	     /* treat upper/lower case residues differently */
   case 't': ppst->tr_type
-  case 'x': ppst->pam_x
-  case 'y': ppst->param_u.fa.optwid
-  case 'z': ppst->zsflag
+
+  case 'X':  initfa.c/parse_ext_opts()	     /* extended options */
+       'X1' : ppst->param_u.fa.initflag = 1  /* sort by init1 */
+       'Xa' : m_msg->m8_show_annot = 1
+       'XB' : m_msp->blast_ident = 1         /* count identities like BLAST (gaps not in divisor) */
+       'Xb' : m_msp->z_bits = 0	   /* show z-scores, not bit-scores in best score list */
+       'Xg' : m_msp->gi_save = 1   /* do not remove gi|12345 from output */
+       'XI' : m_msp->tot_ident = 1 /* do not round 99.999% identity to 100% */
+       'XM' : m_msp->max_memK = l_arg /* specify maximum amount of memory for library */
+       'XN/XX' : ppst->pam_x_id_sim = 1/-1 /* modify treatment of N:N or X:X in identities */
+       'Xo' : ppst->param_u.fa.optflag = 0 /* do not calculate opt score */
+       'Xx' : ppst->pam_xx, ppst->pam_xm   /* modify score for match to X */
+       'Xy' : ppst->param_u.fa.optwid      /* modify width of fasta optimization window for opt score */

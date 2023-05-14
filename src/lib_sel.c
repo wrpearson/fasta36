@@ -79,8 +79,9 @@ get_lnames(char *iname, struct lib_struct *cur_lib_p)
 
   new_lib_p = cur_lib_p;
   while (fgets(lline,sizeof(lline),tptr)!=NULL) {
-    if (lline[0]==';') continue;
+    if (lline[0]==';') { continue; }
     if ((bp=strchr(lline,'\n'))!=NULL) *bp='\0';
+    if (strlen(lline)==0) { continue; }
     subs_env(tsave, lline, sizeof(tsave));
     if (tsave[0]=='<') {
       strncpy(ldname,&tsave[1],sizeof(ldname));

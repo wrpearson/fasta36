@@ -11,8 +11,7 @@ CFLAGS= -DUNIX -DTIMES -DSFCHAR="':'" -DMAX_WORKERS=4 -DTHR_EXIT=pthread_exit -D
 
 LIB_M = -lm
 
-HFLAGS= -o
-NFLAGS= -o
+HFLAGS=
 
 THR_SUBS = pthr_subs2
 THR_LIBS = -lpthreads

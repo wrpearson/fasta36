@@ -17,7 +17,9 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
-# ann_pfam_www_e.pl gets an annotation file from fasta36 -V with a line of the form:
+## updated 8-Nov-2022 to use pfam-legacy.xfam.org, since pfam has been discontinued
+
+# ann_pfam_www.pl gets an annotation file from fasta36 -V with a line of the form:
 
 # gi|62822551|sp|P00502|GSTA1_RAT Glutathione S-transfer\n  (at least from pir1.lseg)
 #
@@ -81,7 +83,7 @@ my %domain_clan = (NODOM => {clan_id => 'NODOM', clan_acc=>0, domain_cnt=>0});
 my @domain_list = (0);
 my $domain_cnt = 0;
 
-my $loc="https://pfam.xfam.org/";
+my $loc="https://pfam-legacy.xfam.org/";
 my $url;
 
 my @pf_domains;
@@ -220,6 +222,10 @@ sub get_pfam_www {
   my $res = get($loc . $url);
 
   @pf_domains = ();
+
+  if (! $res) {
+      return \@pf_domains;
+  }
 
   my $twig_dom = XML::Twig->new(twig_roots => {matches => 1, sequence => 1},
 #			    start_tag_handlers => {
@@ -652,6 +658,7 @@ ann_feats.pl
                  (also --neg, --neg_doms)
  --no-over  : generate non-overlapping domains (equivalent to ann_pfam_www.pl)
  --no-clans : do not use clans with multiple families from same clan
+ --pfam_acc : report Pfam accession
  --min_nodom=10  : minimum length between domains for NODOM
 
 =head1 DESCRIPTION

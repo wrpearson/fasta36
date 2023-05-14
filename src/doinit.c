@@ -70,6 +70,7 @@ extern char *optarg;
 
 char prog_name[MAX_FN];
 
+extern void s_abort (char *p,  char *p1);
 extern void f_initenv(struct mngmsg *, struct pstruct *, unsigned char **);
 extern void f_lastenv(struct mngmsg *, struct pstruct *);
 extern void f_getopt(char, char *, struct mngmsg *, struct pstruct *);
@@ -209,6 +210,9 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    char g_optstring[MAX_STR];
    char f_optstring[MAX_STR];
    char optstring[MAX_STR];
+
+   char err_str[MAX_STR];
+   char err_str_arg[MAX_STR];
 
    /* help functions exit(); try first */
    if (argc == 1) {
@@ -376,6 +380,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
 	  break;
 	case 'e': 
 	  strncpy(m_msp->link_lname, optarg, MAX_LSTR);
+	  m_msp->quiet = 3;  /* no warning when expansion file missing */
 	  break;
 	case 'F':
 	  sscanf(optarg,"%lg",&m_msp->e_low);
@@ -500,8 +505,28 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
 
    if (argc - optind < 3) return;
    m_msp->tnamesize = sizeof (m_msp->tname);
-   if (argc - optind > 1) {strncpy (m_msp->tname, argv[optind + 1],MAX_FN);}
-   if (argc - optind > 2) {strncpy(m_msp->lname, argv[optind + 2],MAX_LSTR);}
+   if (argc - optind > 1) {
+     if (strlen(argv[optind+1]) >= MAX_FN) {
+       strncpy(err_str_arg, argv[optind+1],sizeof(err_str_arg)-10);
+       strncat(err_str_arg, " ...",8);
+       snprintf(err_str, sizeof(err_str)," query file name %s longer than %d; cannot copy",argv[optind+1],MAX_FN);
+       s_abort(err_str,"");
+     }
+     else {
+	 strncpy (m_msp->tname, argv[optind + 1],MAX_FN);
+     }
+   }
+   if (argc - optind > 2) {
+     if (strlen(argv[optind+1]) >= MAX_LSTR) {
+       strncpy(err_str_arg, argv[optind+2],sizeof(err_str_arg)-10);
+       strncat(err_str_arg, " ...",8);
+       snprintf(err_str, sizeof(err_str)," query file name %s longer than %d; cannot copy",argv[optind+1],MAX_FN);
+       s_abort(err_str,"");
+     }
+     else {
+       strncpy(m_msp->lname, argv[optind + 2],MAX_LSTR);
+     }
+   }
    f_getarg (argc, argv, optind, m_msp, ppst);
 }
 
@@ -913,6 +938,9 @@ parse_markx(char *optarg, struct markx_str *this) {
     }
     if (strchr(stmp,'s')) {
       this->markx |= MX_M8_BTAB_SIM;
+    }
+    if (strchr(stmp,'r')) {
+      this->markx |= MX_M8_BTAB_RAW;
     }
     if (strchr(stmp,'d')) {
       this->show_code |= SHOW_CODE_DOMINFO;

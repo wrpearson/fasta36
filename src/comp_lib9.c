@@ -429,7 +429,7 @@ main (int argc, char *argv[])
   struct a_res_str *next_ares_p, *cur_ares_p; /* used to free-up old a_res */
 
   /* status/parameter information */
-  char info_lib_range[MAX_FN];
+  char info_lib_range[MAX_SSTR];
   char *info_lib_range_p;
   char info_pgm_abbr[MAX_SSTR];
   char info_qlabel[MAX_STR];
@@ -617,10 +617,10 @@ main (int argc, char *argv[])
   if (m_msg.tname[0] == '\0') {
       if (m_msg.quiet >= 1)
 	s_abort("Query sequence undefined","");
-    l1:	fputs (iprompt1, stdout);
-      fflush  (stdout);
-      if (fgets (m_msg.tname, MAX_FN, stdin) == NULL)
-	s_abort ("Unable to read query library name","");
+    l1:	fputs(iprompt1, stdout);
+      fflush(stdout);
+      if (fgets(m_msg.tname, MAX_FN, stdin) == NULL)
+	s_abort("Unable to read query library name","");
       m_msg.tname[MAX_FN-1]='\0';
       if ((bp=strchr(m_msg.tname,'\n'))!=NULL) *bp='\0';
       if (m_msg.tname[0] == '\0') goto l1;
@@ -760,7 +760,7 @@ main (int argc, char *argv[])
 #endif
 
    /* get library file names from argv[2] or by prompting */
-  if (strlen (m_msg.lname) == 0) {
+  if (strlen(m_msg.lname) == 0) {
     if (m_msg.quiet >= 1) s_abort("Library name undefined","");
     lib_choice(m_msg.lname,sizeof(m_msg.lname),m_msg.flstr, m_msg.ldb_info.ldnaseq);
   }

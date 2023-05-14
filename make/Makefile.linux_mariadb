@@ -31,8 +31,7 @@ CFLAGS= -DSHOWSIM -DUNIX -DTIMES -DHZ=100 -DSFCHAR="':'" -DMAX_WORKERS=2 -DTHR_E
 #LIB_M = -L/usr/lib/mysql -lmysqlclient -lm
 # for mySQL databases
 
-HFLAGS= -o
-NFLAGS= -o
+HFLAGS=
 
 # for Linux
 THR_SUBS = pthr_subs2

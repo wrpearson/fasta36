@@ -403,8 +403,7 @@ extern void set_opt_disp_defs(char opt_char, struct opt_def_str *options, int ty
 
 static char z_opt_descr[] = "Statistics estimation method:\n      1 - regression; -1 - no stats.; 0 - no scaling; 2 - Maximum Likelihood Est.;\n      3 - Altschul/Gish; 4 - iter. regress.; 5 - regress w/variance;\n      6 - MLE with comp. adj.;\n     11 - 16 - estimates from shuffled library sequences;\n     21 - 26 - E2()-stats from shuffled high-scoring sequences;";
 
-static char s_opt_descr[] = "Scoring matrix: (protein)\n      BL50, BP62 (sets -f -11 -g -1); P250, OPT5, VT200,\n      VT160, P120, VT120, BL80, VT80, MD40, VT40, MD20, VT20, MD10, VT10;\n      scoring matrix file name; -s ?BL50 adjusts matrix for short queries;";
-
+static char s_opt_descr[] = "Scoring matrix: (protein)\n      BL50, BL62 (sets -f -8 -g -1), BP62 (sets -f -11 -g -1); P250, OPT5, VT200,\n      VT160, P120, VT120, BL80, VT80, MD40, VT40, MD20, VT20, MD10, VT10;\n      scoring matrix file name; -s ?BL50 adjusts matrix for short queries;";
 
 struct opt_def_str f_options[] = {
   {'3', 0, "norevcomp", "compare forward strand only", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -498,9 +497,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8i Sept, 2021 MPI";
+char *verstr="36.3.8i May, 2023 MPI";
 #else
-char *verstr="36.3.8i Sept, 2021";
+char *verstr="36.3.8i May, 2023";
 #endif
 
 static int mktup=3;
@@ -1018,28 +1017,27 @@ f_getopt (char copt, char *optarg,
     break;
   case 'a': m_msg->aln.showall = 1; break;
   case 'A':
-    if (ppst->sw_flag) ppst->sw_flag=0;
-    else ppst->sw_flag= 1;
+    ppst->sw_flag= 1;
     sw_flag_set = 1;
     break;
   case 'b':
-    if (optarg[0] == '$') {
+    if (optarg[0] == '$') {       /* show all output, reset -E */
       m_msg->mshow = -1;
       m_msg->e_cut = 10000000.0;
       break;
     }
-    else if (optarg[0] == '=') {
+    else if (optarg[0] == '=') {  /* -b =10 resets -E, and gurantees that much output */
       m_msg->e_cut = 10000000.0;
       m_msg->e_cut_set = 1;
       m_msg->mshow_min = 1;
       sscanf (optarg+1, "%d", &m_msg->mshow);
     }
-    else if (optarg[0] == '>') {
+    else if (optarg[0] == '>') {  /* -b >10 and guarantees that much output */
       m_msg->mshow_min = 2;
       sscanf (optarg+1, "%d", &m_msg->mshow);
     }
     else {
-      sscanf (optarg, "%d", &m_msg->mshow);
+      sscanf (optarg, "%d", &m_msg->mshow);  /* this much output, limited by -E */
       m_msg->mshow_min = 0;
     }
     m_msg->mshow_set = 1;
@@ -1294,6 +1292,7 @@ f_getopt (char copt, char *optarg,
 /* Extended options:
    -X1 - use the init1 score, rather than initn, for statistics and ordering results
    -Xa  - only report annotation information in -m 8CB output (for later merge)
+   -XA  - force banded alignments
    -Xb - report z-score, not bit-score
    -XB - use blast identities
    -XI - ensure that identities are not rounded to 100%
@@ -1305,7 +1304,7 @@ f_getopt (char copt, char *optarg,
    -Xg  - do not remove gi| numbers
  */
 
-static char my_opts[] = "1aBbgIM:ox:y:N:";
+static char my_opts[] = "1aABbgIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1327,6 +1326,10 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
     break;
 
   case 'a': m_msp->m8_show_annot = 1; break;
+
+  case 'A':  /* -XA forces banded alignments */
+    ppst->sw_flag = 0;
+    sw_flag_set=1; break;
 
   case 'B': m_msp->blast_ident = 1; break;
 

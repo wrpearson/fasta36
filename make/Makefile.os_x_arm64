@@ -39,8 +39,7 @@ LIB_M = -lm
 # for mySQL databases
 # LIB_M = -L/usr/lib64/mysql -lmysqlclient -lm
 
-HFLAGS= -o
-NFLAGS= -o
+HFLAGS=
 
 # for Linux
 THR_SUBS = pthr_subs2
@@ -50,6 +49,9 @@ THR_CC =
 BIN = ../bin
 XDIR = /seqprg/bin
 #XDIR = ~/bin/LINUX
+
+# directory for universal binary process
+UDIR = $(BIN)/arm64
 
 # set up files for SSE2/Altivec acceleration
 #

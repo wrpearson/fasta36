@@ -54,109 +54,73 @@ tinstall: $(TPROGS)
 	pushd $(BIN); cp $(TPROGS) $(XDIR); popd
 
 lalign36 : $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.o $(LSHOWALIGN).o htime.o apam.o doinit.o init_lal.o scale_se.o karlin.o last_thresh.o $(DROPLAL_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/lalign36 $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.o $(LSHOWALIGN).o htime.o apam.o doinit.o init_lal.o $(DROPLAL_O) scale_se.o karlin.o last_thresh.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB)
+	$(CC) $(HFLAGS) -o $(BIN)/lalign36 $(COMP_LIBO) $(COMPACC_SO) $(SHOWBESTO) re_getlib.o $(LSHOWALIGN).o htime.o apam.o doinit.o init_lal.o $(DROPLAL_O) scale_se.o karlin.o last_thresh.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB)
 
 ssearch36 : $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o scale_se.o karlin.o $(DROPGSW_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/ssearch36 $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGSW_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/ssearch36 $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGSW_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 ssearch36s : $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o scale_se.o karlin.o $(DROPGSW_NA_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/ssearch36s $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGSW_NA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/ssearch36s $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGSW_NA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 glsearch36 : $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o scale_sn.o karlin.o $(DROPLNW_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/glsearch36 $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPLNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/glsearch36 $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPLNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 glsearch36s : $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o scale_sn.o karlin.o $(DROPLNW_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/glsearch36s $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPLNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/glsearch36s $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPLNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 ggsearch36 : $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o scale_sn.o karlin.o $(DROPGNW_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/ggsearch36 $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/ggsearch36 $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 ggsearch36s : $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o scale_sn.o karlin.o $(DROPGNW_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o
-	$(CC) $(HFLAGS) $(BIN)/ggsearch36s $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/ggsearch36s $(COMP_THRO) ${WORK_THRO}  $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o $(DROPGNW_O) scale_sn.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o pssm_asn_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fasta36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o scale_se.o karlin.o $(DROPNFA_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/fasta36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fasta36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fasta36sum : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o scale_se.o karlin.o $(DROPNFA_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/fasta36sum $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fasta36sum $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showsum.o re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fasta36u : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showun.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o scale_se.o karlin.o $(DROPNFA_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/fasta36u $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showun.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fasta36u $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showun.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fasta36r : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showrel.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o scale_se.o karlin.o $(DROPNFA_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/fasta36r $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showrel.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fasta36r $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showrel.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fa.o $(DROPNFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fastf36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_ff.o scaleswtf.o last_tat.o tatstats_ff.o karlin.o $(DROPFF_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/fastf36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_ff.o $(DROPFF_O) scaleswtf.o last_tat.o tatstats_ff.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fastf36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_ff.o $(DROPFF_O) scaleswtf.o last_tat.o tatstats_ff.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fastf36s : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showsum.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_ff.o scaleswtf.o karlin.o $(DROPFF_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/fastf36s $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showsum.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_ff.o $(DROPFF_O) scaleswtf.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fastf36s $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) showsum.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_ff.o $(DROPFF_O) scaleswtf.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fasts36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fs.o scaleswts.o last_tat.o tatstats_fs.o karlin.o $(DROPFS_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/fasts36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fs.o $(DROPFS_O) scaleswts.o last_tat.o tatstats_fs.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fasts36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fs.o $(DROPFS_O) scaleswts.o last_tat.o tatstats_fs.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fastm36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fm.o scaleswts.o last_tat.o tatstats_fm.o karlin.o $(DROPFM_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/fastm36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fm.o $(DROPFM_O) scaleswts.o last_tat.o tatstats_fm.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fastm36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fm.o $(DROPFM_O) scaleswts.o last_tat.o tatstats_fm.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fastx36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o c_dispn.o htime.o apam.o doinit.o init_fx.o faatran.o scale_se.o karlin.o drop_fx.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/fastx36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fx.o drop_fx.o faatran.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fastx36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fx.o drop_fx.o faatran.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 fasty36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o c_dispn.o htime.o apam.o doinit.o init_fy.o faatran.o scale_se.o karlin.o drop_fz.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/fasty36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fy.o drop_fz.o faatran.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/fasty36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_fy.o drop_fz.o faatran.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 tfasta36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o c_dispn.o htime.o apam.o doinit.o init_tfa.o scale_se.o karlin.o $(DROPTFA_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/tfasta36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfa.o $(DROPTFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/tfasta36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfa.o $(DROPTFA_O) scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 tfastf36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o c_dispn.o htime.o apam.o doinit.o init_tf.o  scaleswtf.o last_tat.o tatstats_ff.o karlin.o $(DROPTFF_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/tfastf36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tf.o $(DROPTFF_O) scaleswtf.o last_tat.o tatstats_ff.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/tfastf36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tf.o $(DROPTFF_O) scaleswtf.o last_tat.o tatstats_ff.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 tfasts36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o c_dispn.o htime.o apam.o doinit.o init_tfs.o scaleswts.o last_tat.o tatstats_fs.o karlin.o $(DROPTFS_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/tfasts36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfs.o $(DROPTFS_O) scaleswts.o last_tat.o tatstats_fs.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/tfasts36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfs.o $(DROPTFS_O) scaleswts.o last_tat.o tatstats_fs.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 tfastm36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_S).o htime.o apam.o doinit.o init_tfm.o scaleswts.o tatstats_fm.o last_tat.o karlin.o $(DROPTFM_O) $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o
-	$(CC) $(HFLAGS) $(BIN)/tfastm36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_S).o htime.o apam.o doinit.o init_tfm.o $(DROPTFM_O) scaleswts.o tatstats_fm.o last_tat.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/tfastm36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_S).o htime.o apam.o doinit.o init_tfm.o $(DROPTFM_O) scaleswts.o tatstats_fm.o last_tat.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o mrandom.o url_subs.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 tfastx36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfx.o scale_se.o karlin.o drop_tfx.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/tfastx36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfx.o drop_tfx.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
+	$(CC) $(HFLAGS) -o $(BIN)/tfastx36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfx.o drop_tfx.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 tfasty36 : $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfy.o scale_se.o karlin.o drop_tfz.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o
-	$(CC) $(HFLAGS) $(BIN)/tfasty36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfy.o drop_tfz.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
-
-comp_mlib4.o : comp_lib4.c mw.h structs.h defs.h param.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib4.c -o comp_mlib4.o
-
-comp_mthr4.o : comp_lib4.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_structs.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c comp_lib4.c -o comp_mthr4.o
-
-comp_mlib5.o : comp_lib5.c mw.h structs.h defs.h param.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib5.c -o comp_mlib5.o
-
-comp_mthr5.o : comp_lib5.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_structs.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c comp_lib5.c -o comp_mthr5.o
-
-comp_mlib5e.o : comp_lib5e.c mw.h structs.h defs.h param.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib5e.c -o comp_mlib5e.o
-
-comp_mthr5e.o : comp_lib5e.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_structs.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c comp_lib5e.c -o comp_mthr5e.o
-
-comp_mlib7.o : comp_lib7.c mw.h structs.h defs.h param.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib7.c -o comp_mlib7.o
-
-comp_mthr7.o : comp_lib7.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_structs.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c comp_lib7.c -o comp_mthr7.o
-
-comp_mlib7e.o : comp_lib7e.c mw.h structs.h defs.h param.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib7e.c -o comp_mlib7e.o
-
-comp_mthr7e.o : comp_lib7e.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_structs.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c comp_lib7e.c -o comp_mthr7e.o
-
-comp_mlib8.o : comp_lib8.c mw.h structs.h defs.h param.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib8.c -o comp_mlib8.o
-
-comp_mthr8.o : comp_lib8.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_structs.h
-	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_THR -DCOMP_MLIB -c comp_lib8.c -o comp_mthr8.o
+	$(CC) $(HFLAGS) -o $(BIN)/tfasty36 $(COMP_THRO) $(WORK_THRO) $(THR_SUBS).o $(COMPACC_TO) $(SHOWBESTO) re_getlib.o $(SHOWALIGN_T).o htime.o apam.o doinit.o init_tfy.o drop_tfz.o scale_se.o karlin.o $(LGETLIB) c_dispn.o $(NCBL_LIB) lib_sel.o faatran.o url_subs.o mrandom.o $(LIB_M) $(LIB_DB) $(THR_LIBS)
 
 comp_mlib9.o : comp_lib9.c mw.h structs.h defs.h param.h
 	$(CC) $(THR_CC) $(CFLAGS) -DCOMP_MLIB -c comp_lib9.c -o comp_mlib9.o
@@ -168,17 +132,16 @@ work_thr2.o : work_thr2.c mw.h structs.h defs.h param.h thr_bufs2.h thr_buf_stru
 	$(CC) $(THR_CC) $(CFLAGS) -c work_thr2.c
 
 print_pssm : print_pssm.c getseq.c karlin.c apam.c pssm_asn_subs.c
-	$(CC) -o print_pssm $(CFLAGS) print_pssm.c getseq.c karlin.c apam.c pssm_asn_subs.c $(LIB_M) $(LIB_DB)
+	$(CC) $(HFLAGS) -o print_pssm $(CFLAGS) print_pssm.c getseq.c karlin.c apam.c pssm_asn_subs.c $(LIB_M) $(LIB_DB)
 
 map_db : map_db.c uascii.h ncbl2_head.h
-	$(CC) $(LDFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(BIN)/map_db map_db.c
+	$(CC) $(LDFLAGS) $(CPPFLAGS) $(CFLAGS) $(HFLAGS) -o $(BIN)/map_db map_db.c
 
 list_db : list_db.c
-	$(CC) $(LDFLAGS) $(CPPFLAGS) $(CFLAGS) -o $(BIN)/list_db list_db.c
-
+	$(CC) $(LDFLAGS) $(CPPFLAGS) $(CFLAGS) $(HFLAGS) -o $(BIN)/list_db list_db.c
 
 lav2ps : lav2plt.o lavplt_ps.o
-	$(CC) $(LDFLAGS) $(CPPFLAGS) -DUNIX -o $(BIN)/lav2ps lav2plt.o lavplt_ps.o -lm
+	$(CC) $(LDFLAGS) $(CPPFLAGS) -DUNIX $(HFLAGS) -o $(BIN)/lav2ps lav2plt.o lavplt_ps.o -lm
 
 lav2svg : lav2plt.o lavplt_svg.o
-	$(CC) $(LDFLAGS) $(CPPFLAGS) -DUNIX -o $(BIN)/lav2svg  lav2plt.o lavplt_svg.o -lm
+	$(CC) $(LDFLAGS) $(CPPFLAGS) -DUNIX $(HFLAGS) -o $(BIN)/lav2svg  lav2plt.o lavplt_svg.o -lm

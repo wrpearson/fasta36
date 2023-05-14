@@ -9,8 +9,7 @@
 
 CC= cc -h inline1,scalar3,task0,vector2
 
-HFLAGS= -o
-NFLAGS= -o
+HFLAGS=
 
 LIB_M=
 #

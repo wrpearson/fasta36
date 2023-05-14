@@ -29,8 +29,7 @@ LIB_M = -lm -lz
 #LIB_M = -L/usr/local/lib/mysql -lmysqlclient -lm
 # for mySQL databases
 
-HFLAGS= -o
-NFLAGS= -o
+HFLAGS=
 
 # for Linux
 THR_SUBS = mpi_subs2
