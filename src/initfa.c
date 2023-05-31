@@ -412,7 +412,7 @@ struct opt_def_str f_options[] = {
   {'W', 1, "context", "alignment context length (surrounding unaligned sequence)", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
 #if defined(FASTA)
-  {'A', 0, "sw_align", "Smith-Waterman for final DNA alignment, band alignment for protein\n      default is band-alignment for DNA, Smith-Waterman for protein", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'A', 0, "sw_align", "force Smith-Waterman alignment (default is band-alignment for DNA),\n      no effect on protein alignment, -XA for banded protein alignment", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
   {'b', 1, "num_descriptions", "high scores reported (limited by -E by default)", 
    "high scores reported (limited by -E by default);\n      =<int> forces <int> results;", 0, 0, 0, 0, 0.0, 0.0, NULL},
