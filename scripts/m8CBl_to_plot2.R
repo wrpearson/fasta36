@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript --vanilla
 
+## m8CBl_to_plot2.R [-d|--diag_probs] [-p|--pub] [-o|-out align_graph.pdf] -f alignment.m8CBl_file
+##  -f alignment.m8CBl_file is required
+
 ################################################################
 # copyright (c) 2022 by William R. Pearson and The Rector &
 # Visitors of the University of Virginia */
@@ -17,8 +20,9 @@
 # governing permissions and limitations under the License.
 ################################################################
 
-
-## m8CBl_to_plot2.R alignment.m8CBl_file
+## m8CBl_to_plot2.R [-d|--diag_probs] [-p|--pub] [-o|-out align_graph.pdf] -f alignment.m8CBl_file
+##  -f alignment.m8CBl_file is required
+##
 ##
 ## take an m8CBl output of the form:
 ##
@@ -33,7 +37,7 @@
 ## sp|P62158|CALM_HUMAN	149	sp|P62158|CALM_HUMAN	149	39.39	33	20	5	1	37	113	146	0.065	18.3	MLAGDEQK2ED1QEIVAD1FM-IKR2F-S-L-F-1KI4TQIVTNTYKE1LFGVTQVM1
 ## # LALIGN processed 1 queries
 
-## and convert to an x-y plot using ggplot
+## and convert to an x-y plot using ggplot, optionally putting probabilities on diagonals
 
 ################
 ## This is a second attempt to provide an alternative to
@@ -52,15 +56,33 @@
 library(ggplot2)
 library(RColorBrewer)
 library(cowplot)
+library("optparse")
+
+option_list = list(
+	    make_option(c("-d","--diag_prob"),action='store_true',default=FALSE,help='show probabilities on alignment diagonal'),
+	    make_option(c("-f","--file"),type='character',action='store',help='m8CBl alignment file'),
+	    make_option(c("-p","--pub"),action='store_true',help='remove cmdline/date for publication',default=FALSE),
+	    make_option(c("-o","--pdf"),type='character',action='store',help='PDF file name')
+	    )
+
+opt_parser = OptionParser(option_list=option_list);
+opt = parse_args(opt_parser);
+print(opt)
 
 args <- commandArgs(trailingOnly=TRUE)
 
-p.name<-'m8CBl_to_plot2.R'
-plabel=paste(c(p.name,args,date()),collapse=' ', sep=' ')
+## print(args)
 
-if (is.na(args[1])) {
-    print("usage m8CBl_to_plot.R alignment.m8CBl_file")
-    exit(1)
+p.name<-'m8CBl_to_plot2.R'
+plabel=paste(c(p.name,args,"\n",date()),collapse=' ', sep=' ')
+
+if (is.null(opt$file)) {
+
+    print_help(opt_parser)
+
+    cat("  m8CBl_to_plot.R [-d] -f alignment.m8CBl_file\n\n")
+
+    quit(save='no',status=1)
 }
 
 btop_split <- function(btop_str) {
@@ -148,7 +170,7 @@ m8_col_names = c("qseqid","qlen","sseqid","slen","percid","aln_len","mismat","ga
 m8_col_names_ann = c("qseqid","qlen","sseqid","slen","percid","aln_len","mismat","gaps","q_start","q_end","s_start","s_end","evalue","bits","BTOP","ann_str")
 m8_col_names_ann2 = c("qseqid","qlen","sseqid","slen","percid","aln_len","mismat","gaps","q_start","q_end","s_start","s_end","evalue","bits","BTOP","ann_str","seq_ann_str")
 
-m8_df <- read.table(args[1],header=FALSE)
+m8_df <- read.table(opt$file,header=FALSE)
 
 m8_df_ncols <- dim(m8_df)[2]
 
@@ -241,7 +263,11 @@ for (ix in 1:length(xy_list)) {
 x_label = sprintf("%s %d aa",m8_df[1,]$qseqid, m8_df[1,]$qlen)
 y_label = sprintf("%s %d aa",m8_df[1,]$sseqid, m8_df[1,]$slen)
 
-pdf(file=paste0(args[1],'.pdf'),width=5, height=6)
+if (is.null(opt$pdf)) {
+   pdf(file=paste0(opt$file,'.pdf'),width=5, height=6)
+} else {
+   pdf(file=opt$pdf,width=5, height=6)
+}
 
 ## set colors based on evalue's
 e_colors = scale_color_manual(values=line_colors_n)
@@ -256,9 +282,13 @@ if (elab_size < 2) {
 
 ## pA -- draw alignment plot
 
-pA <- ggplot(xy_df) + geom_line(aes(x=x,y=y,color=u.eline)) + geom_text(data=xy_lab, aes(x=x,y=y,label=lab),angle=45,nudge_x= -2.0, nudge_y=2.0, hjust=0.5, vjust=0,size=elab_size) +
+pA <- ggplot(xy_df) + geom_line(aes(x=x,y=y,color=u.eline)) + 
     coord_fixed(ratio=1) + xlab(x_label) + ylab(y_label) + e_colors  +
     theme_bw() + guides(color='none') + theme(plot.margin=unit(c(2.0, 0.5, 0.5, 0.5), "cm"))
+
+if (opt$diag_prob) {
+   pA <- pA + geom_text(data=xy_lab, aes(x=x,y=y,label=lab),angle=45,nudge_x= -2.0, nudge_y=2.0, hjust=0.5, vjust=0,size=elab_size)
+}
 
 ## pB -- draw evalue color legend
 xlab_pos = c(5, 45, 5, 45, 80)
@@ -269,7 +299,12 @@ lab_df <- data.frame(x1 = xlab_pos, x2=xlab_pos + 15, y1 = ylab_pos, y2=ylab_pos
 e_colors2 = scale_color_manual(values=line_colors)
 
 pB <- ggplot(lab_df) + geom_segment(aes(x=x1, xend=x2, y=y1,yend=y2, color=u.eline)) + geom_text(aes(x=x2+2,y=y1+0.03, label=etext),hjust=0) + xlim(c(-20,120)) + ylim(c(5,18)) + coord_fixed() + e_colors2 + guides(color='none') +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),axis.title=element_blank(),plot.margin=unit(c(-0.5, 0.5, 0.5, 0.5), "cm")) + labs(caption=plabel)
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_blank(), axis.text.x=element_blank(), axis.text.y=element_blank(),axis.ticks=element_blank(),axis.title=element_blank(),plot.margin=unit(c(-0.5, 0.5, 0.5, 0.5), "cm"))
+
+## do we add cmdline and date?
+if (is.null(opt$pub) || !opt$pub) {
+  pB = pB + labs(caption=plabel)
+}
 
 ## plot out pA (the data) above pB (the legend)
 plot_grid(pA,pB,ncol=1,rel_heights=c(0.8,0.2),rel_widths=c(1.0,1.0))
