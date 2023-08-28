@@ -50,6 +50,7 @@ pgm_data = "/seqprg/data"
 ssearch_bin = pgm_bin+"/ssearch36"
 psiblast_bin = pgm_bin+"/psiblast"
 makeblastdb_bin = pgm_bin+"/makeblastdb"
+## makeblastdb_bin = "/home/wrp/src/ncbi-blast-2.9.0+/bin"+"/makeblastdb"
 datatool_bin = "%s/datatool -m %s/NCBI_all.asn" % (pgm_bin,pgm_data)
 align2msa_lib = "m89_btop_msa2.pl"
 clustal2fasta = "clustal2fasta.py"
@@ -124,7 +125,7 @@ def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_
   (this_msa, this_hit_db, this_pssm_asntxt, this_pssm_asnbin, this_psibl_out, this_bound_out) =  (this_file_out+".msa",this_file_out+".hit_db",this_file_out+".asntxt",this_file_out+".asnbin",this_file_out+".psibl_out",this_file_out+".bnd_out")
 
   blastdb_err = this_file_out+".mkbldb_err"
-  aln2msa_cmd = "%s --query %s --masked_lib_out=%s" % (align2msa_lib, query_file, this_hit_db)
+  aln2msa_cmd = "%s --query %s --clustal --masked_lib_out=%s" % (align2msa_lib, query_file, this_hit_db)
 
   if (prev_sel_res) :
     aln2msa_cmd += " --sel_res %s" % (prev_sel_res)
@@ -159,7 +160,8 @@ def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_
 
   log_system("%s > %s 2> %s.err" % (buildpssm_cmd, this_psibl_out, this_psibl_out), error_log)
 
-  log_system("rm %s.p* %s" % (this_hit_db,blastdb_err), error_log)
+  if not (args.save_all):
+    log_system("rm %s.p* %s" % (this_hit_db,blastdb_err), error_log)
 
   # remove uninformative error logs
   if (not error_log) :
@@ -176,7 +178,7 @@ def build_msa_pssm(query_file, this_file_out,prev_bound_in, prev_sel_res, error_
 # sub pssm_from_msa
 # read multiple sequence alignment, produce pssm file
 #
-def pssm_from_msa(query_file, msa_file, error_log):
+def pssm_from_msa(query_file, msa_file, error_log, save_all):
 
   this_file_out = query_file
 
@@ -199,7 +201,8 @@ def pssm_from_msa(query_file, msa_file, error_log):
 
   log_system("%s > %s 2> %s.err" % (buildpssm_cmd, this_psibl_out, this_psibl_out), error_log)
 
-  log_system("rm %s.p* %s" % (this_hit_db,blastdb_err), error_log)
+  if (not save_all):
+    log_system("rm %s.p* %s" % (this_hit_db,blastdb_err), error_log)
 
   # remove uninformative error logs
   if (not error_log):
@@ -378,7 +381,7 @@ elif (args.prev_m89res):
   this_file_out = args.prev_m89res
 elif (args.prev_msa):
 # build a PSSM, do a search, up the iteration count
-  prev_pssm  = pssm_from_msa(query_file, prev_msa, args.error_log)
+  prev_pssm  = pssm_from_msa(query_file, prev_msa, args.error_log,args.save_all)
   search_str = srch_subs[srch_pgm](args.query_file, args.db_file, args.prev_pssm, args)
   if (not args.use_stdout):
     log_system(search_str + "> " + this_file_out + " 2> " + this_file_out + ".err", args.error_log);
