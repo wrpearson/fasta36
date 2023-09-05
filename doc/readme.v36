@@ -10,6 +10,15 @@ BLAST could show multiple HSPs, FASTA did not.
 [initfa.c]
 Add -Xh option to display -X? extended options.
 
+>>Aug 25, 2023
+[scripts/m8CBl_to_plot2.R]
+m8CBl_to_plot2.r reads -m8CBl output from lalign36 (or other programs)
+and produces a dot-plot mapping of the alignment.  Options are
+provided to label alignment diagonals with E()-values.
+
+[psisearch/psisearch2_msa.py, psisearch2_msa.pl]
+Changes to support NCBI blast+ version 2.14.1+
+
 >>May 3, 2023
 [initfa.c]
 Restore the functionality of the '-A' option, which forces
