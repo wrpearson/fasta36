@@ -75,6 +75,11 @@ Changes in **fasta-36.3.8i** Sept, 2023
 
 2. `R` scripts (`m8CBl_to_plot2.R`) to convert `-m8CBl` alignments to "dot-plots". Options to put E()-values along alignment diagonals.
 
+Changes in **fasta-36.3.8i** Aug, 2023
+
+1. Changes to the `psisearch2/psisearch2_msa.pl` and
+`psisearch2/psisearch2_msa.pl` to work with current versions of NCBI-BLAST+ (`psiblast`).
+
 Changes in **fasta-36.3.8i** May, 2023
 
 1. restore the default `-s BL62` gap penalties to -8, -1 (they were -11, -1, matching `-s BP62`)
