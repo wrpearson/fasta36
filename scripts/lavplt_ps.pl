@@ -86,6 +86,8 @@ sub openplt {
   print("/Courier findfont 14 scalefont setfont\n");
   print("/vcprint { gsave 90 rotate dup stringwidth pop 2 div neg 0 rmoveto\n");
   print("show newpath stroke grestore } def\n");
+  print("/vcprintr { gsave -90 rotate dup stringwidth pop 2 div neg 0 rmoveto\n");
+  print("show newpath stroke grestore } def\n");
   print("/vprint { gsave 90 rotate\n");
   print("show newpath stroke grestore } def\n");
   print("/hcprint { gsave dup stringwidth pop 2 div neg 0 rmoveto\n");
@@ -330,7 +332,10 @@ sub xgrid {
     my $str = $annot->{sdescr};
     $str =~ s/\(/\\(/g;
     $str =~ s/\)/\\)/g;
+## show vertically for long annots and short domains
     print "($str) vprint\n";
+## show horizontally for long domains
+##    print "($str) hcprint\n";
   }
   print("grestore\n");
 }
@@ -380,7 +385,12 @@ sub ygrid {
     my $str = $annot->{sdescr};
     $str =~ s/\(/\\(/g;
     $str =~ s/\)/\\)/g;
+
+## show horizonatally (better for long names, short domains)
     print "($str) hprint\n";
+
+    ## show vertically (more compact for long domains)
+    ## print "($str) vcprintr\n";
   }
   print("grestore\n");
 }

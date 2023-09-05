@@ -62,12 +62,13 @@ option_list = list(
 	    make_option(c("-d","--diag_prob"),action='store_true',default=FALSE,help='show probabilities on alignment diagonal'),
 	    make_option(c("-f","--file"),type='character',action='store',help='m8CBl alignment file'),
 	    make_option(c("-p","--pub"),action='store_true',help='remove cmdline/date for publication',default=FALSE),
-	    make_option(c("-o","--pdf"),type='character',action='store',help='PDF file name')
+	    make_option(c("-o","--pdf"),type='character',action='store',help='PDF file name'),
+	    make_option(c("-b","--bits"),action='store_true',default=FALSE,help='show bit score')
 	    )
 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
-print(opt)
+## print(opt)
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -244,7 +245,11 @@ for (ix in 1:length(xy_list)) {
     q_mid = (m8_df[ix,]$q_end - m8_df[ix,]$q_start+1)/2.0 + m8_df[ix,]$q_start-1
     s_mid = (m8_df[ix,]$s_end - m8_df[ix,]$s_start+1)/2.0 + m8_df[ix,]$s_start-1
 
-    tmp_lab = data.frame(u.eline=aln_name,lab=sprintf("%0.2g",m8_df[ix,]$evalue),x=q_mid,y=s_mid)
+    this_lab = sprintf("%0.2g",m8_df[ix,]$evalue)
+    if (opt$bits) {
+        this_lab = sprintf("%0.2g  (%.0f bits)",m8_df[ix,]$evalue,m8_df[ix,]$bits)
+    }
+    tmp_lab = data.frame(u.eline=aln_name,lab=this_lab,x=q_mid,y=s_mid)
 
     xy_lab = rbind(xy_lab, tmp_lab)
 

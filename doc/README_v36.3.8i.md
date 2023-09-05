@@ -69,6 +69,12 @@ The programs available include:
 <tr><td colspan=3><hr/></td><tr>
 </table>
 
+Changes in **fasta-36.3.8i** Sept, 2023
+
+1. `-Xh` provides definitions of `-X?` (extended) options.
+
+2. `R` scripts (`m8CBl_to_plot2.R`) to convert `-m8CBl` alignments to "dot-plots". Options to put E()-values along alignment diagonals.
+
 Changes in **fasta-36.3.8i** May, 2023
 
 1. restore the default `-s BL62` gap penalties to -8, -1 (they were -11, -1, matching `-s BP62`)

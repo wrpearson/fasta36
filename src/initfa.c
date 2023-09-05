@@ -97,6 +97,7 @@ lalign	dna(1)  dna(1)  dna(1)  +5/-4   -12     -4	-	0.1	-	-
 */
 
 void show_help(char *, int );
+void show_ext_help(char *, int );
 
 char *ref_str_a[]={
 /* 0 */ "W.R. Pearson & D.J. Lipman PNAS (1988) 85:2444-2448\n",
@@ -439,10 +440,10 @@ struct opt_def_str f_options[] = {
 #endif
 #endif
 #if defined(LALIGN)
-  {'J', 0, "show_ident", "show identity alignment", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'J', 0, "show_ident", "show identity alignment (LALIGN)", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'K', 1, "max_repeat", "maximum number of non-intersecting alignments", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
-  {'k', 1, "nshuffle", "number of shuffles", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'k', 1, "nshuffle", "number of shuffles for statistics", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'M', 1, "range", "filter on library sequence length", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'n', 0, "dna", "DNA/RNA query", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'p', 0, "prot", "protein query", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -458,9 +459,33 @@ struct opt_def_str f_options[] = {
   {'t', 1, "gencode", "translation genetic code", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
   {'U', 0, "rna", "RNA query", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
-  {'X', 1, "ext_opts", "Extended options", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'X', 1, "ext_opts", "Extended options (-Xh for extended option help)", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'z', 1, "stats", "Statistics estimation method", &z_opt_descr[0], 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'\0', 0, "", "", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL}
+};
+
+struct opt_def_str f_options_ext[] = {
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'1',0,"init1","use init1, not opt for ranking", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
+  {'a',0,"m8annot","report only annotation information in -m8CB",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'A',0,"band","force banded alignments (-A forces Smith-Waterman)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
+  {'b',0,"nobit","report z-score, not bit-score",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'B',0,"blastid","report blast identities (excludes gaps)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'g',0,"nogid","do not remove gi| numbers",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'h',0,"help","help message",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'I',0,"no_round","identities not rounded to 100% unless 100%",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'M',1,"memlim","memory limits for database buffering",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'N',1,"Nscore","treat N:N/X:X as similar and identical",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'o',0,"initn","use initn, not opt, for ranking",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
+  {'x',1,"xmatch","penalties for X:X/X:not-X match",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'y',1,"bandwidth","band width for opt scores",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
 };
 
 void f_init_opts(int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -497,9 +522,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8i May, 2023 MPI";
+char *verstr="36.3.8i Sept, 2023 MPI";
 #else
-char *verstr="36.3.8i May, 2023";
+char *verstr="36.3.8i Sept, 2023";
 #endif
 
 static int mktup=3;
@@ -1304,7 +1329,7 @@ f_getopt (char copt, char *optarg,
    -Xg  - do not remove gi| numbers
  */
 
-static char my_opts[] = "1aABbgIM:ox:y:N:";
+static char ext_opts[] = "1aABbghIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1312,7 +1337,7 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
   char c_arg, c_opt, *the_arg, *bp;
 
   c_opt = *opt_arg;
-  if ((bp=strchr(my_opts, c_opt))==NULL) {
+  if ((bp=strchr(ext_opts, c_opt))==NULL) {
     return;
   }
 
@@ -1335,6 +1360,9 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
 
   case 'b': m_msp->z_bits = 0; break;
   case 'g': m_msp->gi_save = 1; break;
+  case 'h':
+    show_ext_help(m_msp->pgm_name, pgm_id);
+    break;
   case 'I': 
     m_msp->tot_ident = 1;
     /*
@@ -3055,7 +3083,7 @@ show_help(char *pgm_name, int pgm_id) {
   printf("\nDESCRIPTION\n");
   printf(" %s\n version: %s\n",pgm_def_arr[pgm_id].iprompt0, verstr);
   printf("\n");
-  printf("COMMON OPTIONS (options must preceed query_file library_file)\n");
+  printf("COMMON OPTIONS (options must precede query_file library_file)\n");
 
   for (i=0; i<strlen(common_opts); i++) {
     opt_ptr = g_options;
@@ -3076,13 +3104,41 @@ show_help(char *pgm_name, int pgm_id) {
 	format_params(&opt_ptr[j], tmp_string);
 	printf(" -%c%c %s %s;",opt_ptr[j].opt_char, (opt_ptr[j].has_arg? ':' : ' '), 
 	       tmp_string, opt_ptr[j].opt_descr_s);
-	/* if ((++opt_line_cnt % 2)==0) printf("\n"); */
 	printf("\n");
       }
     }
   next_option: continue;
   }
   if ((opt_line_cnt % 2) != 0) printf("\n");
+  exit(0);
+}
+
+void
+show_ext_help(char *pgm_name, int pgm_id) {
+  int i, j;
+  int opt_line_cnt=0;
+  char tmp_string[MAX_STR];
+  struct opt_def_str *opt_ptr;
+
+
+  printf("%s\n version: %s\n",pgm_def_arr[pgm_id].iprompt0, verstr);
+  printf("\n");
+  printf("Extended Options (-X?) (options must precede query_file library_file)\n");
+
+  for (i=0; i<strlen(ext_opts); i++) {
+    opt_ptr = f_options_ext;
+    for (j=0; opt_ptr[j].opt_char != '\0'; j++) {
+      if (ext_opts[i]==opt_ptr[j].opt_char) {
+	format_params(&opt_ptr[j], tmp_string);
+	printf(" -X%c%c %s %s;",opt_ptr[j].opt_char, (opt_ptr[j].has_arg? ':' : ' '), 
+	       tmp_string, opt_ptr[j].opt_descr_s);
+	/* if ((++opt_line_cnt % 2)==0) printf("\n"); */
+	printf("\n");
+      }
+    }
+  }
+  printf("\n");
+
   exit(0);
 }
 
