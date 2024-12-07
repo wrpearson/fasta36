@@ -478,6 +478,7 @@ struct opt_def_str f_options_ext[] = {
   {'A',0,"band","force banded alignments (-A forces Smith-Waterman)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
   {'b',0,"nobit","report z-score, not bit-score",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'B',0,"minbit","set min-bits for query and matrix",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'g',0,"nogid","do not remove gi| numbers",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'G',0,"nogap_id","report no-gap identities (excludes gaps)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'h',0,"help","help message",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -1361,9 +1362,15 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
     ppst->sw_flag = 0;
     sw_flag_set=1; break;
 
+  case 'b': m_msp->z_bits = 0; break;
+
+  case 'B': sscanf(the_arg,"%ld", &l_arg);
+    if (l_arg >= DEF_MIN_BITS/2 && l_arg < 75) {
+      ppst->min_bits = l_arg;
+    }
+
   case 'G': m_msp->ngap_ident = 1; break;
 
-  case 'b': m_msp->z_bits = 0; break;
   case 'g': m_msp->gi_save = 1; break;
   case 'h':
     show_ext_help(m_msp->pgm_name, pgm_id);
@@ -2745,7 +2752,6 @@ last_params(unsigned char *aa0, int n0,
 
   if (n0 < 0) { return;}
 
-  
   n0_eff = m_msp->n0;
   ppst->n0 = m_msp->n0;
 #if !defined(TFAST) && (defined(FASTX) || defined(FASTY))
@@ -2766,7 +2772,7 @@ last_params(unsigned char *aa0, int n0,
   /* **************************************************************** */
 
   if (ppst->pam_variable) {
-    if (min_pam_bits(n0_eff, DEF_MIN_BITS, ppst, del_set, gap_set)) {
+    if (min_pam_bits(n0_eff, ppst->min_bits, ppst, del_set, gap_set)) {
       init_pam2(ppst);
       init_pamx(ppst);
       kar_p = NULL;
@@ -2781,7 +2787,7 @@ last_params(unsigned char *aa0, int n0,
     }
     else {
       fprintf(stderr,"+++ warning [%s:%d] - query too short [%d] for %d bit signal -- fasts36 may be more useful +++\n",
-	      __FILE__, __LINE__, n0, DEF_MIN_BITS);
+	      __FILE__, __LINE__, n0, ppst->min_bits);
     }
   }
 

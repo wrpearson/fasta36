@@ -57,6 +57,7 @@ struct pstruct		/* parameters */
   int p_d_mat;	/* dna match penalty */
   int p_d_mis;	/* dna mismatch penalty */
   int p_d_set;	/* using match/mismatch */
+  int min_bits; /* replacement for DEF_MIN_BITS */
   int n1_low;
   int n1_high;	/* sequence length limits */
   int score_ix;	/* index to sorted score */

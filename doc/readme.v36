@@ -19,6 +19,12 @@ used for percent identity.  Replace -XB (BLAST identities) with -XG
 (b) clean up function definitions so that all programs compile cleanly
 under MacOSX (clang compiler).
 
+(c) Provide the -XB ## option to specify the DEF_MIN_BITS (40 by
+default) used with variable scoring matrices "-s ?BP62".  "-XB 50"
+ "-s ?BP62" examines the query sequence length and selects a shallower
+(higher information content) scoring matrix capable of providing
+MIN_BITS of score for short queries.
+
 >>Aug 28, 2024
 [src/dropfx2.c,dropfz3.c,compacc2e.c]
 Correct bug in variant score calculation for translated alignments.

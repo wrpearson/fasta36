@@ -357,6 +357,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    ppst->zdb_size_set = 0;
    ppst->dnaseq = SEQT_PROT;	/* default is protein */
    ppst->nt_align = 0;
+   ppst->min_bits = DEF_MIN_BITS;
 
    ppst->other_info = NULL;
 
