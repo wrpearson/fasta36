@@ -1422,12 +1422,6 @@ A number of rarely used options are now only available as extended options:
 
 \item[\texttt{Xa}] only report annotation information in -m 8CB output.
 
-\item[\texttt{XB}] Calculate pecent identity, percent similarity, and
-  alignment using the BLAST model, which excludes gapped residues.
-  This allows very high identity alignments with large gaps to look
-  much closer, but causes the alignment length to drop by the length
-  of the gap.
-
 \item[\texttt{Xb}] (Previously \texttt{-B}.)  Show the z-score, rather
   than the bit-score in the list of best scores (rarely used, provided
   for backward compatibility).
@@ -1436,6 +1430,12 @@ A number of rarely used options are now only available as extended options:
   treated the string \texttt{>gi|123456} specially, removing it from the list
   of high scoring sequences and alignment output.  \texttt{-Xg}
   causes \texttt{gi} numbers to be displayed.
+
+\item[\texttt{XG}] Calculate pecent identity, percent similarity, and
+  alignment excluding gapped residues.
+  This allows very high identity alignments with large gaps to look
+  much closer, but causes the alignment length to drop by the length
+  of the gap.
 
 \item[\texttt{XI}] Modify rounding used in percent identity/percent
   similarity display to ensure that sequences that have a mismatch are

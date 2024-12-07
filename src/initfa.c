@@ -478,8 +478,8 @@ struct opt_def_str f_options_ext[] = {
   {'A',0,"band","force banded alignments (-A forces Smith-Waterman)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
   {'b',0,"nobit","report z-score, not bit-score",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
-  {'B',0,"blastid","report blast identities (excludes gaps)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'g',0,"nogid","do not remove gi| numbers",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'G',0,"nogap_id","report no-gap identities (excludes gaps)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'h',0,"help","help message",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'I',0,"no_round","identities not rounded to 100% unless 100%",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'M',1,"memlim","memory limits for database buffering",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
