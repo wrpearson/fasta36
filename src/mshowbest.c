@@ -600,14 +600,14 @@ l1:
 	disp_similar = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
         ng_similar = calc_fpercent_id(100.0,aln_p->nsim,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 	disp_alen = aln_p->lc;
-	if (m_msp->blast_ident) {
+	if (m_msp->ngap_ident) {
 	  disp_percent = ng_percent;
 	  disp_similar = ng_similar;
 	  disp_alen = aln_p->lc - ngap;
 	}
 
 #ifndef SHOWSIM
-	gpercent = ng_percent;
+	gpercent = disp_percent;
 #else
 	gpercent = disp_similar;
 #endif	/* SHOWSIM */
@@ -648,13 +648,13 @@ l1:
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
 	    if (m_msp->markx & MX_M8_BTAB_SIM) {
-	      fprintf(fp,"\t%.2f\t%.2f",ng_percent, ng_similar);
+	      fprintf(fp,"\t%.3f\t%.3f",disp_percent, disp_similar);
 	    }
 	    else {
-	      fprintf(fp,"\t%.2f",ng_percent);
+	      fprintf(fp,"\t%.3f",percent);
 	    }
-	    fprintf(fp,"\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
-		    aln_p->lc-ngap,aln_p->nmismatch,
+	    fprintf(fp,"\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.3g\t%.1f",
+		    disp_alen,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,

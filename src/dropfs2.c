@@ -1274,9 +1274,7 @@ int sconn (struct savestr **v, int n,
 }
 
 void
-kssort (v, n)
-struct savestr *v[];
-int     n;
+kssort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;
@@ -1294,9 +1292,7 @@ int     n;
 }
 
 void
-kpsort (v, n)
-struct savestr *v[];
-int     n;
+kpsort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;
@@ -1326,9 +1322,7 @@ shscore(const unsigned char *aa0, const int n0, int **pam2, int nsq)
 /* sorts alignments from right to left (back to front) based on stop */
 
 void
-krsort (v, n)
-struct savestr *v[];
-int     n;
+krsort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;

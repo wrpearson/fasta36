@@ -58,7 +58,7 @@ typedef int64_t MM_OFF;
 #include "defs.h"
 #endif
 
-extern unsigned long adler32();
+extern unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 
 struct lmf_str {
   FILE *libf;		/* sequence file being read */

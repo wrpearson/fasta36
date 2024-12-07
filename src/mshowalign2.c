@@ -545,7 +545,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       ngap = l_aln_p->ngap_q + l_aln_p->ngap_l;
       ng_percent = calc_fpercent_id(100.0, l_aln_p->nident,lc-ngap,m_msp->tot_ident, -1.0);
-      if (m_msp->blast_ident) { 
+      if (m_msp->ngap_ident) { 
 	disp_percent = ng_percent;
 	disp_similar = calc_fpercent_id(100.0, l_aln_p->npos, lc-ngap, m_msp->tot_ident, -1.0);
 	disp_alen = lc - ngap;
@@ -642,12 +642,24 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 		lbits, rst_p->score[ppst->score_ix] + score_delta,
 		zs_to_E(lzscore, bbp->seq->n1, ppst->dnaseq, ppst->zdb_size, m_msp->db));
 
-	fprintf(fp, " Identities = %d/%d (%d%%)", l_aln_p->nident, lc-ngap,
-		(int)((100.0*(float)l_aln_p->nident+0.5)/(float)(lc-ngap)));
+	if (m_msp->ngap_ident) {
+	  fprintf(fp, " Identities = %d/%d (%d%%)", l_aln_p->nident, lc-ngap,
+		  (int)((100.0*(float)l_aln_p->nident+0.5)/(float)(lc-ngap)));
+	}
+	else {
+	  fprintf(fp, " Identities = %d/%d (%d%%)", l_aln_p->nident, lc,
+		  (int)((100.0*(float)l_aln_p->nident+0.5)/(float)(lc)));
+	}
 
 	if (!disp_dna_align) {
-	  fprintf(fp, ", Positives = %d/%d (%d%%)", l_aln_p->npos, lc-ngap, 
-		  (int)((100.0*(float)l_aln_p->npos+0.5)/(float)(lc-ngap)));
+	  if (m_msp->ngap_ident) {
+	    fprintf(fp, ", Positives = %d/%d (%d%%)", l_aln_p->npos, lc-ngap, 
+		    (int)((100.0*(float)l_aln_p->npos+0.5)/(float)(lc-ngap)));
+	  }
+	  else {
+	    fprintf(fp, ", Positives = %d/%d (%d%%)", l_aln_p->npos, lc, 
+		    (int)((100.0*(float)l_aln_p->npos+0.5)/(float)(lc)));
+	  }
 	}
 
 	fprintf(fp, ", Gaps = %d/%d (%d%%)\n",ngap, lc-ngap,

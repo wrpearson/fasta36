@@ -61,7 +61,7 @@ typedef off_t fseek_t;
 
 #define LASTLIB 6
 
-int (*get_entry) ();
+int (*get_entry) (unsigned char *sbuff, int sbuff_max, fseek_t *d_pos, fseek_t *s_pos);
 
 int a_get_ent(unsigned char *, int, fseek_t *, fseek_t *);
 int gbf_get_ent(unsigned char *, int, fseek_t *, fseek_t *);

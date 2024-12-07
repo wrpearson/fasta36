@@ -473,7 +473,7 @@ calc_cons_u( /* inputs */
   d0_score = d0_ident = d0_alen = d0_gaplen = 0;
 
   lenc = aln->nident = aln->nmismatch =
-    aln->npos = aln->nsim = aln->ngap_q = aln->ngap_l = aln->nfs = op = 0;
+    aln->npos = aln->nsim = aln->ngap_q = aln->ngap_l = aln->nfs = aln->ngap_open = op = 0;
 
   i0 = a_res->min0;	/* start in aa0[] */
   i1 = a_res->min1;	/* start in aa1[] */

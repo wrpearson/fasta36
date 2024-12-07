@@ -6,6 +6,19 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Dec 6, 2024
+[src/ many *.c and *.h files]
+
+(a) modify options and -mB -m8 blast-like alignment information to
+report percent identities that include gaps (as BLAST does).  I
+mistakenly thought BLAST did not include gaps in the alignment length
+used for percent identity.  Replace -XB (BLAST identities) with -XG
+(ungapped identities). Replace structs.h/mng_msg.blast_ident with
+.gap_ident.  Changes also required in doinit.c, mshowalign2.c, and mshowbest.c.
+
+(b) clean up function definitions so that all programs compile cleanly
+under MacOSX (clang compiler).
+
 >>Aug 28, 2024
 [src/dropfx2.c,dropfz3.c,compacc2e.c]
 Correct bug in variant score calculation for translated alignments.

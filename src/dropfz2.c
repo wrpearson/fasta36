@@ -3179,6 +3179,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
   aln->ngap_q = ngap_p;
   aln->ngap_l = ngap_d;
 #endif
+  aln->ngap_open = 0;
   aln->calc_last_set = 1;
   aln->nfs = nfs;
   aln->amin0 = aln->smin0;

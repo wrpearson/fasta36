@@ -527,9 +527,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8i Aug, 2024 MPI";
+char *verstr="36.3.8i Dec, 2024 MPI";
 #else
-char *verstr="36.3.8i Aug, 2024";
+char *verstr="36.3.8i Dec, 2024";
 #endif
 
 static int mktup=3;
@@ -1324,7 +1324,7 @@ f_getopt (char copt, char *optarg,
    -Xa  - only report annotation information in -m 8CB output (for later merge)
    -XA  - force banded alignments
    -Xb - report z-score, not bit-score
-   -XB - use blast identities
+   -XG - use ungapped identities
    -XI - ensure that identities are not rounded to 100%
    -XM: - specify memory limits for database buffering
    -XN:[+S] - treat N:N/X:X as similar as well as identical
@@ -1361,7 +1361,7 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
     ppst->sw_flag = 0;
     sw_flag_set=1; break;
 
-  case 'B': m_msp->blast_ident = 1; break;
+  case 'G': m_msp->ngap_ident = 1; break;
 
   case 'b': m_msp->z_bits = 0; break;
   case 'g': m_msp->gi_save = 1; break;
@@ -2081,9 +2081,7 @@ last_calc(
 #endif
 
 /* this function is almost never called, thus a slow shell sort */
-void sortbest (bptr, nbest, irelv)
-struct beststr **bptr;
-int nbest, irelv;
+void sortbest (struct beststr **bptr, int nbest, int irelv)
 {
     int gap, i, j;
     struct beststr *tmp;
@@ -2103,9 +2101,7 @@ void header_aux(FILE *fp) {}
 
 #else
 /* this function is almost never called, thus a slow shell sort */
-void sortbest (bptr, nbest, irelv)
-struct beststr **bptr;
-int nbest, irelv;
+void sortbest (struct beststr **bptr, int nbest, int irelv)
 {
     int gap, i, j;
     struct beststr *tmp;

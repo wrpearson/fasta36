@@ -1089,9 +1089,7 @@ int sconn (struct savestr **v, int n, int cgap, int pgap, int noff)
 }
 
 void
-kssort (v, n)
-struct savestr *v[];
-int     n;
+kssort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;
