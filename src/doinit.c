@@ -305,7 +305,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    /* values set in initfa.c: parse_ext_opts() */
    m_msp->z_bits = 1;
    m_msp->tot_ident = 0;
-   m_msp->blast_ident = 0;
+   m_msp->ngap_ident = 0;
    m_msp->m8_show_annot = 0;
 
    m_msp->gi_save = 0;
@@ -357,6 +357,7 @@ void initenv (int argc, char **argv, struct mngmsg *m_msp,
    ppst->zdb_size_set = 0;
    ppst->dnaseq = SEQT_PROT;	/* default is protein */
    ppst->nt_align = 0;
+   ppst->min_bits = DEF_MIN_BITS;
 
    ppst->other_info = NULL;
 

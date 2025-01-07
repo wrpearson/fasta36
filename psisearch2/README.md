@@ -1,6 +1,13 @@
 
 ## PSISEARCH2 - iterative PSSM-based similarity searching using PSIBLAST or SSEARCH36
 
+#### Auguest, 2023
+
+`psisearch2_msa.pl` and `psisearch2_msa.py` have been modified to use
+current versions of NCBI-BLAST+ (last tested with 2.14.1).  Current
+BLAST programs require "ClustalW" for MSA's provided to `psiblast`;
+which is now down by `psisearch2_msa.pl` and `psisearch2_msa.py`.
+
 #### September, 2016
 
 `psisearch2_msa.pl` and `psisearch2_msa.py` (both scripts have

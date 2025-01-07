@@ -139,7 +139,7 @@ sub show_annots {
   $acc =~ s/\.\d+$//;
 
 #  my  $exon_json = get_https($uniprot_url.$acc.$uniprot_suff);
-  my  $exon_json = get($uniprot_url.$acc.$uniprot_suff);
+  my  $exon_json = get_https($uniprot_url.$acc.$uniprot_suff);
 
   unless (!$exon_json || $exon_json =~ m/errorMessage/ || $exon_json =~ m/Can not find/) {
     $annot_data{list} = parse_json_up_exons($exon_json);

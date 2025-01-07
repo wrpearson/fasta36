@@ -834,7 +834,7 @@ do_fasta (const unsigned char *aa0, int n0,
 void do_work (const unsigned char *aa0, int n0,
 	      const unsigned char *aa1, int n1,
 	      int frame,
-	      const struct pstruct *ppst, struct f_struct *f_str,
+	      struct pstruct *ppst, struct f_struct *f_str,
 	      int qr_flg, int shuff_flg, struct rstruct *rst, 
 	      struct score_count_s *s_info)
 {
@@ -1089,9 +1089,7 @@ int sconn (struct savestr **v, int n, int cgap, int pgap, int noff)
 }
 
 void
-kssort (v, n)
-struct savestr *v[];
-int     n;
+kssort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;

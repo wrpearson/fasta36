@@ -619,7 +619,7 @@ int do_fastf (unsigned char *aa0, int n0,
 void do_work (const unsigned char *aa0, int n0,
 	      const unsigned char *aa1, int n1,
 	      int frame,
-	      const struct pstruct *ppst, struct f_struct *f_str,
+	      struct pstruct *ppst, struct f_struct *f_str,
 	      int qr_flg, int shuff_flg, struct rstruct *rst,
 	      struct score_count_s *s_info)
 {
@@ -694,9 +694,7 @@ void do_opt (const unsigned char *aa0, int n0,
 }
 
 void
-savemax (dptr, f_str)
-  register struct dstruct *dptr;
-  struct f_struct *f_str;
+savemax (struct dstruct *dptr, struct f_struct *f_str)
 {
    register int dpos;
    register struct savestr *vmptr;
@@ -1115,9 +1113,7 @@ kssort (struct savestr **v, int n)
 	 }
 }
 void
-kpsort (v, n)
-struct savestr *v[];
-int     n;
+kpsort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;
@@ -1137,9 +1133,7 @@ int     n;
 /* sorts alignments from right to left (back to front) based on stop */
 
 void
-krsort (v, n)
-struct savestr *v[];
-int     n;
+krsort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;

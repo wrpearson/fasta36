@@ -59,7 +59,7 @@ re_getlib(unsigned char *, struct annot_str **,
 #include "drop_func.h"
 
 void
-s_annot_to_aa1a(int n1, struct annot_str *annot_p, unsigned char *ann_arr);
+s_annot_to_aa1a(long offset, int n1, struct annot_str *annot_p, unsigned char *ann_arr, char *tmp_line);
 
 /* from build_ares.c */
 struct a_res_str *
@@ -81,12 +81,12 @@ extern float
 calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail);
 
 extern int
-get_annot(char *sname, struct mngmsg *m_msp, char *bline, int n1, struct annot_str **annot_p,
+get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, struct annot_str **annot_p,
  	  int target, int debug);
 extern double find_z(int score, double escore, int length, double comp,void *);
 extern double zs_to_E(double zs, int n1, int dnaseq, long db_size, struct db_str db);
 extern double zs_to_bit(double, int, int);
-extern int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
+extern int E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag, void *pu);
 
 void header_aux(FILE *);
 void show_aux(FILE *, struct beststr *);
@@ -125,7 +125,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   int istart = 0, istop, ib;
   int nshow;		/* number of sequences shown before prompt,
 			   and ultimately displayed */
-  int first_line, link_shown;
+  int first_line, link_shown, did_newline;
   int quiet;
   int r_margin;
   struct beststr *bbp;
@@ -146,7 +146,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   struct a_struct *aln_p;
   struct a_res_str *cur_ares_p;
   struct rstruct *rst_p;
-  int gi_num;
+  /* int gi_num; */
   char html_pre_E[120], html_post_E[120];
   int have_lalign = 0;
   struct dyn_string_str *dominfo_dstr;
@@ -377,7 +377,7 @@ l1:
       }
       else {
 	bbp->repeat_thresh = 
-	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, m_msp->pstat_void),
+	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, ppst->zsflag, m_msp->pstat_void),
 	      bbp->rst.score[ppst->score_ix]);
       }
     }
@@ -430,9 +430,12 @@ l1:
 
 	if (m_msp->ann_flg==2 && bbp->seq->annot_p==NULL ) {
 	  /* get information about this sequence from bline */
-	  if (get_annot(m_msp->annot1_sname, m_msp, bline, bbp->seq->n1, &(bbp->seq->annot_p), 1, ppst->debug_lib) > 0) {
+	  if (get_annot(m_msp->annot1_sname, m_msp, bline, 
+			bbp->seq->l_offset + bbp->seq->l_off - 1, bbp->seq->n1, 
+			&(bbp->seq->annot_p), 1, ppst->debug_lib) > 0) {
 	    /* do something with annotation */
-	    s_annot_to_aa1a(bbp->n1, bbp->seq->annot_p, m_msp->ann_arr);
+	    s_annot_to_aa1a(bbp->seq->l_offset + bbp->seq->l_off - 1,
+			    bbp->seq->n1, bbp->seq->annot_p, m_msp->ann_arr, bbp->mseq->libstr);
 	  }
 	}
       }
@@ -466,7 +469,7 @@ l1:
     if (!(m_msp->markx & (MX_M8OUT)) && (!m_msp->gi_save && !strncmp(bline,"gi|",3))) {
       bline_p = strchr(bline+4,'|')+1;
       *(bline_p-1) = 0;
-      gi_num = atoi(bline+3);
+      /* gi_num = atoi(bline+3); */
     }
 
   /* l_name is used to build an HTML link from the bestscore line to
@@ -502,6 +505,7 @@ l1:
     cur_ares_p = bbp->a_res;
 
     first_line = 1;
+    did_newline = 0;
     do {
       /* if cur_res_p != NULL, then we get rst from a_res->rst
 	 Otherwise, it comes from bbp->rst
@@ -576,8 +580,9 @@ l1:
       }
       else if (m_msp->markx & MX_MBLAST2) {	/* blast "Sequences producing" */ 
 	if (first_line) {first_line = 0;}
-	fprintf (fp,"%-67s %6.1f    %.1g", bline_p, lbits,
+	fprintf (fp,"%-67s %6.1f    %.1g\n", bline_p, lbits,
 		    zs_to_E(lzscore,n1,ppst->dnaseq,ppst->zdb_size,m_msp->db));
+	did_newline = 1;
       }
 
       if (m_msp->markx & MX_M9SUMM || m_msp->markx & MX_M8OUT) {
@@ -595,14 +600,14 @@ l1:
 	disp_similar = calc_fpercent_id(100.0, cur_ares_p->aln.nsim, aln_p->lc, m_msp->tot_ident, -100.0);
         ng_similar = calc_fpercent_id(100.0,aln_p->nsim,aln_p->lc-ngap, m_msp->tot_ident, -100.0);
 	disp_alen = aln_p->lc;
-	if (m_msp->blast_ident) {
+	if (m_msp->ngap_ident) {
 	  disp_percent = ng_percent;
 	  disp_similar = ng_similar;
 	  disp_alen = aln_p->lc - ngap;
 	}
 
 #ifndef SHOWSIM
-	gpercent = ng_percent;
+	gpercent = disp_percent;
 #else
 	gpercent = disp_similar;
 #endif	/* SHOWSIM */
@@ -643,13 +648,13 @@ l1:
 	  }
 	  else {	/* MX_M8OUT -- blast order, tab separated */
 	    if (m_msp->markx & MX_M8_BTAB_SIM) {
-	      fprintf(fp,"\t%.2f\t%.2f",ng_percent, ng_similar);
+	      fprintf(fp,"\t%.3f\t%.3f",disp_percent, disp_similar);
 	    }
 	    else {
-	      fprintf(fp,"\t%.2f",ng_percent);
+	      fprintf(fp,"\t%.3f",percent);
 	    }
-	    fprintf(fp,"\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.2g\t%.1f",
-		    aln_p->lc-ngap,aln_p->nmismatch,
+	    fprintf(fp,"\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.3g\t%.1f",
+		    disp_alen,aln_p->nmismatch,
 		    aln_p->ngap_q + aln_p->ngap_l+aln_p->nfs,
 		    aln_p->d_start0, aln_p->d_stop0,
 		    aln_p->d_start1, aln_p->d_stop1,
@@ -686,6 +691,8 @@ l1:
 	      }
 	    }
 	    fprintf(fp,"\n");
+	    did_newline = 1;
+	    
 	  }
 	}
 	else {	/* !SHOW_CODE -> SHOW_ID or SHOW_IDD*/
@@ -724,7 +731,7 @@ l1:
     } while ( cur_ares_p && (cur_ares_p = cur_ares_p->next));
 
     /*    if ((m_msp->markx & MX_HTML) && !link_shown) fprintf(fp," <a href=\"#%s\">align</a>",l_name); */
-    if (!(m_msp->markx & MX_M8OUT)) fprintf(fp, "\n");
+    if (!did_newline) fprintf(fp, "\n");
     fflush(fp);
   }
 

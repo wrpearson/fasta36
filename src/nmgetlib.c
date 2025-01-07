@@ -511,7 +511,7 @@ closelib(struct lmf_str *m_fptr,int force) {
 }
 
 struct lmf_str *
-  re_openlib(struct lmf_str *om_fptr, struct lib_struct *lib_p, int outtty)
+  re_openlib(struct lmf_str *om_fptr, int outtty)
 {
   int opnflg;
 

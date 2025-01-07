@@ -186,7 +186,7 @@ lib_select(char *lname, char *ltitle, const char *flstr, int ldnaseq)
   char *llnames[MAX_LF]; /* pointers into new list of names */
   int new_abbr,ich, nch;	  /* use new multi-letter abbr */
   int ltmp;
-  FILE *fch;
+  FILE *fch=NULL;
   struct lib_struct *cur_lib_p = NULL, *tmp_lib_p;
 
   new_abbr = 0;

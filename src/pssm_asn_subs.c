@@ -27,8 +27,23 @@
 
 #include "defs.h"
 
-int parse_pssm_asn();
-int parse_pssm2_asn();
+struct asn_bstruct {
+  FILE *fd;
+  unsigned char *buf;
+  unsigned char *abp;
+  unsigned char *buf_max;
+  int len;
+};
+
+int parse_pssm_asn(FILE *afd, long *gi, char *name, char *acc, char *descr,
+		   unsigned char **query, int *nq, int *n_rows, int *n_cols,
+		   double ***wfreqs, double ***freqs, int ***iscores, int *pseudo_cnts,
+		   char *matrix, int *gap_open_p, int *gap_ext_p, double *lambda_p);
+
+int parse_pssm2_asn(struct asn_bstruct *asnp, long *gi, char *name, char *acc, char *descr,
+		   unsigned char **query, int *nq, int *n_rows, int *n_cols,
+		   double ***wfreqs, double ***freqs, int ***iscores, int *pseudo_cnts,
+		   char *matrix, double *lambda_p);
 
 int
 parse_pssm_asn_fa(FILE *afd, int *n_rows, int *n_cols,
@@ -139,14 +154,6 @@ int pssm_aa_order[20] = { 1,  /*A*/
 
 #define ASN_OBJ_INT 160
 #define ASN_OBJ_STR 161
-
-struct asn_bstruct {
-  FILE *fd;
-  unsigned char *buf;
-  unsigned char *abp;
-  unsigned char *buf_max;
-  int len;
-};
 
 #define ASN_BUF 4096
 

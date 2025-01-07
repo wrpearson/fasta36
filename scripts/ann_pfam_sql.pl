@@ -46,11 +46,12 @@ use Pod::Usage;
 
 use vars qw($host $db $port $user $pass);
 
-my $hostname = `/bin/hostname`;
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "pfam34", 0, "web_user", "fasta_www");
-#$host = 'xdb';
-#$host = 'localhost';
+($host, $db, $port, $user, $pass)  = ($db_host, "pfam35_qfo", 0, "web_user", "fasta_www");
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
@@ -81,6 +82,7 @@ GetOptions(
     "min_nodom=i" => \$min_nodom,
     "vdoms|v_doms" => \$vdoms,
     "pfacc" => \$pf_acc,
+    "pfam_acc" => \$pf_acc,
     "RPD2" => \$rpd2_fams,
     "auto_reg" => \$auto_reg,
     "h|?" => \$shelp,

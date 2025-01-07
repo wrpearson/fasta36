@@ -85,7 +85,7 @@ void qranlib(char *, int, fseek_t, char *, struct lmf_str *);
 extern int ncbl2_getliba(unsigned char *, int, char *, int, fseek_t *, int *,
 	    struct lmf_str *, long *);
 extern void ncbl2_ranlib(char *, int, fseek_t, char *, struct lmf_str *);
-void ncbl2_closelib();
+extern void ncbl2_closelib(struct lmf_str *);
 #endif
 
 #ifdef MYSQL_DB

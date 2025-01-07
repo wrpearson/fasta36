@@ -182,11 +182,22 @@ provide annotations and subalignment scoring to \texttt{blast}
 alignments.  Provide annotations in \texttt{-m 8CB} BLAST tabular
 output. \\[1.0ex]
        
-May, 2016 & Implement \texttt{psisearch2\_msa.pl} and \texttt{psisearch2\_msa.py}.\\[1.0ex]
+May, 2016 & Implement \texttt{psisearch2\_msa.pl} and \texttt{psisearch2\_msa.py}, 
+described in Pearson, Li, and Lopez, 2016, Nuc. Acids Res. 45:e46 (PMID: 27923999).
+\\[1.0ex]
 
-Feb, 2018 & Introduce \texttt{-X B}, which causes the \texttt{FASTA}
+Feb, 2018 & Introduce \texttt{-XB}, which causes the \texttt{FASTA}
 programs ignore gaps to calculate \texttt{BLASTP} percent
 identities.\\[1.0ex]
+
+Jan, 2019 & Add ability for \texttt{FASTA} programs to download query sequences and database using scripts.\\[1.0ex]
+
+Dec, 2024 & redefine \texttt{-XB} as \texttt{-XG}, since
+\texttt{BLAST} does not ignore gaps when calculating percent identity, but ungapped identities can be useful.\\[1.0ex]
+
+ & provide \texttt{-XB} to allow the \texttt{DEF\_MIN\_BITS} threshold
+(used by \texttt{?BP62} variable scoring matrices) to be set from the
+command line.\\[1.0ex]
 
 \hline
 \end{longtable}

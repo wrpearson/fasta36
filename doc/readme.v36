@@ -6,9 +6,69 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Dec 6, 2024
+[src/ many *.c and *.h files]
+
+(a) modify options and -mB -m8 blast-like alignment information to
+report percent identities that include gaps (as BLAST does).  I
+mistakenly thought BLAST did not include gaps in the alignment length
+used for percent identity.  Replace -XB (BLAST identities) with -XG
+(ungapped identities). Replace structs.h/mng_msg.blast_ident with
+.gap_ident.  Changes also required in doinit.c, mshowalign2.c, and mshowbest.c.
+
+(b) clean up function definitions so that all programs compile cleanly
+under MacOSX (clang compiler).
+
+(c) Provide the -XB ## option to specify the DEF_MIN_BITS (40 by
+default) used with variable scoring matrices "-s ?BP62".  "-XB 50"
+ "-s ?BP62" examines the query sequence length and selects a shallower
+(higher information content) scoring matrix capable of providing
+MIN_BITS of score for short queries.
+
+>>Aug 28, 2024
+[src/dropfx2.c,dropfz3.c,compacc2e.c]
+Correct bug in variant score calculation for translated alignments.
+[comp_lib9.c, last_thresh.c, mshowbest.c, mshowalign2.c, scaleswn.c, scaleswt.c]
+Address problems with last_thresh() and E1_to_s() having valid zsflag.
+
+>>Aug 22, 2024
+[src/*.c]
+Edits to cal_consf.c, comp_lib9.c, compacc2e.c, drop_func.h, drop*.c,
+initfa.c, mshowalign2.c, mshowbest.c, nmgetlib.c, scaleswt.c to ensure
+consistent function definitions (argument lists) to reduce errors with
+
+gcc -flto=4 -Werror=odr -Werror=lto-type-mismatch -Werror=strict-aliasing
+
+With gcc 8.5.0, the code produces a single warning in
+initfa.c:get_lambda(), which is a false-positive.
+
+>>May 23, 2024
+[mshowbest.c]
+Fix problem with -m BB (blast output) display "Sequences producing
+significant alignments"; descriptions for secondary scores did not
+start on new line.
+
+>>Apr 14, 2024
+[scripts/ann*]
+Replace ann_pfam_www.pl with ann_pfam_www.py, which has been updated
+for current interpro API.  Modify SQL scripts to use localhost as host
+database unless $ENV{'DB_HOST'} or --host=xyz_dbhost.
+
+>>Sept 4, 2023
+[initfa.c]
+Add -Xh option to display -X? extended options.
+
+>>Aug 25, 2023
+[scripts/m8CBl_to_plot2.R]
+m8CBl_to_plot2.r reads -m8CBl output from lalign36 (or other programs)
+and produces a dot-plot mapping of the alignment.  Options are
+provided to label alignment diagonals with E()-values.
+
+[psisearch/psisearch2_msa.py, psisearch2_msa.pl]
+Changes to support NCBI blast+ version 2.14.1+
+
 >>May 3, 2023
 [initfa.c]
-
 Restore the functionality of the '-A' option, which forces
 Smith-Waterman final alignments with DNA sequences (which normally use
 banded alignments).  The '-A' logic was modified to try to allow '-A'

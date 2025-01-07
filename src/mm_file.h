@@ -58,7 +58,7 @@ typedef int64_t MM_OFF;
 #include "defs.h"
 #endif
 
-extern unsigned long adler32();
+extern unsigned long adler32(unsigned long, const unsigned char *, unsigned int);
 
 struct lmf_str {
   FILE *libf;		/* sequence file being read */
@@ -91,7 +91,7 @@ struct lmf_str {
 
   /* stuff for GCG format files (5,6) */
   int gcg_binary;	/* flag for binary gcg format */
-  long gcg_len;		/* length of GCG sequence */
+  unsigned long gcg_len;	/* length of GCG sequence */
 
   /* used when memory mapping */
   int mm_flg;		/* mmap worked */
@@ -106,10 +106,10 @@ struct lmf_str {
   MM_OFF *a_pos_arr;	/* pointer to aux offsets */
 
   /* currently available only for memory mapped files */
-  int max_cnt;		/* # database entries */
+  unsigned int max_cnt;		/* # database entries */
   int64_t tot_len;	/* total residue length */
-  long max_len;		/* maximum sequence lengh */
-  long maxn;		/* maximum possible length */
+  unsigned long max_len;		/* maximum sequence lengh */
+  unsigned long maxn;		/* maximum possible length */
   long mdup;		/* duplication for overlapping sequences */
   int lib_aa;		/* 0 = DNA, 1 = prot */
   char *tmp_buf;	/* temporary buffer */

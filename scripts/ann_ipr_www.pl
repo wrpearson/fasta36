@@ -367,8 +367,11 @@ sub parse_ipr_comment {
 
   for my $comment (@comments) {
     my %ipr_data = ();
+    return ("","") if $comment =~ m/(PRINTS|PROSITE)/i;
     @ipr_data{qw(db acc descr)} = ($comment =~ m/(\S+)\s+(\S+)\s+"([^"]+)"/);
-    return ("","") if $ipr_data{db} =~ m/(PRINTS|PROSITE)/i;
+    if (!defined($ipr_data{descr})) {
+	return ("","");
+    }
     $ipr_data{descr} =~ s/\s+/_/g;
     push @comment_info, \%ipr_data;
   }

@@ -5,9 +5,9 @@
 
 struct dyn_string_str {
   char *string;
-  int c_size;
-  int mx_size;
-  int inc;
+  size_t c_size;
+  size_t mx_size;
+  size_t inc;
 };
 
 /* initial allocation */

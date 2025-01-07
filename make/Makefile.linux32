@@ -11,7 +11,7 @@
 
 SHELL=/bin/bash
 
-CC= gcc -g -O
+CC= gcc -g -std=c99 -O
 #CC = gcc -g -DDEBUG
 #LIB_DB=
 

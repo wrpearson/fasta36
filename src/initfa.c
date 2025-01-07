@@ -97,6 +97,7 @@ lalign	dna(1)  dna(1)  dna(1)  +5/-4   -12     -4	-	0.1	-	-
 */
 
 void show_help(char *, int );
+void show_ext_help(char *, int );
 
 char *ref_str_a[]={
 /* 0 */ "W.R. Pearson & D.J. Lipman PNAS (1988) 85:2444-2448\n",
@@ -148,7 +149,7 @@ struct pgm_def_str {
 
 static struct pgm_def_str
 pgm_def_arr[21] = {
-  {0, "", "", "", NULL, 400, "", 0, 0, 0, 0, 1.0, 0, 0 },  /* 0 */
+  {0, "", "", "", NULL, 400, "", 0, 0, 0, 0, 1.0, 0, 0, 0 },  /* 0 */
   {FA_PID, "FASTA", "fa",
    "FASTA searches a protein or DNA sequence data bank",
    NULL, 401, "BL50", 0, 0, 0, 0, 10.0, 2, 0.2, 1}, /* 1 - FASTA */
@@ -180,7 +181,7 @@ pgm_def_arr[21] = {
   {TFA_PID, "TFASTA", "tfa",
    "TFASTA compares a protein  to a translated DNA data bank",
    NULL, 402, "BL50", -2, 0, 0, 0, 5.0, 2, 0.1, 1},
-  {0, "", "", "", NULL, 400, "", 0, 0, 0, 0, 1.0, 0, 0.0 },  /* 0 */
+  {0, "", "", "", NULL, 400, "", 0, 0, 0, 0, 1.0, 0, 0.0, 0 },  /* 0 */
   {TFX_PID, "TFASTX", "tfx",
    "TFASTX compares a protein to a translated DNA data bank",
    NULL, 406, "BL50", -2, 0, -20, 0, 2.0, 2, 0.10, 1},
@@ -216,8 +217,13 @@ struct msg_def_str {
   int stages;
   int qframe;
   int nframe;
-  int nrelv, srelv, arelv;
-  char *f_id0, *f_id1, *label, *alabel;
+  int nrelv;
+  int srelv;
+  int arelv;
+  char *f_id0;
+  char *f_id1;
+  char *label;
+  char *alabel;
 };
 
 /* align_label must be < MAX_SSTR (32) */
@@ -234,46 +240,46 @@ char *align_label[]={
 /* pgm_id    q_seqt     l_seqt   p_seqt sw_f st qf nf nrv srv arv s_ix */
 static struct msg_def_str
 msg_def_arr[21] = {
-  {0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, "", "", ""},	/* ID=0 */
+  {0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, "", "", "",""},	/* ID=0 */
   {FA_PID, SEQT_UNK, SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 3, 1, 3,
-   "fa","sw", "opt"},
+   "fa","sw", "opt",""},
   {SS_PID, SEQT_UNK, SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 1, 1, 1,
-   "sw","sw", "s-w"},
+   "sw","sw", "s-w",""},
   {FX_PID, SEQT_DNA, SEQT_PROT, SEQT_PROT, 1, 1, 2, -1, 3, 1, 3,
-   "fx","sx", "opt"},
+   "fx","sx", "opt",""},
   {FY_PID, SEQT_DNA, SEQT_PROT, SEQT_PROT, 1, 1, 2, -1, 3, 1, 3,
-   "fy","sy", "opt"},
+   "fy","sy", "opt",""},
   {FS_PID, SEQT_UNK, SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 3, 2, 3,
-   "fs","fs", "initn init1"},
+   "fs","fs", "initn init1",""},
   {FF_PID, SEQT_PROT,SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 3, 2, 3,
-   "ff","ff", "initn init1"},
+   "ff","ff", "initn init1",""},
   {FM_PID, SEQT_UNK,SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 3, 2, 3,
-   "fm","fm","initn init1"},
+   "fm","fm","initn init1",""},
   {RSS_PID, SEQT_UNK,SEQT_PROT, SEQT_PROT, 0, 1, 1, -1, 1, 1, 1,
-   "rss","sw","s-w"},
+   "rss","sw","s-w",""},
   {RFX_PID, SEQT_DNA,SEQT_PROT, SEQT_PROT, 0, 1, 2, -1, 3, 1, 3,
-   "rfx","sx","opt"},
+   "rfx","sx","opt",""},
   {SSS_PID, SEQT_UNK,SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 1, 1, 1,
-   "sw","sw", "s-w"},
+   "sw","sw", "s-w",""},
   {TFA_PID, SEQT_PROT,SEQT_DNA, SEQT_PROT, 0, 1, 1, 6, 3, 1, 3,
-   "tfa","fa","initn init1"},
-  {0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, "", "", ""},	/* ID=12 */
+   "tfa","fa","initn init1",""},
+  {0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, "", "", "",""},	/* ID=12 */
   {TFX_PID, SEQT_PROT,SEQT_DNA, SEQT_PROT, 1, 1, 1, 2, 3, 2, 3,
-   "tfx","sx","initn opt"},
+   "tfx","sx","initn opt",""},
   {TFY_PID, SEQT_PROT,SEQT_DNA, SEQT_PROT, 1, 1, 1, 2, 3, 2, 3,
-   "tfy","sy","initn opt"},
+   "tfy","sy","initn opt",""},
   {TFS_PID, SEQT_PROT,SEQT_DNA, SEQT_PROT, 1, 1, 1, 6, 3, 2, 3,
-   "tfs","fs","initn init1"},
+   "tfs","fs","initn init1",""},
   {TFF_PID, SEQT_PROT,SEQT_DNA, SEQT_PROT, 1, 1, 1, 6, 3, 2, 3,
-   "tff","ff","initn init1"},
+   "tff","ff","initn init1",""},
   {TFM_PID, SEQT_PROT,SEQT_DNA, SEQT_PROT, 1, 1, 1, 6, 3, 2, 3,
-   "tfm","fm","initn init1"},
+   "tfm","fm","initn init1",""},
   {LAL_PID, SEQT_UNK, SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 1, 1, 1,
-   "lsw","lsw", "ls-w"},
+   "lsw","lsw", "ls-w",""},
   {LNW_PID, SEQT_UNK, SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 1, 1, 1,
-   "gnw","gnw", "n-w"},
+   "gnw","gnw", "n-w",""},
   {GNW_PID, SEQT_UNK, SEQT_PROT, SEQT_PROT, 1, 1, 1, -1, 1, 1, 1,
-   "gnw","gnw", "n-w"},
+   "gnw","gnw", "n-w",""},
 };
 
 int
@@ -439,10 +445,10 @@ struct opt_def_str f_options[] = {
 #endif
 #endif
 #if defined(LALIGN)
-  {'J', 0, "show_ident", "show identity alignment", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'J', 0, "show_ident", "show identity alignment (LALIGN)", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'K', 1, "max_repeat", "maximum number of non-intersecting alignments", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
-  {'k', 1, "nshuffle", "number of shuffles", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'k', 1, "nshuffle", "number of shuffles for statistics", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'M', 1, "range", "filter on library sequence length", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'n', 0, "dna", "DNA/RNA query", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'p', 0, "prot", "protein query", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
@@ -458,9 +464,34 @@ struct opt_def_str f_options[] = {
   {'t', 1, "gencode", "translation genetic code", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
 #endif
   {'U', 0, "rna", "RNA query", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
-  {'X', 1, "ext_opts", "Extended options", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'X', 1, "ext_opts", "Extended options (-Xh for extended option help)", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'z', 1, "stats", "Statistics estimation method", &z_opt_descr[0], 0, 0, 0, 0, 0.0, 0.0, NULL},
   {'\0', 0, "", "", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL}
+};
+
+struct opt_def_str f_options_ext[] = {
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'1',0,"init1","use init1, not opt for ranking", NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
+  {'a',0,"m8annot","report only annotation information in -m8CB",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'A',0,"band","force banded alignments (-A forces Smith-Waterman)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
+  {'b',0,"nobit","report z-score, not bit-score",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'B',0,"minbit","set min-bits for query and matrix",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'g',0,"nogid","do not remove gi| numbers",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'G',0,"nogap_id","report no-gap identities (excludes gaps)",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'h',0,"help","help message",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'I',0,"no_round","identities not rounded to 100% unless 100%",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'M',1,"memlim","memory limits for database buffering",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+  {'N',1,"Nscore","treat N:N/X:X as similar and identical",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'o',0,"initn","use initn, not opt, for ranking",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
+  {'x',1,"xmatch","penalties for X:X/X:not-X match",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#if !defined(SSEARCH) && !defined(LALIGN)
+  {'y',1,"bandwidth","band width for opt scores",NULL, 0, 0, 0, 0, 0.0, 0.0, NULL},
+#endif
 };
 
 void f_init_opts(int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -497,9 +528,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8i May, 2023 MPI";
+char *verstr="36.3.8i Dec, 2024 MPI";
 #else
-char *verstr="36.3.8i May, 2023";
+char *verstr="36.3.8i Dec, 2024";
 #endif
 
 static int mktup=3;
@@ -882,7 +913,7 @@ f_initenv (struct mngmsg *m_msp, struct pstruct *ppst, unsigned char **aa0) {
 
   SAFE_STRNCPY(m_msp->f_id0,m_msg_def.f_id0,sizeof(m_msp->f_id0));
   SAFE_STRNCPY(m_msp->f_id1,m_msg_def.f_id1,sizeof(m_msp->f_id1));
-  SAFE_STRNCPY (m_msp->label, m_msg_def.label, sizeof(m_msp->label));
+  SAFE_STRNCPY(m_msp->label, m_msg_def.label, sizeof(m_msp->label));
   SAFE_STRNCPY(m_msp->alabel, m_msg_def.alabel, sizeof(m_msp->alabel));
 
 #if !defined(SSEARCH) && !defined(GGSEARCH) && !defined(GLSEARCH) && !defined(LALIGN)
@@ -1294,7 +1325,7 @@ f_getopt (char copt, char *optarg,
    -Xa  - only report annotation information in -m 8CB output (for later merge)
    -XA  - force banded alignments
    -Xb - report z-score, not bit-score
-   -XB - use blast identities
+   -XG - use ungapped identities
    -XI - ensure that identities are not rounded to 100%
    -XM: - specify memory limits for database buffering
    -XN:[+S] - treat N:N/X:X as similar as well as identical
@@ -1304,7 +1335,7 @@ f_getopt (char copt, char *optarg,
    -Xg  - do not remove gi| numbers
  */
 
-static char my_opts[] = "1aABbgIM:ox:y:N:";
+static char ext_opts[] = "1aABbghIM:ox:y:N:";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
@@ -1312,7 +1343,7 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
   char c_arg, c_opt, *the_arg, *bp;
 
   c_opt = *opt_arg;
-  if ((bp=strchr(my_opts, c_opt))==NULL) {
+  if ((bp=strchr(ext_opts, c_opt))==NULL) {
     return;
   }
 
@@ -1331,10 +1362,19 @@ parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *
     ppst->sw_flag = 0;
     sw_flag_set=1; break;
 
-  case 'B': m_msp->blast_ident = 1; break;
-
   case 'b': m_msp->z_bits = 0; break;
+
+  case 'B': sscanf(the_arg,"%ld", &l_arg);
+    if (l_arg >= DEF_MIN_BITS/2 && l_arg < 75) {
+      ppst->min_bits = l_arg;
+    }
+
+  case 'G': m_msp->ngap_ident = 1; break;
+
   case 'g': m_msp->gi_save = 1; break;
+  case 'h':
+    show_ext_help(m_msp->pgm_name, pgm_id);
+    break;
   case 'I': 
     m_msp->tot_ident = 1;
     /*
@@ -2035,11 +2075,11 @@ void
 qshuffle() {}
 
 #ifndef LALIGN	 /* LALIGN has last_calc() in last_thresh.c */
-int
+int 
 last_calc(
-	  unsigned char *aa0, unsigned char *aa1, int maxn,
+	  unsigned char **aa0, unsigned char *aa1, int maxn,
 	  struct beststr **bestp_arr, int nbest,
-	  struct mngmsg m_msg, struct pstruct *ppst
+	  const struct mngmsg *m_msg, struct pstruct *ppst
 	  , void **f_str
 	  , void *pstat_str)
 {
@@ -2048,9 +2088,7 @@ last_calc(
 #endif
 
 /* this function is almost never called, thus a slow shell sort */
-void sortbest (bptr, nbest, irelv)
-struct beststr **bptr;
-int nbest, irelv;
+void sortbest (struct beststr **bptr, int nbest, int irelv)
 {
     int gap, i, j;
     struct beststr *tmp;
@@ -2070,9 +2108,7 @@ void header_aux(FILE *fp) {}
 
 #else
 /* this function is almost never called, thus a slow shell sort */
-void sortbest (bptr, nbest, irelv)
-struct beststr **bptr;
-int nbest, irelv;
+void sortbest (struct beststr **bptr, int nbest, int irelv)
 {
     int gap, i, j;
     struct beststr *tmp;
@@ -2716,7 +2752,6 @@ last_params(unsigned char *aa0, int n0,
 
   if (n0 < 0) { return;}
 
-  
   n0_eff = m_msp->n0;
   ppst->n0 = m_msp->n0;
 #if !defined(TFAST) && (defined(FASTX) || defined(FASTY))
@@ -2737,7 +2772,7 @@ last_params(unsigned char *aa0, int n0,
   /* **************************************************************** */
 
   if (ppst->pam_variable) {
-    if (min_pam_bits(n0_eff, DEF_MIN_BITS, ppst, del_set, gap_set)) {
+    if (min_pam_bits(n0_eff, ppst->min_bits, ppst, del_set, gap_set)) {
       init_pam2(ppst);
       init_pamx(ppst);
       kar_p = NULL;
@@ -2752,7 +2787,7 @@ last_params(unsigned char *aa0, int n0,
     }
     else {
       fprintf(stderr,"+++ warning [%s:%d] - query too short [%d] for %d bit signal -- fasts36 may be more useful +++\n",
-	      __FILE__, __LINE__, n0, DEF_MIN_BITS);
+	      __FILE__, __LINE__, n0, ppst->min_bits);
     }
   }
 
@@ -3055,7 +3090,7 @@ show_help(char *pgm_name, int pgm_id) {
   printf("\nDESCRIPTION\n");
   printf(" %s\n version: %s\n",pgm_def_arr[pgm_id].iprompt0, verstr);
   printf("\n");
-  printf("COMMON OPTIONS (options must preceed query_file library_file)\n");
+  printf("COMMON OPTIONS (options must precede query_file library_file)\n");
 
   for (i=0; i<strlen(common_opts); i++) {
     opt_ptr = g_options;
@@ -3076,13 +3111,41 @@ show_help(char *pgm_name, int pgm_id) {
 	format_params(&opt_ptr[j], tmp_string);
 	printf(" -%c%c %s %s;",opt_ptr[j].opt_char, (opt_ptr[j].has_arg? ':' : ' '), 
 	       tmp_string, opt_ptr[j].opt_descr_s);
-	/* if ((++opt_line_cnt % 2)==0) printf("\n"); */
 	printf("\n");
       }
     }
   next_option: continue;
   }
   if ((opt_line_cnt % 2) != 0) printf("\n");
+  exit(0);
+}
+
+void
+show_ext_help(char *pgm_name, int pgm_id) {
+  int i, j;
+  int opt_line_cnt=0;
+  char tmp_string[MAX_STR];
+  struct opt_def_str *opt_ptr;
+
+
+  printf("%s\n version: %s\n",pgm_def_arr[pgm_id].iprompt0, verstr);
+  printf("\n");
+  printf("Extended Options (-X?) (options must precede query_file library_file)\n");
+
+  for (i=0; i<strlen(ext_opts); i++) {
+    opt_ptr = f_options_ext;
+    for (j=0; opt_ptr[j].opt_char != '\0'; j++) {
+      if (ext_opts[i]==opt_ptr[j].opt_char) {
+	format_params(&opt_ptr[j], tmp_string);
+	printf(" -X%c%c %s %s;",opt_ptr[j].opt_char, (opt_ptr[j].has_arg? ':' : ' '), 
+	       tmp_string, opt_ptr[j].opt_descr_s);
+	/* if ((++opt_line_cnt % 2)==0) printf("\n"); */
+	printf("\n");
+      }
+    }
+  }
+  printf("\n");
+
   exit(0);
 }
 

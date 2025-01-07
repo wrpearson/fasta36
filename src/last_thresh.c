@@ -35,7 +35,7 @@ void do_stage2(struct beststr **bptr, int nbest, const struct mngmsg *m_msp0,
 
 static char thresh_str[MAX_STR];
 
-int E1_to_s(double e_val, int n0, int n1, int db_size, 	void *pu);
+int E1_to_s(double e_val, int n0, int n1, int db_size, 	int zsflag, void *pu);
 
 int
 last_calc(
@@ -53,7 +53,7 @@ last_calc(
 {
 
   if (ppst->zdb_size < 0 ) ppst->zdb_size = m_msg->db.entries;
-  ppst->repeat_thresh = E1_to_s(ppst->e_cut, m_msg->n0, bptr[0]->seq->n1, ppst->zdb_size, pstat_str);
+  ppst->repeat_thresh = E1_to_s(ppst->e_cut, m_msg->n0, bptr[0]->seq->n1, ppst->zdb_size, ppst->zsflag,  pstat_str);
 
   ppst->other_info = thresh_str;
   sprintf(thresh_str,"Threshold: E() < %.2g score: %d\n",ppst->e_cut, ppst->repeat_thresh);

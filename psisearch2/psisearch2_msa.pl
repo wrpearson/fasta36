@@ -62,7 +62,8 @@ my $align2msa_lib = "$pgm_bin/m89_btop_msa2.pl";
 my $clustal2fasta = "$pgm_bin/clustal2fasta.pl";
 
 ## this has been added (5-July-2020) because the script does not work with ncbi-blast-2.10.1+ (or 2.10.0+)
-my $ncbi_bin = "~wrp/src/ncbi-blast-2.9.0+/bin";
+## my $ncbi_bin = "~wrp/src/ncbi-blast-2.9.0+/bin";
+my $ncbi_bin = "/seqprg/bin";
 if (defined($ENV{NCBI_BLAST_BIN})) {
   $ncbi_bin = $ENV{NCBI_BLAST_BIN};
 }
@@ -366,7 +367,7 @@ sub build_msa_pssm {
     );
 
   my $blastdb_err = "$this_file_out.mkbldb_err";
-  my $aln2msa_cmd = qq($align2msa_lib --query $query_file --masked_lib_out=$this_hit_db);
+  my $aln2msa_cmd = qq($align2msa_lib --clustal --query $query_file --masked_lib_out=$this_hit_db);
 
   if ($m_format) {
     $aln2msa_cmd .= qq( --m_format $m_format);

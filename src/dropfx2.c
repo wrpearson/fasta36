@@ -983,7 +983,7 @@ void do_fastx (const unsigned char *aa0, int n0,
 void do_work (const unsigned char *aa0, int n0,
 	      const unsigned char *aa1, int n1,
 	      int frame,
-	      const struct pstruct *ppst, struct f_struct *f_str,
+	      struct pstruct *ppst, struct f_struct *f_str,
 	      int qr_flg, int shuff_flg, struct rstruct *rst,
 	      struct score_count_s *s_info)
 {
@@ -1222,9 +1222,7 @@ int sconn (struct savestr **v, int n,
 }
 
 void
-kssort (v, n)
-struct savestr *v[];
-int     n;
+kssort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;
@@ -1286,7 +1284,7 @@ lx_band(const unsigned char *prot_seq,  /* array with protein sequence numbers*/
 	int width,         /* width for band alignment */
 	struct f_struct *f_str)
 {
-  void *ckalloc();
+  void *ckalloc(size_t);
   int i, j, bd, bd1, x1, sp, p1=0, p2=0, end_prot;
   int sc, del, best = 0, cd,ci, e1, e2, e3, cd1, cd2, cd3, f, gg;
   register int *wt;
@@ -1473,9 +1471,28 @@ typedef struct st_s { int C, I, D;} *st_ptr;
 /* static int gop, gext, shift; */
 
 void *ckalloc(size_t);
-static match_ptr small_global(), global();
-static int local_align(), find_best();
-static void init_row2(),  init_ROW();
+static match_ptr small_global(int x, int y, int ex, int ey,
+			      int **wgts, int gop, int gext, int shift,
+			      const unsigned char *dnap, const unsigned char *pro, int N1, int N2,
+			      struct smgl_str *smgl_sp);
+
+static match_ptr global(int x, int y, int ex, int ey, 
+			int **wgts, int gop, int gext, int shift,
+			const unsigned char *dnap, const unsigned char *pro, int N1, int N2,
+			st_ptr *up_stp, st_ptr *dn_stp, st_ptr *tp_stp,
+			struct smgl_str *smgl_sp);
+
+static int local_align(int *x, int *y, int *ex, int *ey,
+		       int **wgts, int gop, int gext, int shift,
+		       const unsigned char *dnap, int ld,
+		       const unsigned char *pro,  int lp,
+		       st_ptr up, st_ptr down);
+
+static int  find_best(st_ptr up, st_ptr down, int *m1, int *m2,
+			int ld, int y, int gop);
+
+static void init_row2(int *row, int ld);
+static void init_ROW(st_ptr row, int ld);
 
 int
 pro_dna(const unsigned char *prot_seq,	/* array with prot. seq. numbers*/
@@ -1507,7 +1524,7 @@ pro_dna(const unsigned char *prot_seq,	/* array with prot. seq. numbers*/
   /*local alignment find the best local alignment x (prot) and y (DNA)
     is the starting position of the best local alignment
     and ex (prot) ey (DNA) is the ending position */
-  score= local_align(&x, &y, &ex, &ey, pam_matrix,
+  score = local_align(&x, &y, &ex, &ey, pam_matrix,
 		     gopen, gex, gshift,
 		     dna_prot_seq, len_dna_prot,
 		     prot_seq, len_prot, up, down);
@@ -1713,8 +1730,7 @@ static void
 global_up(st_ptr *row1, st_ptr *row2,
 	  int x, int y, int ex, int ey, 
 	  int **wgts, int gop, int gext, int shift,
-	  unsigned char *dnap,
-	  unsigned char *pro,
+	  const unsigned char *dnap, const unsigned char *pro,
 	  int N) {
   int i, j, k, sc, e, e1, e2, e3, t, ci, cd, score, *wt;
   st_ptr cur, last;
@@ -1767,7 +1783,7 @@ static void
 global_down(st_ptr *row1, st_ptr *row2,
 	    int x, int y, int ex, int ey,
 	    int **wgts, int gop, int gext, int shift,
-	    unsigned char *dnap, unsigned char *pro,
+	    const unsigned char *dnap, const unsigned char *pro,
 	    int N) {
   int i, j, k, sc, del, *tmp, e,  t, e1,e2,e3, ci,cd, s1, s2, s3, *wt;
   st_ptr cur, last;
@@ -1858,8 +1874,8 @@ combine(match_ptr x1, match_ptr x2, int st) {
 match_ptr
 global(int x, int y, int ex, int ey, 
        int **wgts, int gop, int gext, int shift,
-       unsigned char *dnap, 
-       unsigned char *pro,
+       const unsigned char *dnap, 
+       const unsigned char *pro,
        int N1, int N2,
        st_ptr *up_stp, st_ptr *dn_stp, st_ptr *tp_stp,
        struct smgl_str *smgl_sp
@@ -1986,8 +2002,9 @@ find_best(st_ptr up, st_ptr down,
 static match_ptr
 small_global(int x, int y, int ex, int ey,
 	     int **wgts, int gop, int gext, int shift,
-	     unsigned char *dnap, unsigned char *pro,
-	     int N1, int N2, struct smgl_str *smgl_sp) {
+	     const unsigned char *dnap, const unsigned char *pro,
+	     int N1, int N2, struct smgl_str *smgl_sp)
+{
 
   /* int C[SGW1+1][SGW2+1], st[SGW1+1][SGW2+1], D[SGW2+7], I[SGW2+1]; */
 
@@ -2211,8 +2228,7 @@ display_alig(int *a, unsigned char *dna_p, unsigned char * pro, int length, int 
 
 
 /* fatal - print message and die */
-void fatal(msg)
-char *msg;
+void fatal(char *msg)
 {
 	fprintf(stderr, "%s\n", msg);
 	exit(1);
@@ -2890,7 +2906,7 @@ calc_cons_u( /* inputs */
 	    const unsigned char *aa0, int n0,
 	    const unsigned char *aa1, int n1,
 	    struct a_res_str *a_res,	/* alignment encoding */
-	    struct pstruct *ppst,
+	    const struct pstruct *ppst,
 	    struct f_struct *f_str,
 	    void *pstat_void,
 	    /* annotation stuff */
@@ -3148,8 +3164,7 @@ calc_cons_u( /* inputs */
 	}
 	if (s_annotp_arr_p) {
 	  if (i1+i1_offset == s_annotp_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
-
-	    i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]], 
+	    i1_annot = next_annot_match(&itmp, ppst->pam2[0][1], 
 #ifndef TFAST
 					i1_offset+seq_pos(i1,aln->llrev,0),	/* annotated target (prot) coordinate */
 					i0_offset+seq_pos(i0,aln->qlrev,0),
@@ -3231,11 +3246,11 @@ calc_cons_u( /* inputs */
 	/* this simple strategy works because the coordinate system
 	   for the alignment is reversed appropriately */
 	if (calc_func_mode != CALC_ID && calc_func_mode != CALC_ID_DOM) {
-	  *sp1a_p = ann_arr[ap1a[i1]];
 	  *sp0a_p = ' ';
+	  *sp1a_p = ann_arr[ap1a[i1]];
 	}
 	if (s_annotp_arr_p) {
-	  /* coordiates are much more complex for next_annot_match,
+	  /* coordinates are much more complex for next_annot_match,
 	     and comment_var, because they may need to be reversed */
 
 	  if (i1+i1_offset == s_annotp_arr_p[i1_annot]->pos || i1+i1_offset == i1_left_end) {
@@ -3626,11 +3641,13 @@ calc_cons_u( /* inputs */
   aln->amax1 = i1;
   aln->ngap_q = ngap_d;
   aln->ngap_l = ngap_p;
+  aln->ngap_open = 0;
 #else
   aln->amax1 = i0;
   aln->amax0 = i1;
   aln->ngap_q = ngap_p;
   aln->ngap_l = ngap_d;
+  aln->ngap_open = 0;
 #endif
   aln->calc_last_set = 1;
 
@@ -3650,7 +3667,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    int *nc,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res, 
-	    struct pstruct *ppst,
+	    const struct pstruct *ppst,
 	    char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a,

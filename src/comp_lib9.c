@@ -214,7 +214,7 @@ buf_shuf_seq(unsigned char **aa0, int n0,
 void
 buf_align_seq(unsigned char **aa0, int n0,
 	      struct beststr **bestp_arr, int nbest,
-	      struct pstruct *ppst, struct mngmsg *m_msp,
+	      const struct pstruct *ppst, const struct mngmsg *m_msp,
 	      struct mng_thr *m_bufi_p
 #if !defined(COMP_THR) && !defined(PCOMPLIB)
 	      , void **f_str
@@ -255,7 +255,7 @@ int last_calc( unsigned char **aa0, unsigned char *aa1, int maxn,
 void scale_scores(struct beststr **bestp_arr, int nbest,
 		  struct db_str,struct pstruct *ppst, void *);
 
-int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
+int E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag, void *pu);
 
 extern void pstat_info(char *, int, char *, void *);
 
@@ -279,14 +279,14 @@ build_link_data(char **, struct mngmsg *, struct beststr **, int);
 /* display functions */
 extern void
 showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1, int maxn,
-	  struct beststr **bestp_arr, int nbest,
-	  int qlib, struct mngmsg *m_msg,struct pstruct *ppst,
+	  struct beststr **bestp_arr, int nbest, int qlib, 
+	  struct mngmsg *m_msg, struct pstruct *ppst,
 	  struct db_str db, char **gstring2p, void **f_str);
 
 extern void
 showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1, int maxn,
 	   struct beststr **bestp_arr, int nbest, int qlib, 
-	   const struct mngmsg *m_msg, const struct pstruct *ppst,
+	   struct mngmsg *m_msg, const struct pstruct *ppst,
 	   char **gstring2p, void **f_str, struct mng_thr *m_bufi_p);
 
 /* misc functions */
@@ -496,7 +496,7 @@ main (int argc, char *argv[])
   struct seq_record *best_seqs;
   struct mseq_record *best_mseqs;
 
-  int leng;			/* leng is length of the descriptive line */
+  unsigned int leng;			/* leng is length of the descriptive line */
   int maxn;			/* size of the library sequence examined */
   int qlcont;			/* continued query sequence */
   char *bp;			/* general purpose string ptr */
@@ -1153,7 +1153,7 @@ main (int argc, char *argv[])
     if (m_msg.last_calc_flg) {
       /* last_calc may need coefficients from last_stats() */
       nbest = last_calc(aa0, aa1save, maxn, bestp_arr, nbest, &m_msg, &pst,
-			f_str, m_msg.pstat_void);
+			f_str, &m_msg.pstat_void);
     }
 
     /* in addition to scaling scores, this sorts bestp_arr[nbest] */
@@ -1536,7 +1536,7 @@ main (int argc, char *argv[])
 	    }
 	    else {
 	      bestp_arr[i]->repeat_thresh = 
-		min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1, pst.zdb_size, m_msg.pstat_void),
+		min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1, pst.zdb_size, pst.zsflag, m_msg.pstat_void),
 		    bestp_arr[i]->rst.score[pst.score_ix]);
 	    }
 	  }

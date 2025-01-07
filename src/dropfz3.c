@@ -152,7 +152,7 @@ static int dmatchz(const unsigned char *aa0, int n0,
 		   int **pam2, int gdelval, int ggapval, int gshift,
 		   struct f_struct *f_str);
 
-int shscore(unsigned char *aa0, int n0, int **pam2);
+int shscore(const unsigned char *aa0, int n0, int **pam2);
 int saatran(const unsigned char *ntseq, unsigned char *aaseq, int maxs, int frame);
 extern int ELK_to_s(double E_join, int n0, int n1, double Lambda, double K, double H);
 
@@ -1078,7 +1078,7 @@ void do_fastz (const unsigned char *aa0, int n0,
 void do_work (const unsigned char *aa0, int n0,
 	      const unsigned char *aa1, int n1,
 	      int frame,
-	      const struct pstruct *ppst,
+	      struct pstruct *ppst,
 	      struct f_struct *f_str,
 	      int qr_flg, int shuff_flg, struct rstruct *rst,
 	      struct score_count_s *s_info)
@@ -1328,9 +1328,7 @@ int sconn (struct savestr **v, int n,
 }
 
 void
-kssort (v, n)
-struct savestr *v[];
-int     n;
+kssort (struct savestr *v[], int n)
 {
    int     gap, i, j;
    struct savestr *tmp;
@@ -1425,7 +1423,7 @@ int lx_band(const unsigned char *prot_seq,  /* array with protein sequence numbe
 	    int width,         /* width for band alignment */
 	    struct f_struct *f_str)
 {
-  void *ckalloc();
+  void *ckalloc(size_t);
   int i, j, bd, bd1, x1, x2, sp, p1=0, p2=0, end_prot;
   struct sx_s *last, *tmp;
   int sc, del, best = 0, cd,ci, e1, e2, e3, cd1, cd2, cd3, f, gg;
@@ -1575,7 +1573,7 @@ void *ckalloc(size_t amount)
 
 /* calculate the 100% identical score */
 int
-shscore(unsigned char *aa0, int n0, int **pam2)
+shscore(const unsigned char *aa0, int n0, int **pam2)
 {
   int i, sum;
   for (i=0,sum=0; i<n0; i++)
@@ -1595,11 +1593,31 @@ typedef struct mat {
 typedef struct { int i,j;} state;
 typedef state *state_ptr;
 
+void *ckalloc(size_t);
 
-void *ckalloc();
-static match_ptr small_global(), global();
-static int local_align(), find_best();
-static void init_row2(), init_ROW();
+static match_ptr
+small_global(int x, int y, int ex, int ey, 
+	     int **wgts, int gop, int gext,
+	     const unsigned char *dnap, const unsigned char *pro, int N1, int N2,
+	     struct f_struct *f_str);
+
+static match_ptr
+global(int x, int y, int ex, int ey,
+       int **wgts, int gop, int gext,
+       const unsigned char *dnap, const unsigned char *pro, int N1, int N2,
+       struct f_struct *f_str);
+
+static int
+local_align(int *x, int *y, int *ex, int *ey, 
+	    int **wgts, int gop, int gext,
+	    const unsigned char *dnap, int ld,
+	    const unsigned char *pro, int lp,
+	    struct f_struct *f_str);
+
+static int find_best(st_ptr up, st_ptr down, int *m1, int *m2, int ld, int y, int gop);
+
+static void init_row2(int *row, int ld);
+static void  init_ROW(st_ptr row, int ld);
 
 int
 pro_dna(const unsigned char *prot_seq,  /* array with prot. seq. numbers*/
@@ -1815,7 +1833,7 @@ static void
 global_up(st_ptr *row1, st_ptr *row2, 
 	  int x, int y, int ex, int ey, 
 	  int **wgts, int gop, int gext,
-	  unsigned char *dnap, unsigned char *pro, 
+	  const unsigned char *dnap, const unsigned char *pro, 
 	  int N, struct f_struct *f_str)
 {
   int i, j, k, sc, e, e1, e2, e3, t, ci, cd, score;
@@ -1864,7 +1882,7 @@ static void
 global_down(st_ptr *row1, st_ptr *row2,
 	    int x, int y, int ex, int ey, 
 	    int **wgts, int gop, int gext,
-	    unsigned char *dnap, unsigned char *pro,
+	    const unsigned char *dnap, const unsigned char *pro,
 	    int N, struct f_struct *f_str)
 {
   int i, j, k, sc, del, *tmp, e,  t, e1,e2,e3, ci,cd, score;
@@ -1956,7 +1974,7 @@ combine(match_ptr x1, match_ptr x2, int st) {
 match_ptr
 global(int x, int y, int ex, int ey,
        int **wgts, int gop, int gext,
-       unsigned char *dnap, unsigned char *pro, int N1, int N2,
+       const unsigned char *dnap, const unsigned char *pro, int N1, int N2,
        struct f_struct *f_str)
 {
   int m;
@@ -2071,7 +2089,7 @@ find_best(st_ptr up, st_ptr down, int *m1, int *m2, int ld, int y, int gop) {
 static match_ptr
 small_global(int x, int y, int ex, int ey, 
 	     int **wgts, int gop, int gext,
-	     unsigned char *dnap, unsigned char *pro,
+	     const unsigned char *dnap, const unsigned char *pro,
 	     int N1, int N2, struct f_struct *f_str) {
 
   /* int C[SGW1+1][SGW2+1], st[SGW1+1][SGW2+1], D[SGW2+7], I[SGW2+1]; */
@@ -2274,8 +2292,7 @@ alignment (translated codon chosen from 4 nucleotides, or 2+1).
 
 /* fatal - print message and die */
 void
-fatal(msg)
-     char *msg;
+fatal(char *msg)
 {
   fprintf(stderr, "%s\n", msg);
   exit(1);
@@ -2843,7 +2860,7 @@ calc_cons_u( /* inputs */
 	    const unsigned char *aa0, int n0,
 	    const unsigned char *aa1, int n1,
 	    struct a_res_str *a_res,	/* alignment encoding */
-	    struct pstruct *ppst,
+	    const struct pstruct *ppst,
 	    struct f_struct *f_str,
 	    void *pstat_void,
 	    /* annotation stuff */
@@ -3474,11 +3491,11 @@ calc_cons_u( /* inputs */
 	}
 
 	if (s_annotp_arr_p) {
-	  /* coordiates are much more complex for next_annot_match,
+	  /* coordinates are much more complex for next_annot_match,
 	     and comment_var, because they may need to be reversed */
 
 	  if (i1 + i1_offset == s_annotp_arr_p[i1_annot]->pos) {
-	    i1_annot = next_annot_match(&itmp, ppst->pam2[0][ap0[i0]],
+	    i1_annot = next_annot_match(&itmp, NULL,
 #ifndef TFAST
 					i1_offset+seq_pos(i1,aln->llrev,0),	/* annotated target (prot) coordinate */
 					i0_offset+seq_pos(i0,aln->qlrev,0),
@@ -3574,6 +3591,8 @@ calc_cons_u( /* inputs */
   aln->ngap_q = ngap_p;
   aln->ngap_l = ngap_d;
 #endif
+
+  aln->ngap_open = 0;
   aln->calc_last_set = 1;
 
   aln->nfs = nfs;
@@ -3592,7 +3611,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    int *nc,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res, 
-	    struct pstruct *ppst,
+	    const struct pstruct *ppst,
 	    char *seqc0, char *seqc1, char *seqca, int *cumm_seq_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a,

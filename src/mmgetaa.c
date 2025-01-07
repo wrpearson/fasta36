@@ -81,10 +81,12 @@ aranlib_mb(char *str, int cnt, fseek_t seek, char *libstr, struct lmf_str *lm_fd
 
 /* mmap()ed functions */
 #ifdef USE_MMAP
-int agetlibm(); void aranlibm();
-int lgetlibm(); void lranlibm();
-void vranlibm();
-int gcg_getlibm();
+int agetlibm(unsigned char *seq, int maxs, char *libstr, int n_libstr, fseek_t *libpos, int *lcont, struct lmf_str *m_fd, long *l_off);
+void aranlibm(char *, int cnt, fseek_t seek, char *libstr, struct lmf_str *m_fd);
+int lgetlibm(unsigned char *seq, int maxs, char *libstr, int n_libstr, fseek_t *libpos, int *lcont, struct lmf_str *m_fd, long *l_off);
+void lranlibm(char *, int cnt, fseek_t seek, char *libstr, struct lmf_str *m_fd);
+void vranlibm(char *, int cnt, fseek_t seek, char *libstr, struct lmf_str *m_fd);
+int gcg_getlibm(unsigned char *seq, int maxs, char *libstr, int n_libstr, fseek_t *libpos, int *lcont, struct lmf_str *m_fd, long *l_off);
 
 int (*getlibam[])()={
   agetlibm,lgetlibm, NULL, NULL,NULL,agetlibm,gcg_getlibm

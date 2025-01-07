@@ -306,6 +306,8 @@ selectbest(struct beststr **bptr, int k, int n)	/* k is rank in array */
   }
 }
 
+/* selectbestz() seeks to partition **bptr so that bptr[0..k-1]->zscore > btpr[k..n-1] */
+
 void
 selectbestz(struct beststr **bptr, int k, int n)	/* k is rank in array */
 {
@@ -313,20 +315,24 @@ selectbestz(struct beststr **bptr, int k, int n)	/* k is rank in array */
   struct beststr *tmptr;
   double v;
 
-  l=0; r=n-1;
+  l=0;
+  r=n-1;  /* right boundary */
 
   while ( r > l ) {
-    v = bptr[r]->zscore;
-    i = l-1;
+    v = bptr[r]->zscore;  /* get the pivot value -- could be improved by picking score at random */
+    i = l-1;		/* i can be < 0 because while (j>i) */
     j = r;
     do {
-      while (bptr[++i]->zscore > v) ;
-      while (bptr[--j]->zscore < v) ;
+      while (bptr[++i]->zscore > v) ;  /*  going up from bottom, if [i] > pivot, continue up */
+      while (bptr[--j]->zscore < v) ;  /*  going down from top, if [j] < pivot, continue down */
+      /* here, a high-ranked score is lower than the pivot AND a low ranked score is greater than the pivot,
+	 so switch them */
       tmptr = bptr[i]; bptr[i]=bptr[j]; bptr[j]=tmptr;
-    } while (j > i);
-    bptr[j]=bptr[i]; bptr[i]=bptr[r]; bptr[r]=tmptr;
-    if (i>=k) r = i-1;
-    if (i<=k) l = i+1;
+    } while (j > i);   /* keep ++i/--j while j > i */
+    /* j/i have crossed, switch entries and reset bounds */
+    bptr[j]=bptr[i]; bptr[i]=bptr[r]; bptr[r]=tmptr;  
+    if (i>=k) r = i-1;  /* reset the top (r) */
+    if (i<=k) l = i+1;  /* reset the bottom (l) */
   }
 }
 
@@ -3602,7 +3608,7 @@ void
 buf_align_seq(unsigned char **aa0, int n0,
 	      struct beststr **bestp_arr, int nbest,
 	      struct pstruct *ppst, struct mngmsg *m_msp,
-	      struct mng_thr *m_bufi_p
+	      const struct mng_thr *m_bufi_p
 #if !defined(COMP_THR) && !defined(PCOMPLIB)
 	      , void **f_str
 #endif
@@ -3868,7 +3874,7 @@ dyn_strcat(struct dyn_string_str *dyn_string, char *value) {
     while (dyn_string->inc < add_len) { dyn_string->inc *= 2; }
     dyn_string->mx_size += dyn_string->inc;
     if ((dyn_string->string = (void *)realloc(dyn_string->string, dyn_string->mx_size))==NULL) {
-      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate dyn_string to [%d]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate dyn_string to [%ld]\n",
 	      __FILE__, __LINE__, dyn_string->mx_size);
       dyn_string->mx_size = 0;
       return;
@@ -3888,7 +3894,7 @@ void dyn_strcpy(struct dyn_string_str *dyn_string, char *value) {
     while (dyn_string->inc < add_len) { dyn_string->inc *= 2; }
     dyn_string->mx_size += dyn_string->inc;
     if ((dyn_string->string = (void *)realloc(dyn_string->string, dyn_string->mx_size))==NULL) {
-      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate dyn_string to [%d]\n",
+      fprintf(stderr,"*** ERROR [%s:%d] - cannot re-allocate dyn_string to [%ld]\n",
 	      __FILE__, __LINE__, dyn_string->mx_size);
       dyn_string->mx_size = 0;
       return;
@@ -4021,7 +4027,7 @@ process_annot_match(int *itmp, int *pam2aa0v,
     left_domain_p->pos = ip;
     left_domain_p->a_pos = ia;
 
-    if (annot_arr_p->label == 'V') { /* label == 'V' */
+    if (pam2aa0v && annot_arr_p->label == 'V') { /* label == 'V' */
       v_tmp = pam2aa0v[annot_arr_p->value];
       if (v_tmp > *itmp) {
 	*v_delta += (v_tmp- *itmp);
