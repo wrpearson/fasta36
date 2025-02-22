@@ -86,7 +86,7 @@ get_annot(char *sname, struct mngmsg *m_msp, char *bline, long offset, int n1, s
 extern double find_z(int score, double escore, int length, double comp,void *);
 extern double zs_to_E(double zs, int n1, int dnaseq, long db_size, struct db_str db);
 extern double zs_to_bit(double, int, int);
-extern int E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag, void *pu);
+extern int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
 
 void header_aux(FILE *);
 void show_aux(FILE *, struct beststr *);
@@ -377,7 +377,7 @@ l1:
       }
       else {
 	bbp->repeat_thresh = 
-	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, ppst->zsflag, m_msp->pstat_void),
+	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, m_msp->pstat_void),
 	      bbp->rst.score[ppst->score_ix]);
       }
     }

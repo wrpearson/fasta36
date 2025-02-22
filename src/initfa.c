@@ -528,9 +528,9 @@ char *iprompt1=" test sequence file name: ";
 char *iprompt2=" database file name: ";
 
 #ifdef PCOMPLIB
-char *verstr="36.3.8i Dec, 2024 MPI";
+char *verstr="36.3.8i Feb, 2025 MPI";
 #else
-char *verstr="36.3.8i Dec, 2024";
+char *verstr="36.3.8i Feb, 2025";
 #endif
 
 static int mktup=3;
