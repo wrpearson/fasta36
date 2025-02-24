@@ -264,6 +264,8 @@ process_hist(struct stat_str *sptr, int nstats,
     memset(ps_s,0,sizeof(struct pstat_str));
   }
 
+  ps_s->zsflag = ppst->zsflag;
+
   if (s_info->tot_scores > 10) {
     ps_s->sample_fract = min(1.0, (double)s_info->s_cnt[ppst->score_ix]/(double)s_info->tot_scores);
     if (ps_s->sample_fract > 0.0 && ps_s -> sample_fract < 1.0) {
@@ -2831,7 +2833,7 @@ E1_to_s(double e_val, int n0, int n1, int db_size, struct pstat_str *pu) {
     break;
 
   default: 
-    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, pu->zsflag);
+    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, tmp_zsflag);
     score = 999;
   }
 

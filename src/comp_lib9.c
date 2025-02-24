@@ -1154,7 +1154,7 @@ main (int argc, char *argv[])
     if (m_msg.last_calc_flg) {
       /* last_calc may need coefficients from last_stats() */
       nbest = last_calc(aa0, aa1save, maxn, bestp_arr, nbest, &m_msg, &pst,
-			f_str, &m_msg.pstat_void);
+			f_str, m_msg.pstat_void);
     }
 
     /* in addition to scaling scores, this sorts bestp_arr[nbest] */

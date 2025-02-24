@@ -52,7 +52,7 @@ last_calc(
 	  , void *pstat_str)
 {
 
-  if (ppst->zdb_size < 0 ) ppst->zdb_size = m_msg->db.entries;
+  if (ppst->zdb_size <= 0 ) ppst->zdb_size = m_msg->db.entries;
   ppst->repeat_thresh = E1_to_s(ppst->e_cut, m_msg->n0, bptr[0]->seq->n1, ppst->zdb_size, pstat_str);
 
   ppst->other_info = thresh_str;
