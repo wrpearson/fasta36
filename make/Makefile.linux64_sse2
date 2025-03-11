@@ -49,7 +49,8 @@ THR_LIBS = -lpthread
 THR_CC =
 
 BIN = ../bin
-XDIR = /seqprg/bin
+XDIR = ~/bin
+#XDIR = /seqprg/bin
 #XDIR = ~/bin/LINUX
 
 # set up files for SSE2/Altivec acceleration

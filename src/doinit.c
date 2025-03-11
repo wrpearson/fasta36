@@ -930,6 +930,10 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (ctmp2 == 'D') {this->show_code = SHOW_CODE_CIGAR + SHOW_CODE_EXT;}
     else if (ctmp2 == 'B') {this->show_code = SHOW_CODE_BTOP;}
     
+    if (ctmp2 == 'Z' || strchr(stmp,'Z')) {
+      this->markx |= MX_M8_BTAB_DB_SIZE;
+    }
+
     if (strchr(stmp,'L')) {
       this->markx |= MX_M8_BTAB_LEN;
       this->show_code |= SHOW_CODE_DOMINFO;

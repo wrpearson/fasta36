@@ -1118,7 +1118,7 @@ f_getopt (char copt, char *optarg,
     else {	/* one value, do_rep; tmp_e_rep=10.0 */
       sscanf(optarg,"%lf",&tmp_e_cut);
 #ifndef LALIGN
-      tmp_e_rep = 10.0;
+      ppst->e_cut_r = tmp_e_rep = tmp_e_cut;
 #else
       tmp_e_rep = 1.0;
 #endif
@@ -1134,6 +1134,7 @@ f_getopt (char copt, char *optarg,
       else { ppst->e_cut_r = tmp_e_rep;}
     }
     break;
+
   case 'f':
     sscanf (optarg, "%d", &ppst->gdelval);
     if (ppst->gdelval > 0) ppst->gdelval = -ppst->gdelval;

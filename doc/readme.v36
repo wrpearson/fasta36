@@ -6,6 +6,11 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Mar 11, 2025
+[src/doinit.c, compacc2e.c]
+Add the "Z" option to the -m 8CBlZ (or simply -m 8CZ) to show the size
+of the database (in sequences) to the "-m 8C" "# Database: " line.
+
 >>Dec 6, 2024
 [src/ many *.c and *.h files]
 
