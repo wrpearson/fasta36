@@ -518,7 +518,12 @@ void f_init_opts(int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
   set_opt_disp_defs('k', f_options, 1, m_msp->shuff_max, 0, 0.0, 0.0, NULL);
   set_opt_disp_defs('r', f_options, 2, ppst->p_d_mat, ppst->p_d_mis, 0.0, 0.0, NULL);
   set_opt_disp_defs('t', f_options, 1, ppst->tr_type, 0, 0.0, 0.0, NULL);
+#ifdef LALIGN
+  set_opt_disp_defs('z', f_options, 2, ppst->zsflag, 0, 0.0, 0.0, NULL);
+#else
   set_opt_disp_defs('z', f_options, 1, ppst->zsflag, 0, 0.0, 0.0, NULL);
+#endif
+
 #if defined(FASTA) || defined(SSEARCH)
   set_opt_disp_defs('W', f_options, 1, m_msp->aln.llcntx, 0, 0.0, 0.0, NULL);
 #endif

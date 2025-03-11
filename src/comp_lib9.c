@@ -255,7 +255,7 @@ int last_calc( unsigned char **aa0, unsigned char *aa1, int maxn,
 void scale_scores(struct beststr **bestp_arr, int nbest,
 		  struct db_str,struct pstruct *ppst, void *);
 
-int E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag, void *pu);
+int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
 
 extern void pstat_info(char *, int, char *, void *);
 
@@ -1054,6 +1054,7 @@ main (int argc, char *argv[])
       }
       pst.zsflag_f = process_hist(stats,nstats,&m_msg, &pst,&m_msg.hist,
 				  &m_msg.pstat_void, &m_msg.s_info, stats_done);
+
       pst.zsflag = zsflag_save;
 
       if (m_msg.pstat_void != NULL) {
@@ -1153,7 +1154,7 @@ main (int argc, char *argv[])
     if (m_msg.last_calc_flg) {
       /* last_calc may need coefficients from last_stats() */
       nbest = last_calc(aa0, aa1save, maxn, bestp_arr, nbest, &m_msg, &pst,
-			f_str, &m_msg.pstat_void);
+			f_str, m_msg.pstat_void);
     }
 
     /* in addition to scaling scores, this sorts bestp_arr[nbest] */
@@ -1536,7 +1537,7 @@ main (int argc, char *argv[])
 	    }
 	    else {
 	      bestp_arr[i]->repeat_thresh = 
-		min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1, pst.zdb_size, pst.zsflag, m_msg.pstat_void),
+		min(E1_to_s(pst.e_cut_r, m_msg.n0, bestp_arr[i]->seq->n1, pst.zdb_size, m_msg.pstat_void),
 		    bestp_arr[i]->rst.score[pst.score_ix]);
 	    }
 	  }

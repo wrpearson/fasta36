@@ -264,6 +264,8 @@ process_hist(struct stat_str *sptr, int nstats,
     memset(ps_s,0,sizeof(struct pstat_str));
   }
 
+  ps_s->zsflag = ppst->zsflag;
+
   if (s_info->tot_scores > 10) {
     ps_s->sample_fract = min(1.0, (double)s_info->s_cnt[ppst->score_ix]/(double)s_info->tot_scores);
     if (ps_s->sample_fract > 0.0 && ps_s -> sample_fract < 1.0) {
@@ -2777,17 +2779,19 @@ ELK_to_s(double e_val, int n0, int n1,
 }
 
 /* calculate a threshold score, given an E() value and Lambda,K,H */
+/* 21-Feb-2025 -- this code was modified to include pst.zsflag as an argument in Dec, 2024.
+   That was a mistake, as the pu.zsflag value correctly specifies the formula to be used, not pst.zsflag.
+   Error has been reverted, and zsflag is no longer an argument to E1_to_s() anywhere */
 
 int
-E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag,
-	struct pstat_str *pu) {
+E1_to_s(double e_val, int n0, int n1, int db_size, struct pstat_str *pu) {
   double mp, np, a_n0, a_n0f, a_n1;
   double zs, log_len, p_val;
   int score, tmp_zsflag;
 
-  if (zsflag < 0 || n0 < LENGTH_CUTOFF || n1 < LENGTH_CUTOFF) return BIGNUM;
+  if (pu->zsflag < 0 || n0 < LENGTH_CUTOFF || n1 < LENGTH_CUTOFF) return BIGNUM;
 
-  tmp_zsflag = zsflag % 10;
+  tmp_zsflag = pu->zsflag % 10;
 
   a_n0 = (double)n0;
   a_n1 = (double)n1;
@@ -2829,7 +2833,7 @@ E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag,
     break;
 
   default: 
-    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, zsflag);
+    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, tmp_zsflag);
     score = 999;
   }
 

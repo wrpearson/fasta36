@@ -99,7 +99,7 @@ pre_load_best(unsigned char *aa1, int maxn, struct beststr **bbp_arr,
 float
 calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail);
 
-extern int E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag, void *pu);
+extern int E1_to_s(double e_val, int n0, int n1, int db_size, void *pu);
 
 extern void discons(FILE *fd, const struct mngmsg *m_msg,
 		    char *seqc0, char *seqc0a,
@@ -257,7 +257,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       for (ib=0; ib<istop; ib++) { 
 	bbp = bptr[ib];
 	bbp->repeat_thresh = 
-	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1, ppst->zdb_size, ppst->zsflag, m_msp->pstat_void),
+	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1, ppst->zdb_size, m_msp->pstat_void),
 	      bbp->rst.score[ppst->score_ix]);
       }
       lalign_repeat_thresh_done = 1;
@@ -277,7 +277,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 #ifdef LALIGN
     if (!lalign_repeat_thresh_done) {
       bbp->repeat_thresh = 
-	min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, ppst->zsflag, m_msp->pstat_void),
+	min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, m_msp->pstat_void),
 	    bbp->rst.score[ppst->score_ix]);
     }
 #endif

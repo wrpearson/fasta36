@@ -1056,8 +1056,7 @@ zs_to_Ec(double zs, long entries)
 }
 
 int
-E1_to_s(double e_val, int n0, int n1, int db_size, int zsflag,
-	void *pu) {
+E1_to_s(double e_val, int n0, int n1, int db_size, void *pu) {
   double mp, np, a_n0, a_n0f, a_n1;
   double zs, log_len, p_val;
   int score;
