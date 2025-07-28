@@ -159,6 +159,7 @@
 #define MX_M8_BTAB_LEN  (1<<21) /* show query/subject seq. lens in -m 8 output */
 #define MX_M8_BTAB_SIM  (1<<22) /* show similarity + identity in -m 8 output */
 #define MX_M8_BTAB_RAW  (1<<23) /* show raw score */
+#define MX_M8_BTAB_DB_SIZE (1<<24) /* show database size in database description */
 
 /* codes for -m 9, -m 8C? */
 #define SHOW_CODE_ID	1	/* identity only */

@@ -564,6 +564,7 @@ main (int argc, char *argv[])
   m_msg.db.length = m_msg.ldb.length = qtt.length = 0l;
   m_msg.db.entries = m_msg.db.carry = 
     m_msg.ldb.entries = m_msg.ldb.carry = qtt.entries = qtt.carry = 0;
+  m_msg.db.zdb_size_set = pst.zdb_size_set;
   m_msg.pstat_void = m_msg.pstat_void2 = NULL;
   m_msg.hist.entries = 0;
 
@@ -887,6 +888,7 @@ main (int argc, char *argv[])
   /* initialize outside while(1) { query loop } */
   m_msg.db.length = 0l;
   m_msg.db.entries = m_msg.db.carry = 0;
+  m_msg.db.zdb_set = pst.zdb_size_set;
 
   /* also sets ldb_info.l_overlap, use a fixed 150 residue overlap */
   m_msg.ldb_info.maxn = maxn = reset_maxn(&m_msg, 150, m_msg.max_tot);

@@ -567,7 +567,12 @@ print_header2(FILE *fd, int qlib, char *info_qlabel, unsigned char **aa0,
     if ((m_msp->markx & (MX_M8OUT + MX_M8COMMENT)) == (MX_M8OUT+MX_M8COMMENT)) {
       fprintf(fd,"# %s %s%s\n",prog_func,verstr,mp_verstr);
       fprintf(fd,"# Query: %s\n",m_msp->qtitle);
-      fprintf(fd,"# Database: %s\n",m_msp->ltitle);
+      if (m_msp->markx & MX_M8_BTAB_DB_SIZE) {
+	fprintf(fd,"# Database: %s (%ld sequences)\n",m_msp->ltitle,ppst->zdb_size);
+      }
+      else {
+	fprintf(fd,"# Database: %s\n",m_msp->ltitle);
+      }
     }
   }
   if (m_msp->markx & MX_HTML) fputs("</pre>\n",fd);

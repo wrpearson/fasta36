@@ -6,6 +6,17 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Jul 27, 2025
+[src/comp_lib9.c, structs.h, scaleswn.c]
+Change to ensure that the -Z db_size flag is used to calculate the
+effective database size for DNA:DNA searches.  Previously, -Z db_size
+was ignored for DNA:DNA.
+
+>>Mar 11, 2025
+[src/doinit.c, compacc2e.c]
+Add the "Z" option to the -m 8CBlZ (or simply -m 8CZ) to show the size
+of the database (in sequences) to the "-m 8C" "# Database: " line.
+
 >>Feb 24, 2025
 [src/comp_lib9.c]
 Found incorrect indirection in last_calc() call

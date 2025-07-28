@@ -2690,7 +2690,7 @@ zs_to_E(double zs,int n1, int dnaseq, long entries, struct db_str db)
 
   if (entries < 1) entries = db.entries;
 
-  if (dnaseq == SEQT_DNA || dnaseq == SEQT_RNA) {
+  if (!db.zdb_size_set && (dnaseq == SEQT_DNA || dnaseq == SEQT_RNA)) {
     k = (double)db.length /(double)n1;
     if (db.carry > 0) {
       k += ((double)db.carry * (double)LONG_MAX)/(double)n1;

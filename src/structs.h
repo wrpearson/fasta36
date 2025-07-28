@@ -19,6 +19,7 @@ struct db_str {
   long entries;
   unsigned long length;
   int carry;
+  int zdb_size_set;
 };
 
 struct mng_thr {	/* structure to keep track of thread buffers */
