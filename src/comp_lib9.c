@@ -888,7 +888,7 @@ main (int argc, char *argv[])
   /* initialize outside while(1) { query loop } */
   m_msg.db.length = 0l;
   m_msg.db.entries = m_msg.db.carry = 0;
-  m_msg.db.zdb_set = pst.zdb_size_set;
+  m_msg.db.zdb_size_set = pst.zdb_size_set;
 
   /* also sets ldb_info.l_overlap, use a fixed 150 residue overlap */
   m_msg.ldb_info.maxn = maxn = reset_maxn(&m_msg, 150, m_msg.max_tot);
