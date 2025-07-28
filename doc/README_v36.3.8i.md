@@ -69,6 +69,16 @@ The programs available include:
 <tr><td colspan=3><hr/></td><tr>
 </table>
 
+Changes in **fasta-36.3.8i** 2024 to July, 2025
+
+see docs/readme.v36 for a detailed list of changes
+
+1. a variety of changes to make the `fasta` programs produce blast-like output more correctly.
+
+2. (July, 2025) fix E()-value calculation for DNA:DNA alignments to correctly reflect -Z db_size settings
+
+3. (May, 2025) add `Z` option to `-m8CBLZ` to include the database size in blast tabular output
+
 Changes in **fasta-36.3.8i** Sept, 2023
 
 1. `-Xh` provides definitions of `-X?` (extended) options.
