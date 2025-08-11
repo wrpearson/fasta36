@@ -941,6 +941,10 @@ parse_markx(char *optarg, struct markx_str *this) {
     else if (strchr(stmp,'l')) {
       this->markx |= MX_M8_BTAB_LEN;
     }
+    if (strchr(stmp,'f')) {
+      this->markx |= MX_M8_ADD_LFILE;
+    }
+
     if (strchr(stmp,'s')) {
       this->markx |= MX_M8_BTAB_SIM;
     }

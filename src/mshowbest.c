@@ -121,6 +121,7 @@ void showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
   int best_align_done = 0;
   int ntmp = 0;
   char bline[MAX_BLINE], fmt[40], pad[MAX_BLINE], fmt2[40], rline[40];
+  char file_bline[MAX_BLINE];
   char l_name[128], link_name[140];
   int istart = 0, istop, ib;
   int nshow;		/* number of sequences shown before prompt,
@@ -493,6 +494,13 @@ l1:
 
     if (m_msp->markx & MX_M8OUT) {
       if ((bp=strchr(bline_p,' '))!=NULL) *bp = '\0';
+
+      if (m_msp->markx & MX_M8_ADD_LFILE) {
+	strncpy(file_bline,bbp->mseq->m_file_p->lb_name,sizeof(file_bline)-1);
+	strncat(file_bline,":",sizeof(file_bline)-strlen(file_bline)-1);
+	strncat(file_bline, bline_p, sizeof(file_bline) - strlen(file_bline)-1);
+	bline_p = file_bline;
+      }
     }
     else {
       bline_p[m_msp->aln.llen-r_margin]='\0';
