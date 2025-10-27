@@ -3072,7 +3072,14 @@ calc_cons_u( /* inputs */
 	if (s_annotp_arr_p[i1_annot]->end <= i1+i1_offset) {i1_annot++; continue;}
 
 	if (s_annotp_arr_p[i1_annot]->label == '-') {
-	  process_annot_match(&itmp, NULL, i1_offset+seq_pos(i1,aln->llrev,0), i0_offset + seq_pos(i0,aln->qlrev,0),
+	  process_annot_match(&itmp, NULL, 
+#ifndef TFAST
+			      i1_offset+seq_pos(i1,aln->llrev,0),
+			      i0_offset+seq_pos(i0,aln->qlrev,0),
+#else
+			      i1_offset+seq_pos(i1,aln->qlrev,0),
+			      i0_offset+seq_pos(i0,aln->llrev,0),
+#endif
 			      sp1_p, sp1a_p, sq, s_annotp_arr_p[i1_annot], annotp_p->n_annot,  &ann_comment, 
 			      annot_stack, have_push_features_p, &v_delta,
 			      &d1_score, &d1_ident, &d1_alen, &d1_gaplen,
