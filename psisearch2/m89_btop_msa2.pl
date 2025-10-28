@@ -433,6 +433,7 @@ if ($masked_lib_out) {
   open(my $masked_fd, ">", $masked_lib_out) || die "cannot open $masked_lib_out";
 
   for my $s_acc ( @multi_names ) {
+    next unless ($s_acc);
     print $masked_fd ">$s_acc\n";
 
     # here we have four choices for masking:

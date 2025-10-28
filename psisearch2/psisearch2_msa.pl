@@ -88,12 +88,13 @@ my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
 my $SQL_DB_HOST=$ENV{SQL_DB_HOST};
 $SQL_DB_HOST="wrpa48.bioch.virginia.edu" unless $SQL_DB_HOST;
 my $db_host = $SQL_DB_HOST;
-my $ann_pfam_script="./annot/ann_pfam_sql.pl"
+my $ann_pfam_script="./annot/ann_pfam_sql.pl";
+my $pfam_db="pfam37_qfo";
 
 my %annot_cmds = ('rpd3' => qq("\!$ann_pfam_script --host=$db_host --pfacc --db RPD3 --vdoms --split_over"),
 		  'rpd3nv' => qq("\!$ann_pfam_script  --host=$db_host --pfacc --db RPD3 --split_over"),
 		  'rpd3nvn' => qq("\!$ann_pfam_script  --host=$db_host --pfacc --db RPD3 --split_over --neg"),
-		  'pfam' => qq("\!$ann_pfam_script --host=$db_host --db pfam33_qfo --split_over --neg")
+		  'pfam' => qq("\!$ann_pfam_script --host=$db_host --db=$pfam_db  --split_over --neg")
     );
 
 ($num_iter, $pssm_evalue, $srch_evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
