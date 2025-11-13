@@ -9,6 +9,12 @@
 ## --html=1 provides exon mapping (if available) and domain graphics
 ##
 
+if [[ $PLOT_PGM ]]; then
+    plot_pgm=$PLOT_PGM
+else
+    plot_pgm='plot_domain7.cgi'
+fi
+
 cmd="";
 DO_HTML=1
 
@@ -87,8 +93,8 @@ $BLAST_PATH/annot_blast_btop2.pl --query $QUERY --raw --have_qslen --dom_info --
 if [[ $DO_HTML == 1 ]]; then
     ## rename_exons.py --have_qslen --dom_info $blt_ann > $blr_out
     $BLAST_PATH/blast_formatter -archive $bl_asn -outfmt 0 -html > $bl0_out
-    ## echo "# merge_blast_btab.pl --plot_url=plot_domain7.pl --have_qslen --dom_info --btab $blt_out $bl0_out"
-    $BLAST_PATH/merge_blast_btab.pl --plot_url="plot_domain7.pl" --have_qslen --dom_info --btab $blt_ann $bl0_out
+    ## echo "# merge_blast_btab.pl --plot_url=$plot_pgm --have_qslen --dom_info --btab $blt_out $bl0_out"
+    $BLAST_PATH/merge_blast_btab.pl --plot_url="$plot_pgm" --have_qslen --dom_info --btab $blt_ann $bl0_out
 
 else
     $BLAST_PATH/blast_formatter -archive $bl_asn -outfmt 0 > $bl0_out
