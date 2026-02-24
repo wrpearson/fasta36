@@ -38,9 +38,12 @@ use Pod::Usage;
 
 use vars qw($host $db $port $user $pass);
 
-my $hostname = `/bin/hostname`;
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ($db_host, "uniprot", 0, "web_user", "fasta_www");
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $lav, $no_doms, $pf_acc, $shelp, $help) = (0, 0, 0, 0,0, 0,0,0);
 my ($min_nodom) = (10);

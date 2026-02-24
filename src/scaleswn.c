@@ -264,6 +264,8 @@ process_hist(struct stat_str *sptr, int nstats,
     memset(ps_s,0,sizeof(struct pstat_str));
   }
 
+  ps_s->zsflag = ppst->zsflag;
+
   if (s_info->tot_scores > 10) {
     ps_s->sample_fract = min(1.0, (double)s_info->s_cnt[ppst->score_ix]/(double)s_info->tot_scores);
     if (ps_s->sample_fract > 0.0 && ps_s -> sample_fract < 1.0) {
@@ -715,9 +717,9 @@ ag_parm(char *pam_name, int gdelval, int ggapval, struct pstat_str *pu)
   if (strcmp(pam_name,"BL50")==0) 
     r_v = look_p(bl50_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"BL62")==0)
-      r_v = look_p(bl62_p,gdelval,ggapval,&K,&Lambda,&H);
+    r_v = look_p(bl62_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"P250")==0)
-      r_v = look_p(p250_p,gdelval,ggapval,&K,&Lambda,&H);
+    r_v = look_p(p250_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"P120")==0)
       r_v = look_p(p120_p,gdelval,ggapval,&K,&Lambda,&H);
   else if (strcmp(pam_name,"MD10")==0 || strcmp(pam_name,"VT10")==0)
@@ -733,6 +735,8 @@ ag_parm(char *pam_name, int gdelval, int ggapval, struct pstat_str *pu)
   else if (strcmp(pam_name,"+1/-3")==0)
       r_v = look_p(nt13_p,gdelval,ggapval, &K,&Lambda,&H);
   else {
+    /* dummy call to set K, Lambda, and H */
+    r_v = look_p(bl62_p,gdelval,ggapval,&K,&Lambda,&H);
     r_v = 0;
   }
 
@@ -2686,7 +2690,7 @@ zs_to_E(double zs,int n1, int dnaseq, long entries, struct db_str db)
 
   if (entries < 1) entries = db.entries;
 
-  if (dnaseq == SEQT_DNA || dnaseq == SEQT_RNA) {
+  if (!db.zdb_size_set && (dnaseq == SEQT_DNA || dnaseq == SEQT_RNA)) {
     k = (double)db.length /(double)n1;
     if (db.carry > 0) {
       k += ((double)db.carry * (double)LONG_MAX)/(double)n1;
@@ -2775,15 +2779,19 @@ ELK_to_s(double e_val, int n0, int n1,
 }
 
 /* calculate a threshold score, given an E() value and Lambda,K,H */
+/* 21-Feb-2025 -- this code was modified to include pst.zsflag as an argument in Dec, 2024.
+   That was a mistake, as the pu.zsflag value correctly specifies the formula to be used, not pst.zsflag.
+   Error has been reverted, and zsflag is no longer an argument to E1_to_s() anywhere */
 
 int
-E1_to_s(double e_val, int n0, int n1, int db_size,
-	struct pstat_str *pu) {
+E1_to_s(double e_val, int n0, int n1, int db_size, struct pstat_str *pu) {
   double mp, np, a_n0, a_n0f, a_n1;
   double zs, log_len, p_val;
-  int score;
+  int score, tmp_zsflag;
 
   if (pu->zsflag < 0 || n0 < LENGTH_CUTOFF || n1 < LENGTH_CUTOFF) return BIGNUM;
+
+  tmp_zsflag = pu->zsflag % 10;
 
   a_n0 = (double)n0;
   a_n1 = (double)n1;
@@ -2792,7 +2800,7 @@ E1_to_s(double e_val, int n0, int n1, int db_size,
   zs = (zs - 50.0)/10.0;
   p_val = e_val / db_size;
 
-  switch (pu->zsflag) {
+  switch (tmp_zsflag) {
 
   case AVE_STATS:
     score = zs * pu->r_u.rg.mean_var_sqrt + pu->r_u.rg.mu;
@@ -2825,7 +2833,7 @@ E1_to_s(double e_val, int n0, int n1, int db_size,
     break;
 
   default: 
-    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, pu->zsflag);
+    fprintf(stderr,"*** Warning [%s:%d] statistics method: %d not yet supported ***\n", __FILE__, __LINE__, tmp_zsflag);
     score = 999;
   }
 

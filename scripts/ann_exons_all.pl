@@ -46,15 +46,12 @@ use vars qw($host $db $a_table $port $user $pass);
 my %domains = ();
 my $domain_cnt = 0;
 
-my $hostname = `/bin/hostname`;
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
 
-unless ($hostname =~ m/ebi/) {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
-#  $host = 'xdb';
-}
-else {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
-}
+($host, $db, $a_table, $port, $user, $pass)  = ($db_host, "uniprot", "annot2", 0, "web_user", "fasta_www");
 
 my ($lav, $gen_coord, $exon_label, $use_www, $shelp, $help) = (0,0,0,0,0,0);
 
@@ -252,8 +249,7 @@ sub get_annots_up_www {
 
   my @feats = ();
 
-#  my  $exon_json = get_https($uniprot_url.$acc.$uniprot_suff);
-  my  $exon_json = get($uniprot_url.$acc.$uniprot_suff);
+  my  $exon_json = get_https($uniprot_url.$acc.$uniprot_suff);
 
   unless (!$exon_json || $exon_json =~ m/errorMessage/ || $exon_json =~ m/Can not find/) {
     return parse_json_up_exons($exon_json);

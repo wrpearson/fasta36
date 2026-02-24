@@ -24,7 +24,7 @@ fi
 for script in `cat $script_file `; do
   for acc_type in `cat $ex_file`; do
       echo $script ${acc_type}
-      $script ${acc_type}
+      ./$script ${acc_type}
   done
   echo '***DONE***'  $script `date`
 done

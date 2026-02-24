@@ -17,6 +17,8 @@
 # governing permissions and limitations under the License. 
 ################################################################
 
+## updated 14-April-2024 to work on current InterPro API
+
 # ann_pfam_www0.py takes an annotation file from fasta36 -V with a line of the form:
 
 # sp|P0810|GSTM1_RAT [tab] seqlen
@@ -50,7 +52,7 @@ import argparse
 import urllib.request
 import urllib.error
 
-interpro_prot_url = "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/"
+interpro_pfam_prot_url = "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/"
 interpro_domain_url = "https://www.ebi.ac.uk/interpro/api/entry/pfam/"
 interpro_clan_url = "https://www.ebi.ac.uk/interpro/api/set/pfam/entry/pfam/"
 
@@ -68,7 +70,6 @@ def get_pfam_id_www( acc):
 
     else:
         prot_info = req.read().decode('utf-8')
-
 
     json_info= json.loads(prot_info)
 
@@ -130,10 +131,12 @@ def get_clan_info_www(pf_acc):
 def get_seq_acc(seq_id):
 
     if (re.search(r'^gi\|',seq_id)):
-        (tmp, gi, sdb, acc, id) = seq_id.split('|')
+        fields = seq_id.split('|')
+        acc = fields[3]
 
     elif (re.search(r'^(sp|tr|up)\|', seq_id)):
-        (sdb, acc, id) = seq_id.split('|')
+        fields = seq_id.split('|')
+        (sdb, acc) = fields[0:2]
     else:
       acc = re.split(r'\s',seq_id)[0]
 
@@ -144,7 +147,7 @@ def get_seq_acc(seq_id):
 def get_pfam_www(acc):
 
     try:
-        req = urllib.request.urlopen(interpro_prot_url + acc)
+        req = urllib.request.urlopen(interpro_pfam_prot_url + acc)
 
     except urllib.error.URLError as e:
         prot_info = ''
@@ -164,10 +167,15 @@ def get_pfam_www(acc):
     prot_len = json_info['results'][0]['proteins'][0]['protein_length']
 
     for result in json_info['results']:
+
+        pfam_info = result['metadata']
+        pf_acc = pfam_info['accession']
+        pf_name = pfam_info['name']
+
         for protein in result['proteins']:
             for entry in protein['entry_protein_locations']:
                 for frag in entry['fragments']:
-                    pf_dom_list.append({'pf_acc':entry['model'], 'start':frag['start'], 'end':frag['end'], 'score':entry['score']})
+                    pf_dom_list.append({'pf_acc':pf_acc, 'start':frag['start'], 'end':frag['end'], 'name':pf_name})
                 
     pf_dom_list.sort(key = lambda x: x['start'])
 
@@ -232,9 +240,8 @@ def print_doms(seq_id, color_ix, args, dom_colors, dom_names, clan_info):
 
         this_clan_info = clan_info[pf_acc]
 
-
         ## display id or acc?
-        if (this_clan_info):
+        if (this_clan_info and not args.no_clans):
             pf_info = 'C.'+ this_clan_info['name']
         else:
             pf_info = pf_id

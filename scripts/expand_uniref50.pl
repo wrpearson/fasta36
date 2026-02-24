@@ -29,7 +29,12 @@ use warnings;
 use strict;
 use DBI;
 
-my ($host, $db, $port, $user, $pass)  = ("xdb", "uniprot", 0, "web_user", "fasta_www");
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
+
+my ($host, $db, $port, $user, $pass)  = ($db_host, "uniprot", 0, "web_user", "fasta_www");
 
 my $connect = "dbi:mysql(AutoCommit=>1,RaiseError=>1):database=$db";
 $connect .= ";host=$host" if $host;

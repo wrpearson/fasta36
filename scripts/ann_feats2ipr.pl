@@ -47,14 +47,12 @@ use vars qw($host $db $dom_db $a_table $port $user $pass);
 my %domains = ();
 my $domain_cnt = 0;
 
-my $hostname = `/bin/hostname`;
-
-unless ($hostname =~ m/ebi/) {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
-#  $host = 'localhost';
-} else {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
 }
+
+($host, $db, $a_table, $port, $user, $pass)  = ($db_host, "uniprot", "annot2", 0, "web_user", "fasta_www");
 
 my ($lav, $neg_doms, $no_doms, $no_feats, $no_label, $use_ipr, $acc_comment, $shelp, $help, $no_mod, $dom_db, $db_ref_acc) = 
     (0,0,0,0,0,0,0,0,0,0,0,0);

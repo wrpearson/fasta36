@@ -55,7 +55,7 @@ void	/* calculates alignment score(s), returns them in rst */
 do_work (const unsigned char *aa0, int n0,
 	 const unsigned char *aa1, int n1,
 	 int frame,
-	 const struct pstruct *ppst,
+	 struct pstruct *ppst,
 #ifndef DROP_INTERN
 	 void *f_arg,
 #else
@@ -112,7 +112,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	    int *nc,
 	    struct a_struct *aln,
 	    struct a_res_str *a_res,
-	    struct pstruct *ppst,
+	    const struct pstruct *ppst,
 	    char *seqc0, char *seqc1, char *seqca, int *seqc_score,
 	    const unsigned char *ann_arr,
 	    const unsigned char *aa0a, const struct annot_str *annot0_p, char *seqc0a, 

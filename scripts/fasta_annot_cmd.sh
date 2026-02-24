@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [[ $PLOT_PGM ]]; then
+    plot_pgm=$PLOT_PGM
+else
+    plot_pgm='plot_domain7.cgi'
+fi
+
 cmd="";
 for i in "$@"
 do
@@ -81,4 +87,4 @@ if [ ! -s $blr_out ]; then
     # echo "# " `ls -l $blt_out $blr_out`
 fi
 
-$BLAST_PATH/merge_fasta_btab.pl --plot_url="plot_domain6t.cgi" --have_qslen --dom_info --btab $blr_out $bl0_out
+$BLAST_PATH/merge_fasta_btab.pl --plot_url=$plot_pgm --have_qslen --dom_info --btab $blr_out $bl0_out

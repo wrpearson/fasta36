@@ -433,7 +433,7 @@ scores \emph{cannot} be used to infer \emph{non-homology}.
 
 While percent identity is often used to characterize the quality of an
 alignment and the likelihood that it reflects homology, the E()-value
-is a much more reliable value for homology infernence (once homology is
+is a much more reliable value for homology inference (once homology is
 established, the percent identity is much more useful for estimating
 evolutionary distance).  Often sequences that share less than 30\%
 identity will share very significant similarity (in the example above
@@ -1422,20 +1422,26 @@ A number of rarely used options are now only available as extended options:
 
 \item[\texttt{Xa}] only report annotation information in -m 8CB output.
 
-\item[\texttt{XB}] Calculate pecent identity, percent similarity, and
-  alignment using the BLAST model, which excludes gapped residues.
-  This allows very high identity alignments with large gaps to look
-  much closer, but causes the alignment length to drop by the length
-  of the gap.
-
 \item[\texttt{Xb}] (Previously \texttt{-B}.)  Show the z-score, rather
   than the bit-score in the list of best scores (rarely used, provided
   for backward compatibility).
+
+\item[\texttt{XB \#\#}] Provide a \texttt{min\_bits} value for variable
+  scoring matrices.  By default \texttt{DEF\_MIN\_BITS} (40) is used
+  to find a sufficiently high entropy scoring matrix for short query
+  sequences.  \texttt{-XB 50} would search for a scoring matrix that
+  could provide 50 bits.
 
 \item[\texttt{Xg}] (gi\_save) Historically, FASTA and BLAST have
   treated the string \texttt{>gi|123456} specially, removing it from the list
   of high scoring sequences and alignment output.  \texttt{-Xg}
   causes \texttt{gi} numbers to be displayed.
+
+\item[\texttt{XG}] Calculate pecent identity, percent similarity, and
+  alignment excluding gapped residues.
+  This allows very high identity alignments with large gaps to look
+  much closer, but causes the alignment length to drop by the length
+  of the gap.
 
 \item[\texttt{XI}] Modify rounding used in percent identity/percent
   similarity display to ensure that sequences that have a mismatch are
@@ -1470,7 +1476,7 @@ A number of rarely used options are now only available as extended options:
   calculating percent identity.
 
 \item[\texttt{Xx}] (Previously \texttt{-x}) Specify the penalty for a
-  match to an \texttt{X}, and mismatch to \texttt{X}, independently of
+  match to an \texttt{X}, and mismatch to \texttt{x}, independently of
   the PAM matrix.  Particularly useful for \texttt{fastx3/fasty36},
   where termination codons are encoded as \texttt{X}.  For example,
   \texttt{-Xx=0,-1} scores an \texttt{X:X} match as 0, and
@@ -1794,7 +1800,7 @@ line. FASTA can read NCBI \texttt{.pal} or \texttt{.nal} files that do
 not contain a \texttt{DBLIST} line.
 
 FASTA version \texttt{fasta-36.3.6} provides an alternative way to
-generate a database to be searched: the \texttt{!script.sh} file.
+specify either a query set and/or a database to be searched: the \texttt{!script.sh} file.
 Like the \texttt{-e expand\_file.sh} script, a shell script or program
 can be used to produce a database to a temporary file, which is then
 seached.  For example, if the file \texttt{cat\_db.sh} contains the
@@ -1810,7 +1816,24 @@ of filenames; thus, because of the \texttt{@}, the file will be
 interpreted as an indirect file, and the \texttt{swissprot.lseg} file
 will be searched.  Note that on Unix systems, the \texttt{'!'} must be
 preceeded by a \texttt{'\textbackslash'} so that it is not interpreted by the
-shell, as shown above.
+shell.
+
+Likewise the program \texttt{scripts/get\_protein.py} can be used to
+extract protein sequences from the Uniprot and NCBI/Refseq sequence
+databases.  Thus:
+\begin{quote}
+\begin{verbatim}
+  scripts/get_protein.py gstm1_human
+\end{verbatim}
+\end{quote}
+produces the sequence of \texttt{GSTM1\_HUMAN} in FASTA format.
+Script commands can use the \texttt{+} symbol as a space character in arguments, so:
+\begin{quote}
+\begin{verbatim}
+  fasta36 \!scripts/get_protein.py+gstm1_human /seqlib/swiss_prot.lseg
+\end{verbatim}
+\end{quote}
+will extract the \texttt{GSTM1\_HUMAN} sequence from Uniprot, and use it to search the \texttt{SwissProt} library.
 
 \subsection{\texttt{FASTLIBS}}
 \label{fastlibs}
@@ -2173,25 +2196,11 @@ defines (Table \ref{make-defs}) in the main \texttt{Makefile},
 e.g. \texttt{make/Makefile.linux64\_sse2}, or by editing
 \texttt{make/Makefile36m.common}.
 
-\emph{High-performance searches with many queries} -- By default, the
-\texttt{comp\_lib5e.c} program specified in
-\texttt{Makefile36m.common} builds FASTA programs that re-read the
-library sequence database for every query sequence.  This has the
-advantage that sequence comparison begins almost immediately, but if
-thousands of searches are being performed, the database is re-read
-thousands of times.  \texttt{Makefile36m.common} can be edited to use
-\texttt{comp\_lib8.c} in place of \texttt{comp\_lib5e.c} and the
-database is read only once, then held in memory for additional
-searches.  Of course, if \texttt{comp\_lib8.c} is used, the computer
-must have enough memory to store the complete database.  Keeping the
-database in memory allows the FASTA programs to very efficiently used
-large, multicore computers.
-
 \needspace{5\baselineskip}
 \emph{Parallel searches with MPI} -- By default under
 Unix/Linux/MacOSX, the FASTA programs are threaded; they will spawn as
 many threads as CPU cores are available (this can be limited with the
-\texttt{-t n-threads} option).  Using \texttt{comp\_lib8.c}, we see
+\texttt{-t n-threads} option).  Using \texttt{comp\_lib9.c}, we see
 almost 48-fold speedup on a 48-core machine.  The FASTA programs can
 also be run in parallel in the MPI environment on clusters of
 computers.  To build the MPI versions of the programs, use

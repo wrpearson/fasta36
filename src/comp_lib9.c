@@ -214,7 +214,7 @@ buf_shuf_seq(unsigned char **aa0, int n0,
 void
 buf_align_seq(unsigned char **aa0, int n0,
 	      struct beststr **bestp_arr, int nbest,
-	      struct pstruct *ppst, struct mngmsg *m_msp,
+	      const struct pstruct *ppst, const struct mngmsg *m_msp,
 	      struct mng_thr *m_bufi_p
 #if !defined(COMP_THR) && !defined(PCOMPLIB)
 	      , void **f_str
@@ -279,14 +279,14 @@ build_link_data(char **, struct mngmsg *, struct beststr **, int);
 /* display functions */
 extern void
 showbest (FILE *fp, unsigned char **aa0, unsigned char *aa1, int maxn,
-	  struct beststr **bestp_arr, int nbest,
-	  int qlib, struct mngmsg *m_msg,struct pstruct *ppst,
+	  struct beststr **bestp_arr, int nbest, int qlib, 
+	  struct mngmsg *m_msg, struct pstruct *ppst,
 	  struct db_str db, char **gstring2p, void **f_str);
 
 extern void
 showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1, int maxn,
 	   struct beststr **bestp_arr, int nbest, int qlib, 
-	   const struct mngmsg *m_msg, const struct pstruct *ppst,
+	   struct mngmsg *m_msg, const struct pstruct *ppst,
 	   char **gstring2p, void **f_str, struct mng_thr *m_bufi_p);
 
 /* misc functions */
@@ -496,7 +496,7 @@ main (int argc, char *argv[])
   struct seq_record *best_seqs;
   struct mseq_record *best_mseqs;
 
-  int leng;			/* leng is length of the descriptive line */
+  unsigned int leng;			/* leng is length of the descriptive line */
   int maxn;			/* size of the library sequence examined */
   int qlcont;			/* continued query sequence */
   char *bp;			/* general purpose string ptr */
@@ -564,6 +564,7 @@ main (int argc, char *argv[])
   m_msg.db.length = m_msg.ldb.length = qtt.length = 0l;
   m_msg.db.entries = m_msg.db.carry = 
     m_msg.ldb.entries = m_msg.ldb.carry = qtt.entries = qtt.carry = 0;
+  m_msg.db.zdb_size_set = pst.zdb_size_set;
   m_msg.pstat_void = m_msg.pstat_void2 = NULL;
   m_msg.hist.entries = 0;
 
@@ -887,6 +888,7 @@ main (int argc, char *argv[])
   /* initialize outside while(1) { query loop } */
   m_msg.db.length = 0l;
   m_msg.db.entries = m_msg.db.carry = 0;
+  m_msg.db.zdb_size_set = pst.zdb_size_set;
 
   /* also sets ldb_info.l_overlap, use a fixed 150 residue overlap */
   m_msg.ldb_info.maxn = maxn = reset_maxn(&m_msg, 150, m_msg.max_tot);
@@ -1054,6 +1056,7 @@ main (int argc, char *argv[])
       }
       pst.zsflag_f = process_hist(stats,nstats,&m_msg, &pst,&m_msg.hist,
 				  &m_msg.pstat_void, &m_msg.s_info, stats_done);
+
       pst.zsflag = zsflag_save;
 
       if (m_msg.pstat_void != NULL) {

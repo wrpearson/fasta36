@@ -38,8 +38,13 @@ use Getopt::Long;
 use Pod::Usage;
 use DBI;
 
-my ($host, $db, $port, $user, $pass)  = ("xdb", "uniprot", 0, "web_user", "fasta_www");
-$host = 'wrpxdb.its.virginia.edu';
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
+
+my ($host, $db, $port, $user, $pass)  = ($db_host, "uniprot", 0, "web_user", "fasta_www");
+
 my ($a_table, $i_table) = ("annot2", "annot2_iso");
 my ($help, $shelp) = (0,0);
 my ($e_thresh, $prim_acc) = (1e-6, 0);

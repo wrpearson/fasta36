@@ -39,7 +39,12 @@ use warnings;
 use strict;
 use DBI;
 
-my ($host, $db, $port, $user, $pass, $table)  = ("xdb", "wrp_link", 0, "web_user", "fasta_www", "micr_samp_link50");
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
+
+my ($host, $db, $port, $user, $pass, $table)  = ($db_host, "wrp_link", 0, "web_user", "fasta_www", "micr_samp_link50");
 
 my $dbh = DBI->connect("dbi:mysql:host=$host:$db",
 		       $user, $password,

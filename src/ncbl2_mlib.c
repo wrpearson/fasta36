@@ -259,7 +259,7 @@ int ncbl2_getliba_o(unsigned char *, int, char *, int, fseek_t *, int *, struct 
 int ncbl2_getlibn_o(unsigned char *, int, char *, int, fseek_t *, int *, struct lmf_str *, long *);
 
 void newname(char *, char *, char *, int);
-void parse_pal(char *, char *, int *, int *, FILE *);
+void parse_pal(char *, char *, int *, unsigned int *, FILE *);
 
 int readMFILE (void *buffer, size_t size, int nitems, struct lmf_str *m_fd);
 
@@ -282,8 +282,9 @@ ncbl2_openlib(struct lib_struct *lib_p,  int ldnaseq)
   int pref_db= -1;	/*  right now, only swissprot.pal, pdbaa.pal
 			    are used for masked OID files */
   char *bp;
-  int oid_seqs, max_oid, have_oid_list;
-  int oid_cnt, oid_len;
+  int oid_seqs, have_oid_list;
+  unsigned int max_oid;
+  unsigned int oid_cnt, oid_len;
   unsigned int *oid_list, o_max;
   int tmp;
   int i;
@@ -595,7 +596,8 @@ struct lmf_str *ncbl2_reopen(struct lmf_str *m_fptr) {
   int pref_db= -1;	/*  right now, only swissprot.pal, pdbaa.pal
 			    are used for masked OID files */
   char *bp;
-  int oid_seqs, max_oid, have_oid_list;
+  int oid_seqs, have_oid_list;
+  unsigned int max_oid;
   int oid_cnt, oid_len;
   unsigned int *oid_list, o_max;
 #ifdef USE_MMAP
@@ -1013,7 +1015,7 @@ ncbl2_getliba_o(unsigned char *seq,
 		struct lmf_str *m_fd,
 		long *l_off)
 {
-  int tpos;
+  unsigned int tpos;
   unsigned int t_mask, t_shift, oid_mask;
   
   /* get to the next valid pointer */
@@ -1049,10 +1051,11 @@ ncbl2_getliba(unsigned char *seq,
 	      long *l_off)
 {
   unsigned char *sptr, *dptr;
-  int s_chunk, d_len, lib_cnt;
-  long seqcnt;
-  long tmp;
-  static long seq_len;
+  int s_chunk, d_len;
+  unsigned int lib_cnt;
+  unsigned long seqcnt;
+  unsigned long tmp;
+  unsigned long seq_len=0;
 #if defined(DEBUG) || defined(PCOMPLIB)
   int gi, my_db, taxid;
   char acc[MAX_FADL_ACC_LEN], title[MAX_UID], name[MAX_FADL_ACC_LEN];
@@ -1166,7 +1169,7 @@ ncbl2_get_mmap_chain_o(struct seqr_chain *cur_seqr_chain,
   struct seq_record *seq_a, *seq_p;
   struct mseq_record *mseq_a, *mseq_p;
 
-  int tpos;
+  unsigned int tpos;
   unsigned int t_mask, t_shift, oid_mask;
   
   tpos = m_fd->lpos;
@@ -1236,7 +1239,8 @@ ncbl2_get_mmap_chain_o(struct seqr_chain *cur_seqr_chain,
 int
 ncbl2_get_mmap_chain(struct seqr_chain *cur_seqr_chain, 
 		     struct lmf_str *m_fd, struct db_str *db) {
-  int i, lib_cnt;
+  int i;
+  unsigned int lib_cnt;
   struct seq_record *seq_a, *seq_p;
   struct mseq_record *mseq_a, *mseq_p;
 
@@ -1291,7 +1295,7 @@ ncbl2_getlibn_o(unsigned char *seq,
 		struct lmf_str *m_fd,
 		long *l_off)
 {
-  int tpos;
+  unsigned int tpos;
   unsigned int t_mask, t_shift, oid_mask;
   
   /* get to the next valid pointer */
@@ -1330,7 +1334,8 @@ ncbl2_getlibn(unsigned char *seq,
 {
   unsigned char *sptr, *tptr, stmp;
   long seqcnt;
-  int s_chunk, lib_cnt;
+  int s_chunk;
+  unsigned int lib_cnt;
   size_t tmp;
   char ch;
   static long seq_len;
@@ -2418,7 +2423,7 @@ parse_fastadl_asn(unsigned char *asn_buff, unsigned char *asn_max,
 
 void
 parse_pal(char *dname, char *msk_name,
-	  int *oid_seqs, int *max_oid,
+	  int *oid_seqs, unsigned int *max_oid,
 	  FILE *fd) {
 
   char line[MAX_STR];

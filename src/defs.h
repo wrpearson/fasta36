@@ -155,10 +155,12 @@
 #define MX_MBLAST2 4096	/* markx=BB blast best scores and alignment (-outfmt=0) output */
 #define MX_ANNOT_COORD 16384 /* -m 0, use -m 0B for both */
 #define MX_ANNOT_MID  32768 /* markx 0M, 1M, 2M annotations in middle */
+#define MX_M8_ADD_LFILE (1<<19) /* add library file to subject name */
 #define MX_RES_ALIGN_SCORE (1<<20)  /* show residue alignment score, not alignment */
 #define MX_M8_BTAB_LEN  (1<<21) /* show query/subject seq. lens in -m 8 output */
 #define MX_M8_BTAB_SIM  (1<<22) /* show similarity + identity in -m 8 output */
 #define MX_M8_BTAB_RAW  (1<<23) /* show raw score */
+#define MX_M8_BTAB_DB_SIZE (1<<24) /* show database size in database description */
 
 /* codes for -m 9, -m 8C? */
 #define SHOW_CODE_ID	1	/* identity only */

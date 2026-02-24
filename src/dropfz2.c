@@ -3107,7 +3107,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
 	*sp1a = ann_arr[ap1a[i1]];
 
 	if (s_annot1_arr_p) {
-	  /* coordiates are much more complex for next_annot_match,
+	  /* coordinates are much more complex for next_annot_match,
 	     and comment_var, because they may need to be reversed */
 
 	  if (i1 + i1_offset == s_annot1_arr_p[i1_annot]->pos) {
@@ -3179,6 +3179,7 @@ calc_cons_a(const unsigned char *aa0, int n0,
   aln->ngap_q = ngap_p;
   aln->ngap_l = ngap_d;
 #endif
+  aln->ngap_open = 0;
   aln->calc_last_set = 1;
   aln->nfs = nfs;
   aln->amin0 = aln->smin0;

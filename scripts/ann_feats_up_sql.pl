@@ -42,15 +42,12 @@ use vars qw($host $db $a_table $port $user $pass);
 my %domains = ();
 my $domain_cnt = 0;
 
-my $hostname = `/bin/hostname`;
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
 
-unless ($hostname =~ m/ebi/) {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "uniprot", "annot2", 0, "web_user", "fasta_www");
-#  $host = 'xdb';
-}
-else {
-  ($host, $db, $a_table, $port, $user, $pass)  = ("mysql-pearson-prod", "up_db", "annot", 4124, "web_user", "fasta_www");
-}
+($host, $db, $a_table, $port, $user, $pass)  = ($db_host, "uniprot", "annot2", 0, "web_user", "fasta_www");
 
 my ($sstr, $lav, $neg_doms, $no_vars, $no_doms, $no_feats, $shelp, $help, $pfam26) = (0,0,0,0,0,0,0,0,0,0);
 my ($min_nodom) = (10);

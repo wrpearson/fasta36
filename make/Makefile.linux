@@ -12,7 +12,7 @@
 
 SHELL=/bin/bash
 
-CC ?= gcc -g -O
+CC ?= gcc -g -std=c99 -O
 LIB_DB=
 
 #CC= gcc -pg -g -O -msse2 -ffast-math

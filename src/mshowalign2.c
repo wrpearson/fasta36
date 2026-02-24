@@ -93,8 +93,8 @@ buf_align_seq(unsigned char **aa0, int n0,
 
 /* pre-alignment */
 extern void 
-pre_load_best(unsigned char *aa1, int maxn,struct beststr **bbp_arr,
-	      int nbest, struct mngmsg *m_msp, int debug);
+pre_load_best(unsigned char *aa1, int maxn, struct beststr **bbp_arr,
+	      int nbest, const struct mngmsg *m_msp, int debug);
 
 float
 calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, float fail);
@@ -134,7 +134,7 @@ do_url1(FILE *, const struct mngmsg *, const struct pstruct *, char *, int,
 void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 		struct beststr **bptr, int nbest, int qlib, 
 		struct mngmsg *m_msp, struct pstruct *ppst, 
-		char *info_gstring2
+		char **info_gstring2
 		, void **f_str, struct mng_thr *m_bufi_p
 		)
 {
@@ -257,7 +257,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       for (ib=0; ib<istop; ib++) { 
 	bbp = bptr[ib];
 	bbp->repeat_thresh = 
-	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1,ppst->zdb_size, m_msp->pstat_void),
+	  min(E1_to_s(ppst->e_cut_r, m_msp->n0, bbp->seq->n1, ppst->zdb_size, m_msp->pstat_void),
 	      bbp->rst.score[ppst->score_ix]);
       }
       lalign_repeat_thresh_done = 1;
@@ -545,7 +545,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 
       ngap = l_aln_p->ngap_q + l_aln_p->ngap_l;
       ng_percent = calc_fpercent_id(100.0, l_aln_p->nident,lc-ngap,m_msp->tot_ident, -1.0);
-      if (m_msp->blast_ident) { 
+      if (m_msp->ngap_ident) { 
 	disp_percent = ng_percent;
 	disp_similar = calc_fpercent_id(100.0, l_aln_p->npos, lc-ngap, m_msp->tot_ident, -1.0);
 	disp_alen = lc - ngap;
@@ -642,12 +642,24 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 		lbits, rst_p->score[ppst->score_ix] + score_delta,
 		zs_to_E(lzscore, bbp->seq->n1, ppst->dnaseq, ppst->zdb_size, m_msp->db));
 
-	fprintf(fp, " Identities = %d/%d (%d%%)", l_aln_p->nident, lc-ngap,
-		(int)((100.0*(float)l_aln_p->nident+0.5)/(float)(lc-ngap)));
+	if (m_msp->ngap_ident) {
+	  fprintf(fp, " Identities = %d/%d (%d%%)", l_aln_p->nident, lc-ngap,
+		  (int)((100.0*(float)l_aln_p->nident+0.5)/(float)(lc-ngap)));
+	}
+	else {
+	  fprintf(fp, " Identities = %d/%d (%d%%)", l_aln_p->nident, lc,
+		  (int)((100.0*(float)l_aln_p->nident+0.5)/(float)(lc)));
+	}
 
 	if (!disp_dna_align) {
-	  fprintf(fp, ", Positives = %d/%d (%d%%)", l_aln_p->npos, lc-ngap, 
-		  (int)((100.0*(float)l_aln_p->npos+0.5)/(float)(lc-ngap)));
+	  if (m_msp->ngap_ident) {
+	    fprintf(fp, ", Positives = %d/%d (%d%%)", l_aln_p->npos, lc-ngap, 
+		    (int)((100.0*(float)l_aln_p->npos+0.5)/(float)(lc-ngap)));
+	  }
+	  else {
+	    fprintf(fp, ", Positives = %d/%d (%d%%)", l_aln_p->npos, lc, 
+		    (int)((100.0*(float)l_aln_p->npos+0.5)/(float)(lc)));
+	  }
 	}
 
 	fprintf(fp, ", Gaps = %d/%d (%d%%)\n",ngap, lc-ngap,

@@ -25,9 +25,12 @@ use Pod::Usage;
 
 use vars qw($host $db $port $user $pass);
 
-my $hostname = `/bin/hostname`;
+my $db_host='localhost';
+if (defined $ENV{'DB_HOST'}) {
+    $db_host = $ENV{'DB_HOST'};
+}
 
-($host, $db, $port, $user, $pass)  = ("wrpxdb.its.virginia.edu", "seqdb_demo2", 0, "web_user", "fasta_www");
+($host, $db, $port, $user, $pass)  = ($db_host, "seqdb_demo2", 0, "web_user", "fasta_www");
 
 my ($lav, $shelp, $help) = (0, 0, 0);
 

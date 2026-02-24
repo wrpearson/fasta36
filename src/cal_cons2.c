@@ -338,7 +338,7 @@ calc_cons_u( /* inputs */
   struct update_code_str *update_data_p;
 
   /* variables for variant changes */
-  int *aa0_pam2_p;
+  int *aa0_pam2_p=NULL;
   char *sim_sym = aln_map_sym[5];
   struct annot_entry **s_annot0_arr_p, **s_annot1_arr_p;
 
@@ -473,7 +473,7 @@ calc_cons_u( /* inputs */
   d0_score = d0_ident = d0_alen = d0_gaplen = 0;
 
   lenc = aln->nident = aln->nmismatch =
-    aln->npos = aln->nsim = aln->ngap_q = aln->ngap_l = aln->nfs = op = 0;
+    aln->npos = aln->nsim = aln->ngap_q = aln->ngap_l = aln->nfs = aln->ngap_open = op = 0;
 
   i0 = a_res->min0;	/* start in aa0[] */
   i1 = a_res->min1;	/* start in aa1[] */
@@ -496,7 +496,7 @@ calc_cons_u( /* inputs */
 	  if (s_annot1_arr_p[i1_annot]->end <= i1_off) {i1_annot++; continue;}
 
 	  if (s_annot1_arr_p[i1_annot]->label == '-') {
-	    process_annot_match(&itmp, aa0_pam2_p, i1_off, i0_off,
+	    process_annot_match(&itmp, NULL, i1_off, i0_off,
 				sp1_p, sp1a_p, sq, s_annot1_arr_p[i1_annot],  annot1_p->n_domains, &ann_comment, 
 				annot_stack, have_push_features_p, &v_delta,
 				&d1_score, &d1_ident, &d1_alen, &d1_gaplen,

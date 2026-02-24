@@ -268,7 +268,7 @@ int calc_cons_a(const unsigned char *aa0, int n0,
 
   rp = a_res->res;
   lenc = aln->nident = aln->nmismatch =
-    aln->npos = aln->nsim = aln->ngap_q = aln->ngap_l = aln->nfs = op = 0;
+    aln->npos = aln->nsim = aln->ngap_q = aln->ngap_l = aln->nfs = aln->ngap_open = op = 0;
   p_match = 1;
   i0 = a_res->min0;
   i1 = a_res->min1;
