@@ -19,6 +19,7 @@ def main():
 
   ncbi_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?" 
   uniprot_url = "https://rest.uniprot.org/uniprotkb/"
+  uniparc_url = "https://rest.uniprot.org/uniparc/"
   sub_range = ''
 
   parser=argparse.ArgumentParser(description='get protein sequences from uniprot/ncbi')
@@ -44,6 +45,10 @@ def main():
 
     else:				# get uniprot
       acc_fields = acc.split('|')
+
+      if (re.search(r'^UPI',acc)):
+        uniprot_url = uniparc_url
+
       if (len(acc_fields)==1):
         url_string = uniprot_url + acc + ".fasta"
       else:
