@@ -20,7 +20,7 @@
 # governing permissions and limitations under the License.
 ################################################################
 
-## m8CBl_to_plot2.R [-d|--diag_probs] [-p|--pub] [-o|-out align_graph.pdf] -f alignment.m8CBl_file
+## m8CBl_to_plot2.R [-d|--diag_probs] [-p|--pub] [-o|--out align_graph.pdf] -f alignment.m8CBl_file
 ##  -f alignment.m8CBl_file is required
 ##
 ##

@@ -1,0 +1,75 @@
+
+23-Oct-2025
+
+Code for the program described by Wootten and Federhen:
+
+Wootton, J. C. and S. Federhen (1993).  Statistics of local complexity
+in amino acid sequences and sequence databases.  Computers and
+Chemistry 17:149-163.
+
+Original pseg.c code downloaded from:
+
+ftp://ftp.ncbi.nlm.nih.gov/pub/seg/pseg
+
+The pseg.c, pgenwin.c, pmerge.c, and pgenwin.h sources have been
+modified to compile with modern 'C' compilers (particularly the LLVM
+clang compiler).  Small formatting changes have also been made, but
+the code should function exactly the code distributed from the NCBI.
+
+Bill Pearson
+wrp@virginia.edu
+
+================
+
+This directory contains C language source code for the SEG program of Wootton
+and Federhen, for identifying and masking segments of low compositional
+complexity in amino acid sequences.  This program is inappropriate for
+masking nucleotide sequences and, in fact, may strip some nucleotide
+ambiguity codes from nt. sequences as they are being read.
+
+The SEG program can be used as a plug-in filter of query sequences used in the
+NCBI BLAST programs.  See the -filter and -echofilter options described in the
+BLAST software's manual page.
+
+Input to SEG must be sequences in FASTA format.  Output can be produced in a
+variety of formats, with FASTA format being one of them when the -x option is
+used.  The file seg.doc includes a copy of the man page for the seg program.
+
+
+References:
+Wootton, J. C. and S. Federhen (1993).  Statistics of local complexity in amino
+acid sequences and sequence databases.  Computers and Chemistry 17:149-163.
+
+
+MODIFICATION HISTORY
+10/18/94
+Fixed a bug in the boundary conditions for the alphabet assignments
+(colorings) calculations. This condition seems not to arise in the
+current protein sequence databases, but does appear when the algorithm
+is customized for the nucleic acid alphabet.
+
+4/2/94
+Fixed a bug in the reading of input sequence files.  B, Z, and U letters found
+in the IUB amino acid alphabet and the NCBI standard amino acid alphabet
+were being stripped.
+
+3/30/94
+WRG improved speed by about 3X (roughly 5X overall since 3/21/94), due in part
+to the elimination of nearly all log() function calls, plus the removal of much
+unused or unnecessary code.
+
+3/21/94
+Included support for the special characters "*" (translation stop) and "-"
+(gap) which are found in some NCBI standard amino acid alphabets.
+
+WRG replaced repetitive dynamic calls to log(2.) and log(20.) with precomputed
+values, yielding a 33-50% speed improvement.
+
+WRG added EOF checks in several places, the lack of which could produce
+infinite looping.
+
+The previous version of seg is archived beneath the archive subdirectory.
+
+9/30/97
+HMF5 plugged a memory leak.
+
