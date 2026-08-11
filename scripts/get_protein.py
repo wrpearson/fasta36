@@ -31,7 +31,7 @@ def main():
 
   for acc in args.accs:
 
-    acc = re.sub(r'[^A-Z_0-9]','')
+    acc = re.sub(r'[^A-Z_0-9]','',acc)
 
     if (re.search(r':',acc)):
       (acc, sub_range) = acc.split(':')
