@@ -6,6 +6,7 @@
 
 ## modified to work with urllib.request 7-Nov-2022
 ## modified to allow argparse arguments for identifier 20-Mar-2023
+## modified 11-Aug-2026 to de-taint accessions
 
 import argparse
 import sys
@@ -28,6 +29,8 @@ def main():
   args=parser.parse_args()
 
   for acc in args.accs:
+
+    acc = re.sub(r'[^A-Z_0-9]','')
 
     if (re.search(r':',acc)):
       (acc, sub_range) = acc.split(':')

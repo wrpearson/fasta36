@@ -45,13 +45,30 @@ use Getopt::Long;
 use Pod::Usage;
 
 use vars qw($host $db $port $user $pass);
+use vars qw($DB_HOST $DB_NAME $DB_PORT $DB_USER $DB_PASSWORD);
 
 my $db_host='localhost';
-if (defined $ENV{'DB_HOST'}) {
-    $db_host = $ENV{'DB_HOST'};
-}
 
-($host, $db, $port, $user, $pass)  = ($db_host, "pfam35_qfo", 0, "web_user", "fasta_www");
+my %db_defaults = ("HOST"=>"wrpa48.bioch.virginia.edu",
+		   "USER"=>"web_user",
+		   "PASSWORD"=>"fasta_www",
+		   "NAME"=>"pfam37_qfo");
+
+{
+    no strict "refs";
+    foreach my $k (keys(%db_defaults)) {
+	my $db_var = "DB_".$k;
+	if (defined($ENV{$db_var})) {
+	    ${$db_var} = $ENV{$db_var};
+	}
+	if (!defined(${$db_var}) || !${$db_var}) {
+	    ${$db_var} = $db_defaults{$k};
+	}
+    }
+}
+($host, $db, $port, $user, $pass)  = ($DB_HOST, $DB_NAME, $DB_PORT, $DB_USER, $DB_PASSWORD);
+
+## ($host, $db, $port, $user, $pass)  = ($db_host, "pfam37_qfo", 0, "web_user", "fasta_www");
 
 my ($auto_reg,$rpd2_fams, $neg_doms, $vdoms, $lav, $no_doms, $no_clans, $pf_acc, $acc_comment, $bound_comment, $shelp, $help) = 
   (0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0,);
