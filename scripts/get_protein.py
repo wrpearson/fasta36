@@ -31,7 +31,8 @@ def main():
 
   for acc in args.accs:
 
-    acc = re.sub(r'[^A-Z_0-9]','',acc)
+    ## detaint acc -- do not allow ':' or '|'
+    acc = re.sub(r'[^A-Za-z_0-9]','',acc)
 
     if (re.search(r':',acc)):
       (acc, sub_range) = acc.split(':')
@@ -72,6 +73,8 @@ def main():
     if (not sub_range):
 
       if (args.id):
+        ## detaint since output is being printed:
+        args.id = re.sub(r'[^A-Za-z_0-9]','',args.id)
         seq_html = re.sub('>','>%s '%(args.id),seq_html)
 
       print(seq_html)
