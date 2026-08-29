@@ -82,6 +82,9 @@ void
 do_lav(FILE *fp, struct a_struct *aln, char *seqc, float percent, int is_mirror);
 
 void
+print_lav_annot(FILE *fp, struct annot_entry *);
+
+void
 buf_align_seq(unsigned char **aa0, int n0,
 	      struct beststr **bestp_arr, int nbest,
 	      struct pstruct *ppst, struct mngmsg *m_msp,
@@ -138,6 +141,7 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
 		, void **f_str, struct mng_thr *m_bufi_p
 		)
 {
+  int i_annot;
   unsigned char *aa1, *aa1a;
   char tmp_str[20];
   char info_str[200];
@@ -430,9 +434,21 @@ void showalign (FILE *fp, unsigned char **aa0, unsigned char *aa1save, int maxn,
       fprintf (fp, "s {\n   \"%s\" %ld %ld \n   \"%s\" %ld %ld\n}\n",
 	       name0, qt_offset, qt_offset + m_msp->n0 - 1,
 	       name1, lt_offset, lt_offset + bbp->seq->n1 - 1);
-      fprintf (fp, "h {\n   \"%s\"\n   \"%s\"\n}\n", qline_p, bline_p);
+      /* do we have annotations?      if ($m_msp-> */
+      fprintf (fp, "h {\n");
+      if (m_msp->ann_flg && (m_msp->annot_p !=NULL)) {
+	/* show annotations for domains only */
+	for (i_annot=0; i_annot < m_msp->annot_p->n_annot; i_annot++) {
+	  print_lav_annot(fp, &m_msp->annot_p->annot_arr_p[i_annot]);
+	}
+      }
+      if (m_msp->ann_flg && (bbp->seq->annot_p !=NULL)) {
+	for (i_annot=0; i_annot < bbp->seq->annot_p->n_annot; i_annot++) {
+	  print_lav_annot(fp, &bbp->seq->annot_p->annot_arr_p[i_annot]);
+	}
+      }
+      fprintf (fp, "   \"%s\"\n   \"%s\"\n}\n", qline_p, bline_p);
     }
-
 
     /* enables >>seq_acc seq_description length for first alignment, >- after */
     first_line = 1;
@@ -1028,4 +1044,15 @@ float calc_fpercent_id(float scale, int n_ident, int n_alen, int tot_ident, floa
   }
 
   return scale*f_id;
+}
+
+void print_lav_annot(FILE *fp, struct annot_entry *this_annot) {
+  char *info_str;
+  
+  if (this_annot->label != '-') {return;}
+
+  if (this_annot->target == 0) {info_str = "qInfo";}
+  else {info_str = "Info";}
+
+  fprintf(fp, "# %s : %ld\t%ld\t%s\n",info_str, this_annot->pos, this_annot->end, this_annot->comment);
 }
