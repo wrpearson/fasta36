@@ -22,7 +22,10 @@
 # modification to allow older blast version, (2.6.0+), as current version (2.10.1+)
 # has problem with asnbin/asntxt files
 #
-
+################
+# 2-Sept-2026
+# add ggsearch option
+#
 use warnings;
 use strict;
 use Getopt::Long;
@@ -40,7 +43,7 @@ use Pod::Usage;
 ################
 #
 # command:
-# psisearch2_msa.pl --query query.file --in_msa msa.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
+# psisearch2_msa.pl --query query.file --in_msa msa.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/gssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
 #
 ################
 
@@ -65,6 +68,7 @@ my $pgm_bin = "/seqprg/bin";
 
 my $pgm_data = "/seqprg/data";
 my $ssearch_bin = "$pgm_bin/ssearch36";
+my $ggsearch_bin = "$pgm_bin/ggsearch36";
 my $align2msa_lib = "$pgm_bin/m89_btop_msa2.pl";
 my $clustal2fasta = "$pgm_bin/clustal2fasta.pl";
 
@@ -82,6 +86,7 @@ my $makeblastdb_bin = "$ncbi_bin/makeblastdb";
 my $datatool_bin = "$pgm_bin/datatool -m $pgm_data/NCBI_all.asn";
 
 my %srch_subs = ('ssearch' => \&get_ssearch_cmd,
+		 'ggsearch' => \&get_ggsearch_cmd,
 		 'psiblast' => \&get_psiblast_cmd,
 		);
 
@@ -95,6 +100,11 @@ my %annot_cmds = (
 		  'pfam' => qq("\!$ann_pfam_script+--host=$db_host+--db=$pfam_db+--split_over+--neg")
     );
 
+## initilizes
+##   $srch_pgm="ssearch"
+##   $num_iter 5
+##   $pssm_evalue 0.002
+##   $srch_evalue 5.0
 ($num_iter, $pssm_evalue, $srch_evalue, $dom_flag, $align_flag, $int_mask, $end_mask, $query_mask, $srch_pgm, $tmp_dir, $error_log, $annot_type, $quiet) =
   ( 5, 0.002, 5.0, 0, 0, 'none', 'none', 0, 'ssearch','',0, 0, "", 0);
 ($save_all, $tmp_file_list, $delete_bnd, $delete_tmp) = (0, "", 0, 0);
@@ -215,7 +225,12 @@ my $search = "";
 my @del_err_files = ();
 
 unless ($prev_m89res || $prev_msa) {
-  $search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
+    if (defined($srch_subs{$srch_pgm})) {
+	$search = $srch_subs{$srch_pgm}($query_file, $db_file, $prev_pssm);
+    }
+    else {
+	die "$ARGV[0] $srch_pgm not found\n";
+    }
   unless ($use_stdout) {
     log_system("$search > $this_file_out 2> $this_file_out.err");
   }
@@ -338,6 +353,31 @@ sub get_ssearch_cmd {
 }
 
 ################
+# sub get_ssearch_cmd()
+# builds an ssearch command line with query, db, and pssm
+#
+sub get_ggsearch_cmd {
+  my ($query_file, $db_file, $pssm_file) = @_;
+
+  my $mf_arg = $m_format;
+  $mf_arg =~ s/^m//;
+  $mf_arg =~ s/\+/ /;
+
+  my $search_cmd = qq($ggsearch_bin -S -E "$srch_evalue 0" -s BP62 -m $mf_arg);
+
+  if ($annot_type) {
+    $search_cmd .= qq( -V $annot_cmds{$annot_type});
+  }
+  if ($pssm_file) {
+    $search_cmd .= qq( -P "$pssm_file 2");
+  }
+
+  $search_cmd .= qq( $query_file $db_file);
+
+  return $search_cmd;
+}
+
+################
 # sub get_psiblast_cmd()
 # builds an ssearch command line with query, db, and pssm
 #
@@ -348,7 +388,7 @@ sub get_psiblast_cmd {
   if ($pssm_file) {
     $search_cmd .= qq( -in_pssm $pssm_file);
 #    $search_cmd .= qq( -comp_based_stats 0);
-  }
+1  }
   else {
     $search_cmd .= qq( -query $query_file);
   }
@@ -535,7 +575,7 @@ psisearch2_msa.pl
 
 =head1 SYNOPSIS
 
- psisearch2_msa.pl --query q_file --db db_file --pgm ssearch|psiblast --num_iter 5
+ psisearch2_msa.pl --query q_file --db db_file --pgm ssearch|ggsearch|psiblast --num_iter 5
 
 =head1 OPTIONS
 
