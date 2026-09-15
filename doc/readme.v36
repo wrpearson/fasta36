@@ -6,6 +6,10 @@ multiple high-scoring alignments to be shown, rather than just one.
 This is the main functional difference between FASTA and BLAST -
 BLAST could show multiple HSPs, FASTA did not.
 
+>>Sep 15, 2026
+[scripts/merge_blast_btab.pl, merge_fasta_btab.pl]
+remove URI::encode (redundant with URI::escape)
+
 >>Aug 30, 2026
 [psisearch2/psisearch2_msa.pl]
 modify annotation command line to remove spaces

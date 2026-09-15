@@ -175,7 +175,7 @@ my ($q_num, $query_descr, $q_len, $lib_cnt, $lib_len, $best_yes, $last_fields_r)
 
 if ($m_format =~ m/^m9/i) {
   ($q_num, $query_descr, $q_len, $lib_cnt, $lib_len, $best_yes) = skip_to_m9results();
-  warn "Cannot find the best scores are:"  unless $query_descr;
+  warn "Cannot find the best scores are: in $ARGV"  unless $query_descr;
 }
 elsif ($m_format =~ m/^m8/) {
   ($query_descr, $best_yes, $last_fields_r) = skip_to_m8results();

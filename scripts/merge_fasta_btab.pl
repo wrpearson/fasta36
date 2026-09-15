@@ -30,7 +30,7 @@ use warnings;
 use strict;
 use Getopt::Long;
 use Pod::Usage;
-use URI::Encode qw(uri_encode);
+## use URI::Encode qw(uri_encode);
 use URI::Escape qw(uri_escape);
 
 my ($btab_file, $have_qslen, $help, $shelp, $dom_info) = ("", 0, 0, 0, 0);
@@ -311,9 +311,9 @@ sub plot_tag_str {
   @plt_args{qw(pgm q_cstart l_cstart)} = ($pgm_name, 1, 1);
   @plt_args{qw(q_name q_cstop q_astart q_astop l_name l_cstop l_astart l_astop)} =
     @{$align_data_r}{qw(q_seqid q_len q_start q_end s_seqid s_len s_start s_end)};
-  $plt_args{'regions'}= uri_escape(uri_encode($regions_str));
+  $plt_args{'regions'}= uri_escape($regions_str);
   if ($doms_str) {
-    $plt_args{'doms'} = uri_encode($doms_str);
+    $plt_args{'doms'} = uri_escape($doms_str);
   }
 
   my $dom_info = ();

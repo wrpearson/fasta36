@@ -43,7 +43,7 @@ use Pod::Usage;
 ################
 #
 # command:
-# psisearch2_msa.pl --query query.file --in_msa msa.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/gssearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
+# psisearch2_msa.pl --query query.file --in_msa msa.file --db database.file --num_iter N --pssm_evalue 0.002 --int_mask none/query/random --end_mask none/query/random --tmp_dir results/ --domain --align --out_suffix none --pgm ssearch/ggsearch/psiblast --prev_m89res prev_results.itx.m8CB.file --sel_res selected_accs.file --prev_bounds boundary.file
 #
 ################
 
