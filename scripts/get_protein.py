@@ -10,6 +10,7 @@
 
 import argparse
 import sys
+import os
 import re
 import textwrap
 import time
@@ -25,14 +26,41 @@ def main():
 
   parser=argparse.ArgumentParser(description='get protein sequences from uniprot/ncbi')
   parser.add_argument('--id', help='substitute id',action='store',default='')
+  parser.add_argument('--key', help='API_key',action='store',default='')
+  parser.add_argument('--log', help='log download',action='store_true',default=False)
   parser.add_argument('accs', nargs='*', help='accessions')
 
   args=parser.parse_args()
 
-  for acc in args.accs:
+  r_size = 100
+
+  if (args.key):
+    ncbi_url += f'api_key={args.key}&'
+  elif os.getenv('NCBI_API_KEY'):
+    ncbi_url += f'api_key={os.getenv("NCBI_API_KEY")}&'
+
+  if (args.accs[0].startswith("@")):
+    accs = []
+    with open(args.accs[0][1:],'r') as f_in:
+      for line in f_in:
+        accs.append(line.strip('\n'))
+
+    acc_list = []
+
+    for ix in range(0,len(accs),r_size):
+      mx = ix + r_size
+      if (mx > len(accs)):
+        mx = len(accs)
+##      print(f"extracting: {ix}:{mx}",file=sys.stderr)
+      acc_list.append(','.join(accs[ix:mx]))
+
+  else:
+    acc_list = args.accs
+    
+  for acc in acc_list:
 
     ## detaint acc -- do not allow ':' or '|'
-    acc = re.sub(r'[^A-Za-z_0-9\|]','',acc)
+    acc = re.sub(r'[^A-Za-z_0-9\.\,\|]','',acc)
 
     if (re.search(r':',acc)):
       (acc, sub_range) = acc.split(':')

@@ -1341,7 +1341,7 @@ f_getopt (char copt, char *optarg,
    -Xg  - do not remove gi| numbers
  */
 
-static char ext_opts[] = "1aABbghIM:ox:y:N:";
+static char ext_opts[] = "1aABbghIM:ox:y:N:G";
 
 void
 parse_ext_opts(char *opt_arg, int pgm_id, struct mngmsg *m_msp, struct pstruct *ppst) {
