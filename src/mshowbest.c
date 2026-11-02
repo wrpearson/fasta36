@@ -659,7 +659,7 @@ l1:
 	      fprintf(fp,"\t%.3f\t%.3f",disp_percent, disp_similar);
 	    }
 	    else {
-	      fprintf(fp,"\t%.3f",percent);
+	      fprintf(fp,"\t%.3f",disp_percent);
 	    }
 	    fprintf(fp,"\t%d\t%d\t%d\t%ld\t%ld\t%ld\t%ld\t%.3g\t%.1f",
 		    disp_alen,aln_p->nmismatch,
